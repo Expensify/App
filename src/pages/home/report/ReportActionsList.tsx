@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -332,25 +333,8 @@ function ReportActionsList({
         if (!linkedReportActionID || linkedReportActionID === '-1') {
             return;
         }
-        Navigation.setParams({reportActionID: '-1'});
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     };
-
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const handleBeforeUnload = () => {
-            clearHighLight();
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -362,10 +346,10 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const scrollToBottomForCurrentUserAction = useCallback(
+    const handleNewCurrenUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
+            // If a new action is added and it's from the current user clear the yellow highlight
+            // and scroll to the bottom otherwise leave the user positioned where they are now in the list.
             if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
@@ -392,7 +376,7 @@ function ReportActionsList({
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
+        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, handleNewCurrenUserAction);
 
         const cleanup = () => {
             if (!unsubscribe) {
