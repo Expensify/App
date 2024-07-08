@@ -29,6 +29,7 @@ function MappingStep({importCustomField, customSegmentType}: CustomFieldSubStepW
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}
                 defaultValue={CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
+                shouldSaveDraft
             />
         </>
     );

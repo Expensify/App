@@ -19,6 +19,7 @@ function ChooseCustomListStep({policy}: CustomFieldSubStepWithPolicy) {
                 inputID={INPUT_IDS.LIST_NAME}
                 policy={policy}
                 internalIDInputID={INPUT_IDS.INTERNAL_ID}
+                shouldSaveDraft
             />
         </>
     );

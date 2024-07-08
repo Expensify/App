@@ -36,6 +36,7 @@ function ConfirmCustomListStep({onMove, customSegmentType}: CustomFieldSubStepWi
                         onMove(index + 1);
                     }}
                     valueRenderer={(value) => (fieldName === INPUT_IDS.MAPPING && value ? translate(`workspace.netsuite.import.importTypes.${value}.label` as TranslationPaths) : value)}
+                    shouldSaveDraft
                 />
             ))}
         </View>
