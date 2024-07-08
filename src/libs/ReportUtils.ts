@@ -1673,8 +1673,9 @@ function getWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
 
     if (!(isChatRoom(report) || isPolicyExpenseChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report))) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistory');
+        return welcomeMessage;
     }
-    
+
     return welcomeMessage;
 }
 
