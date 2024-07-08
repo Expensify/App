@@ -902,9 +902,18 @@ function isTripRoom(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && getChatType(report) === CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 }
 
+function isIndividualInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+}
+
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return currentUserAccountID === report.invoiceReceiver.accountID;
+    }
+
+    if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+        const policy = PolicyUtils.getPolicy(report.invoiceReceiver.policyID);
+        return PolicyUtils.isPolicyAdmin(policy);
     }
 
     return false;
@@ -2050,9 +2059,15 @@ function getIcons(
             if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 icons.push(...getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails));
             } else {
-                const receiverPolicy = getPolicy(report?.invoiceReceiver?.policyID);
+                const receiverPolicyID = report?.invoiceReceiver?.policyID;
+                const receiverPolicy = getPolicy(receiverPolicyID);
                 if (!isEmptyObject(receiverPolicy)) {
-                    icons.push(getWorkspaceIcon(report, receiverPolicy));
+                    icons.push({
+                        source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                        name: receiverPolicy.name,
+                        id: receiverPolicyID,
+                    });
                 }
             }
         }
@@ -2124,10 +2139,16 @@ function getIcons(
             return icons;
         }
 
-        const receiverPolicy = getPolicy(invoiceRoomReport?.invoiceReceiver?.policyID);
+        const receiverPolicyID = invoiceRoomReport?.invoiceReceiver?.policyID;
+        const receiverPolicy = getPolicy(receiverPolicyID);
 
         if (!isEmptyObject(receiverPolicy)) {
-            icons.push(getWorkspaceIcon(invoiceRoomReport, receiverPolicy));
+            icons.push({
+                source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: receiverPolicy.name,
+                id: receiverPolicyID,
+            });
         }
 
         return icons;
@@ -2592,7 +2613,17 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
-    let payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
+
+    let payerOrApproverName;
+    if (isExpenseReport(report)) {
+        payerOrApproverName = getPolicyName(report, false, policy);
+    } else if (isInvoiceReport(report)) {
+        const chatReport = getReportOrDraftReport(report?.chatReportID);
+        payerOrApproverName = getInvoicePayerName(chatReport);
+    } else {
+        payerOrApproverName = getDisplayNameForParticipant(report?.managerID) ?? '';
+    }
+
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
@@ -5522,6 +5553,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
             isChatThread(report) ||
             isTaskReport(report) ||
             isMoneyRequestReport(report) ||
+            isInvoiceReport(report) ||
             isChatRoom(report) ||
             isPolicyExpenseChat(report) ||
             (isGroupChat(report) && !shouldIncludeGroupChats)
@@ -7313,6 +7345,7 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
+    isIndividualInvoiceRoom,
 };
 
 export type {
