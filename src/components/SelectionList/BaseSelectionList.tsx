@@ -24,6 +24,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -165,7 +166,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
-                if (item.isSelected) {
+                if (item.isSelected && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
                     selectedOptions.push(item);
                 }
             });
@@ -431,6 +432,13 @@ function BaseSelectionList<TItem extends ListItem>(
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
+        const handleOnCheckboxPress = () => {
+            if (SearchUtils.isReportListItemType(item)) {
+                return onCheckboxPress;
+            }
+            return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        };
+
         return (
             <>
                 <ListItem
@@ -440,7 +448,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onSelectRow={() => selectRow(item)}
-                    onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
+                    onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
