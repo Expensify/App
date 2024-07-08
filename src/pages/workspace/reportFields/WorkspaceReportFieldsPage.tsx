@@ -20,15 +20,21 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
-type ReportFieldForList = ListItem & {value: string; fieldID: string};
+type ReportFieldForList = ListItem & {
+    value: string;
+    fieldID: string;
+    orderWeight?: number;
+};
 
 type WorkspaceReportFieldsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
@@ -47,7 +53,8 @@ function WorkspaceReportFieldsPage({
         if (!policy?.fieldList) {
             return {};
         }
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([key]) => key !== 'text_title'));
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
 
@@ -67,9 +74,15 @@ function WorkspaceReportFieldsPage({
             fieldID: reportField.fieldID,
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
+            pendingAction: reportField.pendingAction,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
-            rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(reportField.type)} />,
+            rightElement: (
+                <ListItemRightCaretWithLabel
+                    shouldShowCaret={false}
+                    labelText={Str.recapitalize(reportField.type)}
+                />
+            ),
         }));
     }, [filteredPolicyFieldList, policy, selectedReportFields]);
 
@@ -81,6 +94,10 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields(updatedReportFields);
     };
 
+    const navigateToReportFieldSettings = (reportField: ReportFieldForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
+    };
+
     const isLoading = reportFieldsList === undefined;
     const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
 
@@ -89,16 +106,16 @@ function WorkspaceReportFieldsPage({
             <Button
                 medium
                 success
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addField')}
-                style={[isSmallScreenWidth && styles.flex1]}
+                style={isSmallScreenWidth && styles.flex1}
             />
         </View>
     );
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.type')}</Text>
         </View>
@@ -135,7 +152,7 @@ function WorkspaceReportFieldsPage({
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
+                        style={styles.flex1}
                         color={theme.spinner}
                     />
                 )}
@@ -151,7 +168,7 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple
                         sections={[{data: reportFieldsList, isDisabled: false}]}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={() => {}}
+                        onSelectRow={navigateToReportFieldSettings}
                         onSelectAll={() => {}}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

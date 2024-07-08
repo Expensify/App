@@ -18,6 +18,7 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyProfilePageParams,
@@ -26,6 +27,7 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    RequestExpensifyCardLimitIncreaseParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -35,6 +37,7 @@ import type {
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
+    UpgradeToCorporateParams,
 } from '@libs/API/parameters';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -48,6 +51,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
@@ -120,13 +124,6 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
 });
 
 let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
@@ -256,7 +253,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
-    const reportsToArchive = Object.values(allReports ?? {}).filter(
+    const reportsToArchive = Object.values(ReportConnection.getAllReports() ?? {}).filter(
         (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
     );
     const finallyData: OnyxUpdate[] = [];
@@ -531,6 +528,10 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
 
 function clearNetSuiteErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
+}
+
+function clearNetSuiteAutoSyncErrorField(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
@@ -1929,6 +1930,17 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
+function openPolicyExpensifyCardsPage(policyID: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: OpenPolicyExpensifyCardsPageParams = {
+        policyID,
+        authToken,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -1947,6 +1959,17 @@ function openDraftWorkspaceRequest(policyID: string) {
     const params: OpenDraftWorkspaceRequestParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
+}
+
+function requestExpensifyCardLimitIncrease(settlementBankAccountID: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: RequestExpensifyCardLimitIncreaseParams = {
+        authToken,
+        settlementBankAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
 function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
@@ -2991,6 +3014,59 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+function upgradeToCorporate(policyID: string, featureName: string) {
+    const policy = getPolicy(policyID);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `policy_${policyID}`,
+            value: {
+                isPendingUpgrade: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+                maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                glCodes: true,
+                ...(PolicyUtils.isInstantSubmitEnabled(policy) && {
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
+                }),
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `policy_${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `policy_${policyID}`,
+            value: {
+                isPendingUpgrade: false,
+                type: policy?.type,
+                maxExpenseAge: policy?.maxExpenseAge ?? null,
+                maxExpenseAmount: policy?.maxExpenseAmount ?? null,
+                maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+                glCodes: policy?.glCodes ?? null,
+                autoReporting: policy?.autoReporting ?? null,
+                autoReportingFrequency: policy?.autoReportingFrequency ?? null,
+            },
+        },
+    ];
+
+    const parameters: UpgradeToCorporateParams = {policyID, featureName};
+
+    API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
+}
+
 function getPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
 }
@@ -3048,6 +3124,7 @@ export {
     clearQBOErrorField,
     clearXeroErrorField,
     clearNetSuiteErrorField,
+    clearNetSuiteAutoSyncErrorField,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
@@ -3059,6 +3136,9 @@ export {
     buildPolicyData,
     enableExpensifyCard,
     createPolicyExpenseChats,
+    upgradeToCorporate,
+    openPolicyExpensifyCardsPage,
+    requestExpensifyCardLimitIncrease,
     getPoliciesConnectedToSageIntacct,
 };
 
