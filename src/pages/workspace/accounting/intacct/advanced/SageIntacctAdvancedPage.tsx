@@ -68,13 +68,10 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
                 isActive: !!sync?.syncReimbursedReports,
                 onToggle: (enabled: boolean) => {
-                    if (!enabled) {
-                        updateSageIntacctSyncReimbursedReports(policyID, false);
-                    } else if (sync?.reimbursementAccountID !== undefined) {
-                        updateSageIntacctSyncReimbursedReports(policyID, sync?.reimbursementAccountID);
-                    } else {
+                    updateSageIntacctSyncReimbursedReports(policyID, enabled);
+
+                    if (enabled && sync?.reimbursementAccountID === undefined) {
                         const reimbursementAccountID = data?.bankAccounts[0]?.id ?? '-1';
-                        updateSageIntacctSyncReimbursedReports(policyID, reimbursementAccountID);
                         updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
                     }
                 },
@@ -88,7 +85,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         [
             translate,
             autoSync?.enabled,
-            pendingFields?.autoSync,
+            pendingFields?.enabled,
             pendingFields?.importEmployees,
             pendingFields?.syncReimbursedReports,
             config,

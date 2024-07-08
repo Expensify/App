@@ -12,7 +12,7 @@ import {getSageIntacctBankAccounts} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import {updateSageIntacctSyncReimbursedReports, updateSageIntacctSyncReimbursementAccountID} from '@userActions/connections/SageIntacct';
+import {updateSageIntacctSyncReimbursementAccountID} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +31,6 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         ({value}: SelectorType) => {
             if (value !== config?.sync?.reimbursementAccountID) {
                 updateSageIntacctSyncReimbursementAccountID(policyID, value);
-                updateSageIntacctSyncReimbursedReports(policyID, value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
         },
@@ -65,9 +64,9 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={config?.pendingFields?.reimbursementAccountID}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.mv2]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID)}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }

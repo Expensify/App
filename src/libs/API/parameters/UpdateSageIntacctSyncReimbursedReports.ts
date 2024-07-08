@@ -1,6 +1,6 @@
 type UpdateSageIntacctSyncReimbursedReports = {
     policyID: string;
-    value: string | false;
+    value: boolean;
 };
 
 export default UpdateSageIntacctSyncReimbursedReports;

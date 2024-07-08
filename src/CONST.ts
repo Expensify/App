@@ -1351,7 +1351,7 @@ const CONST = {
         APPROVAL_MODE: 'approvalMode',
         SYNC: 'sync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
-        REIMBUSERED_ACCOUNT_ID: 'reimbursementAccountID',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
     },
 
     SAGE_INTACCT: {

@@ -195,24 +195,24 @@ function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_APPROVAL_MODE, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursedReports(policyID: string, vendorID: string | false) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, vendorID);
+function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boolean) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, enabled);
     const parameters = {
         policyID,
-        value: vendorID,
+        value: enabled,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
 function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID, vendorID);
+    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID);
     const parameters = {
         policyID,
         value: vendorID,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
 export {
