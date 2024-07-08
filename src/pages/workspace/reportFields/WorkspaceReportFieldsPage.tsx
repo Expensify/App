@@ -84,6 +84,7 @@ function WorkspaceReportFieldsPage({
             orderWeight: reportField.orderWeight,
             pendingAction: reportField.pendingAction,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
+            isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             text: reportField.name,
             rightElement: (
                 <ListItemRightCaretWithLabel
@@ -100,6 +101,12 @@ function WorkspaceReportFieldsPage({
             ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
             : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
         setSelectedReportFields(updatedReportFields);
+    };
+
+    const toggleAllReportFields = () => {
+        const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const isAllSelected = availableReportFields.length === selectedReportFields.length;
+        setSelectedReportFields(isAllSelected ? [] : availableReportFields);
     };
 
     const navigateToReportFieldSettings = (reportField: ReportFieldForList) => {
@@ -219,7 +226,7 @@ function WorkspaceReportFieldsPage({
                         sections={[{data: reportFieldsList, isDisabled: false}]}
                         onCheckboxPress={updateSelectedReportFields}
                         onSelectRow={navigateToReportFieldSettings}
-                        onSelectAll={() => {}}
+                        onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
