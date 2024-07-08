@@ -51,7 +51,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy ?? undefined, defaultVendor), [defaultVendor, policy]);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
 
     const listHeaderComponent = useMemo(
         () => (

@@ -575,11 +575,11 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
-function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: string | null | undefined): SelectorType[] {
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string | null): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
 
-    return (vendors ?? []).map(({id, value}) => ({
+    return vendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
@@ -601,7 +601,7 @@ function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): S
     const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
     const isMatchFound = creditCards?.some(({name}) => name === selectedAccount);
 
-    return (creditCards ?? []).map(({name}) => ({
+    return creditCards.map(({name}) => ({
         value: name,
         text: name,
         keyForList: name,
