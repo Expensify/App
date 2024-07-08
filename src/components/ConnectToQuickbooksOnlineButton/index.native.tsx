@@ -1,4 +1,5 @@
 import React, {useRef, useState} from 'react';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
@@ -17,7 +18,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
-import * as PolicyAction from '@userActions/Policy/Policy';
 
 
 type ConnectToQuickbooksOnlineButtonOnyxProps = {
