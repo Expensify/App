@@ -49,10 +49,11 @@ function isInRange(num, min, max) {
  * If a page is directly accessed (e.g., via deep link, bookmark, or opened in a new tab),the user will be navigated
  * back to the relevant hub page of that article.
  */
-let newPath;
+
 function navigateBack() {
     const currentPath = window.location.pathname;
     const pathSegments = currentPath.split('/');
+    let newPath;
 
     // Check if we're in an article page
     if (pathSegments.length >= 5 && pathSegments[1] === 'articles') {
@@ -78,7 +79,6 @@ function navigateBack() {
     }
 }
 
-// Add an event listener for the popstate event
 window.addEventListener('popstate', (e)=>{
     e.preventDefault()
     navigateBack()
@@ -309,6 +309,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
     lhnContent.addEventListener('wheel', (e) => {
         const scrollTop = lhnContent.scrollTop;
         const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
@@ -317,6 +318,7 @@ window.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         }
     });
+
     window.addEventListener('scroll', (e) => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
@@ -325,4 +327,5 @@ window.addEventListener('DOMContentLoaded', () => {
         // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
+    
 });

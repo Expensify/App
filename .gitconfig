@@ -1,8 +1,0 @@
-[commit]
-    gpgsign = true
-[user]
-    email = rasheedrtm1@gmail.com
-    name = Rasheed Mudasiru
-    signingkey = 30C8087C891F6D07
-[gpg]
-    program = gpg
