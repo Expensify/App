@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,17 +13,31 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+
+    const isEditing = issueNewCard?.isEditing;
 
     const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, {cardType: value});
+        Card.setIssueNewCardStepAndData({
+            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
+            data: {
+                cardType: value,
+            },
+            isEditing: false,
+        });
     };
 
     const handleBackButtonPress = () => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE);
+        if (isEditing) {
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE});
     };
 
     return (

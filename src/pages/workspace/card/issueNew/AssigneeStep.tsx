@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -20,6 +21,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
@@ -33,14 +35,27 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+
+    const isEditing = issueNewCard?.isEditing;
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const submit = (assignee: ListItem) => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, {assigneeEmail: assignee?.login ?? ''});
+        Card.setIssueNewCardStepAndData({
+            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
+            data: {
+                assigneeEmail: assignee?.login ?? '',
+            },
+            isEditing: false,
+        });
     };
 
     const handleBackButtonPress = () => {
+        if (isEditing) {
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
         Navigation.goBack();
         Card.clearIssueNewCardFlow();
     };

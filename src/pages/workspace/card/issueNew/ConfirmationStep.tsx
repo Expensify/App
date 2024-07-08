@@ -48,11 +48,11 @@ function ConfirmationStep() {
     };
 
     const editStep = (step: IssueNewCardStep) => {
-        Card.setIssueNewCardStepAndData(step);
+        Card.setIssueNewCardStepAndData({step, isEditing: true});
     };
 
     const handleBackButtonPress = () => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_NAME);
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME});
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);

@@ -24,6 +24,8 @@ function CardNameStep() {
     const {inputCallbackRef} = useAutoFocusInput();
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
+    const isEditing = issueNewCard?.isEditing;
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
@@ -36,12 +38,22 @@ function CardNameStep() {
     );
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, {cardTitle: values.cardTitle});
+        Card.setIssueNewCardStepAndData({
+            step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+            data: {
+                cardTitle: values.cardTitle,
+            },
+            isEditing: false,
+        });
     }, []);
 
     const handleBackButtonPress = useCallback(() => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT);
-    }, []);
+        if (isEditing) {
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT});
+    }, [isEditing]);
 
     return (
         <ScreenWrapper

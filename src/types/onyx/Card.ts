@@ -114,6 +114,9 @@ type IssueNewCard = {
 
     /** Data required to be sent to issue a new card */
     data: IssueNewCardData;
+
+    /** Whether the user is editing step */
+    isEditing: boolean;
 };
 
 /** List of Expensify cards */

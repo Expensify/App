@@ -24,14 +24,23 @@ function LimitStep() {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const isEditing = issueNewCard?.isEditing;
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_NAME, {limit});
+        Card.setIssueNewCardStepAndData({
+            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
+            data: {limit},
+            isEditing: false,
+        });
     }, []);
 
     const handleBackButtonPress = useCallback(() => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
+        if (isEditing) {
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE});
     }, []);
 
     const validate = useCallback(

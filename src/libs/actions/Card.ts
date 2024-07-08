@@ -9,6 +9,17 @@ import type {ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@sr
 
 type ReplacementReason = 'damaged' | 'stolen';
 
+type IssueNewCardFlowData = {
+    /** Step to be set in Onyx */
+    step?: IssueNewCardStep;
+
+    /** Whether the user is editing step */
+    isEditing?: boolean;
+
+    /** Data required to be sent to issue a new card */
+    data?: Partial<IssueNewCardData>;
+};
+
 function reportVirtualExpensifyCardFraud(cardID: number) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -185,8 +196,8 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
     });
 }
 
-function setIssueNewCardStepAndData(currentStep?: IssueNewCardStep, data?: Partial<IssueNewCardData>) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, currentStep});
+function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
 }
 
 function clearIssueNewCardFlow() {

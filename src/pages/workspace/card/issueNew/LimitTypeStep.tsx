@@ -32,13 +32,23 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
+    const isEditing = issueNewCard?.isEditing;
+
     const submit = useCallback(() => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT, {limitType: typeSelected});
-    }, [typeSelected]);
+        Card.setIssueNewCardStepAndData({
+            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT,
+            data: {limitType: typeSelected},
+            isEditing: false,
+        });
+    }, [isEditing, typeSelected]);
 
     const handleBackButtonPress = useCallback(() => {
-        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
-    }, []);
+        if (isEditing) {
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
+        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE});
+    }, [isEditing]);
 
     const data = useMemo(() => {
         const options = [];
