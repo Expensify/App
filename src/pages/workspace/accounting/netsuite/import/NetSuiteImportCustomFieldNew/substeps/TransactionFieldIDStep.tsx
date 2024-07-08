@@ -40,7 +40,7 @@ function TransactionFieldIDStep({onNext, isEditing, policy}: CustomFieldSubStepW
                     (customList) => customList.transactionFieldID.toLowerCase() === values[INPUT_IDS.TRANSACTION_FIELD_ID].toLocaleLowerCase(),
                 )
             ) {
-                errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.uniqueTransactionFieldIdError');
+                errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.customLists.errors.uniqueTransactionFieldIDError');
             }
 
             return errors;

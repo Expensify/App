@@ -2403,7 +2403,6 @@ export default {
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
                     requiredFieldError: (fieldName: string) => `Please enter the ${fieldName}`,
-                    uniqueTransactionFieldIdError: `A custom list with this transaction field ID already exists.`,
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
@@ -2443,6 +2442,9 @@ export default {
                             customSegmentMappingTitle: 'How should this custom segment be displayed in Expensify?',
                             customRecordMappingTitle: 'How should this custom segment record be displayed in Expensify?',
                         },
+                        errors: {
+                            uniqueFieldError: (fieldName: string) => `A custom segment/record with this ${fieldName?.toLowerCase()} already exists.`,
+                        },
                     },
                     customLists: {
                         title: 'Custom lists',
@@ -2465,6 +2467,9 @@ export default {
                             transactionFieldIDTitle: "What's the transaction field ID?",
                             transactionFieldIDFooter: `You can find transaction field IDs in NetSuite by following these steps:\n\n1. Enter "Transaction Line Fields" in global search.\n2. Click into a custom list.\n3. Find the transaction field ID on the left-hand side.\n\n_For more detailed instructions, [visit our help site](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
                             mappingTitle: 'How should this custom list be displayed in Expensify?',
+                        },
+                        errors: {
+                            uniqueTransactionFieldIDError: `A custom list with this transaction field ID already exists.`,
                         },
                     },
                 },

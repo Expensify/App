@@ -19,7 +19,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const parser = new ExpensiMark();
 
-function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentNameStep({onNext, isEditing, policy}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const handleSubmit = useNetSuiteCustomFieldAddFormSubmit({
@@ -27,6 +27,8 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
 
     const [formValuesDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
     const customSegmentRecordType = formValuesDraft?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
@@ -39,10 +41,16 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
                     'workspace.netsuite.import.importCustomFields.requiredFieldError',
                     translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
                 );
+            } else if (
+                policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
+                    (customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLocaleLowerCase(),
+                )
+            ) {
+                errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
             }
             return errors;
         },
-        [customSegmentRecordType, translate],
+        [customSegmentRecordType, fieldLabel, policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments, translate],
     );
 
     return (
@@ -61,8 +69,8 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.SEGMENT_NAME}
                 shouldSaveDraft={!isEditing}
-                label={translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`)}
-                aria-label={translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`)}
+                label={fieldLabel}
+                aria-label={fieldLabel}
                 role={CONST.ROLE.PRESENTATION}
                 spellCheck={false}
             />
