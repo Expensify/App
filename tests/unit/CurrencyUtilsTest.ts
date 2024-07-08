@@ -119,15 +119,19 @@ describe('CurrencyUtils', () => {
 
     describe('convertToFrontendAmountAsString', () => {
         test.each([
-            [2500, '25.00'],
-            [2550, '25.50'],
-            [25, '0.25'],
-            [2500.5, '25.00'],
-            [null, ''],
-            [undefined, ''],
-            [0, '0.00'],
-        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsString(input)).toBe(expectedResult);
+            [2500, 'USD', '25.00'],
+            [2550, 'USD', '25.50'],
+            [25, 'USD', '0.25'],
+            [2500.5, 'USD', '25.00'],
+            [null, 'USD', ''],
+            [undefined, 'USD', ''],
+            [0, 'USD', '0.00'],
+            [123456, 'JPY', '1235'], // JPY has 0 decimals
+            [1234, 'JPY', '12'], // JPY has 0 decimals
+            [123456, 'LYD', '1234.56'],
+            [12345678, 'UYW', '123456.78'],
+        ])('Correctly converts %s to amount in %s currency as a string', (input, currency, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input, currency)).toBe(expectedResult);
         });
     });
 

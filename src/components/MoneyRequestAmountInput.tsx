@@ -28,7 +28,7 @@ type MoneyRequestAmountInputProps = {
     amount?: number;
 
     /** A callback to format the amount number */
-    onFormatAmount?: (amount: number, currency?: string) => string;
+    onFormatAmount?: (amount: number, currency: string) => string;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
@@ -103,7 +103,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number, currency?: string) => CurrencyUtils.convertToFrontendAmountAsString(amount, currency);
+const defaultOnFormatAmount = (amount: number, currency: string) => CurrencyUtils.convertToFrontendAmountAsString(amount, currency);
 
 function MoneyRequestAmountInput(
     {
