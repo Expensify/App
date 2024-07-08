@@ -993,7 +993,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
-
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
