@@ -534,6 +534,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CARD_RECONCILIATION: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/card-reconciliation',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/card-reconciliation` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const,
@@ -932,6 +936,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
+    POLICY_ACCOUNTING_XERO_CARD_RECONCILIATION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/card-reconciliation',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/card-reconciliation` as const,
+    },
     POLICY_ACCOUNTING_XERO_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
@@ -1021,6 +1029,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_CARD_RECONCILIATION: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/card-reconciliation',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/card-reconciliation` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/preferred-exporter/select` as const,
@@ -1089,6 +1101,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_CARD_RECONCILIATION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/card-reconciliation',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/card-reconciliation` as const,
     },
 } as const;
 

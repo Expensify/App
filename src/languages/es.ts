@@ -2923,6 +2923,7 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
+            cardReconciliation: 'Conciliación de tarjetas',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

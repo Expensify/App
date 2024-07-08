@@ -2942,6 +2942,7 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            cardReconciliation: 'Card reconciliation',
         },
         bills: {
             manageYourBills: 'Manage your bills',
