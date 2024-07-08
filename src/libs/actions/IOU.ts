@@ -5966,8 +5966,7 @@ function getHoldReportActions(reportID: string) {
 function getHoldTransaction(reportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>): OnyxEntry<OnyxTypes.Transaction> {
     const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
     if (transactionID) {
-        const transaction = getTransaction(transactionID);
-        return !transaction?.comment?.hold ? transaction : undefined;
+        return getTransaction(transactionID);
     }
     return undefined;
 }
@@ -6286,7 +6285,7 @@ function getPayMoneyRequestParams(
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
-        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+        // optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
     return {
