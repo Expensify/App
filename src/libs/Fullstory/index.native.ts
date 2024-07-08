@@ -1,5 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
-import {useOnyx, type OnyxEntry} from 'react-native-onyx';
+import {type OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {UserMetadata} from '@src/types/onyx';
 import CONST from '@src/CONST';
