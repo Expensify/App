@@ -1,5 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import * as Environment from '@src/libs/Environment/Environment';
 import type {UserMetadata} from '@src/types/onyx';
 
 /**
@@ -40,9 +41,13 @@ const FS = {
             // anonymize FullStory user identity metadata
             FullStory.anonymize();
         } else {
-            // define FullStory user identity
-            FullStory.identify(String(metadata.accountID), {
-                properties: metadata,
+            Environment.getEnvironment().then((envName: string) => {
+                // define FullStory user identity
+                const localMetadata = metadata;
+                localMetadata.environment = envName;
+                FullStory.identify(String(localMetadata.accountID), {
+                    properties: localMetadata,
+                });
             });
         }
     },

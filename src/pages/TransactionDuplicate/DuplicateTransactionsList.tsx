@@ -37,4 +37,5 @@ function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProp
     );
 }
 
+DuplicateTransactionsList.displayName = 'DuplicateTransactionsList';
 export default DuplicateTransactionsList;

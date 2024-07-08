@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {renamePolicyTax, validateTaxName} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -27,8 +27,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
 
 type NamePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_NAME>;
 
-const parser = new ExpensiMark();
-
 function NamePage({
     route: {
         params: {policyID, taxID},
@@ -40,9 +38,9 @@ function NamePage({
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [name, setName] = useState(() => parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
+    const [name, setName] = useState(() => parseHtmlToMarkdown(currentTaxRate?.name ?? ''));
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
 
     const submit = () => {
         const taxName = name.trim();

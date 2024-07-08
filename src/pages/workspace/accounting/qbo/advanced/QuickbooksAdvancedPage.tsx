@@ -25,7 +25,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
     const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -70,10 +70,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
-            title: translate('workspace.qbo.advancedConfig.autoSync'),
+            title: translate('workspace.accounting.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: Boolean(autoSync?.enabled),
+            isActive: !!autoSync?.enabled,
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
                     enabled: !autoSync?.enabled,
@@ -87,7 +87,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
-            isActive: Boolean(syncPeople),
+            isActive: !!syncPeople,
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE),
@@ -98,7 +98,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
-            isActive: Boolean(autoCreateVendor),
+            isActive: !!autoCreateVendor,
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
@@ -106,7 +106,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             wrapperStyle: styles.mv3,
         },
         {
-            title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
+            title: translate('workspace.accounting.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
@@ -136,7 +136,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksAdvancedPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.advanced')} />
 
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
                     {qboToggleSettingItems.map((item) => (

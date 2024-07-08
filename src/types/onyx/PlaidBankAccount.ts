@@ -1,3 +1,4 @@
+/** Model of plaid bank account data */
 type PlaidBankAccount = {
     /** Masked account number */
     accountNumber: string;

@@ -30,7 +30,7 @@ function ReviewBillable() {
 
     const onSelectRow = (data: FieldItemType<'billable'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({billable: data.value as boolean});
+            setReviewDuplicatesKey({billable: data.value});
         }
         navigateToNextScreen();
     };

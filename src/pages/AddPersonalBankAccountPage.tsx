@@ -80,7 +80,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             ) : (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-                    isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
+                    isSubmitButtonVisible={!!selectedPlaidAccountId}
                     submitButtonText={translate('common.saveAndContinue')}
                     scrollContextEnabled
                     onSubmit={submitBankAccountForm}
@@ -89,7 +89,9 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                 >
                     <AddPlaidBankAccount
                         onSelect={setSelectedPlaidAccountId}
+                        text={translate('walletPage.chooseAccountBody')}
                         plaidData={plaidData}
+                        isDisplayedInWalletFlow
                         onExitPlaid={() => Navigation.goBack()}
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         selectedPlaidAccountID={selectedPlaidAccountId}

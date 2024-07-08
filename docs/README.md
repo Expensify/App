@@ -186,8 +186,17 @@ Just update the content for each variable accordingly or remove it if the inform
 Assume that we want to rename the article `The Free Plan` to `Freemium Features` for the hub `billing and plan types` in New Expensify platform.
 1. Go to `docs/articles/new-expensify/billing-and-plan-types`
 2. Rename `The-Free-Plan.md` to `Freemium-Features.md`. Use dashes for spaces in the file name.
+3. Add an entry in redirects.csv for the old article pointing to the new article.
 
 Note: It is important that the file has `.md` extension.
+
+# How to hide an article temporarily
+Video demo available [here 🧵](https://expensify.slack.com/archives/C02NK2DQWUX/p1717772272605829?thread_ts=1717523271.137469&cid=C02NK2DQWUX).
+1. Open github's in built code editor by pressing `.` on your keyboard. ([instructions here](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor#opening-the-githubdev-editor))
+2. Go to the article that you want to hide `docs/articles/...`.
+3. Drag and drop the article inside the hidden folder `docs/Hidden/`.
+4. Add a redirect for it in `docs/redirects.csv` to ensure that we don't have broken links. You can choose to point it to the home page or the article's hub.
+5. Commit the changes and raise a PR.
 
 # How the site is deployed
 This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run.

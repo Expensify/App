@@ -5,7 +5,7 @@ import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFrau
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Response} from '@src/types/onyx';
+import type {ExpensifyCardDetails, IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -44,7 +44,11 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -89,7 +93,11 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         reason,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -158,7 +166,7 @@ function clearCardListErrors(cardID: number) {
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number): Promise<Response> {
+function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
         const parameters: RevealExpensifyCardDetailsParams = {cardID};
 
@@ -170,12 +178,16 @@ function revealVirtualCardDetails(cardID: number): Promise<Response> {
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;
                 }
-                resolve(response);
+                resolve(response as ExpensifyCardDetails);
             })
             // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
 
-export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud, revealVirtualCardDetails};
+function setIssueNewCardStep(step: IssueNewCardStep | null) {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {currentStep: step});
+}
+
+export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud, revealVirtualCardDetails, setIssueNewCardStep};
 export type {ReplacementReason};

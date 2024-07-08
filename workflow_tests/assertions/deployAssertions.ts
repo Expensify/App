@@ -49,10 +49,7 @@ function assertDeployProductionJobExecuted(workflowResult: Step[], didExecute = 
             null,
             'DEPLOY_PRODUCTION',
             'Creating release to trigger production deploy',
-            [
-                {key: 'tag_name', value: '1.2.3'},
-                {key: 'body', value: 'Release body'},
-            ],
+            [],
             [{key: 'GITHUB_TOKEN', value: 'os_botify_api_token'}],
         ),
     ] as const;

@@ -30,7 +30,7 @@ function ReviewReimbursable() {
 
     const onSelectRow = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({reimbursable: data.value as boolean});
+            setReviewDuplicatesKey({reimbursable: data.value});
         }
         navigateToNextScreen();
     };

@@ -15,7 +15,7 @@ import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 type MockedReportActionItemSingleProps = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
@@ -33,8 +33,8 @@ type MockedSidebarLinksProps = {
     currentReportID?: string;
 };
 
-jest.mock('@react-navigation/native', (): typeof Navigation => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', (): typeof Navigation => {
             addListener: jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    } as typeof Navigation;
+    };
 });
 
 const fakePersonalDetails: PersonalDetailsList = {
@@ -139,19 +139,15 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     const timestamp = Date.now() - millisecondsInThePast;
     const created = DateUtils.getDBTime(timestamp);
-    const previousReportActionID = lastFakeReportActionID;
     const reportActionID = ++lastFakeReportActionID;
 
     return {
         actor,
         actorAccountID: 1,
         reportActionID: `${reportActionID}`,
-        previousReportActionID: `${previousReportActionID}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,
-        timestamp,
-        reportActionTimestamp: timestamp,
         person: [
             {
                 type: 'TEXT',
@@ -168,47 +164,12 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 isEdited: false,
                 whisperedTo: [],
                 isDeletedParentAction: false,
-                reactions: [
-                    {
-                        emoji: 'heart',
-                        users: [
-                            {
-                                accountID: 1,
-                                skinTone: -1,
-                            },
-                        ],
-                    },
-                ],
             },
         ],
         originalMessage: {
             whisperedTo: [],
-            childReportID: `${reportActionID}`,
-            emojiReactions: {
-                heart: {
-                    createdAt: '2023-08-28 15:27:52',
-                    users: {
-                        1: {
-                            skinTones: {
-                                '-1': '2023-08-28 15:27:52',
-                            },
-                        },
-                    },
-                },
-            },
             html: 'hey',
             lastModified: '2023-08-28 15:28:12.432',
-            reactions: [
-                {
-                    emoji: 'heart',
-                    users: [
-                        {
-                            accountID: 1,
-                            skinTone: -1,
-                        },
-                    ],
-                },
-            ],
         },
     };
 }
@@ -260,7 +221,6 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         },
         autoReportingOffset: 1,
         preventSelfApproval: true,
-        submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
         approvalMode: 'BASIC',
@@ -270,7 +230,7 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
+function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     return {
         ...getFakeReportAction(actor, millisecondsInThePast),
         actionName,

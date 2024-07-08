@@ -24,22 +24,27 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
+const getDefaultItemHeight = () => variables.optionRowHeight;
+
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
         ListItem,
+        shouldUseUserSkeletonView,
         canSelectMultiple = false,
         onSelectRow,
         shouldDebounceRowSelect = false,
         onCheckboxPress,
         onSelectAll,
         onDismissError,
+        getItemHeight = getDefaultItemHeight,
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
@@ -71,6 +76,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
+        customListHeaderHeight = 0,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
@@ -85,6 +91,8 @@ function BaseSelectionList<TItem extends ListItem>(
         onEndReachedThreshold,
         windowSize = 5,
         updateCellsBatchingPeriod = 50,
+        removeClippedSubviews = true,
+        shouldDelayFocus = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -123,7 +131,8 @@ function BaseSelectionList<TItem extends ListItem>(
         const disabledArrowKeyOptionsIndexes: number[] = [];
         let disabledIndex = 0;
 
-        let offset = 0;
+        // need to account that the list might have some extra content above it
+        let offset = customListHeader ? customListHeaderHeight : 0;
         const itemLayouts = [{length: 0, offset}];
 
         const selectedOptions: TItem[] = [];
@@ -153,11 +162,11 @@ function BaseSelectionList<TItem extends ListItem>(
                 disabledIndex += 1;
 
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = variables.optionRowHeight;
+                const fullItemHeight = getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
-                if (item.isSelected) {
+                if (item.isSelected && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
                     selectedOptions.push(item);
                 }
             });
@@ -185,7 +194,7 @@ function BaseSelectionList<TItem extends ListItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sections]);
+    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -270,7 +279,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [onChangeText]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
+    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -423,6 +432,13 @@ function BaseSelectionList<TItem extends ListItem>(
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
+        const handleOnCheckboxPress = () => {
+            if (SearchUtils.isReportListItemType(item)) {
+                return onCheckboxPress;
+            }
+            return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        };
+
         return (
             <>
                 <ListItem
@@ -432,7 +448,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onSelectRow={() => selectRow(item)}
-                    onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
+                    onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
@@ -506,39 +522,43 @@ function BaseSelectionList<TItem extends ListItem>(
         };
     }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
 
+    /** Function to focus text input */
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef.current) {
+            return;
+        }
+
+        innerTextInputRef.current.focus();
+    }, []);
+
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
-            if (!textInputAutoFocus) {
-                return;
-            }
-            if (shouldShowTextInput) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    if (!innerTextInputRef.current) {
-                        return;
-                    }
-                    innerTextInputRef.current.focus();
-                }, CONST.ANIMATED_TRANSITION);
-            }
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
+            if (textInputAutoFocus && shouldShowTextInput) {
+                if (shouldDelayFocus) {
+                    focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+                } else {
+                    focusTextInput();
                 }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [shouldShowTextInput, textInputAutoFocus]),
+            }
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldShowTextInput, textInputAutoFocus, shouldDelayFocus, focusTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
     const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
+    const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if ((prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) || flattenedSections.allOptions.length === 0) {
             return;
         }
-        // Remove the focus if the search input is empty or selected options length is changed else focus on the first non disabled item
-        const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
+        // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
+        // else focus on the first non disabled item
+        const newSelectedIndex =
+            textInputValue === '' || (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length) ? -1 : 0;
 
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
@@ -552,6 +572,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputValue,
         updateAndScrollToFocusedIndex,
         prevSelectedOptionsLength,
+        prevAllOptionsLength,
     ]);
 
     useEffect(
@@ -672,11 +693,12 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldAnimate />
+                        <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />
                     ) : (
                         <>
                             {!listHeaderContent && header()}
                             <SectionList
+                                removeClippedSubviews={removeClippedSubviews}
                                 ref={listRef}
                                 sections={slicedSections}
                                 stickySectionHeadersEnabled={false}

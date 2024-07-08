@@ -1,18 +1,17 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -38,14 +37,14 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
             return;
         }
-        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '');
+        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '-1');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
         const rate = values.rate;
         Policy.setRateForReimburseView((parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(1));
-        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
+        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '-1'));
     };
 
     const validate = useCallback(
@@ -64,8 +63,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
             headerText={translate('workspace.reimburse.trackDistanceRate')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-            shouldSkipVBBACall
-            backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
+            backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '-1')}
             shouldShowLoading={false}
             shouldShowBackButton
         >
@@ -100,11 +98,10 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
 
 WorkspaceRatePage.displayName = 'WorkspaceRatePage';
 
-export default compose(
+export default withPolicy(
     withOnyx<WorkspaceRatePageProps, WorkspaceRateAndUnitOnyxProps>({
         workspaceRateAndUnit: {
             key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
         },
-    }),
-    withPolicy,
-)(WorkspaceRatePage);
+    })(WorkspaceRatePage),
+);

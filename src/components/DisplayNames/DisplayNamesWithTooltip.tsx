@@ -74,7 +74,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
                       </Fragment>
                   ))}
             {renderAdditionalText?.()}
-            {Boolean(isEllipsisActive) && (
+            {!!isEllipsisActive && (
                 <View style={styles.displayNameTooltipEllipsis}>
                     <Tooltip text={fullTitle}>
                         {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}

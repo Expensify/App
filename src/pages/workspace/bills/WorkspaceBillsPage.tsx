@@ -23,6 +23,7 @@ function WorkspaceBillsPage({route}: WorkspaceBillsPageProps) {
             shouldUseScrollView
             headerText={translate('workspace.common.bills')}
             route={route}
+            shouldSkipVBBACall={false}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
             shouldShowOfflineIndicatorInWideScreen
         >
