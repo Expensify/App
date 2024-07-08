@@ -113,6 +113,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         [policy],
     ) as PolicyFeatureStates;
 
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
+        Policy.openPolicyInitialPage(route.params.policyID);
+    }, [policyDraft?.id, route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
+
     const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
 
@@ -134,18 +149,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }
         setIsCurrencyModalOpen(false);
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
-
-    const fetchPolicyData = useCallback(() => {
-        Policy.openPolicyInitialPage(route.params.policyID);
-    }, [route.params.policyID]);
-
-    useNetwork({onReconnect: fetchPolicyData});
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchPolicyData();
-        }, [fetchPolicyData]),
-    );
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {

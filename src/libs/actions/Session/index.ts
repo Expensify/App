@@ -773,7 +773,7 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
             callback(null, response as ChannelAuthorizationData);
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
             callback(new Error('AuthenticatePusher request failed'), {auth: ''});
         });
