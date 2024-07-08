@@ -172,6 +172,7 @@ const WRITE_COMMANDS = {
     SEND_MONEY_ELSEWHERE: 'SendMoneyElsewhere',
     SEND_MONEY_WITH_WALLET: 'SendMoneyWithWallet',
     APPROVE_MONEY_REQUEST: 'ApproveMoneyRequest',
+    UNAPPROVE_EXPENSE_REPORT: 'UnapproveExpenseReport',
     EDIT_MONEY_REQUEST: 'EditMoneyRequest',
     REPLACE_RECEIPT: 'ReplaceReceipt',
     SUBMIT_REPORT: 'SubmitReport',
@@ -432,6 +433,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_MONEY_ELSEWHERE]: Parameters.SendMoneyParams;
     [WRITE_COMMANDS.SEND_MONEY_WITH_WALLET]: Parameters.SendMoneyParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST]: Parameters.ApproveMoneyRequestParams;
+    [WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT]: Parameters.UnapproveExpenseReportParams;
     [WRITE_COMMANDS.EDIT_MONEY_REQUEST]: Parameters.EditMoneyRequestParams;
     [WRITE_COMMANDS.REPLACE_RECEIPT]: Parameters.ReplaceReceiptParams;
     [WRITE_COMMANDS.SUBMIT_REPORT]: Parameters.SubmitReportParams;
