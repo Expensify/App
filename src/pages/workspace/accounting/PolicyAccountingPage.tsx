@@ -1,7 +1,7 @@
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -137,7 +137,8 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
@@ -165,19 +166,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const policyID = policy?.id ?? '-1';
     const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
 
-    const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-    const policyConnectedToNetSuite = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
-    const policyConnectedToSageIntacct = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
-
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);
-
-    const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
-    const netSuiteSelectedSubsidiary = policy?.connections?.netsuite?.options?.config?.subsidiary ?? '';
-
-    const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities;
-    const sageIntacctSelectedEntity = policy?.connections?.intacct?.config.entity;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -203,6 +193,69 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
+
+    const integrationSpecificMenuItems = useMemo(() => {
+        const sageIntacctEntityListLength = policy?.connections?.intacct?.data?.entities?.length;
+        const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+        switch (connectedIntegration) {
+            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                return {
+                    description: translate('workspace.xero.organization'),
+                    iconRight: Expensicons.ArrowRight,
+                    title: getCurrentXeroOrganizationName(policy),
+                    wrapperStyle: [styles.sectionMenuItemTopDescription],
+                    titleStyle: styles.fontWeightNormal,
+                    shouldShowRightIcon: tenants.length > 1,
+                    shouldShowDescriptionOnTop: true,
+                    onPress: () => {
+                        if (!(tenants.length > 1)) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
+                    },
+                    pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
+                    brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                };
+            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                return {
+                    description: translate('workspace.netsuite.subsidiary'),
+                    iconRight: Expensicons.ArrowRight,
+                    title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
+                    wrapperStyle: [styles.sectionMenuItemTopDescription],
+                    titleStyle: styles.fontWeightNormal,
+                    shouldShowRightIcon: netSuiteSubsidiaryList?.length > 1,
+                    shouldShowDescriptionOnTop: true,
+                    pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
+                    brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                    onPress: () => {
+                        if (!(netSuiteSubsidiaryList?.length > 1)) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                    },
+                };
+            case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                return {
+                    description: translate('workspace.intacct.entity'),
+                    iconRight: Expensicons.ArrowRight,
+                    title: policy?.connections?.intacct?.config?.entity ?? '',
+                    wrapperStyle: [styles.sectionMenuItemTopDescription],
+                    titleStyle: styles.fontWeightNormal,
+                    shouldShowRightIcon: !!sageIntacctEntityListLength,
+                    shouldShowDescriptionOnTop: true,
+                    pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
+                    brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                    onPress: () => {
+                        if (!sageIntacctEntityListLength) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
+                    },
+                };
+            default:
+                return undefined;
+        }
+    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
@@ -262,69 +315,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
-            ...(policyConnectedToXero && !shouldShowSynchronizationError
-                ? [
-                      {
-                          description: translate('workspace.xero.organization'),
-                          iconRight: Expensicons.ArrowRight,
-                          title: currentXeroOrganizationName,
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          titleStyle: styles.fontWeightNormal,
-                          shouldShowRightIcon: tenants.length > 1,
-                          shouldShowDescriptionOnTop: true,
-                          onPress: () => {
-                              if (!(tenants.length > 1)) {
-                                  return;
-                              }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
-                          },
-                          pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
-                          brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                      },
-                  ]
-                : []),
-            ...(policyConnectedToNetSuite && !shouldShowSynchronizationError
-                ? [
-                      {
-                          description: translate('workspace.netsuite.subsidiary'),
-                          iconRight: Expensicons.ArrowRight,
-                          title: netSuiteSelectedSubsidiary,
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          titleStyle: styles.fontWeightNormal,
-                          shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
-                          shouldShowDescriptionOnTop: true,
-                          pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
-                          brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                          onPress: () => {
-                              if (!(netSuiteSubsidiaryList.length > 1)) {
-                                  return;
-                              }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
-                          },
-                      },
-                  ]
-                : []),
-            ...(policyConnectedToSageIntacct && !shouldShowSynchronizationError
-                ? [
-                      {
-                          description: translate('workspace.intacct.entity'),
-                          iconRight: Expensicons.ArrowRight,
-                          title: sageIntacctSelectedEntity,
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          titleStyle: styles.fontWeightNormal,
-                          shouldShowRightIcon: !!sageIntacctEntityList?.length,
-                          shouldShowDescriptionOnTop: true,
-                          pendingAction: policy?.connections?.intacct?.config.pendingFields?.entity,
-                          brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                          onPress: () => {
-                              if (!sageIntacctEntityList?.length) {
-                                  return;
-                              }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
-                          },
-                      },
-                  ]
-                : []),
+            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError ? [] : [integrationSpecificMenuItems]),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
@@ -364,20 +355,13 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
-        styles.fontWeightNormal,
         connectionSyncProgress?.stageInProgress,
         datetimeToRelative,
         theme.spinner,
         overflowMenu,
         threeDotsMenuPosition,
-        policyConnectedToXero,
-        currentXeroOrganizationName,
-        tenants.length,
-        policyConnectedToNetSuite,
-        netSuiteSelectedSubsidiary,
-        netSuiteSubsidiaryList.length,
+        integrationSpecificMenuItems,
         accountingIntegrations,
-        currentXeroOrganization?.id,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -488,11 +472,4 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
 PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
-export default withPolicyConnections(
-    withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
-        connectionSyncProgress: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
-        },
-    })(PolicyAccountingPage),
-    false,
-);
+export default withPolicyConnections(PolicyAccountingPage);
