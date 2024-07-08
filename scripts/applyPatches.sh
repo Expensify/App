@@ -7,10 +7,24 @@
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$SCRIPTS_DIR/shellUtils.sh"
 
+function patchPackage {
+  OS="$(uname)"
+  if [[ "$OS" == "Darwin" ]]; then
+    # macOS
+    # We use script to preserve colorization when the output of patch-package is piped to tee
+    script -q /dev/null npx patch-package --error-on-fail
+  elif [[ "$OS" == "Linux" ]]; then
+    # Ubuntu/Linux
+    npx patch-package --error-on-fail
+  else
+    error "Unsupported OS: $OS"
+  fi
+}
+
 # Run patch-package and capture its output and exit code, while still displaying the original output to the terminal
 # (we use `script -q /dev/null` to preserve colorization in the output)
 TEMP_OUTPUT="$(mktemp)"
-script -q /dev/null npx patch-package --error-on-fail 2>&1 | tee "$TEMP_OUTPUT"
+patchPackage 2>&1 | tee "$TEMP_OUTPUT"
 EXIT_CODE=${PIPESTATUS[0]}
 OUTPUT="$(cat "$TEMP_OUTPUT")"
 rm -f "$TEMP_OUTPUT"
