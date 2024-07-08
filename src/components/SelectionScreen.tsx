@@ -117,7 +117,7 @@ function SelectionScreen({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={displayName}
             >
                 <HeaderWithBackButton
