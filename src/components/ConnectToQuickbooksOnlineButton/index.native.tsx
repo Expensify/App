@@ -1,5 +1,4 @@
 import React, {useRef, useState} from 'react';
-import * as PolicyAction from '@userActions/Policy/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
@@ -14,11 +13,11 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
-
 
 type ConnectToQuickbooksOnlineButtonOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -62,7 +61,7 @@ function ConnectToQuickbooksOnlineButton({
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-                        PolicyAction.enablePolicyTaxes(policyID, false);                        
+                        PolicyAction.enablePolicyTaxes(policyID, false);
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
                         setWebViewOpen(true);
