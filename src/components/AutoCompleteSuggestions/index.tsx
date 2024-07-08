@@ -26,6 +26,14 @@ function isSuggestionRenderedAbove(isEnoughSpaceAboveForBig: boolean, isEnoughSp
     return isEnoughSpaceAboveForBig || isEnoughSpaceAboveForSmall;
 }
 
+type IsEnoughSpaceAbove = Pick<MeasureParentContainerAndCursor, 'y' | 'cursorCoordinates' | 'scrollValue'> & {
+    contentHeight: number;
+    topInset: number;
+};
+function isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceAbove): boolean {
+    return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+}
+
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
  * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
@@ -44,11 +52,12 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         width: 0,
         left: 0,
         bottom: 0,
+        cursorCoordinates: {x: 0, y: 0},
     });
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {keyboardHeight} = useKeyboardState();
-    const {paddingBottom: bottomInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -77,14 +86,13 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
                     : xCoordinatesOfCursor;
-
-            let bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - (keyboardHeight || bottomInset);
-            const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
-
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            const isEnoughSpaceAboveForBig = windowHeight - bottomValue - contentMaxHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
-            const isEnoughSpaceAboveForSmall = windowHeight - bottomValue - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
+
+            const isEnoughSpaceAboveForBig = isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
+            const isEnoughSpaceAboveForSmall = isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
 
             const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
@@ -106,18 +114,19 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
             }
             setSuggestionHeight(measuredHeight);
             setContainerState({
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
+                cursorCoordinates,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset]);
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset, topInset]);
 
-    if (containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) {
+    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
         return null;
     }
     return (

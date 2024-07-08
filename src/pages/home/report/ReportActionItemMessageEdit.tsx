@@ -1,11 +1,15 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {findNodeHandle, InteractionManager, Keyboard, View} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useOnyx} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
+import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
@@ -42,6 +46,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import getCursorPosition from './ReportActionCompose/getCursorPosition';
+import getScrollPosition from './ReportActionCompose/getScrollPosition';
+import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
@@ -81,12 +89,17 @@ function ReportActionItemMessageEdit(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
-
+    const suggestionsRef = useRef<SuggestionsRef>(null);
+    const mobileInputScrollPosition = useRef(0);
+    const cursorPositionValue = useSharedValue({x: 0, y: 0});
+    const tag = useSharedValue(-1);
+    const isInitialMount = useRef(true);
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
@@ -94,7 +107,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
+    const [selection, setSelection] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -122,11 +135,6 @@ function ReportActionItemMessageEdit(
         }
         setDraft(draftMessage);
     }, [draftMessage, action, prevDraftMessage]);
-
-    useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-    }, [isFocused]);
 
     useEffect(() => {
         InputFocus.composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxFocused);
@@ -165,25 +173,32 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(
-        () => () => {
-            InputFocus.callback(() => setIsFocused(false));
-            InputFocus.inputFocusChange(false);
-
-            // Skip if the current report action is not active
-            if (!isActive()) {
+        () => {
+            if (isInitialMount.current) {
+                isInitialMount.current = false;
                 return;
             }
 
-            if (EmojiPickerAction.isActive(action.reportActionID)) {
-                EmojiPickerAction.clearActive();
-            }
-            if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
-                ReportActionContextMenu.clearActiveReportAction();
-            }
+            return () => {
+                InputFocus.callback(() => setIsFocused(false));
+                InputFocus.inputFocusChange(false);
 
-            // Show the main composer when the focused message is deleted from another client
-            // to prevent the main composer stays hidden until we swtich to another chat.
-            setShouldShowComposeInputKeyboardAware(true);
+                // Skip if the current report action is not active
+                if (!isActive()) {
+                    return;
+                }
+
+                if (EmojiPickerAction.isActive(action.reportActionID)) {
+                    EmojiPickerAction.clearActive();
+                }
+                if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
+                    ReportActionContextMenu.clearActiveReportAction();
+                }
+
+                // Show the main composer when the focused message is deleted from another client
+                // to prevent the main composer stays hidden until we swtich to another chat.
+                setShouldShowComposeInputKeyboardAware(true);
+            };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
         [action.reportActionID],
@@ -248,10 +263,12 @@ function ReportActionItemMessageEdit(
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
+                    positionX: 0,
+                    positionY: 0,
                 });
             }
 
@@ -318,6 +335,8 @@ function ReportActionItemMessageEdit(
         const newSelection = {
             start: selection.start + emoji.length + CONST.SPACE_LENGTH,
             end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            positionX: 0,
+            positionY: 0,
         };
         setSelection(newSelection);
 
@@ -328,6 +347,21 @@ function ReportActionItemMessageEdit(
         }
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
+
+    const hideSuggestionMenu = useCallback(() => {
+        if (!suggestionsRef.current) {
+            return;
+        }
+        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+    }, [suggestionsRef]);
+    const onSaveScrollAndHideSuggestionMenu = useCallback(
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+
+            hideSuggestionMenu();
+        },
+        [hideSuggestionMenu],
+    );
 
     /**
      * Key event handlers that short cut to saving/canceling.
@@ -340,6 +374,17 @@ function ReportActionItemMessageEdit(
                 return;
             }
             const keyEvent = e as KeyboardEvent;
+            const isSuggestionActive = suggestionsRef.current?.checkIfSuggestionVisible();
+
+            if (isSuggestionActive && keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                suggestionsRef.current?.triggerHotkeyActions(keyEvent);
+                return;
+            }
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && isSuggestionActive) {
+                e.preventDefault();
+                hideSuggestionMenu();
+                return;
+            }
             if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
                 e.preventDefault();
                 publishDraft();
@@ -348,7 +393,57 @@ function ReportActionItemMessageEdit(
                 deleteDraft();
             }
         },
-        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+        [deleteDraft, hideSuggestionMenu, isKeyboardShown, isSmallScreenWidth, publishDraft],
+    );
+
+    const measureContainer = useCallback(
+        (callback: MeasureInWindowOnSuccessCallback) => {
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
+        },
+        // We added isFocused in dependencies so that when this value changes, we recalculate the position of the popup
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isFocused],
+    );
+
+    const measureParentContainerAndReportCursor = useCallback(
+        (callback: MeasureParentContainerAndCursorCallback) => {
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            measureContainer((x, y, width, height) => {
+                callback({
+                    x,
+                    y,
+                    width,
+                    height,
+                    scrollValue,
+                    cursorCoordinates: {x: xPosition, y: yPosition},
+                });
+            });
+        },
+        [cursorPositionValue.value, measureContainer, selection],
+    );
+
+    useEffect(() => {
+        tag.value = findNodeHandle(textInputRef.current) ?? -1;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    useFocusedInputHandler(
+        {
+            onSelectionChange: (event) => {
+                'worklet';
+
+                if (event.target === tag.value) {
+                    cursorPositionValue.value = {
+                        x: event.selection.end.x,
+                        y: event.selection.end.y,
+                    };
+                }
+            },
+        },
+        [],
     );
 
     /**
@@ -360,9 +455,21 @@ function ReportActionItemMessageEdit(
         validateCommentMaxLength(draft, {reportID});
     }, [draft, reportID, validateCommentMaxLength]);
 
+    useEffect(() => {
+        // required for keeping last state of isFocused variable
+        isFocusedRef.current = isFocused;
+
+        if (!isFocused) {
+            hideSuggestionMenu();
+        }
+    }, [isFocused, hideSuggestionMenu]);
+
     return (
         <>
-            <View style={[styles.chatItemMessage, styles.flexRow]}>
+            <View
+                style={[styles.chatItemMessage, styles.flexRow]}
+                ref={containerRef}
+            >
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -440,8 +547,24 @@ function ReportActionItemMessageEdit(
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
+                            shouldCalculateCaretPosition
+                            onScroll={onSaveScrollAndHideSuggestionMenu}
                         />
                     </View>
+
+                    <Suggestions
+                        ref={suggestionsRef}
+                        isComposerFocused={textInputRef.current?.isFocused()}
+                        updateComment={updateDraft}
+                        measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                        isGroupPolicyReport={false}
+                        // Input
+                        value={draft}
+                        setValue={setDraft}
+                        selection={selection}
+                        setSelection={setSelection}
+                    />
+
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}

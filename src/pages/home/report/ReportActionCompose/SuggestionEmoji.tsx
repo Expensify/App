@@ -178,9 +178,10 @@ function SuggestionEmoji(
     );
 
     useEffect(() => {
-        if (!isComposerFocused) {
+        if (!isComposerFocused || (selection.start === 0 && selection.end === 0) || selection.start !== selection.end) {
             return;
         }
+
         calculateEmojiSuggestion(selection.start, selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
@@ -193,6 +194,8 @@ function SuggestionEmoji(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const checkIfSuggestionVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -201,8 +204,9 @@ function SuggestionEmoji(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            checkIfSuggestionVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, checkIfSuggestionVisible],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
