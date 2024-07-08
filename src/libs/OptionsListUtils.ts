@@ -1066,7 +1066,7 @@ function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<Po
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptionsName: string[] = []): OptionTree[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
@@ -1091,6 +1091,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
+            const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
+            const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
                 return;
@@ -1101,8 +1103,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : !selectedOptionsName.includes(searchText),
-                isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
+                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
+                isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
             });
         });
@@ -1130,7 +1132,8 @@ function getCategoryListSections(
 
     selectedOptions.forEach((option) => {
         if (enabledCategoriesNames.includes(option.name)) {
-            selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: true});
+            const categoryObj = enabledCategories.find((category) => category.name === option.name);
+            selectedOptionsWithDisabledState.push({...(categoryObj ?? option), isSelected: true, enabled: true});
             return;
         }
         selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: false});
@@ -1190,7 +1193,7 @@ function getCategoryListSections(
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionNames);
+        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1225,7 +1228,7 @@ function getCategoryListSections(
         });
     }
 
-    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionNames);
+    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
