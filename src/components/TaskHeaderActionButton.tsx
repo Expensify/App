@@ -39,6 +39,7 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={Session.checkIfActionIsAllowed(() => {
+                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                     if (Navigation.isActiveRoute(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID)) || Navigation.isActiveRoute(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))) {
                         return;
                     }

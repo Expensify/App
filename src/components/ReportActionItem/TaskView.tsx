@@ -96,6 +96,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
+                                                // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                 if (
                                                     Navigation.isActiveRoute(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID)) ||
                                                     Navigation.isActiveRoute(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))
