@@ -23,6 +23,8 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 
+type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; concatMessage?: string};
+
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
@@ -394,38 +396,13 @@ function getOptionData({
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                result.alternateText = ReportUtils.formatReportLastMessageText(getReportBeginningOfChatHistoryMessage(report) || Localize.translateLocal('report.noActivityYet'));
+                result.alternateText = ReportUtils.formatReportLastMessageText(getWelcomeMessage(report).concatMessage || Localize.translateLocal('report.noActivityYet'));
             }
         }
     } else {
         if (!lastMessageText) {
-            if (ReportUtils.isSystemChat(report)) {
-                lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySystemDM');
-            } else if (ReportUtils.isSelfDM(report)) {
-                lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM');
-            } else {
-                // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
-                // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
-                lastMessageText =
-                    Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
-                    displayNamesWithTooltips
-                        .map(({displayName, pronouns}, index) => {
-                            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
-
-                            if (index === displayNamesWithTooltips.length - 1) {
-                                return `${formattedText}.`;
-                            }
-                            if (index === displayNamesWithTooltips.length - 2) {
-                                return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
-                            }
-                            if (index < displayNamesWithTooltips.length - 2) {
-                                return `${formattedText},`;
-                            }
-
-                            return '';
-                        })
-                        .join(' ');
-            }
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            result.alternateText = ReportUtils.formatReportLastMessageText(getWelcomeMessage(report).concatMessage || Localize.translateLocal('report.noActivityYet'));
         }
 
         result.alternateText =
@@ -465,40 +442,42 @@ function getOptionData({
 
     return result;
 }
-function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string | undefined {
-    const welcomeMessage = ReportUtils.getWelcomeMessage(report);
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const isChatRoom = ReportUtils.isChatRoom(report);
-    const isSelfDM = ReportUtils.isSelfDM(report);
-    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
-    const isSystemChat = ReportUtils.isSystemChat(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
 
-    if (ReportUtils.isChatThread(report)) {
-        return '';
+function getWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
+    const welcomeMessage: WelcomeMessage = {showReportName: true};
+    if (ReportUtils.isChatRoom(report)) {
+        return getRoomWelcomeMessage(report);
     }
 
-    if (isPolicyExpenseChat) {
+    if (ReportUtils.isPolicyExpenseChat(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
+        welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
         if (report?.description) {
-            return parseHtmlToText(report.description);
+            welcomeMessage.concatMessage = parseHtmlToText(report.description);
         }
-        return `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(report)} ${
-            welcomeMessage.phrase3
-        }`;
+        welcomeMessage.concatMessage = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
+            report,
+        )} ${welcomeMessage.phrase3}`;
+        return welcomeMessage;
     }
 
-    if (isChatRoom) {
-        if (report?.description) {
-            return parseHtmlToText(report.description);
-        }
-        return `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    if (ReportUtils.isSelfDM(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
+        welcomeMessage.concatMessage = welcomeMessage.phrase1;
+        return welcomeMessage;
     }
 
-    if (isSelfDM || isSystemChat) {
-        return `${welcomeMessage.phrase1}`;
+    if (ReportUtils.isSystemChat(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
+        welcomeMessage.concatMessage = welcomeMessage.phrase1;
+        return welcomeMessage;
     }
 
-    if (isDefault) {
+    if (
+        !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isSelfDM(report) || ReportUtils.isInvoiceRoom(report) || ReportUtils.isSystemChat(report))
+    ) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistory');
         const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
         const isMultipleParticipant = participantAccountIDs.length > 1;
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -522,14 +501,50 @@ function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): stri
                 return '';
             })
             .join(' ');
-        return `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
+        welcomeMessage.concatMessage = `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
+        return welcomeMessage;
     }
 
-    return '';
+    return welcomeMessage;
+}
+
+/**
+ * Get welcome message based on room type
+ */
+function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
+    const welcomeMessage: WelcomeMessage = {showReportName: true};
+    const workspaceName = ReportUtils.getPolicyName(report);
+
+    if (ReportUtils.isArchivedRoom(report)) {
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
+    } else if (ReportUtils.isDomainRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
+    } else if (ReportUtils.isAdminRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (ReportUtils.isAnnounceRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
+    } else if (ReportUtils.isInvoiceRoom(report)) {
+        welcomeMessage.showReportName = false;
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom');
+    } else {
+        // Message for user created rooms or other room types.
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
+    }
+    if (report?.description) {
+        welcomeMessage.concatMessage = parseHtmlToText(report.description);
+    }
+    welcomeMessage.concatMessage = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+
+    return welcomeMessage;
 }
 
 export default {
     getOptionData,
     getOrderedReportIDs,
-    getReportBeginningOfChatHistoryMessage,
+    getWelcomeMessage,
 };
