@@ -441,7 +441,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
         approvalChain.push(nextApproverEmail);
         nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
     }
-    return approvalChain.filter((approverEmail) => !!approverEmail);
+    return approvalChain;
 }
 
 function getPersonalPolicy() {
