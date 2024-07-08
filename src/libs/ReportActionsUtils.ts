@@ -24,6 +24,7 @@ import {parseHtmlToText} from './OnyxAwareParser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
+// eslint-disable-next-line import/no-cycle
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
@@ -348,6 +349,14 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     });
 
     return sortedActions;
+}
+
+/**
+ * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
+ * Separated it from getCombinedReportActions, so it can be reused
+ */
+function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
+    return reportActions.filter((action) => !isSentMoneyReportAction(action));
 }
 
 /**
@@ -1136,7 +1145,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
@@ -1476,6 +1484,7 @@ export {
     getTextFromHtml,
     isTripPreview,
     getIOUActionForReportID,
+    getFilteredForOneTransactionView,
 };
 
 export type {LastVisibleMessage};

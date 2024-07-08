@@ -46,7 +46,7 @@ function ReportFieldSettingsPage({
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     const deleteReportFieldAndHideModal = () => {
-        ReportField.deletePolicyReportFields(policyID, [reportFieldKey]);
+        ReportField.deleteReportFields(policyID, [reportFieldKey]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };

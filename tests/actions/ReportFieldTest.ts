@@ -280,7 +280,7 @@ describe('actions/ReportField', () => {
                 [reportFieldKey]: fakeReportField,
             });
 
-            ReportField.deletePolicyReportFields(fakePolicy.id, [reportFieldKey]);
+            ReportField.deleteReportFields(fakePolicy.id, [reportFieldKey]);
             await waitForBatchedUpdates();
 
             // Check for success data
@@ -350,7 +350,7 @@ describe('actions/ReportField', () => {
 
             // Check for failure data
             mockFetch?.fail?.();
-            ReportField.deletePolicyReportFields(policyID, [reportFieldKey]);
+            ReportField.deleteReportFields(policyID, [reportFieldKey]);
             await waitForBatchedUpdates();
 
             mockFetch?.resume?.();
