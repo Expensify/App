@@ -242,7 +242,7 @@ function ScreenWrapper(
                 }
 
                 return (
-                    <FocusTrapForScreens>
+                    <FocusTrapForScreens testID={testID}>
                         <View
                             ref={ref}
                             style={[styles.flex1, {minHeight}]}

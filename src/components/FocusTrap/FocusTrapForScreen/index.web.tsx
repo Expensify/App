@@ -1,24 +1,17 @@
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import FocusTrap from 'focus-trap-react';
-import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useEffect, useMemo, useRef} from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
-import getScreenWithAutofocus from '@components/FocusTrap/SCREENS_WITH_AUTOFOCUS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type FocusTrapProps from './FocusTrapProps';
 
-let activeRouteName = '';
 function FocusTrapForScreen({children}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [isAuthenticated] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => !!session?.authToken});
-    const screensWithAutofocus = useMemo(() => getScreenWithAutofocus(!!isAuthenticated), [isAuthenticated]);
 
     const isActive = useMemo(() => {
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
@@ -38,11 +31,11 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
         return true;
     }, [isFocused, isSmallScreenWidth, route.name]);
 
-    useFocusEffect(
-        useCallback(() => {
-            activeRouteName = route.name;
-        }, [route]),
-    );
+    const mountedRef = useRef(false);
+
+    useEffect(() => {
+        mountedRef.current = true;
+    }, []);
 
     return (
         <FocusTrap
@@ -52,19 +45,12 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
-                delayInitialFocus: CONST.ANIMATED_TRANSITION,
-                // We don’t want to override autofocus while there is a focused element.
-                initialFocus: (containers) => {
-                    const hasFocusedElement = containers?.some((container) => container.contains(document.activeElement));
-                    if (hasFocusedElement) {
+                delayInitialFocus: 400,
+                initialFocus: (focusTrapContainers) => {
+                    const hasFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
+                    if (hasFocusedElementInsideContainer) {
                         return false;
                     }
-                },
-                setReturnFocus: (element) => {
-                    if (screensWithAutofocus.includes(activeRouteName)) {
-                        return false;
-                    }
-                    return element;
                 },
             }}
         >

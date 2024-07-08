@@ -1,8 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextStyle} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -716,9 +716,13 @@ function MoneyRequestConfirmationList({
 
     const confirmButtonRef = useRef<View>(null);
 
-    useEffect(() => {
-        confirmButtonRef.current?.focus();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            InteractionManager.runAfterInteractions(() => {
+                confirmButtonRef.current?.focus();
+            });
+        }, []),
+    );
 
     const footerContent = useMemo(() => {
         if (isReadOnly) {
