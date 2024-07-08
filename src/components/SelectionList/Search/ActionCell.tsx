@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -27,17 +28,18 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 type ActionCellProps = {
     action?: SearchTransactionAction;
     transactionID?: string;
-    searchHash: number;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
 };
 
-function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, searchHash, isLargeScreenWidth = true, isSelected = false, goToItem}: ActionCellProps) {
+function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isLargeScreenWidth = true, isSelected = false, goToItem}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const {currentSearchHash} = useSearchContext();
 
     const onButtonPress = useCallback(() => {
         if (!transactionID) {
@@ -45,11 +47,11 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, sea
         }
 
         if (action === CONST.SEARCH.ACTION_TYPES.HOLD) {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(CONST.SEARCH.TAB.ALL, transactionID, searchHash));
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(CONST.SEARCH.TAB.ALL, transactionID));
         } else if (action === CONST.SEARCH.ACTION_TYPES.UNHOLD) {
-            SearchActions.unholdMoneyRequestOnSearch(searchHash, [transactionID]);
+            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID]);
         }
-    }, [action, searchHash, transactionID]);
+    }, [action, currentSearchHash, transactionID]);
 
     const text = translate(actionTranslationsMap[action]);
 

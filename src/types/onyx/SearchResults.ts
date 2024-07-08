@@ -1,8 +1,8 @@
 import type {ValueOf} from 'type-fest';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import type {SearchColumnType, SearchDataContext, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
 /** Types of search data */
@@ -29,7 +29,7 @@ type SearchTypeToItemMap = {
         listItem: ListItemType<K>;
 
         /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data'], metadata: SearchResults['search'], context: SearchDataContext) => SectionsType<K>;
+        getSections: (data: SearchResults['data'], metadata: SearchResults['search']) => SectionsType<K>;
 
         /** Returns sorted search results sections based on search results data */
         getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;

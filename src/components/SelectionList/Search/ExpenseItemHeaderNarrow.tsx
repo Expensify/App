@@ -17,20 +17,10 @@ type ExpenseItemHeaderNarrowProps = {
     participantToDisplayName: string;
     action?: SearchTransactionAction;
     transactionID?: string;
-    searchHash: number;
     onButtonPress: () => void;
 };
 
-function ExpenseItemHeaderNarrow({
-    participantFrom,
-    participantFromDisplayName,
-    participantTo,
-    participantToDisplayName,
-    action,
-    transactionID,
-    searchHash,
-    onButtonPress,
-}: ExpenseItemHeaderNarrowProps) {
+function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, action, transactionID, onButtonPress}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -61,7 +51,6 @@ function ExpenseItemHeaderNarrow({
                 <ActionCell
                     action={action}
                     transactionID={transactionID}
-                    searchHash={searchHash}
                     goToItem={onButtonPress}
                 />
             </View>

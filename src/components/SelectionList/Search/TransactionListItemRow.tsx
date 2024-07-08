@@ -241,7 +241,6 @@ function TransactionListItemRow({
                         participantToDisplayName={item.formattedTo}
                         action={item.action}
                         transactionID={item.transactionID}
-                        searchHash={item.searchHash}
                         onButtonPress={onButtonPress}
                     />
                 )}
@@ -388,7 +387,6 @@ function TransactionListItemRow({
                     <ActionCell
                         action={item.action}
                         transactionID={item.transactionID}
-                        searchHash={item.searchHash}
                         isSelected={isButtonSelected}
                         goToItem={onButtonPress}
                     />

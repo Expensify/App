@@ -1,6 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -15,9 +16,6 @@ type SearchHoldReasonPageRouteParams = {
     /** ID of the transaction the page was opened for */
     transactionID: string;
 
-    /** Hash of search query that was used to generate this specific set of transactions  */
-    searchHash: number;
-
     /** Link to previous page */
     backTo: Route;
 };
@@ -30,10 +28,11 @@ type SearchHoldReasonPageProps = {
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {searchHash, transactionID, backTo} = route.params;
+    const {currentSearchHash} = useSearchContext();
+    const {transactionID, backTo} = route.params;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        SearchActions.holdMoneyRequestOnSearch(searchHash, [transactionID], values.comment);
+        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, [transactionID], values.comment);
 
         Navigation.goBack();
     };

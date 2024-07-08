@@ -178,9 +178,6 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
-        /** Hash of search that was used to retrieve this item, needed for performing Actions on it */
-        searchHash: number;
-
         /** Key used internally by React */
         keyForList: string;
     };

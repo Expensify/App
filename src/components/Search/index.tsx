@@ -3,6 +3,8 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {useSearchContext} from '@components/Search/SearchContext';
+import {SearchColumnType, SortOrder} from '@components/Search/types';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
@@ -13,7 +15,6 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -47,6 +48,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+    const {setCurrentSearchHash} = useSearchContext();
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -83,6 +85,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             return;
         }
 
+        setCurrentSearchHash(hash);
         SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline]);
@@ -148,8 +151,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const ListItem = SearchUtils.getListItem(type);
 
-    const searchContext = {searchHash: hash};
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type, searchContext);
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
