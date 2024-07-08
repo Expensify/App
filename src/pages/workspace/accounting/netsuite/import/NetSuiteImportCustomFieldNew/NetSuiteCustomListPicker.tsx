@@ -6,16 +6,15 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
-import type {NetSuiteCustomList} from '@src/types/onyx/Policy';
 
 type NetSuiteCustomListPickerProps = {
     value?: string;
     policy?: Policy;
-    onSelect: (customList: Partial<NetSuiteCustomList>) => void;
-    onInputChange?: (value: string) => void;
+    onInputChange?: (value: string, key?: string) => void;
+    internalIDInputID?: string;
 };
 
-function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, policy, internalIDInputID, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -58,10 +57,9 @@ function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () =
             onChangeText={setSearchValue}
             onSelectRow={(selected) => {
                 onInputChange(selected.value);
-                onSelect({
-                    listName: selected.value,
-                    internalID: selected.id,
-                });
+                if (internalIDInputID) {
+                    onInputChange(selected.id, internalIDInputID);
+                }
             }}
             headerMessage={headerMessage}
             ListItem={RadioListItem}

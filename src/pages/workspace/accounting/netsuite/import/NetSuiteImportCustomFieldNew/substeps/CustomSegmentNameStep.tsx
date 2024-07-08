@@ -1,74 +1,34 @@
 import {ExpensiMark} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useNetSuiteCustomFieldAddFormSubmit from '@hooks/useNetSuiteCustomFieldAddFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const parser = new ExpensiMark();
 
-function CustomSegmentNameStep({onNext, isEditing, policy}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentNameStep({customSegmentType}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const handleSubmit = useNetSuiteCustomFieldAddFormSubmit({
-        fieldIds: [INPUT_IDS.SEGMENT_NAME],
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
 
-    const [formValuesDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
-    const customSegmentRecordType = formValuesDraft?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
-
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> = {};
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SEGMENT_NAME])) {
-                errors[INPUT_IDS.SEGMENT_NAME] = translate(
-                    'workspace.netsuite.import.importCustomFields.requiredFieldError',
-                    translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
-                );
-            } else if (
-                policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
-                    (customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLowerCase(),
-                )
-            ) {
-                errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);
-            }
-            return errors;
-        },
-        [customSegmentRecordType, fieldLabel, policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments, translate],
-    );
+    const customSegmentRecordType = customSegmentType ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
 
     return (
-        <FormProvider
-            formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM}
-            submitButtonText={translate('common.next')}
-            onSubmit={handleSubmit}
-            validate={validate}
-            style={[styles.flexGrow1, styles.ph5]}
-            submitButtonStyles={[styles.mb0]}
-        >
+        <View style={styles.ph5}>
             <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>
                 {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}NameTitle`)}
             </Text>
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.SEGMENT_NAME}
-                shouldSaveDraft={!isEditing}
                 label={fieldLabel}
                 aria-label={fieldLabel}
                 role={CONST.ROLE.PRESENTATION}
@@ -79,7 +39,7 @@ function CustomSegmentNameStep({onNext, isEditing, policy}: CustomFieldSubStepWi
                     html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}NameFooter`))}</comment>`}
                 />
             </View>
-        </FormProvider>
+        </View>
     );
 }
 
