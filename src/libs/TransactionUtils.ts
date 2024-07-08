@@ -904,9 +904,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
                 if (allFieldsAreEqual) {
                     keep[fieldName] = firstTransaction?.[keys[0]];
                 } else {
-                    console.log('transactions', transactions);
                     const differentValues = getDifferentValues(transactions, keys);
-                    console.log('differentValues', differentValues);
                     if (differentValues.length > 0) {
                         change[fieldName] = differentValues;
                     }
