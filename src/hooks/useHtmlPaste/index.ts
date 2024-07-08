@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect} from 'react';
+import type {ClipboardEvent as PasteEvent} from 'react';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import type UseHtmlPaste from './types';
 
@@ -20,8 +21,10 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         range.setEnd(node, node.length);
         selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
 
-        // Dispatch paste event to simulate real browser behavior
-        target.dispatchEvent(new Event('paste', {bubbles: true}));
+        // Dispatch paste event to make Markdown Input properly set cursor position
+        const pasteEvent = new ClipboardEvent('paste', {bubbles: true, cancelable: true});
+        (pasteEvent as unknown as PasteEvent<HTMLElement>).isDefaultPrevented = () => false;
+        target.dispatchEvent(pasteEvent);
         // Dispatch input event to trigger Markdown Input to parse the new text
         target.dispatchEvent(new Event('input', {bubbles: true}));
     } else {
