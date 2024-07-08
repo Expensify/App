@@ -817,6 +817,11 @@ export default {
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Selecciona una tasa de reembolso por ${unit} del espacio de trabajo`,
+        unapprove: 'Desaprobar',
+        unapproveReport: 'Anular la aprobación del informe',
+        headsUp: 'Atención!',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -2741,6 +2746,21 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            connectionName: (integration: ConnectionName) => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default: {
+                        return '';
+                    }
+                }
+            },
             setup: 'Configurar',
             lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
