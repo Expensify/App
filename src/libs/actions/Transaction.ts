@@ -439,7 +439,25 @@ function markAsCash(transactionID: string, transactionThreadReportID: string) {
 }
 
 function openDraftDistanceExpense() {
-    API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, {}, {});
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                value: {
+                    isLoading: true,
+                },
+            }
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                value: [],
+            }
+        ],
+    };
+    API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, {}, onyxData);
 }
 
 export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey, openDraftDistanceExpense,};
