@@ -1,18 +1,18 @@
-import {findFocusedRoute} from '@react-navigation/core';
-import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import { findFocusedRoute } from '@react-navigation/core';
+import type { EventArg, NavigationContainerEventMap } from '@react-navigation/native';
+import { CommonActions, getPathFromState, StackActions } from '@react-navigation/native';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import { isCentralPaneName, removePolicyIDParamFromState } from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridAppRoute, Route} from '@src/ROUTES';
-import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
-import {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type { HybridAppRoute, Route } from '@src/ROUTES';
+import ROUTES, { HYBRID_APP_ROUTES } from '@src/ROUTES';
+import { PROTECTED_SCREENS } from '@src/SCREENS';
+import type { Report } from '@src/types/onyx';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
@@ -26,7 +26,8 @@ import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
-import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type { NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams } from './types';
+
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -47,8 +48,8 @@ Onyx.connect({
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
  */
-function setShouldPopAllStateOnUP() {
-    shouldPopAllStateOnUP = true;
+function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
+    shouldPopAllStateOnUP = shouldPopAllStateFlag;
 }
 
 function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
