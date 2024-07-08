@@ -245,7 +245,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
