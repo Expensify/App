@@ -1,4 +1,4 @@
-import {SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 
 type SearchParams = {
     hash: number;

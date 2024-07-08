@@ -71,13 +71,15 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
+
     return (
         <View
             style={[
                 StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
-                StyleUtils.getBackgroundColorStyle(theme.border),
                 styles.overflowHidden,
+                backgroundStyles,
             ]}
         >
             <ReceiptImage

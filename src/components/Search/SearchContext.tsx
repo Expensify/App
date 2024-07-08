@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import type {SearchContext} from '@components/Search/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {SearchContext} from './types';
 
 const defaultSearchContext = {
     currentSearchHash: -1,

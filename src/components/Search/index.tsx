@@ -3,8 +3,6 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {useSearchContext} from '@components/Search/SearchContext';
-import {SearchColumnType, SortOrder} from '@components/Search/types';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
@@ -26,8 +24,10 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
+import type {SearchColumnType, SortOrder} from './types';
 
 type SearchProps = {
     query: SearchQuery;

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

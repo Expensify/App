@@ -66,9 +66,9 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
                         styles.ph2,
                         styles.gap1,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                        StyleUtils.getBorderColorStyle(theme.border),
                         StyleUtils.getHeight(variables.h20),
                         StyleUtils.getMinimumHeight(variables.h20),
+                        isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
                     textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     iconStyles={styles.mr0}
