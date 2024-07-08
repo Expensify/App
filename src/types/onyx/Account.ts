@@ -85,9 +85,6 @@ type Account = {
 
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
-
-    /** Frontend only key to determine if the nvp recent waypoints are loading */
-    isLoadingRecentWaypoints?: boolean;
 };
 
 export default Account;

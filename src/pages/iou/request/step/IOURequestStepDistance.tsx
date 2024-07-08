@@ -102,8 +102,6 @@ function IOURequestStepDistance({
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isLoadingRecentWaypoints = account?.isLoadingRecentWaypoints ?? false;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -126,14 +124,14 @@ function IOURequestStepDistance({
     }
 
     useEffect(() => {
-        const hasData = Array.isArray(recentWaypoints) && recentWaypoints.length > 0;
-        const isStatusLoading = recentWaypointsStatus === 'loading';
-        if (isLoadingRecentWaypoints || hasData || isStatusLoading) {
+        if (recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
             return;
         }
 
+        // Only load the recent waypoints if they have been read from Onyx as undefined
+        // If the account doesn't have recent waypoints they will be returned as an empty array
         TransactionAction.openDraftDistanceExpense();
-    }, [recentWaypoints, recentWaypointsStatus, isLoadingRecentWaypoints]);
+    }, [recentWaypointsStatus, recentWaypoints]);
 
     useEffect(() => {
         MapboxToken.init();

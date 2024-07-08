@@ -442,20 +442,11 @@ function openDraftDistanceExpense() {
     const onyxData: OnyxData = {
         optimisticData: [
             {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    isLoadingRecentWaypoints: true,
-                },
-            }
-        ],
-        finallyData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    isLoadingRecentWaypoints: false,
-                },
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+                // By optimistically setting the recent waypoints to an empty array, no further loading attempts will be made
+                value: [],
             }
         ],
     };
