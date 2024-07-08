@@ -427,8 +427,8 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
     }
 
     const positiveReportTotal = Math.abs(reportTotal);
-    if (employee.approvalLimit && positiveReportTotal > employee.approvalLimit) {
-        return employee.overLimitForwardsTo ?? '';
+    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo;
     }
     return employee.forwardsTo ?? '';
 }
