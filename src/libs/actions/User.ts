@@ -1022,6 +1022,10 @@ function dismissTrackTrainingModal() {
     });
 }
 
+function requestRefund() {
+    API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1053,4 +1057,5 @@ export {
     clearCustomStatus,
     updateDraftCustomStatus,
     clearDraftCustomStatus,
+    requestRefund,
 };
