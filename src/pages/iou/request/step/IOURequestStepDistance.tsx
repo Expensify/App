@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
@@ -101,6 +101,7 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
+    const recentWaypoints = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canEvict: true, initWithStoredValues: true, allowStaleData: true, initialValue: []});
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -121,6 +122,13 @@ function IOURequestStepDistance({
             buttonText = translate('iou.submitExpense');
         }
     }
+
+    useEffect(() => {
+        if (recentWaypoints.length > 0) {
+            return;
+        }
+        TransactionAction.openDraftDistanceExpense();
+    }, [recentWaypoints]);
 
     useEffect(() => {
         MapboxToken.init();

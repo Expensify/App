@@ -596,6 +596,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     SEARCH: 'Search',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
+    OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;

@@ -438,4 +438,8 @@ function markAsCash(transactionID: string, transactionThreadReportID: string) {
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey};
+function openDraftDistanceExpense() {
+    API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, {}, {});
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey, openDraftDistanceExpense,};
