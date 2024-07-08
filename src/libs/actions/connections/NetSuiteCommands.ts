@@ -808,7 +808,7 @@ function updateNetSuiteCustomFormIDOptions(
     exportDestination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>,
     oldCustomFormID?: NetSuiteCustomFormID,
 ) {
-    const customFormIDKey = isReimbursable ? 'reimbursable' : 'nonReimbursable';
+    const customFormIDKey = isReimbursable ? CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE : CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE;
     const data = {
         [customFormIDKey]: {
             [CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]]: value,

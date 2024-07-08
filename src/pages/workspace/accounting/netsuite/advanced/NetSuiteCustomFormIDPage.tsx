@@ -31,7 +31,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
 
     const exportDestination =
         (isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination) ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
-    const customFormIDKey = isReimbursable ? 'reimbursable' : 'nonReimbursable';
+    const customFormIDKey = isReimbursable ? CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE : CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> => {

@@ -1388,6 +1388,10 @@ const CONST = {
             4: 'enterCredentials',
         },
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        CUSTOM_FORM_ID_TYPE: {
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'nonReimbursable',
+        },
         SYNC_OPTIONS: {
             SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
             SYNC_PEOPLE: 'syncPeople',

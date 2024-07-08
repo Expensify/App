@@ -541,10 +541,10 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
 
 function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
-    let accountsToConsider = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
-    accountsToConsider = accountsToConsider.concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD));
+    let accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
+    accountOptions = accountOptions.concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD));
 
-    return accountsToConsider.map(({id, name}) => ({
+    return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
@@ -554,9 +554,9 @@ function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selec
 
 function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
-    const accountsToConsider = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
+    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
 
-    return accountsToConsider.map(({id, name}) => ({
+    return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
@@ -571,10 +571,9 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
         name: Localize.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
-    let accountsToConsider = [defaultApprovalAccount];
-    accountsToConsider = accountsToConsider.concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE));
+    const accountOptions = [defaultApprovalAccount].concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE));
 
-    return accountsToConsider.map(({id, name}) => ({
+    return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
