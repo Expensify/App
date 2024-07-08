@@ -53,8 +53,8 @@ type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 const excludedViolationsName = ['taxAmountChanged', 'taxRateChanged'];
 
 /**
- * @param violations – List of transaction violation
- * @param shouldShowOnlyViolations – Whether we should only show violations of type 'violation
+ * @param violations – List of transaction violations
+ * @param shouldShowOnlyViolations – Whether we should only show violations of type 'violation'
  */
 function useViolations(violations: TransactionViolation[], shouldShowOnlyViolations: boolean) {
     const violationsByField = useMemo((): ViolationsMap => {

@@ -7,7 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-type ReceiptAuditPropsType = {
+type ReceiptAuditProps = {
     /** List of audit notes */
     notes: string[];
 
@@ -18,7 +18,7 @@ type ReceiptAuditPropsType = {
     shouldShowAuditFailure: boolean;
 };
 
-function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: ReceiptAuditPropsType) {
+function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
