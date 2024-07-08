@@ -3705,12 +3705,13 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
         return `<img src="${file.source}" alt="${file.name}" data-optimistic-src="${file.source}" />`;
-    } else if (file.type?.startsWith('video')) {
-        return `<video src="${file.source}" data-optimistic-src="${file.source}">${file.name}</video>`;
-    } else {
-        // For all other types, we present a generic preview
-        return `<a href="${file.source}" data-expensify-source="${file.source}">${file.name}</a>`;
     }
+    if (file.type?.startsWith('video')) {
+        return `<video src="${file.source}" data-optimistic-src="${file.source}">${file.name}</video>`;
+    }
+
+    // For all other types, we present a generic preview
+    return `<a href="${file.source}" data-expensify-source="${file.source}">${file.name}</a>`;
 }
 
 function getReportDescriptionText(report: Report): string {
