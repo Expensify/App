@@ -102,7 +102,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     pendingAction={section.pendingAction}
                 >
                     <MenuItemWithTopDescription
-                        title={section.title}
+                        title={section.title ?? translate('workspace.accounting.notImported')}
                         description={section.description}
                         shouldShowRightIcon
                         onPress={section.action}
