@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -25,9 +25,10 @@ function WorkspaceReportFieldSettings({route}: WorkspaceReportFieldSettingsPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = React.useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const reportFieldKey = ReportUtils.getReportFieldKey(route.params.reportFieldKey);
     const currentPolicyReportField = policy?.fieldList?.[reportFieldKey];
+
     if (!currentPolicyReportField) {
         return <NotFoundPage />;
     }
