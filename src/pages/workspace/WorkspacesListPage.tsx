@@ -354,6 +354,18 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             .sort((a, b) => localeCompare(a.title, b.title));
     }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms]);
 
+    const getHeaderButton = () => (
+        <Button
+            accessibilityLabel={translate('workspace.new.newWorkspace')}
+            success
+            medium
+            text={translate('workspace.new.newWorkspace')}
+            onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+            icon={Expensicons.Plus}
+            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+        />
+    );
+
     if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
@@ -367,15 +379,11 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
-                    <Button
-                        accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        success
-                        medium
-                        text={translate('workspace.new.newWorkspace')}
-                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                    />
+                    {!isSmallScreenWidth && getHeaderButton()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
@@ -388,6 +396,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
+                            titleStyles={styles.textHeadlineH1}
                         />
                     </View>
                 </ScrollView>
@@ -406,15 +415,11 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
-                    <Button
-                        accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        success
-                        medium
-                        text={translate('workspace.new.newWorkspace')}
-                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                    />
+                    {!isSmallScreenWidth && getHeaderButton()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
                 <FlatList
                     data={workspaces}
                     renderItem={getMenuItem}

@@ -39,11 +39,11 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
         );
     }
 
-    const icon = sortOrder === CONST.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
+    const icon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
     const displayIcon = isActive;
     const activeColumnStyle = isSortable && isActive && styles.searchTableHeaderActive;
 
-    const nextSortOrder = isActive && sortOrder === CONST.SORT_ORDER.DESC ? CONST.SORT_ORDER.ASC : CONST.SORT_ORDER.DESC;
+    const nextSortOrder = isActive && sortOrder === CONST.SEARCH.SORT_ORDER.DESC ? CONST.SEARCH.SORT_ORDER.ASC : CONST.SEARCH.SORT_ORDER.DESC;
 
     return (
         <View style={containerStyle}>

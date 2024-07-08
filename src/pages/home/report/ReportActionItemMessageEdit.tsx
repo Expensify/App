@@ -1,8 +1,8 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
@@ -29,6 +29,7 @@ import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
@@ -58,6 +59,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
+
+    /** Whether report is from group policy */
+    isGroupPolicyReport?: boolean;
 };
 
 // native ids
@@ -70,7 +74,7 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 const draftMessageVideoAttributeCache = new Map<string, string>();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
@@ -110,7 +114,7 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '', undefined, undefined, (videoSource, attrs) => {
+        const originalMessage = parseHtmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), undefined, undefined, (videoSource, attrs) => {
             draftMessageVideoAttributeCache.set(videoSource, attrs);
         });
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
@@ -432,8 +436,10 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
+                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                            isGroupPolicyReport={isGroupPolicyReport}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>

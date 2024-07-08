@@ -35,7 +35,7 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
-    const message = reportAction?.message?.at(-1) ?? null;
+    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
     return message?.html ?? '';
 }
 
@@ -367,8 +367,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
-                    const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
-                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction);
+                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReportID, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isTaskAction(reportAction)) {
                     const displayMessage = TaskUtils.getTaskReportActionMessage(reportAction).text;
@@ -377,9 +377,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
-                    const {expenseReportID} = reportAction.originalMessage;
-                    const expenseReport = ReportUtils.getReport(expenseReportID);
-                    const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
+                    const {expenseReportID} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
@@ -391,16 +390,24 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, ReportUtils.getReport(reportID), false));
+                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, reportID, false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportID);
+                    Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
+                    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
+                    const reason = originalMessage?.reason;
+                    const violationName = originalMessage?.violationName;
+                    Clipboard.setString(Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
