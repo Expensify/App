@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect} from 'react';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -71,7 +71,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(parseHtmlToMarkdown(html));
+            paste(Parser.htmlToMarkdown(html));
         },
         [paste],
     );
