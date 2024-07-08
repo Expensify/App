@@ -57,7 +57,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
-                    onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policy?.id))}
+                    onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policy?.id ?? '0'))}
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={Illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
