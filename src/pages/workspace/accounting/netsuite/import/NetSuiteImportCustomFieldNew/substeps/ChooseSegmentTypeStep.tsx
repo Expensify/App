@@ -35,7 +35,7 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}
             <SelectionList
                 sections={[{data: selectionData}]}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={customSegmentType ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT}
+                initiallyFocusedOptionKey={customSegmentType}
                 onSelectRow={(selected) => {
                     setCustomSegmentType?.(selected.value);
                     onNext();
