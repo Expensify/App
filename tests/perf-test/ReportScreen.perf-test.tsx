@@ -29,6 +29,7 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
+import createAddListenerMock from '../utils/createAddListenerMock';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -40,6 +41,7 @@ jest.mock('@src/libs/API', () => ({
     write: jest.fn(),
     makeRequestWithSideEffects: jest.fn(),
     read: jest.fn(),
+    paginate: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -63,13 +65,13 @@ jest.mock('react-native', () => {
 });
 
 jest.mock('react-native-reanimated', () => {
-    const actualNav = jest.requireActual('react-native-reanimated/mock');
+    const actualNav = jest.requireActual<typeof Animated>('react-native-reanimated/mock');
     return {
         ...actualNav,
         useSharedValue: jest.fn,
         useAnimatedStyle: jest.fn,
         useAnimatedRef: jest.fn,
-    } as typeof Animated;
+    };
 });
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -111,7 +113,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
@@ -123,7 +125,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useNavigationState: () => {},
         createNavigationContainerRef: jest.fn(),
-    } as typeof Navigation;
+    };
 });
 
 // mock PortalStateContext
@@ -154,7 +156,7 @@ beforeEach(() => {
     mockListener.remove.mockClear();
 
     // Mock the implementation of addEventListener to return the mockListener
-    (Dimensions.addEventListener as jest.Mock).mockImplementation((event, callback) => {
+    (Dimensions.addEventListener as jest.Mock).mockImplementation((event: string, callback: () => void) => {
         if (event === 'change') {
             mockListener.callback = callback;
             return mockListener;
@@ -213,9 +215,9 @@ const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
     const scenario = async () => {
-        await screen.findByTestId('ReportScreen');
+        await screen.findByTestId(`report-screen-${report.reportID}`);
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
@@ -247,7 +249,7 @@ test('[ReportScreen] should render ReportScreen', async () => {
 });
 
 test('[ReportScreen] should render composer', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
     const scenario = async () => {
         await screen.findByTestId('composer');
     };
@@ -282,7 +284,7 @@ test('[ReportScreen] should render composer', async () => {
 });
 
 test('[ReportScreen] should render report list', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
     };
