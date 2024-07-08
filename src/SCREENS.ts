@@ -187,6 +187,13 @@ const SCREENS = {
 
     TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
+        MERCHANT: 'Transaction_Duplicate_Merchant',
+        CATEGORY: 'Transaction_Duplicate_Category',
+        TAG: 'Transaction_Duplicate_Tag',
+        DESCRIPTION: 'Transaction_Duplicate_Description',
+        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
+        BILLABLE: 'Transaction_Duplicate_Billable',
     },
 
     IOU_SEND: {
@@ -319,6 +326,7 @@ const SCREENS = {
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
+        REPORT_FIELD_SETTINGS: 'Workspace_ReportField_Settings',
         REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
         REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
         REPORT_FIELDS_ADD_VALUE: 'Workspace_ReportFields_AddValue',
@@ -361,6 +369,7 @@ const SCREENS = {
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
+        UPGRADE: 'Workspace_Upgrade',
     },
 
     EDIT_REQUEST: {
