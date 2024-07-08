@@ -811,14 +811,14 @@ export default {
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
-        confirmApprovalAllHoldAmount: (count: number) => ({
+        confirmApprovalAllHoldAmount: () => ({
             zero: `This expense is on hold. Do you want to approve anyway?`,
             one: `This expense is on hold. Do you want to approve anyway?`,
             other: `This expense is on hold. Do you want to approve anyway?`,
         }),
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
-        confirmPayAllHoldAmount: (count: number) => ({
+        confirmPayAllHoldAmount: () => ({
             zero: `This expense is on hold. Do you want to pay anyway?`,
             one: `This expense is on hold. Do you want to pay anyway?`,
             other: `This expense is on hold. Do you want to pay anyway?`,
