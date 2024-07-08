@@ -95,7 +95,8 @@ module.exports = {
         'plugin:you-dont-need-lodash-underscore/all',
         'prettier',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler'],
+    ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         project: path.resolve(__dirname, './tsconfig.json'),
@@ -108,8 +109,6 @@ module.exports = {
     },
     rules: {
         // TypeScript specific rules
-        '@typescript-eslint/no-unsafe-member-access': 'off',
-        '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',
@@ -188,6 +187,7 @@ module.exports = {
                 touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
             },
         ],
+        'react-compiler/react-compiler': 'error',
 
         // Disallow usage of certain functions and imports
         'no-restricted-syntax': [
