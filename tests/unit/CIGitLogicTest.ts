@@ -270,9 +270,12 @@ function describeTestSuite(testName: string, callback: () => void) {
  *   - They should not be run in parallel with other tests on the same machine. They will not play nicely with other tests.
  *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
  */
-describeTestSuite('CIGitLogic', () => {
+
+let startingDir: string;
+describe('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
+        startingDir = process.cwd();
         initGitServer();
         checkoutRepo();
         Log.success('Setup complete!');
@@ -284,6 +287,7 @@ describeTestSuite('CIGitLogic', () => {
     afterAll(() => {
         fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
         fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
+        process.chdir(startingDir);
     });
 
     test('Merge a pull request while the checklist is unlocked', () => {
