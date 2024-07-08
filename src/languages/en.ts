@@ -937,7 +937,7 @@ export default {
     timezonePage: {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
-        getLocationAutomatically: 'Automatically determine your location.',
+        getLocationAutomatically: 'Automatically determine your location',
     },
     updateRequiredView: {
         updateRequired: 'Update required',
@@ -2404,7 +2404,7 @@ export default {
                     jobs: 'projects',
                     label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
                 },
-                importTaxDescription: 'Import tax groups from NetSuite',
+                importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     customSegments: 'Custom segments/records',
                     customLists: 'Custom lists',
