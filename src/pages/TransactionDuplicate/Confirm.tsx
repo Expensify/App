@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import * as IOU from '@src/libs/actions/IOU';
+import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +31,10 @@ function Confirm() {
     const transaction: OnyxEntry<Transaction> = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
-    const reportAction = Object.values(reportActions ?? {}).find((action) => action.actionName === 'IOU' && action.originalMessage.IOUTransactionID === reviewDuplicates?.transactionID);
+    const reportAction = Object.values(reportActions ?? {}).find(
+        (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
+    );
+
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const mergeDuplicates = useCallback(() => {
         IOU.mergeDuplicates(transactionsMergeParams);

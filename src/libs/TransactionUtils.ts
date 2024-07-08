@@ -934,7 +934,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
         tag: reviewDuplicates?.tag ?? '',
         merchant: reviewDuplicates?.merchant ?? '',
         comment: reviewDuplicates?.description ?? '',
-        receiptID: originalTransaction?.receipt?.receiptID,
+        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
         created: originalTransaction?.created ?? '',
         currency: originalTransaction?.currency ?? '',
     };

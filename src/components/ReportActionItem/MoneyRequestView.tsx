@@ -233,7 +233,7 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID, newBillable, policy, policyTagList, policyCategories);
+            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID ?? '-1', newBillable, policy, policyTagList, policyCategories);
             Navigation.dismissModal();
         },
         [transaction, report, policy, policyTagList, policyCategories],
