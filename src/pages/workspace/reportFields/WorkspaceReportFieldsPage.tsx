@@ -75,7 +75,7 @@ function WorkspaceReportFieldsPage({
                 data: Object.values(filteredPolicyFieldList).map((reportField) => ({
                     value: reportField.name,
                     fieldID: reportField.fieldID,
-                    keyForList: String(reportField.orderWeight),
+                    keyForList: String(reportField.fieldID),
                     orderWeight: reportField.orderWeight,
                     pendingAction: reportField.pendingAction,
                     isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
