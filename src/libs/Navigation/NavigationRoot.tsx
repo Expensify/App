@@ -119,10 +119,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             firstRenderRef.current = false;
             return;
         }
-        if (!isSmallScreenWidth) {
-            return;
-        }
-        Navigation.setShouldPopAllStateOnUP();
+
+        Navigation.setShouldPopAllStateOnUP(!isSmallScreenWidth);
     }, [isSmallScreenWidth]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
