@@ -120,7 +120,7 @@ function ReportActionsView({
     const isFocused = useIsFocused();
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
-    const prevshouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
+    const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -338,16 +338,16 @@ function ReportActionsView({
     }, [session, report]);
 
     useEffect(() => {
-        const prevshouldUseNarrowLayout = prevshouldUseNarrowLayoutRef.current;
+        const prevShouldUseNarrowLayout = prevShouldUseNarrowLayoutRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didScreenSizeIncrease = prevshouldUseNarrowLayout && !shouldUseNarrowLayout;
+        const didScreenSizeIncrease = prevShouldUseNarrowLayout && !shouldUseNarrowLayout;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             openReportIfNecessary();
         }
         // update ref with current state
-        prevIsSmallScreenWidthRef.current = shouldUseNarrowLayout;
+        prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
