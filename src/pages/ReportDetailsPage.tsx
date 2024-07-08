@@ -442,7 +442,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
     const unapproveWarningText = (
         <Text>
