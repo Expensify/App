@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {getReport} from './actions/Task';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -22,15 +23,6 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
-
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (reports) => {
-        allReports = reports;
-    },
-});
 
 let allBetas: OnyxEntry<Beta[]>;
 Onyx.connect({
@@ -112,7 +104,7 @@ function getOrderedReportIDs(
         const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
         let doesTransactionThreadReportHasViolations = false;
         if (oneTransactionThreadReportID) {
-            const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+            const transactionReport = getReport(oneTransactionThreadReportID);
             doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, betas ?? [], transactionViolations);
         }
         const hasErrorsOtherThanFailedReceipt =
@@ -307,7 +299,7 @@ function getOptionData({
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
     if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        const oneTransactionThreadReport = getReport(oneTransactionThreadReportID);
 
         if (
             Permissions.canUseViolations(allBetas) &&
