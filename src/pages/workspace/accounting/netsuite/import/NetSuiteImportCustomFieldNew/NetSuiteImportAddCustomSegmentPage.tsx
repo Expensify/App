@@ -63,7 +63,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
             return;
         }
         ref.current?.movePrevious();

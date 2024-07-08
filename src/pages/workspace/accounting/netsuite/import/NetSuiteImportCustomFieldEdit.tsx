@@ -4,9 +4,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {SelectorType} from '@components/SelectionScreen';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,12 +18,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import NetSuiteCustomFieldMappingPicker from './NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
-type ImportListItem = SelectorType & {
-    value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
-};
 
 type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     route: {
@@ -128,33 +123,20 @@ function NetSuiteImportCustomFieldEdit({
         [customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
     );
 
-    const renderSelection = useMemo(() => {
-        const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
-
-        const selectionData: ImportListItem[] =
-            options.map((option) => ({
-                text: translate(`workspace.netsuite.import.importTypes.${option}.label`),
-                keyForList: option,
-                isSelected: fieldValue === option,
-                value: option,
-                alternateText: translate(`workspace.netsuite.import.importTypes.${option}.description`),
-            })) ?? [];
-
-        return (
+    const renderSelection = useMemo(
+        () =>
             customRecord && (
-                <SelectionList
-                    onSelectRow={(selected: ImportListItem) =>
+                <NetSuiteCustomFieldMappingPicker
+                    onInputChange={(value) => {
                         updateRecord({
-                            [fieldName]: selected.value,
-                        })
-                    }
-                    sections={[{data: selectionData}]}
-                    ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={selectionData?.find((record) => record.isSelected)?.keyForList}
+                            [fieldName]: value,
+                        });
+                    }}
+                    value={fieldValue}
                 />
-            )
-        );
-    }, [customRecord, fieldName, fieldValue, translate, updateRecord]);
+            ),
+        [customRecord, fieldName, fieldValue, updateRecord],
+    );
 
     const renderMap: Record<string, JSX.Element> = {
         mapping: renderSelection,
@@ -172,7 +154,6 @@ function NetSuiteImportCustomFieldEdit({
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!customRecord || !PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName)}
             shouldUseScrollView={false}
-
         >
             {renderMap[fieldName] || renderForm}
         </ConnectionLayout>
