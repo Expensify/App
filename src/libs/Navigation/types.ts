@@ -241,10 +241,6 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
-        policyID: string;
-        reportFieldKey: string;
-    };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
         orderWeight: number;
@@ -282,17 +278,28 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
+        reportFieldID?: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
         policyID: string;
+        reportFieldID?: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
         policyID: string;
         valueIndex: number;
+        reportFieldID?: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
         policyID: string;
         valueIndex: number;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+        policyID: string;
+        reportFieldID: string;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
+        policyID: string;
+        reportFieldID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
