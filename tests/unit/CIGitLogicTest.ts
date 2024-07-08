@@ -261,6 +261,15 @@ function describeTestSuite(testName: string, callback: () => void) {
     }
 }
 
+/*
+ * These tests are different from most jest tests. They create a dummy git repo and simulate the GitHub Actions CI environment
+ * and ensure that deploy checklists, comments, and releases are created correctly and completely,
+ * including a number of real-world edge cases we have encountered and fixed.
+ *
+ * However, because they are different, there are a few additional "rules" with these tests:
+ *   - They should not be run in parallel with other tests on the same machine. They will not play nicely with other tests.
+ *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
+ */
 describeTestSuite('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
