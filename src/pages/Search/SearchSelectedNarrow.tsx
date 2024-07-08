@@ -1,23 +1,19 @@
 import React, {useRef, useState} from 'react';
-import {Animated, View} from 'react-native';
+import {View} from 'react-native';
+import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 
 type SearchSelectedNarrowProps = {options: Array<DropdownOption<SearchHeaderOptionValue>>; itemsLength: number};
 
 function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -35,20 +31,13 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 style={[styles.tabSelectorButton, styles.ph5]}
                 onPress={openMenu}
             >
-                {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
-                        <View style={[styles.flexRow]}>
-                            <Text>{translate('workspace.common.selected', {selectedNumber: itemsLength})}</Text>
-                            <Icon
-                                src={Expensicons.DownArrow}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                                fill={theme.icon}
-                                additionalStyles={styles.ml2}
-                            />
-                        </View>
-                    </Animated.View>
-                )}
+                <Button
+                    style={[styles.w100, styles.mh3]}
+                    text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
+                    shouldShowRightIcon
+                    centeredContent
+                    iconRight={Expensicons.DownArrow}
+                />
             </PressableWithFeedback>
 
             <Modal
