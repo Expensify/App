@@ -428,7 +428,7 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
 }
 
 function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomSegment[], oldRecords: NetSuiteCustomSegment[]) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, 'customSegments', records, oldRecords);
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords);
 
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS,
@@ -441,7 +441,7 @@ function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomS
 }
 
 function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[]) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, 'customLists', records, oldRecords);
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID,  CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
         {
