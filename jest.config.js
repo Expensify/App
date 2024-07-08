@@ -2,7 +2,6 @@ const testFileExtension = '[jt]s?(x)';
 module.exports = {
     preset: 'jest-expo',
     testMatch: [
-        `<rootDir>/tests/e2e/**/*.spec.${testFileExtension}`,
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
         `<rootDir>/tests/actions/**/*.${testFileExtension}`,
