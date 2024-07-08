@@ -110,6 +110,15 @@ type SearchReport = {
     /** The report type */
     type?: string;
 
+    /** The accountID of the report manager */
+    managerID?: number;
+
+    /** The accountID of the user who created the report  */
+    accountID?: number;
+
+    /** The date the report was created */
+    created?: string;
+
     /** The action that can be performed for the report */
     action?: string;
 };
@@ -127,6 +136,9 @@ type SearchTransaction = {
 
     /** The transaction amount */
     amount: number;
+
+    /** If the transaction can be deleted */
+    canDelete: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -147,6 +159,9 @@ type SearchTransaction = {
     receipt?: {
         /** Source of the receipt */
         source?: string;
+
+        /** State of the receipt */
+        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
 
     /** The transaction tag */
