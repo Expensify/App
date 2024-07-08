@@ -113,6 +113,13 @@ function WorkspaceReportFieldsPage({
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
+    const handleDeleteReportFields = () => {
+        setSelectedReportFields([]);
+        const reportFieldKeys = selectedReportFields.map((selectedReportField) => ReportUtils.getReportFieldKey(selectedReportField.fieldID));
+        ReportField.deleteReportFields(policyID, reportFieldKeys);
+        setDeleteReportFieldsConfirmModalVisible(false);
+    };
+
     const isLoading = reportFieldsList === undefined;
     const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
 
@@ -145,20 +152,13 @@ function WorkspaceReportFieldsPage({
                 <Button
                     medium
                     success
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                     icon={Expensicons.Plus}
                     text={translate('workspace.reportFields.addField')}
                     style={[isSmallScreenWidth && styles.flex1]}
                 />
             </View>
         );
-    };
-
-    const handleDeleteReportFields = () => {
-        setSelectedReportFields([]);
-        const reportFieldKeys = selectedReportFields.map((selectedReportField) => ReportUtils.getReportFieldKey(selectedReportField.fieldID));
-        ReportField.deleteReportFields(policyID, reportFieldKeys);
-        setDeleteReportFieldsConfirmModalVisible(false);
     };
 
     const getCustomListHeader = () => (
