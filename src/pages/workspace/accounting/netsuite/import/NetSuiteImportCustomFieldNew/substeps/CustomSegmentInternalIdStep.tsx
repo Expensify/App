@@ -40,7 +40,7 @@ function CustomSegmentInternalIdStep({onNext, isEditing, policy}: CustomFieldSub
                 errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
-                    (customSegment) => customSegment.internalID.toLowerCase() === values[INPUT_IDS.INTERNAL_ID].toLocaleLowerCase(),
+                    (customSegment) => customSegment.internalID.toLowerCase() === values[INPUT_IDS.INTERNAL_ID].toLowerCase(),
                 )
             ) {
                 errors[INPUT_IDS.INTERNAL_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);

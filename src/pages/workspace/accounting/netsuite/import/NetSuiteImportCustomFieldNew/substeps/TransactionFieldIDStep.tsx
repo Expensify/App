@@ -37,7 +37,7 @@ function TransactionFieldIDStep({onNext, isEditing, policy}: CustomFieldSubStepW
                 errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customLists?.find(
-                    (customList) => customList.transactionFieldID.toLowerCase() === values[INPUT_IDS.TRANSACTION_FIELD_ID].toLocaleLowerCase(),
+                    (customList) => customList.transactionFieldID.toLowerCase() === values[INPUT_IDS.TRANSACTION_FIELD_ID].toLowerCase(),
                 )
             ) {
                 errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.customLists.errors.uniqueTransactionFieldIDError');

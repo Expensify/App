@@ -44,7 +44,7 @@ function CustomSegmentScriptIdStep({onNext, isEditing, policy}: CustomFieldSubSt
                 errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
-                    (customSegment) => customSegment.scriptID.toLowerCase() === values[INPUT_IDS.SCRIPT_ID].toLocaleLowerCase(),
+                    (customSegment) => customSegment.scriptID.toLowerCase() === values[INPUT_IDS.SCRIPT_ID].toLowerCase(),
                 )
             ) {
                 errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);

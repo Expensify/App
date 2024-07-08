@@ -43,7 +43,7 @@ function CustomSegmentNameStep({onNext, isEditing, policy}: CustomFieldSubStepWi
                 );
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
-                    (customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLocaleLowerCase(),
+                    (customSegment) => customSegment.segmentName.toLowerCase() === values[INPUT_IDS.SEGMENT_NAME].toLowerCase(),
                 )
             ) {
                 errors[INPUT_IDS.SEGMENT_NAME] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel);

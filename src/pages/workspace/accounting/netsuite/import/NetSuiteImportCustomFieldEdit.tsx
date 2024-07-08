@@ -86,13 +86,20 @@ function NetSuiteImportCustomFieldEdit({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM> = {};
 
             const key = fieldName as keyof typeof formValues;
+            const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths);
             if (!formValues[key]) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel));
+            } else if (
+                policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
+                    (customSegment) => customSegment?.[fieldName as keyof typeof customSegment]?.toLowerCase() === formValues[key].toLowerCase(),
+                )
+            ) {
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel));
             }
 
             return errors;
         },
-        [fieldName, translate],
+        [fieldName, importCustomField, policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments, translate],
     );
 
     const renderForm = useMemo(
