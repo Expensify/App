@@ -113,7 +113,7 @@ function getOrderedReportIDs(
         let doesTransactionThreadReportHasViolations = false;
         if (oneTransactionThreadReportID) {
             const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-            doesTransactionThreadReportHasViolations = OptionsListUtils.shouldShowViolations(transactionReport, betas ?? [], transactionViolations);
+            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, betas ?? [], transactionViolations);
         }
         const hasErrorsOtherThanFailedReceipt =
             doesTransactionThreadReportHasViolations ||
