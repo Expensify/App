@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import FocusTrap from 'focus-trap-react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
@@ -32,12 +32,6 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
         return true;
     }, [isFocused, isSmallScreenWidth, route.name]);
 
-    const mountedRef = useRef(false);
-
-    useEffect(() => {
-        mountedRef.current = true;
-    }, []);
-
     return (
         <FocusTrap
             active={isActive}
@@ -46,7 +40,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
-                delayInitialFocus: CONST.ANIMATED_TRANSITION,
+                delayInitialFocus: CONST.ANIMATED_TRANSITION + CONST.ANIMATION_IN_TIMING,
                 initialFocus: (focusTrapContainers) => {
                     const hasFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
                     if (hasFocusedElementInsideContainer) {
