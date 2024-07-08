@@ -864,7 +864,20 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         reimbursable: ['reimbursable'],
     };
 
-    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [...new Set(items.map((item) => keys.map((key) => item?.[key])).flat())];
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [
+        ...new Set(
+            items
+                .map((item) => {
+                    // Prioritize modifiedMerchant over merchant
+                    if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        return item?.modifiedMerchant || item?.merchant;
+                    }
+                    return keys.map((key) => item?.[key]);
+                })
+                .flat(),
+        ),
+    ];
 
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
@@ -891,7 +904,9 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
                 if (allFieldsAreEqual) {
                     keep[fieldName] = firstTransaction?.[keys[0]];
                 } else {
+                    console.log('transactions', transactions);
                     const differentValues = getDifferentValues(transactions, keys);
+                    console.log('differentValues', differentValues);
                     if (differentValues.length > 0) {
                         change[fieldName] = differentValues;
                     }
