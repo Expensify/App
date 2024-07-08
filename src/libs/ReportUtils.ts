@@ -3698,20 +3698,20 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
 }
 
 function getUploadingAttachmentHtml(file?: FileObject): string {
-    if (!file || typeof file.source !== 'string') {
+    if (!file || typeof file.uri !== 'string') {
         return '';
     }
 
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        return `<img src="${file.source}" alt="${file.name}" data-optimistic-src="${file.source}" />`;
+        return `<img src="${file.uri}" alt="${file.name}" data-optimistic-src="${file.uri}" />`;
     }
     if (file.type?.startsWith('video')) {
-        return `<video src="${file.source}" data-optimistic-src="${file.source}">${file.name}</video>`;
+        return `<video src="${file.uri}" data-optimistic-src="${file.uri}">${file.name}</video>`;
     }
 
     // For all other types, we present a generic preview
-    return `<a href="${file.source}" data-expensify-source="${file.source}">${file.name}</a>`;
+    return `<a href="${file.uri}" data-expensify-source="${file.uri}">${file.name}</a>`;
 }
 
 function getReportDescriptionText(report: Report): string {

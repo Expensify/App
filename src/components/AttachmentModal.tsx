@@ -341,6 +341,7 @@ function AttachmentModal({
                     updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
                 }
                 const inputSource = URL.createObjectURL(updatedFile);
+                updatedFile.uri = inputSource;
                 const inputModalType = getModalType(inputSource, updatedFile);
                 setIsModalOpen(true);
                 setSourceState(inputSource);
