@@ -60,7 +60,8 @@ function WorkspaceReportFieldsPage({
         if (!policy?.fieldList) {
             return {};
         }
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([key]) => key !== 'text_title'));
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
@@ -81,9 +82,15 @@ function WorkspaceReportFieldsPage({
             fieldID: reportField.fieldID,
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
+            pendingAction: reportField.pendingAction,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
-            rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(reportField.type)} />,
+            rightElement: (
+                <ListItemRightCaretWithLabel
+                    shouldShowCaret={false}
+                    labelText={Str.recapitalize(reportField.type)}
+                />
+            ),
         }));
     }, [filteredPolicyFieldList, policy, selectedReportFields]);
 
@@ -143,12 +150,12 @@ function WorkspaceReportFieldsPage({
     const handleDeleteReportFields = () => {
         setSelectedReportFields([]);
         const reportFieldKeys = selectedReportFields.map((selectedReportField) => ReportUtils.getReportFieldKey(selectedReportField.fieldID));
-        ReportField.deletePolicyReportFields(policyID, reportFieldKeys);
+        ReportField.deleteReportFields(policyID, reportFieldKeys);
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.type')}</Text>
         </View>
@@ -195,7 +202,7 @@ function WorkspaceReportFieldsPage({
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
+                        style={styles.flex1}
                         color={theme.spinner}
                     />
                 )}

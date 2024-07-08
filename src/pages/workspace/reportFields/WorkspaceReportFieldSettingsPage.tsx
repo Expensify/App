@@ -33,7 +33,7 @@ function WorkspaceReportFieldSettings({route}: WorkspaceReportFieldSettingsPageP
     }
 
     const deleteReportFieldAndHideModal = () => {
-        ReportField.deletePolicyReportFields(route.params.policyID, [reportFieldKey]);
+        ReportField.deleteReportFields(route.params.policyID, [reportFieldKey]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
@@ -42,7 +42,7 @@ function WorkspaceReportFieldSettings({route}: WorkspaceReportFieldSettingsPageP
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

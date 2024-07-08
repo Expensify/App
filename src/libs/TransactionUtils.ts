@@ -1,10 +1,11 @@
 import lodashHas from 'lodash/has';
+import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -14,6 +15,9 @@ import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportConnection from './ReportConnection';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -32,13 +36,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allTransactionViolations = value),
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
 });
 
 let currentUserEmail = '';
@@ -194,6 +191,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 }
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
+    const allReports = ReportConnection.getAllReports();
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
@@ -385,6 +383,13 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 
 function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
     return transaction?.comment?.customUnit?.quantity ?? 0;
+}
+
+/**
+ * Return the reimbursable value. Defaults to true to match BE logic.
+ */
+function getReimbursable(transaction: Transaction): boolean {
+    return transaction?.reimbursable ?? true;
 }
 
 /**
@@ -810,6 +815,101 @@ function getTransaction(transactionID: string): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
+type FieldsToCompare = Record<string, Array<keyof Transaction>>;
+type FieldsToChange = {
+    category?: Array<string | undefined>;
+    merchant?: Array<string | undefined>;
+    tag?: Array<string | undefined>;
+    description?: Array<Comment | undefined>;
+    taxCode?: Array<string | undefined>;
+    billable?: Array<boolean | undefined>;
+    reimbursable?: Array<boolean | undefined>;
+};
+
+/**
+ * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
+ *
+ * @returns An object with two properties: 'keep' and 'change'.
+ * 'keep' is an object where each key is a field name and the value is the value of that field in the transaction that should be kept.
+ * 'change' is an object where each key is a field name and the value is an array of different values of that field in the duplicate transactions.
+ *
+ * The function works as follows:
+ * 1. It fetches the transaction violations for the given transaction ID.
+ * 2. It finds the duplicate transactions.
+ * 3. It creates two empty objects, 'keep' and 'change'.
+ * 4. It defines the fields to compare in the transactions.
+ * 5. It iterates over the fields to compare. For each field:
+ *    - If the field is 'description', it checks if all comments are equal, exist, or are empty. If so, it keeps the first transaction's comment. Otherwise, it finds the different values and adds them to 'change'.
+ *    - For other fields, it checks if all fields are equal. If so, it keeps the first transaction's field value. Otherwise, it finds the different values and adds them to 'change'.
+ * 6. It returns the 'keep' and 'change' objects.
+ */
+
+function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const keep: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const change: Record<string, any[]> = {};
+
+    const fieldsToCompare: FieldsToCompare = {
+        merchant: ['merchant', 'modifiedMerchant'],
+        category: ['category'],
+        tag: ['tag'],
+        description: ['comment'],
+        taxCode: ['taxCode'],
+        billable: ['billable'],
+        reimbursable: ['reimbursable'],
+    };
+
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [...new Set(items.map((item) => keys.map((key) => item?.[key])).flat())];
+
+    for (const fieldName in fieldsToCompare) {
+        if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
+            const keys = fieldsToCompare[fieldName];
+            const firstTransaction = transactions[0];
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
+
+            if (fieldName === 'description') {
+                const allCommentsAreEqual = transactions.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+                const allCommentsExist = transactions.every((item) => !!item?.comment.comment === !!firstTransaction?.comment.comment);
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
+
+                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
+                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
+                }
+            } else {
+                const allFieldsAreEqual = transactions.every((item) => keys.every((key) => item?.[key] === firstTransaction?.[key]));
+
+                if (allFieldsAreEqual) {
+                    keep[fieldName] = firstTransaction?.[keys[0]];
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
+                }
+            }
+        }
+    }
+
+    return {keep, change};
+}
+
+function getTransactionID(threadReportID: string): string {
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+
+    return IOUTransactionID;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -878,6 +978,9 @@ export {
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
+    compareDuplicateTransactionFields,
+    getTransactionID,
+    getReimbursable,
 };
 
 export type {TransactionChanges};
