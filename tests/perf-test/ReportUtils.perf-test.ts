@@ -42,12 +42,12 @@ describe('ReportUtils', () => {
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+    });
 
-        beforeEach(async () => {
-            await Onyx.multiSet({
-                ...mockedPoliciesMap,
-                ...mockedReportsMap,
-            });
+    beforeEach(async () => {
+        await Onyx.multiSet({
+            ...mockedPoliciesMap,
+            ...mockedReportsMap,
         });
     });
 
