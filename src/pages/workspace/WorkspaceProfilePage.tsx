@@ -46,10 +46,9 @@ type WorkspaceProfilePageOnyxProps = {
 };
 
 type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
-
 const parser = new ExpensiMark();
 
-function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -57,6 +56,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
 
+    // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
+    const policy = policyDraft?.id ? policyDraft : policyProp;
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -88,8 +89,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
     const shouldShowAddress = !readOnly || formattedAddress;
 
     const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
         Policy.openPolicyProfilePage(route.params.policyID);
-    }, [route.params.policyID]);
+    }, [policyDraft?.id, route.params.policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -134,11 +138,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
-
-    // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
-    if (policy === undefined) {
-        return null;
-    }
 
     return (
         <WorkspacePageWithSections
