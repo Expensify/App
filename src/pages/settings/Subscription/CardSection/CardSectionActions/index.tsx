@@ -31,7 +31,7 @@ function CardSectionActions() {
             {
                 icon: Expensicons.MoneyCircle,
                 text: translate('subscription.cardSection.changeCurrency'),
-                onSelected: () => {}, // TODO: update with navigation to "change currency" screen (https://github.com/Expensify/App/issues/38629)
+                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
             },
         ],
         [translate],

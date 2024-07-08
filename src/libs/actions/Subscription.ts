@@ -231,4 +231,60 @@ function clearUpdateSubscriptionSizeError() {
     });
 }
 
-export {openSubscriptionPage, updateSubscriptionAutoRenew, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionSize, clearUpdateSubscriptionSizeError, updateSubscriptionType};
+function clearOutstandingBalance() {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+                value: true,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+                value: true,
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE, null, onyxData);
+}
+
+export {
+    openSubscriptionPage,
+    updateSubscriptionAutoRenew,
+    updateSubscriptionAddNewUsersAutomatically,
+    updateSubscriptionSize,
+    clearUpdateSubscriptionSizeError,
+    updateSubscriptionType,
+    clearOutstandingBalance,
+};

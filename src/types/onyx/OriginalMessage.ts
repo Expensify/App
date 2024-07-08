@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type ReportActionName from './ReportActionName';
 
 /** Types of join workspace resolutions */
@@ -402,6 +402,18 @@ type OriginalMessageApproved = {
     expenseReportID: string;
 };
 
+/** Model of `unapproved` report action */
+type OriginalMessageUnapproved = {
+    /** Unapproved expense amount */
+    amount: number;
+
+    /** Currency of the unapproved expense amount */
+    currency: string;
+
+    /** Report ID of the expense */
+    expenseReportID: string;
+};
+
 /** The map type of original message */
 type OriginalMessageMap = {
     /** */
@@ -431,17 +443,11 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: never;
-    /** */
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
-    /** */
-    [CONST.REPORT.ACTIONS.TYPE.DONATION]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: never;
-    /** */
-    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
     /** */
@@ -481,10 +487,6 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
-    /** */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
-    /** */
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
@@ -507,7 +509,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     /** */
@@ -515,22 +517,28 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
-    /** */
     [CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW]: OriginalMessageTripRoomPreview;
-} & {
-    [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
-} & {
-    [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageChangeLog;
-};
-
-/** */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
-    ReportActionName,
-    keyof OriginalMessageMap,
-    `Error: Types don't match, OriginalMessageMap type is missing: ${Exclude<ReportActionName, keyof OriginalMessageMap>}`
->;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.DONATION]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
+} & OldDotOriginalMessageMap & {
+        [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
+    } & {
+        [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageChangeLog;
+    };
 
 /** */
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
