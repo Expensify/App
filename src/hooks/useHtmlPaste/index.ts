@@ -146,7 +146,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
         }
 
-        document.addEventListener('paste', handlePaste);
+        document.addEventListener('paste', handlePaste, true);
 
         return () => {
             if (removeListenerOnScreenBlur) {
