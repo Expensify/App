@@ -1,5 +1,5 @@
 import {NativeModules} from 'react-native';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -9,7 +9,6 @@ import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type OnyxPolicy from '@src/types/onyx/Policy';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 
 let onboarding: Onboarding | [] | undefined;
@@ -199,23 +198,6 @@ Onyx.connect({
     callback: (value) => {
         isLoadingReportData = value ?? false;
         checkServerDataReady();
-    },
-});
-
-const allPolicies: OnyxCollection<OnyxPolicy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-
-        if (val === null || val === undefined) {
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
 
