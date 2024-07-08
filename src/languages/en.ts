@@ -358,6 +358,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        upgrade: 'Upgrade',
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
@@ -708,7 +709,6 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
-        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
@@ -818,6 +818,11 @@ export default {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        unapprove: 'Unapprove',
+        unapproveReport: 'Unapprove report',
+        headsUp: 'Heads up!',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -2776,6 +2781,21 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            connectionName: (integration: ConnectionName) => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default: {
+                        return '';
+                    }
+                }
+            },
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
@@ -3091,6 +3111,30 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        upgrade: {
+            reportFields: {
+                title: 'Report fields',
+                description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
+                pricing: {
+                    onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
+                    amount: '$9 ',
+                    perActiveMember: 'per active member per month.',
+                },
+            },
+            note: {
+                upgradeWorkspace: 'Upgrade your workspace to access this feature, or',
+                learnMore: 'learn more',
+                aboutOurPlans: 'about our plans and pricing.',
+            },
+            upgradeToUnlock: 'Unlock this feature',
+            completed: {
+                headline: `You've upgraded your workspace!`,
+                successMessage: (policyName: string) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
+                viewSubscription: 'View your subscription',
+                moreDetails: 'for more details.',
+                gotIt: 'Got it, thanks',
+            },
         },
         restrictedAction: {
             restricted: 'Restricted',
@@ -3629,6 +3673,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        none: 'None',
+        taxCodeToKeep: 'Choose which tax code to keep',
+        tagToKeep: 'Choose which tag to keep',
+        isTransactionReimbursable: 'Choose if transaction is reimbursable',
+        merchantToKeep: 'Choose which merchant to keep',
+        descriptionToKeep: 'Choose which description to keep',
+        categoryToKeep: 'Choose which category to keep',
+        isTransactionBillable: 'Choose if transaction is billable',
         keepThisOne: 'Keep this one',
         hold: 'Hold',
     },

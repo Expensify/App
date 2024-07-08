@@ -1300,7 +1300,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         connections?: Connections;
 
         /** Report fields attached to the policy */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField>>;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
@@ -1343,6 +1343,21 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Object containing all policy information necessary to connect with Spontana */
         travelSettings?: WorkspaceTravelSettings;
+
+        /** Indicates if the policy is pending an upgrade */
+        isPendingUpgrade?: boolean;
+
+        /** Max expense age for a Policy violation */
+        maxExpenseAge?: number;
+
+        /** Max expense amount for a policy violation */
+        maxExpenseAmount?: number;
+
+        /** Max amount for an expense with no receipt violation */
+        maxExpenseAmountNoReceipt?: number;
+
+        /** Whether GL codes are enabled */
+        glCodes?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
