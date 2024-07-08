@@ -3,7 +3,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
+import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +43,7 @@ function StateSelector(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const stateFromUrl = useGeographicalStateFromRoute();
+    const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const didOpenStateSelector = useRef(false);
     const isFocused = useIsFocused();
@@ -89,7 +89,7 @@ function StateSelector(
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRoute();
+                const activeRoute = Navigation.getActiveRouteWithoutParams();
                 didOpenStateSelector.current = true;
                 Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
             }}

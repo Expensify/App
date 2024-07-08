@@ -329,10 +329,10 @@ function MoneyRequestConfirmationList({
             taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
         }
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
+        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
         IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
-    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID]);
+    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID, currency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -531,6 +531,18 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const shouldDisableParticipant = (participant: Participant): boolean => {
+        if (ReportUtils.isDraftReport(participant.reportID)) {
+            return true;
+        }
+
+        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+            return true;
+        }
+
+        return false;
+    };
+
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
         if (isTypeSplit) {
@@ -553,7 +565,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isDisabled: !participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                isInteractive: !shouldDisableParticipant(participant),
             }));
             options.push({
                 title: translate('common.to'),

@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as Browser from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
 import EmailUtils from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -19,7 +20,6 @@ import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -397,10 +397,18 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportID);
+                    Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
+                    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
+                    const reason = originalMessage?.reason;
+                    const violationName = originalMessage?.violationName;
+                    Clipboard.setString(Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
@@ -426,10 +434,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            if (!Permissions.canUseCommentLinking(betas)) {
-                return false;
-            }
-
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
@@ -511,7 +515,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
             const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
             Download.setDownload(sourceID, true);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
+            const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
+            const isAnchorTag = anchorRegex.test(html);
+            fileDownload(sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
