@@ -100,7 +100,7 @@ function WorkspaceInviteMessagePage({
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {

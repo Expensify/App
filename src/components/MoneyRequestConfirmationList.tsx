@@ -300,7 +300,7 @@ function MoneyRequestConfirmationList({
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
@@ -615,7 +615,7 @@ function MoneyRequestConfirmationList({
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
         // Keep 'transaction' out to ensure that we autoselect the option only once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
@@ -633,7 +633,7 @@ function MoneyRequestConfirmationList({
             IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
         // Keep 'transaction' out to ensure that we autoselect the option only once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policyTagLists, policyTags]);
 
     /**
