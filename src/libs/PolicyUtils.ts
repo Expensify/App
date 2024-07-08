@@ -9,8 +9,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, NetSuiteCustomList, NetSuiteCustomSegment, PolicyFeatureName, Rate, Tenant, NetSuiteAccount} from '@src/types/onyx/Policy';
-
+import type {
+    ConnectionLastSync,
+    Connections,
+    CustomUnit,
+    NetSuiteAccount,
+    NetSuiteConnection,
+    NetSuiteCustomList,
+    NetSuiteCustomSegment,
+    PolicyFeatureName,
+    Rate,
+    Tenant,
+} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Localize from './Localize';

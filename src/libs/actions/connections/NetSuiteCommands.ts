@@ -7,7 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections,NetSuiteCustomFormID,  NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type SubsidiaryParam = {
