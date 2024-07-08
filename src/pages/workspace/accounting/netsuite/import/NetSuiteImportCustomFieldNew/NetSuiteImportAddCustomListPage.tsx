@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as FormActions from '@userActions/FormActions';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -25,7 +26,6 @@ import MappingStep from './substeps/MappingStep';
 import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
 const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, MappingStep, ConfirmCustomListStep];
-const NUM_STEPS = 4;
 
 function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -105,6 +105,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 },
             ]);
             Connections.updateNetSuiteCustomLists(policyID, updatedCustomLists, customLists);
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
             nextScreen();
         },
         [customLists, nextScreen, policyID],
@@ -134,8 +135,8 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.flexGrow1, styles.mt3]}>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
-                    submitButtonText={screenIndex === NUM_STEPS - 1 ? translate('common.confirm') : translate('common.next')}
-                    onSubmit={screenIndex === NUM_STEPS - 1 ? updateNetSuiteCustomLists : handleNextScreen}
+                    submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
+                    onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomLists : handleNextScreen}
                     validate={validate}
                     style={[styles.flexGrow1]}
                     submitButtonStyles={[styles.ph5, styles.mb0]}

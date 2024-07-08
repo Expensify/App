@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as FormActions from '@userActions/FormActions';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -29,7 +30,6 @@ import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
 import MappingStep from './substeps/MappingStep';
 
 const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, CustomSegmentInternalIdStep, CustomSegmentScriptIdStep, MappingStep, ConfirmCustomSegmentList];
-const NUM_STEPS = 6;
 
 function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -140,6 +140,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                 },
             ]);
             Connections.updateNetSuiteCustomSegments(policyID, updatedCustomSegments, customSegments);
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
             nextScreen();
         },
         [customSegments, nextScreen, policyID],
@@ -189,8 +190,8 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                 ) : (
                     <FormProvider
                         formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM}
-                        submitButtonText={screenIndex === NUM_STEPS - 1 ? translate('common.confirm') : translate('common.next')}
-                        onSubmit={screenIndex === NUM_STEPS - 1 ? updateNetSuiteCustomSegments : handleNextScreen}
+                        submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
+                        onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomSegments : handleNextScreen}
                         validate={validate}
                         style={[styles.flexGrow1]}
                         submitButtonStyles={[styles.ph5, styles.mb0]}
