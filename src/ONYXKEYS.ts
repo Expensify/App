@@ -566,6 +566,8 @@ const ONYXKEYS = {
         NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT: 'netSuiteCustomFieldAddFormDraft',
         NETSUITE_TOKEN_INPUT_FORM: 'netsuiteTokenInputForm',
         NETSUITE_TOKEN_INPUT_FORM_DRAFT: 'netsuiteTokenInputFormDraft',
+        NETSUITE_CUSTOM_FORM_ID_FORM: 'netsuiteCustomFormIDForm',
+        NETSUITE_CUSTOM_FORM_ID_FORM_DRAFT: 'netsuiteCustomFormIDFormDraft',
     },
 } as const;
 
@@ -632,6 +634,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM]: FormTypes.NetSuiteTokenInputForm;
+    [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM]: FormTypes.NetSuiteCustomFormIDForm;
 };
 
 type OnyxFormDraftValuesMapping = {

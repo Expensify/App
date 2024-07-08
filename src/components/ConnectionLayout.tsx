@@ -61,14 +61,14 @@ type ConnectionLayoutProps = {
     /** Name of the current connection */
     connectionName: ConnectionName;
 
-    /** Whether or not to block user from accessing the page */
-    shouldBeBlocked?: boolean;
-
     /** Whether the screen should load for empty connection */
     isForEmptyConnection?: boolean;
 
     /** Handler for back button press */
     onBackButtonPress?: () => void;
+
+    /** Whether or not to block user from accessing the page */
+    shouldBeBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -100,9 +100,9 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
-    shouldBeBlocked = false,
     isForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
+    shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 

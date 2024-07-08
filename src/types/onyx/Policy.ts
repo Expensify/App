@@ -765,6 +765,18 @@ type NetSuiteCustomSegment = {
     mapping: NetSuiteCustomFieldMapping;
 };
 
+/** The custom form ID object */
+type NetSuiteCustomFormID = {
+    /** The custom form selections for reimbursable transactions */
+    reimbursable: NetSuiteCustomFormIDOptions;
+
+    /** The custom form selections for non-reimbursable transactions */
+    nonReimbursable: NetSuiteCustomFormIDOptions;
+
+    /** Whether we'll use the custom form selections upon export to NetSuite */
+    enabled: boolean;
+};
+
 /** User configuration for the NetSuite accounting integration. */
 type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Invoice Item Preference */
@@ -903,16 +915,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     payableAcct: string;
 
     /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
-    customFormIDOptions?: {
-        /** The custom form selections for reimbursable transactions */
-        reimbursable: NetSuiteCustomFormIDOptions;
-
-        /** The custom form selections for non-reimbursable transactions */
-        nonReimbursable: NetSuiteCustomFormIDOptions;
-
-        /** Whether we'll use the custom form selections upon export to NetSuite */
-        enabled: boolean;
-    };
+    customFormIDOptions?: NetSuiteCustomFormID;
 
     /** The account to use for Invoices export to NetSuite */
     collectionAccount?: string;
@@ -1282,7 +1285,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         connections?: Connections;
 
         /** Report fields attached to the policy */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField>>;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
@@ -1325,6 +1328,21 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Object containing all policy information necessary to connect with Spontana */
         travelSettings?: WorkspaceTravelSettings;
+
+        /** Indicates if the policy is pending an upgrade */
+        isPendingUpgrade?: boolean;
+
+        /** Max expense age for a Policy violation */
+        maxExpenseAge?: number;
+
+        /** Max expense amount for a policy violation */
+        maxExpenseAmount?: number;
+
+        /** Max amount for an expense with no receipt violation */
+        maxExpenseAmountNoReceipt?: number;
+
+        /** Whether GL codes are enabled */
+        glCodes?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
@@ -1382,4 +1400,7 @@ export type {
     NetSuiteCustomSegment,
     NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
+    NetSuiteAccount,
+    NetSuiteCustomFormIDOptions,
+    NetSuiteCustomFormID,
 };
