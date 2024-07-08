@@ -241,6 +241,10 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+        policyID: string;
+        reportFieldKey: string;
+    };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
         orderWeight: number;

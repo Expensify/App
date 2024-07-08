@@ -535,6 +535,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
+                        [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.route,
+                            parse: {
+                                reportFieldName: (reportFieldKey: string) => decodeURIComponent(reportFieldKey),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
                         },
