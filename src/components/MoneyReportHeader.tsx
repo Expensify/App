@@ -8,7 +8,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -22,7 +21,6 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
@@ -86,28 +84,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-    const isClosed = ReportUtils.isClosedReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
-    const canHoldOrUnholdRequest = !isEmptyObject(transaction) && !isSettled && !isApproved && !isDeletedParentAction && !isClosed;
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
-    const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
-    const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
@@ -147,7 +137,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
 
-    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+    const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type || !chatReport) {
             return;
         }
@@ -156,7 +146,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-            IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+            IOU.payInvoice(type, chatReport, moneyRequestReport);
         } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
@@ -198,22 +188,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
-    const changeMoneyRequestStatus = () => {
-        if (!transactionThreadReport) {
-            return;
-        }
-        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
-            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1'
-            : '-1';
-
-        if (isOnHold) {
-            IOU.unholdRequest(iouTransactionID, transactionThreadReport.reportID);
-        } else {
-            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, transactionThreadReport.reportID, activeRoute));
-        }
-    };
-
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon
             src={src}
@@ -243,29 +217,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (canHoldOrUnholdRequest) {
-        const isRequestIOU = ReportUtils.isIOUReport(chatReport);
-        const isHoldCreator = ReportUtils.isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
-        const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(moneyRequestReport);
-        const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-        const isInvoiceReport = ReportUtils.isInvoiceReport(moneyRequestReport);
-        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus)) && !isInvoiceReport) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Stopwatch,
-                text: translate('iou.unholdExpense'),
-                onSelected: () => changeMoneyRequestStatus(),
-            });
-        }
-        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning && !isInvoiceReport) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Stopwatch,
-                text: translate('iou.hold'),
-                onSelected: () => changeMoneyRequestStatus(),
-            });
-        }
-    }
-
     useEffect(() => {
         if (isLoadingHoldUseExplained) {
             return;
@@ -291,23 +242,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         IOU.dismissHoldUseExplanation();
     };
 
-    if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('iou.cancelPayment'),
-            onSelected: () => setIsConfirmModalVisible(true),
-        });
-    }
-
-    // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    if (canDeleteRequest && !isEmptyObject(transactionThreadReport)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction}),
-            onSelected: () => setIsDeleteRequestModalVisible(true),
-        });
-    }
-
     useEffect(() => {
         if (canDeleteRequest) {
             return;
@@ -328,9 +262,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or banners are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown}
-                shouldShowThreeDotsButton
-                threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             >
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
