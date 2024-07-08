@@ -67,6 +67,7 @@ function NetSuiteImportCustomFieldPage({
     const listEmptyComponent = useMemo(
         () => (
             <WorkspaceEmptyStateSection
+                shouldStyleAsCard={false}
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
                 icon={Illustrations.EmptyStateRecords}
                 subtitleComponent={
