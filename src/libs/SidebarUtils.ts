@@ -352,7 +352,7 @@ function getOptionData({
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
-        } else if (ReportActionsUtils.isRoomChangeLogAction(lastAction)) {
+        } else if (ReportActionsUtils.isRoomChangeLogAction(lastAction) || ReportActionsUtils.isInviteOrRemovedAction(lastAction)) {
             const lastActionOriginalMessage = lastAction?.actionName ? ReportActionsUtils.getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
