@@ -1,11 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,15 +24,6 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const creditCardSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, exportConfig?.nonReimbursableAccount), [exportConfig?.nonReimbursableAccount, policy]);
-
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.creditCardAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
-    );
 
     const updateCreditCardAccount = useCallback(
         ({value}: SelectorType) => {
@@ -69,7 +58,6 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             listItem={RadioListItem}
             onSelectRow={updateCreditCardAccount}
             initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
-            headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID))}
             title="workspace.sageIntacct.creditCardAccount"
             listEmptyContent={listEmptyContent}
