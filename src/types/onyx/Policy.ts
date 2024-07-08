@@ -762,7 +762,7 @@ type NetSuiteCustomSegment = {
     scriptID: string;
 
     /** Whether we import this segment as a report field or tag */
-    mapping: 'TAG' | 'REPORT_FIELD';
+    mapping: NetSuiteCustomFieldMapping;
 };
 
 /** User configuration for the NetSuite accounting integration. */

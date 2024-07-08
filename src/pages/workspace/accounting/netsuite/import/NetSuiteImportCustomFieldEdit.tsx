@@ -171,6 +171,8 @@ function NetSuiteImportCustomFieldEdit({
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!customRecord || !PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName)}
+            shouldUseScrollView={false}
+
         >
             {renderMap[fieldName] || renderForm}
         </ConnectionLayout>
