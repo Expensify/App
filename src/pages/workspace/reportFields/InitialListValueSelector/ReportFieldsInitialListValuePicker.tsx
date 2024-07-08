@@ -1,8 +1,8 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useMemo} from 'react';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {SelectionListHandle} from './SelectionList/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 
 type ReportFieldsInitialListValuePickerProps = {
     /** Options to select from if field is of type list */

@@ -3,12 +3,12 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
-import ReportFieldsInitialListValuePicker from '@components/ReportFieldsInitialListValuePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ReportFieldsInitialListValuePicker from './ReportFieldsInitialListValuePicker';
 
 type InitialListValueSelectorModalProps = {
     /** Whether the modal is visible */
