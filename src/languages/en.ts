@@ -1013,7 +1013,7 @@ export default {
         },
         returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
-        accountSettings: 'Account Settings',
+        accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',
     },
