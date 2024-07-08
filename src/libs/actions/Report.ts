@@ -92,7 +92,6 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
-    ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
