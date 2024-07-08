@@ -62,7 +62,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
                     listValues={formDraft?.listValues ?? []}
                     disabledOptions={formDraft?.disabledListValues ?? []}
                     value={currentValue}
-                    onInputChange={onValueSelected}
+                    onValueChange={onValueSelected}
                 />
             </ScreenWrapper>
         </Modal>

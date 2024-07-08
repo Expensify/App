@@ -13,7 +13,6 @@ import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type Picker from '@components/Picker';
 import type RadioButtons from '@components/RadioButtons';
-import type ReportFieldsInitialListValuePicker from '@components/ReportFieldsInitialListValuePicker';
 import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StateSelector from '@components/StateSelector';
@@ -48,8 +47,7 @@ type ValidInputs =
     | typeof AmountPicker
     | typeof TextPicker
     | typeof AddPlaidBankAccount
-    | typeof EmojiPickerButtonDropdown
-    | typeof ReportFieldsInitialListValuePicker;
+    | typeof EmojiPickerButtonDropdown;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
 type ValueTypeMap = {

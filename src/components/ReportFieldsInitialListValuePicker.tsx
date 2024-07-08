@@ -15,10 +15,10 @@ type ReportFieldsInitialListValuePickerProps = {
     value: string;
 
     /** Function to call when the user selects a value */
-    onInputChange?: (value: string) => void;
+    onValueChange: (value: string) => void;
 };
 
-function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onInputChange}: ReportFieldsInitialListValuePickerProps, forwardedRef: ForwardedRef<SelectionListHandle>) {
+function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onValueChange}: ReportFieldsInitialListValuePickerProps, forwardedRef: ForwardedRef<SelectionListHandle>) {
     const listValueSections = useMemo(
         () => [
             {
@@ -40,7 +40,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
             ref={forwardedRef}
             sections={listValueSections}
             ListItem={RadioListItem}
-            onSelectRow={(item) => onInputChange?.(item.value)}
+            onSelectRow={(item) => onValueChange(item.value)}
             initiallyFocusedOptionKey={listValueSections[0].data.find((listValue) => listValue.isSelected)?.keyForList}
         />
     );

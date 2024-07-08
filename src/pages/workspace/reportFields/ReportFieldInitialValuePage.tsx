@@ -136,7 +136,7 @@ function ReportFieldInitialValuePage({
                         listValues={reportField.values}
                         disabledOptions={reportField.disabledOptions}
                         value={initialValue}
-                        onInputChange={submitListValueUpdate}
+                        onValueChange={submitListValueUpdate}
                     />
                 )}
             </ScreenWrapper>
