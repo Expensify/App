@@ -72,8 +72,8 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> = {};
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
             switch (screenIndex) {
                 case 0:
                     return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
@@ -95,7 +95,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const updateNetSuiteCustomLists = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>) => {
+        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>) => {
             const updatedCustomLists = customLists.concat([
                 {
                     listName: formValues[INPUT_IDS.LIST_NAME],
@@ -133,7 +133,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM}
+                    formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
                     submitButtonText={screenIndex === NUM_STEPS - 1 ? translate('common.confirm') : translate('common.next')}
                     onSubmit={screenIndex === NUM_STEPS - 1 ? updateNetSuiteCustomLists : handleNextScreen}
                     validate={validate}
