@@ -7,6 +7,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, NetSuiteCustomList, NetSuiteCustomSegment, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -565,12 +566,18 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
-function isCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
+function isNetSuiteCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
     return 'segmentName' in customRecord;
 }
 
-function getNameFromCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): string {
+function getNameFromNetSuiteCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): string {
     return 'segmentName' in customRecord ? customRecord.segmentName : customRecord.listName;
+}
+
+function isFieldAllowedToEditNetSuiteCustomRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
+    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customRecord) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
+    const fieldKey = fieldName as keyof typeof customRecord;
+    return fieldsAllowedToEdit.includes(fieldKey);
 }
 
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
@@ -690,8 +697,9 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
-    isCustomSegmentRecord,
-    getNameFromCustomSegmentRecord,
+    isNetSuiteCustomSegmentRecord,
+    getNameFromNetSuiteCustomSegmentRecord,
+    isFieldAllowedToEditNetSuiteCustomRecord,
 };
 
 export type {MemberEmailsToAccountIDs};

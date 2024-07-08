@@ -44,12 +44,12 @@ function NetSuiteImportCustomFieldView({
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
     const customRecord: CustomRecord | undefined = allRecords[valueIndex];
-    const fieldList = customRecord && PolicyUtils.isCustomSegmentRecord(customRecord) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
+    const fieldList = customRecord && PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
 
     const removeRecord = useCallback(() => {
         if (customRecord) {
             const filteredRecords = allRecords.filter((record) => record.internalID !== customRecord?.internalID);
-            if (PolicyUtils.isCustomSegmentRecord(customRecord)) {
+            if (PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)) {
                 updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
             } else {
                 updateNetSuiteCustomLists(policyID, filteredRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
@@ -61,7 +61,7 @@ function NetSuiteImportCustomFieldView({
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
-            headerTitleAlreadyTranslated={customRecord ? PolicyUtils.getNameFromCustomSegmentRecord(customRecord) : ''}
+            headerTitleAlreadyTranslated={customRecord ? PolicyUtils.getNameFromNetSuiteCustomSegmentRecord(customRecord) : ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -72,19 +72,26 @@ function NetSuiteImportCustomFieldView({
         >
             {customRecord && (
                 <>
-                    {fieldList.map((fieldName) => (
-                        <MenuItemWithTopDescription
-                            key={fieldName}
-                            description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                            shouldShowRightIcon
-                            title={
-                                fieldName === 'mapping'
-                                    ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord].toUpperCase()}.label` as TranslationPaths)
-                                    : customRecord[fieldName as keyof CustomRecord]
-                            }
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, valueIndex, fieldName))}
-                        />
-                    ))}
+                    {fieldList.map((fieldName) => {
+                        const isEditable = PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
+                        return (
+                            <MenuItemWithTopDescription
+                                key={fieldName}
+                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                                shouldShowRightIcon={isEditable}
+                                title={
+                                    fieldName === 'mapping'
+                                        ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord].toUpperCase()}.label` as TranslationPaths)
+                                        : customRecord[fieldName as keyof CustomRecord]
+                                }
+                                onPress={
+                                    isEditable
+                                        ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, valueIndex, fieldName))
+                                        : undefined
+                                }
+                            />
+                        );
+                    })}
                     <MenuItem
                         icon={Expensicons.Trashcan}
                         title={translate('common.remove')}
