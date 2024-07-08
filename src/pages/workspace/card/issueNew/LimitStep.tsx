@@ -26,14 +26,17 @@ function LimitStep() {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
     const isEditing = issueNewCard?.isEditing;
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-        const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
-        Card.setIssueNewCardStepAndData({
-            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
-            data: {limit},
-            isEditing: false,
-        });
-    }, []);
+    const submit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+            const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
+            Card.setIssueNewCardStepAndData({
+                step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
+                data: {limit},
+                isEditing: false,
+            });
+        },
+        [isEditing],
+    );
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
@@ -41,12 +44,13 @@ function LimitStep() {
             return;
         }
         Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE});
-    }, []);
+    }, [isEditing]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
-            if (!Number(values.limit)) {
+            // We only want integers to be sent as the limit
+            if (!Number(values.limit) || !Number.isInteger(Number(values.limit))) {
                 errors.limit = translate('iou.error.invalidAmount');
             }
             return errors;

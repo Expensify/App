@@ -9,8 +9,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@navigation/Navigation';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 const expensifyCardFeatures: FeatureListItem[] = [
@@ -27,9 +31,11 @@ const expensifyCardFeatures: FeatureListItem[] = [
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
     },
 ];
-type WorkspaceExpensifyCardPageEmptyStateProps = {route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route']};
+type WorkspaceExpensifyCardPageEmptyStateProps = {
+    route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
+} & WithPolicyAndFullscreenLoadingProps;
 
-function WorkspaceExpensifyCardPageEmptyState({route}: WorkspaceExpensifyCardPageEmptyStateProps) {
+function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -51,7 +57,7 @@ function WorkspaceExpensifyCardPageEmptyState({route}: WorkspaceExpensifyCardPag
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
-                    onCtaPress={() => {}}
+                    onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policy?.id))}
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={Illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
@@ -65,4 +71,4 @@ function WorkspaceExpensifyCardPageEmptyState({route}: WorkspaceExpensifyCardPag
 
 WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
 
-export default WorkspaceExpensifyCardPageEmptyState;
+export default withPolicyAndFullscreenLoading(WorkspaceExpensifyCardPageEmptyState);
