@@ -1,6 +1,6 @@
 type UpdateSageIntacctSyncReimbursementAccountID = {
     policyID: string;
-    value: string | null;
+    vendorID: string | null;
 };
 
 export default UpdateSageIntacctSyncReimbursementAccountID;

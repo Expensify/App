@@ -70,7 +70,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 onToggle: (enabled: boolean) => {
                     updateSageIntacctSyncReimbursedReports(policyID, enabled);
 
-                    if (enabled && sync?.reimbursementAccountID === undefined) {
+                    if (enabled && !sync?.reimbursementAccountID) {
                         const reimbursementAccountID = data?.bankAccounts[0]?.id ?? '-1';
                         updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
                     }

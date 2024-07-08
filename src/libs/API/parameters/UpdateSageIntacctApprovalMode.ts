@@ -1,6 +1,6 @@
 type UpdateSageIntacctApprovalMode = {
     policyID: string;
-    value: string | null;
+    value: string;
 };
 
 export default UpdateSageIntacctApprovalMode;
