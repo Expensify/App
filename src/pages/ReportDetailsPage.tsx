@@ -21,6 +21,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -107,6 +108,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
@@ -179,7 +181,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
-    const moneyRequestReport = useMemo(() => {
+    const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
         if (caseID === CASES.MONEY_REQUEST) {
             return parentReport;
         }
@@ -196,6 +198,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         canModifyTask;
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
+
+    const canUnapproveRequest =
+        ReportUtils.isMoneyRequestReport(moneyRequestReport) &&
+        (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
+        (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -223,6 +230,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+
+    const unapproveExpenseReportOrShowModal = useCallback(() => {
+        if (PolicyUtils.hasAccountingConnections(policy)) {
+            setIsUnapproveModalVisible(true);
+            return;
+        }
+        Navigation.dismissModal();
+        IOU.unapproveExpenseReport(moneyRequestReport);
+    }, [moneyRequestReport, policy]);
 
     const shouldShowLeaveButton =
         !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
@@ -356,6 +372,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 },
             });
         }
+
+        if (canUnapproveRequest) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
+                icon: Expensicons.CircularArrowBackwards,
+                translationKey: 'iou.unapprove',
+                isAnonymousAction: false,
+                action: () => unapproveExpenseReportOrShowModal(),
+            });
+        }
         return items;
     }, [
         isSelfDM,
@@ -380,6 +406,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isPolicyAdmin,
         session,
         leaveChat,
+        canUnapproveRequest,
+        unapproveExpenseReportOrShowModal,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -398,6 +426,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             shouldUseFullTitle
         />
     ) : null;
+
+    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
+    const unapproveWarningText = (
+        <Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', connectedIntegrationName)}</Text>
+        </Text>
+    );
 
     const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
@@ -609,10 +645,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
+                        {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
                     </View>
 
-                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
+                    {isExpenseReport && shouldShowTitleField && titleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
@@ -685,6 +721,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                />
+                <ConfirmModal
+                    title={translate('iou.unapproveReport')}
+                    isVisible={isUnapproveModalVisible}
+                    danger
+                    confirmText={translate('iou.unapproveReport')}
+                    onConfirm={() => {
+                        setIsUnapproveModalVisible(false);
+                        Navigation.dismissModal();
+                        IOU.unapproveExpenseReport(moneyRequestReport);
+                    }}
+                    cancelText={translate('common.cancel')}
+                    onCancel={() => setIsUnapproveModalVisible(false)}
+                    prompt={unapproveWarningText}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

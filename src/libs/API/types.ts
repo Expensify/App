@@ -131,6 +131,7 @@ const WRITE_COMMANDS = {
     RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
+    POLICY_REPORT_FIELDS_REPLACE: 'Policy_ReportFields_Replace',
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
@@ -171,6 +172,7 @@ const WRITE_COMMANDS = {
     SEND_MONEY_ELSEWHERE: 'SendMoneyElsewhere',
     SEND_MONEY_WITH_WALLET: 'SendMoneyWithWallet',
     APPROVE_MONEY_REQUEST: 'ApproveMoneyRequest',
+    UNAPPROVE_EXPENSE_REPORT: 'UnapproveExpenseReport',
     EDIT_MONEY_REQUEST: 'EditMoneyRequest',
     REPLACE_RECEIPT: 'ReplaceReceipt',
     SUBMIT_REPORT: 'SubmitReport',
@@ -388,6 +390,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
+    [WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE]: Parameters.PolicyReportFieldsReplace;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
     [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTaglistParams;
@@ -430,6 +433,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_MONEY_ELSEWHERE]: Parameters.SendMoneyParams;
     [WRITE_COMMANDS.SEND_MONEY_WITH_WALLET]: Parameters.SendMoneyParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST]: Parameters.ApproveMoneyRequestParams;
+    [WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT]: Parameters.UnapproveExpenseReportParams;
     [WRITE_COMMANDS.EDIT_MONEY_REQUEST]: Parameters.EditMoneyRequestParams;
     [WRITE_COMMANDS.REPLACE_RECEIPT]: Parameters.ReplaceReceiptParams;
     [WRITE_COMMANDS.SUBMIT_REPORT]: Parameters.SubmitReportParams;

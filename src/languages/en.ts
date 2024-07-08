@@ -814,6 +814,11 @@ export default {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        unapprove: 'Unapprove',
+        unapproveReport: 'Unapprove report',
+        headsUp: 'Heads up!',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -932,7 +937,7 @@ export default {
     timezonePage: {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
-        getLocationAutomatically: 'Automatically determine your location.',
+        getLocationAutomatically: 'Automatically determine your location',
     },
     updateRequiredView: {
         updateRequired: 'Update required',
@@ -2399,7 +2404,7 @@ export default {
                     jobs: 'projects',
                     label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
                 },
-                importTaxDescription: 'Import tax groups from NetSuite',
+                importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     customSegments: 'Custom segments/records',
                     customLists: 'Custom lists',
@@ -2759,6 +2764,21 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            connectionName: (integration: ConnectionName) => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default: {
+                        return '';
+                    }
+                }
+            },
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',

@@ -153,6 +153,7 @@ export type {default as CreateDistanceRequestParams} from './CreateDistanceReque
 export type {default as StartSplitBillParams} from './StartSplitBillParams';
 export type {default as SendMoneyParams} from './SendMoneyParams';
 export type {default as ApproveMoneyRequestParams} from './ApproveMoneyRequestParams';
+export type {default as UnapproveExpenseReportParams} from './UnapproveExpenseReportParams';
 export type {default as EditMoneyRequestParams} from './EditMoneyRequestParams';
 export type {default as ReplaceReceiptParams} from './ReplaceReceiptParams';
 export type {default as SubmitReportParams} from './SubmitReportParams';
@@ -241,6 +242,7 @@ export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyReq
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
+export type {default as PolicyReportFieldsReplace} from './PolicyReportFieldsReplace';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
