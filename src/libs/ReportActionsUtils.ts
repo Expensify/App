@@ -376,12 +376,25 @@ function getCombinedReportActions(
         return reportActions;
     }
 
-    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
-    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    // Usually, we filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    // However, in the case of moving track expense, the transaction thread will be created first in a track expense, thus we should keep the CREATED of the transaction thread and filter out CREATED action of the IOU
+    // This makes sense because in a combined report action list, whichever CREATED is first need to be retained.
+    const transactionThreadCreatedAction = transactionThreadReportActions?.find((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const parentReportCreatedAction = reportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    let filteredTransactionThreadReportActions = transactionThreadReportActions;
+    let filteredParentReportActions = reportActions;
+
+    if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created < parentReportCreatedAction.created) {
+        filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    } else {
+        filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+    const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         if (!isMoneyRequestAction(action)) {
             return true;
         }
