@@ -88,9 +88,10 @@ function getOrderedReportIDs(
             return;
         }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const parentReportAction = report.parentReportID && report.parentReportActionID
-            ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.find((reportAction) => reportAction.reportActionID === report.parentReportActionID)
-            : undefined;
+        const parentReportAction =
+            report.parentReportID && report.parentReportActionID
+                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.find((reportAction) => reportAction.reportActionID === report.parentReportActionID)
+                : undefined;
         const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
