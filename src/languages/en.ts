@@ -2403,6 +2403,7 @@ export default {
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
                     requiredFieldError: (fieldName: string) => `Please enter the ${fieldName}`,
+                    uniqueTransactionFieldIdError: `A custom list with this transaction field ID already exists.`,
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
