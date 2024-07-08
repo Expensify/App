@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
-import {TextLayoutEventData, View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {NativeSyntheticEvent, TextLayoutEventData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
@@ -37,45 +37,46 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
         setLines(textLines.map((line: {text: string}) => line.text));
     };
 
-    return (
-        <>
-            {!!lines.length ? (
-                lines.map((line, index) => (
-                    <View
-                        key={index}
-                        style={styles.codeWordWrapper}
-                    >
-                        <View style={[wordStyles, index === 0 && styles.codeFirstWordStyle, index === lines.length - 1 && styles.codeLastWordStyle]}>
-                            <Text style={[textStyles, !containsEmoji(line) && styles.codePlainTextStyle]}>
-                                {Array.from(line).map((char, charIndex) =>
-                                    containsOnlyEmojis(char) ? (
-                                        <Text
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`${index}-${charIndex}`}
-                                            style={[textStyles, styles.emojiDefaultStyles]}
-                                        >
-                                            {char}
-                                        </Text>
-                                    ) : (
-                                        char
-                                    ),
-                                )}
-                            </Text>
-                        </View>
-                    </View>
-                ))
-            ) : (
-                <View style={{position: 'absolute', opacity: 0, width: '100%'}}>
-                    <Text
-                        style={[textStyles]}
-                        onTextLayout={handleTextLayout}
-                    >
-                        {children}
+    if (!lines.length) {
+        return (
+            <View style={{position: 'absolute', opacity: 0, width: '100%'}}>
+                <Text
+                    style={[textStyles]}
+                    onTextLayout={handleTextLayout}
+                >
+                    {children}
+                </Text>
+            </View>
+        );
+    }
+
+    return (<>
+        {lines.map((line, index) => (
+            <View
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                style={styles.codeWordWrapper}
+            >
+                <View style={[wordStyles, index === 0 && styles.codeFirstWordStyle, index === lines.length - 1 && styles.codeLastWordStyle]}>
+                    <Text style={[textStyles, !containsEmoji(line) && styles.codePlainTextStyle]}>
+                        {Array.from(line).map((char, charIndex) =>
+                            containsOnlyEmojis(char) ? (
+                                <Text
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`${index}-${charIndex}`}
+                                    style={[textStyles, styles.emojiDefaultStyles]}
+                                >
+                                    {char}
+                                </Text>
+                            ) : (
+                                char
+                            ),
+                        )}
                     </Text>
                 </View>
-            )}
-        </>
-    );
+            </View>
+        ))}
+    </>);
 }
 
 WrappedText.displayName = 'WrappedText';
