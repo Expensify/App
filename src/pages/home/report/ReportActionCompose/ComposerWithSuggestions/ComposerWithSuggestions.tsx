@@ -682,7 +682,7 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
         if (modal?.isVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line no-param-reassign
+            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
 
@@ -708,7 +708,7 @@ function ComposerWithSuggestions(
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     useImperativeHandle(
         ref,
@@ -744,12 +744,12 @@ function ComposerWithSuggestions(
     const onClear = useCallback(() => {
         mobileInputScrollPosition.current = 0;
         setTextInputShouldClear(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     useFocusedInputHandler(
         {

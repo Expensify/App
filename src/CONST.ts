@@ -719,7 +719,7 @@ const CONST = {
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
                 TRIPPREVIEW: 'TRIPPREVIEW',
-                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
@@ -790,6 +790,7 @@ const CONST = {
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                 },
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1388,6 +1389,10 @@ const CONST = {
             4: 'enterCredentials',
         },
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        CUSTOM_FORM_ID_TYPE: {
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'nonReimbursable',
+        },
         SYNC_OPTIONS: {
             SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
             SYNC_PEOPLE: 'syncPeople',
@@ -1454,6 +1459,17 @@ const CONST = {
         JOURNALS_APPROVED_NONE: 'JOURNALS_APPROVED_NONE',
         JOURNALS_APPROVAL_PENDING: 'JOURNALS_APPROVAL_PENDING',
         JOURNALS_APPROVED: 'JOURNALS_APPROVED',
+    },
+
+    NETSUITE_ACCOUNT_TYPE: {
+        ACCOUNTS_PAYABLE: '_accountsPayable',
+        ACCOUNTS_RECEIVABLE: '_accountsReceivable',
+        OTHER_CURRENT_LIABILITY: '_otherCurrentLiability',
+        CREDIT_CARD: '_creditCard',
+        BANK: '_bank',
+        OTHER_CURRENT_ASSET: '_otherCurrentAsset',
+        LONG_TERM_LIABILITY: '_longTermLiability',
+        EXPENSE: '_expense',
     },
 
     NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
@@ -2032,6 +2048,9 @@ const CONST = {
             PAID: 'paid',
             ADMIN: 'admin',
         },
+        DEFAULT_MAX_EXPENSE_AGE: 90,
+        DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
+        DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
     },
 
     CUSTOM_UNITS: {
@@ -2331,6 +2350,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3935,6 +3955,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
     },
+    REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -5131,7 +5152,16 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
-
+    UPGRADE_FEATURE_INTRO_MAPPING: [
+        {
+            id: 'reportFields',
+            alias: 'report-fields',
+            name: 'Report Fields',
+            title: 'workspace.upgrade.reportFields.title',
+            description: 'workspace.upgrade.reportFields.description',
+            icon: 'Pencil',
+        },
+    ],
     REPORT_FIELD_TYPES: {
         TEXT: 'text',
         DATE: 'date',

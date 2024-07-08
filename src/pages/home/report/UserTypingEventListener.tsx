@@ -37,7 +37,7 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
                 Report.unsubscribeFromReportChannel(reportID);
             });
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 

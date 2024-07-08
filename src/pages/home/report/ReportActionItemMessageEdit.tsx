@@ -185,7 +185,7 @@ function ReportActionItemMessageEdit(
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
         [action.reportActionID],
     );
 
@@ -266,7 +266,7 @@ function ReportActionItemMessageEdit(
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
