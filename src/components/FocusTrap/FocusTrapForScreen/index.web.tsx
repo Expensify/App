@@ -6,6 +6,7 @@ import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
 function FocusTrapForScreen({children}: FocusTrapProps) {
@@ -45,7 +46,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
-                delayInitialFocus: 400,
+                delayInitialFocus: CONST.ANIMATED_TRANSITION,
                 initialFocus: (focusTrapContainers) => {
                     const hasFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
                     if (hasFocusedElementInsideContainer) {
