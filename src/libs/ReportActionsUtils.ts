@@ -1189,8 +1189,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return Localize.translateLocal('report.actions.type.exportedToCSV');
-        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
-            return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
