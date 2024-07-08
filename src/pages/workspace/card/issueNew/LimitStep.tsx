@@ -28,7 +28,7 @@ function LimitStep() {
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-            const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
+            const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit));
             Card.setIssueNewCardStepAndData({
                 step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
                 data: {limit},
