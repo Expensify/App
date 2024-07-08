@@ -213,7 +213,8 @@ function ReportActionsView({
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
-        return [...actions, createdAction];
+        // moneyRequestActions.length === 1 indicates that we have one-transaction report and we don't want to display additonal IOU action
+        return moneyRequestActions.length === 1 ? ReportActionsUtils.getFilteredForOneTransactionView([...actions, createdAction]) : [...actions, createdAction];
     }, [allReportActions, report, transactionThreadReport]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
