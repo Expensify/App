@@ -42,7 +42,7 @@ describe('actions/ReportField', () => {
             const reportFieldName = 'Test Field';
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const newReportField: OnyxValueWithOfflineFeedback<Omit<PolicyReportField, 'value'>> = {
+            const newReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
                 defaultValue: 'Default Value',
@@ -76,8 +76,8 @@ describe('actions/ReportField', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual({
-                [reportFieldKey]: newReportField,
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+                [reportFieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
 
             // Check for success data
@@ -110,7 +110,7 @@ describe('actions/ReportField', () => {
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const defaultDate = DateUtils.extractDate(new Date().toString());
-            const newReportField: OnyxValueWithOfflineFeedback<Omit<PolicyReportField, 'value'>> = {
+            const newReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.DATE,
                 defaultValue: defaultDate,
@@ -144,8 +144,8 @@ describe('actions/ReportField', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual({
-                [reportFieldKey]: newReportField,
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+                [reportFieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
 
             // Check for success data
@@ -214,8 +214,8 @@ describe('actions/ReportField', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual({
-                [reportFieldKey]: newReportField,
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+                [reportFieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
 
             // Check for success data
@@ -276,7 +276,7 @@ describe('actions/ReportField', () => {
             });
 
             // check if the report field exists in the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: fakeReportField,
             });
 
@@ -344,7 +344,7 @@ describe('actions/ReportField', () => {
             });
 
             // check if the report field exists in the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: fakeReportField,
             });
 
@@ -367,7 +367,7 @@ describe('actions/ReportField', () => {
             });
 
             // check if the deleted report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: fakeReportField,
             });
             // Check if the policy pending action was cleared
@@ -378,82 +378,6 @@ describe('actions/ReportField', () => {
             // @ts-expect-error pendingFields is not null
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
-        });
-
-        it('updates the enabled flag of a report field list value when api returns an error', async () => {
-            mockFetch?.pause?.();
-
-            const policyID = Policy.generatePolicyID();
-            const reportFieldName = 'Test Field';
-            const valueIndexesToUpdate = [1];
-            const reportFieldID = generateFieldID(reportFieldName);
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const reportField: PolicyReportField = {
-                name: reportFieldName,
-                type: CONST.REPORT_FIELD_TYPES.LIST,
-                defaultValue: 'Value 2',
-                values: ['Value 1', 'Value 2', 'Value 3'],
-                disabledOptions: [false, false, true],
-                fieldID: reportFieldID,
-                orderWeight: 1,
-                deletable: false,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: CONST.REPORT_FIELD_TYPES.LIST,
-            };
-            const fakePolicy = createRandomPolicy(Number(policyID));
-
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
-            await waitForBatchedUpdates();
-
-            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesToUpdate, false);
-            await waitForBatchedUpdates();
-
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
-                [reportFieldKey]: {
-                    ...reportField,
-                    defaultValue: '',
-                    disabledOptions: [false, true, true],
-                },
-            });
-
-            // Check for failure data
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
-            await waitForBatchedUpdates();
-
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual({
-                [reportFieldKey]: reportField,
-            });
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
-            // Check if the policy errors was set
-            // @ts-expect-error errorFields is not null
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 
@@ -467,7 +391,7 @@ describe('actions/ReportField', () => {
             const newInitialValue = 'New initial value';
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const reportField: Omit<PolicyReportField, 'value'> = {
+            const reportField: PolicyReportField = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
                 defaultValue: oldInitialValue,
@@ -499,10 +423,11 @@ describe('actions/ReportField', () => {
             });
 
             // check if the updated report field was set to the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: newInitialValue,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -534,7 +459,7 @@ describe('actions/ReportField', () => {
             const newInitialValue = 'New initial value';
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const reportField: Omit<PolicyReportField, 'value'> = {
+            const reportField: PolicyReportField = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
                 defaultValue: oldInitialValue,
@@ -566,10 +491,11 @@ describe('actions/ReportField', () => {
             });
 
             // check if the updated report field was set to the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: newInitialValue,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -589,7 +515,7 @@ describe('actions/ReportField', () => {
             });
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: reportField,
             });
             // Check if the policy pending action was cleared
@@ -643,11 +569,12 @@ describe('actions/ReportField', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
                     disabledOptions: [false, true, true],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -669,6 +596,83 @@ describe('actions/ReportField', () => {
             // @ts-expect-error pendingFields is not null
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
+        });
+
+        it('updates the enabled flag of a report field list value when api returns an error', async () => {
+            mockFetch?.pause?.();
+
+            const policyID = Policy.generatePolicyID();
+            const reportFieldName = 'Test Field';
+            const valueIndexesToUpdate = [1];
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportField: PolicyReportField = {
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                defaultValue: 'Value 2',
+                values: ['Value 1', 'Value 2', 'Value 3'],
+                disabledOptions: [false, false, true],
+                fieldID: reportFieldID,
+                orderWeight: 1,
+                deletable: false,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: CONST.REPORT_FIELD_TYPES.LIST,
+            };
+            const fakePolicy = createRandomPolicy(Number(policyID));
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
+            await waitForBatchedUpdates();
+
+            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesToUpdate, false);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // check if the new report field was added to the policy
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+                [reportFieldKey]: {
+                    ...reportField,
+                    defaultValue: '',
+                    disabledOptions: [false, true, true],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            });
+
+            // Check for failure data
+            mockFetch?.fail?.();
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // check if the updated report field was reset in the policy
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+                [reportFieldKey]: reportField,
+            });
+            // Check if the policy pending action was cleared
+            // @ts-expect-error pendingFields is not null
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+            // Check if the policy errors was set
+            // @ts-expect-error errorFields is not null
+            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 
@@ -809,7 +813,7 @@ describe('actions/ReportField', () => {
             });
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: reportField,
             });
             // Check if the policy pending action was cleared
@@ -959,7 +963,7 @@ describe('actions/ReportField', () => {
             });
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: reportField,
             });
             // Check if the policy pending action was cleared
