@@ -437,7 +437,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     const approvalChain: string[] = [];
     let nextApproverEmail = getSubmitToEmail(policy, employeeAccountID);
 
-    while (!approvalChain.includes(nextApproverEmail)) {
+    while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
         nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
     }
