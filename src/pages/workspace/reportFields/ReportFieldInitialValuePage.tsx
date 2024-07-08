@@ -105,17 +105,17 @@ function ReportFieldInitialValuePage({
                     title={reportField.name}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    onSubmit={submitForm}
-                    submitButtonText={translate('common.save')}
-                    validate={validateForm}
-                    style={styles.flex1}
-                    enabledWhenOffline
-                    isSubmitButtonVisible={isTextFieldType}
-                    submitButtonStyles={styles.mh5}
-                >
-                    {isTextFieldType && (
+                {isTextFieldType && (
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
+                        onSubmit={submitForm}
+                        submitButtonText={translate('common.save')}
+                        validate={validateForm}
+                        style={styles.flex1}
+                        enabledWhenOffline
+                        isSubmitButtonVisible={isTextFieldType}
+                        submitButtonStyles={styles.mh5}
+                    >
                         <InputWrapper
                             containerStyles={styles.mh5}
                             InputComponent={TextInput}
@@ -129,18 +129,16 @@ function ReportFieldInitialValuePage({
                             ref={inputCallbackRef}
                             onChangeText={setInitialValue}
                         />
-                    )}
-                    {isListFieldType && (
-                        <InputWrapper
-                            InputComponent={ReportFieldsInitialListValuePicker}
-                            inputID={INPUT_IDS.INITIAL_VALUE}
-                            listValues={reportField.values}
-                            disabledOptions={reportField.disabledOptions}
-                            value={initialValue}
-                            onValueChange={(value) => submitListValueUpdate(value as string)}
-                        />
-                    )}
-                </FormProvider>
+                    </FormProvider>
+                )}
+                {isListFieldType && (
+                    <ReportFieldsInitialListValuePicker
+                        listValues={reportField.values}
+                        disabledOptions={reportField.disabledOptions}
+                        value={initialValue}
+                        onInputChange={submitListValueUpdate}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
