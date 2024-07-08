@@ -53,7 +53,7 @@ jobs:
       - uses: ./.github/actions/composite/setupNode
 
       - name: Run Git CI tests
-        run: RUN_GIT_TESTS=true npx jest --silent
+        run: RUN_GIT_TESTS=true NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npx jest --silent
 
   storybookTests:
     if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
