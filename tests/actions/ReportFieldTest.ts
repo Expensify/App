@@ -1,4 +1,4 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {generateFieldID} from '@libs/WorkspaceReportFieldUtils';
@@ -19,6 +19,20 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
 describe('actions/ReportField', () => {
+    type PolicyReportFieldWithOfflineFeedback = Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>;
+
+    function connectToFetchPolicy(policyID: string): Promise<OnyxEntry<PolicyType>> {
+        return new Promise((resolve) => {
+            const connectionID = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                callback: (workspace) => {
+                    Onyx.disconnect(connectionID);
+                    resolve(workspace);
+                },
+            });
+        });
+    }
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -34,7 +48,7 @@ describe('actions/ReportField', () => {
 
     describe('createReportField', () => {
         it('creates a new text report field of a workspace', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
             await waitForBatchedUpdates();
 
@@ -65,43 +79,25 @@ describe('actions/ReportField', () => {
             ReportField.createReportField(policyID, createReportFieldArguments);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('creates a new date report field of a workspace', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
             await waitForBatchedUpdates();
 
@@ -133,42 +129,25 @@ describe('actions/ReportField', () => {
             ReportField.createReportField(policyID, createReportFieldArguments);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
+
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('creates a new list report field of a workspace', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
                 [INPUT_IDS.LIST_VALUES]: ['Value 1', 'Value 2'],
                 [INPUT_IDS.DISABLED_LIST_VALUES]: [false, true],
@@ -203,38 +182,21 @@ describe('actions/ReportField', () => {
             ReportField.createReportField(policyID, createReportFieldArguments);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+            expect(policy?.fieldList?.[reportFieldKey].pendingAction).toBeFalsy();
         });
     });
 
@@ -265,18 +227,10 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(fakePolicy.id);
 
             // check if the report field exists in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: fakeReportField,
             });
 
@@ -284,27 +238,13 @@ describe('actions/ReportField', () => {
             await waitForBatchedUpdates();
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(fakePolicy.id);
 
             // Check if the policy report field was removed
-            // @ts-expect-error fieldList is not null
             expect(policy?.fieldList?.[reportFieldKey]).toBeFalsy();
-
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('Deleted a report field from a workspace when API fails', async () => {
@@ -333,57 +273,33 @@ describe('actions/ReportField', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the report field exists in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: fakeReportField,
             });
 
             // Check for failure data
-            mockFetch?.fail?.();
+            mockFetch.fail();
             ReportField.deleteReportFields(policyID, [reportFieldKey]);
             await waitForBatchedUpdates();
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // check if the deleted report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: fakeReportField,
             });
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
-
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
     });
 
     describe('updateReportFieldInitialValue', () => {
         it('updates the initial value of a text report field', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -412,18 +328,10 @@ describe('actions/ReportField', () => {
             ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was set to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: newInitialValue,
@@ -432,26 +340,17 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+            expect(policy?.fieldList?.[reportFieldKey].pendingAction).toBeFalsy();
         });
 
         it('updates the initial value of a text report field when api returns an error', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -480,18 +379,10 @@ describe('actions/ReportField', () => {
             ReportField.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was set to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: newInitialValue,
@@ -500,36 +391,24 @@ describe('actions/ReportField', () => {
             });
 
             // Check for failure data
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
+            mockFetch.fail();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
             // Check if the policy errors was set
-            // @ts-expect-error errorFields is not null
             expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 
     describe('updateReportFieldListValueEnabled', () => {
         it('updates the enabled flag of report field list values', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -558,18 +437,10 @@ describe('actions/ReportField', () => {
             ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesTpUpdate, false);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
@@ -579,27 +450,17 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('updates the enabled flag of a report field list value when api returns an error', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -628,18 +489,10 @@ describe('actions/ReportField', () => {
             ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesToUpdate, false);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
@@ -649,36 +502,24 @@ describe('actions/ReportField', () => {
             });
 
             // Check for failure data
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
+            mockFetch.fail();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
             // Check if the policy errors was set
-            // @ts-expect-error errorFields is not null
             expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 
     describe('addReportFieldListValue', () => {
         it('adds a new value to a report field list', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -707,18 +548,9 @@ describe('actions/ReportField', () => {
             ReportField.addReportFieldListValue(policyID, reportFieldID, newListValueName);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
-
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
@@ -728,27 +560,17 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('adds a new value to a report field list when api returns an error', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -777,18 +599,10 @@ describe('actions/ReportField', () => {
             ReportField.addReportFieldListValue(policyID, reportFieldID, newListValueName);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
@@ -798,37 +612,22 @@ describe('actions/ReportField', () => {
             });
 
             // Check for failure data
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
+            mockFetch.fail();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
-            // Check if the policy errors was set
-            // @ts-expect-error errorFields is not null
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 
     describe('removeReportFieldListValue', () => {
         it('removes list values from a report field list', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -856,18 +655,10 @@ describe('actions/ReportField', () => {
             ReportField.removeReportFieldListValue(policyID, reportFieldID, [1, 2]);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // Check if the values were removed from the report field
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
@@ -878,27 +669,16 @@ describe('actions/ReportField', () => {
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
-
+            policy = await connectToFetchPolicy(policyID);
             // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('removes list values from a report field list when api returns an error', async () => {
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
@@ -926,18 +706,10 @@ describe('actions/ReportField', () => {
             ReportField.removeReportFieldListValue(policyID, reportFieldID, [1, 2]);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // Check if the values were removed from the report field
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
@@ -948,30 +720,17 @@ describe('actions/ReportField', () => {
             });
 
             // Check for failure data
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
+            mockFetch.fail();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
-            policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(workspace);
-                    },
-                });
-            });
+            policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
-            // Check if the policy pending action was cleared
-            // @ts-expect-error pendingFields is not null
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
             // Check if the policy errors was set
-            // @ts-expect-error errorFields is not null
             expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
