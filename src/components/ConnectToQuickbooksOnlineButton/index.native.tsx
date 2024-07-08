@@ -17,6 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
+import * as PolicyAction from '@userActions/Policy/Policy';
+
 
 type ConnectToQuickbooksOnlineButtonOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -59,6 +61,8 @@ function ConnectToQuickbooksOnlineButton({
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
+                        // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+                        PolicyAction.enablePolicyTaxes(policyID, false);                        
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
                         setWebViewOpen(true);
