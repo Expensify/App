@@ -685,7 +685,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
                 }, {}),
             },
         });
-        onyxData.finallyData?.push({
+        onyxData.successData?.push({
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
