@@ -1,8 +1,6 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 
 type ReportFieldsInitialListValuePickerProps = {
     /** Options to select from if field is of type list */
@@ -18,7 +16,7 @@ type ReportFieldsInitialListValuePickerProps = {
     onValueChange: (value: string) => void;
 };
 
-function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onValueChange}: ReportFieldsInitialListValuePickerProps, forwardedRef: ForwardedRef<SelectionListHandle>) {
+function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onValueChange}: ReportFieldsInitialListValuePickerProps) {
     const listValueSections = useMemo(
         () => [
             {
@@ -37,7 +35,6 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
 
     return (
         <SelectionList
-            ref={forwardedRef}
             sections={listValueSections}
             ListItem={RadioListItem}
             onSelectRow={(item) => onValueChange(item.value)}
@@ -48,4 +45,4 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
 
 ReportFieldsInitialListValuePicker.displayName = 'ReportFieldsInitialListValuePicker';
 
-export default forwardRef(ReportFieldsInitialListValuePicker);
+export default ReportFieldsInitialListValuePicker;
