@@ -977,6 +977,12 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         userID: string;
     };
 
+    /** Configuration of automatic synchronization from QuickBooks Online to the app */
+    autoSync: {
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;
 
