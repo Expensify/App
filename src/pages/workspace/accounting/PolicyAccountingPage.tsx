@@ -206,7 +206,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     }, [getDatetimeToRelative, successfulDate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
-        if (!isEmptyObject(policy?.connections) && !isSyncInProgress) {
+        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
                 const integrationData = accountingIntegrationData(integration, policyID, translate);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
@@ -221,7 +221,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             });
         }
 
-        if (connectedIntegration) {
+        if (!connectedIntegration) {
             return [];
         }
         const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
