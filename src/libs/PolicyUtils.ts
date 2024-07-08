@@ -541,8 +541,7 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
 
 function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
-    let accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
-    accountOptions = accountOptions.concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD));
+    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
