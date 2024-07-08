@@ -1146,6 +1146,13 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
+function getLatestReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
+    const filteredReports = reports.filter(
+        (report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime),
+    );
+    return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
+}
+
 function findLastAccessedReport(
     reports: OnyxCollection<Report>,
     ignoreDomainRooms: boolean,
@@ -1169,13 +1176,9 @@ function findLastAccessedReport(
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
-    let filteredReports = reportsValues.filter(
-        (report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime),
-    );
-
     let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
-        adminReport = filteredReports.find((report) => {
+        adminReport = reportsValues.find((report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
@@ -1184,7 +1187,7 @@ function findLastAccessedReport(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
     if (shouldFilter) {
-        filteredReports = filteredReports.filter((report) => {
+        reportsValues = reportsValues.filter((report) => {
             if (excludeReportID && report?.reportID === excludeReportID) {
                 return false;
             }
@@ -1207,25 +1210,23 @@ function findLastAccessedReport(
 
     if (isFirstTimeNewExpensifyUser) {
         // Filter out the systemChat report from the reports list, as we don't want to drop the user into that report over Concierge when they first log in
-        filteredReports = filteredReports.filter((report) => !isSystemChat(report)) ?? [];
-        if (filteredReports.length === 1) {
-            return filteredReports[0];
+        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
+        if (reportsValues.length === 1) {
+            return reportsValues[0];
         }
 
-        return adminReport ?? filteredReports.find((report) => !isConciergeChatReport(report));
+        return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
     }
 
     // If we only have two reports and one of them is the system chat, filter it out so we don't
     // overwrite showing the concierge chat
-    const hasSystemChat = filteredReports.find((report) => isSystemChat(report)) ?? false;
-    if (filteredReports.length === 2 && hasSystemChat) {
-        filteredReports = filteredReports.filter((report) => !isSystemChat(report)) ?? [];
+    const hasSystemChat = reportsValues.find((report) => isSystemChat(report)) ?? false;
+    if (reportsValues.length === 2 && hasSystemChat) {
+        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
     }
 
     // We are getting the last read report from the metadata of the report.
-    const lastRead = lodashMaxBy(filteredReports, (a) =>
-        new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf(),
-    );
+    const lastRead = getLatestReport(reportsValues, reportMetadata);
 
     return adminReport ?? lastRead;
 }
@@ -7306,6 +7307,7 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
+    getLatestReport,
 };
 
 export type {
