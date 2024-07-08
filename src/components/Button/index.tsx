@@ -237,6 +237,7 @@ function Button(
                     link && styles.link,
                     link && isHovered && styles.linkHover,
                     link && styles.fontWeightNormal,
+                    link && styles.fontSizeLabel,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >

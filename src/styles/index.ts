@@ -340,6 +340,9 @@ const styles = (theme: ThemeColors) =>
         appBG: {
             backgroundColor: theme.appBG,
         },
+        fontSizeLabel: {
+            fontSize: variables.fontSizeLabel,
+        },
 
         h4: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
