@@ -1,8 +1,9 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx, type OnyxEntry} from 'react-native-onyx';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {UserMetadata} from '@src/types/onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Fullstory React-Native lib adapter
@@ -16,9 +17,12 @@ const FS = {
         Environment.getEnvironment().then((envName: string) => {
             // We only want to start fullstory if the app is running in
             // production
-            if(envName === CONST.ENVIRONMENT.PRODUCTION) {
-                FullStory.restart();
+            if(envName !== CONST.ENVIRONMENT.PRODUCTION) {
+                return;
             }
+            FullStory.restart();
+            const [session] = useOnyx(ONYXKEYS.USER_METADATA);
+            FS.fsIdentify(session);
         })
     },
 
