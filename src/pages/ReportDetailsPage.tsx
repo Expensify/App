@@ -645,10 +645,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
+                        {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
                     </View>
 
-                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
+                    {isExpenseReport && shouldShowTitleField && titleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 

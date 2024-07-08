@@ -941,7 +941,7 @@ export default {
     timezonePage: {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
-        getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+        getLocationAutomatically: 'Detecta tu ubicación automáticamente',
     },
     updateRequiredView: {
         updateRequired: 'Actualización requerida',
@@ -1374,7 +1374,7 @@ export default {
         groupMembersListTitle: 'Directorio de los miembros del grupo.',
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
-        defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
+        defaultReportName: ({displayName}: {displayName: string}) => `Chat de groupo de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',
@@ -2445,7 +2445,7 @@ export default {
                     jobs: 'proyectos',
                     label: (importFields: string[], importType: string) => `${importFields.join(' y ')}, ${importType}`,
                 },
-                importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
+                importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     customSegments: 'Segmentos/registros personalizados',
                     customLists: 'Listas personalizado',
