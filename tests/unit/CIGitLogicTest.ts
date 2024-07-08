@@ -253,7 +253,15 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
     expect(PRs).toStrictEqual(expected);
 }
 
-describe('CIGitLogic', () => {
+function describeTestSuite(testName: string, callback: () => void) {
+    if (process.env.RUN_GIT_TESTS) {
+        describe(testName, callback);
+    } else {
+        describe.skip(testName, callback);
+    }
+}
+
+describeTestSuite('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
         initGitServer();
