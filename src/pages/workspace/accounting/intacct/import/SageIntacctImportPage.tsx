@@ -117,8 +117,8 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={sageIntacctConfig?.tax.syncTax ?? false}
-                onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !sageIntacctConfig?.tax.syncTax)}
+                isActive={sageIntacctConfig?.tax?.syncTax ?? false}
+                onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !sageIntacctConfig?.tax?.syncTax)}
                 pendingAction={sageIntacctConfig?.pendingFields?.tax}
                 errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.TAX)}
@@ -127,8 +127,8 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
                 <MenuItemWithTopDescription
                     title={
-                        sageIntacctConfig?.mappings?.dimensions && sageIntacctConfig?.mappings?.dimensions.length > 0
-                            ? translate('workspace.intacct.userDimensionsAdded', sageIntacctConfig?.mappings?.dimensions.length)
+                        sageIntacctConfig?.mappings?.dimensions && sageIntacctConfig?.mappings?.dimensions?.length > 0
+                            ? translate('workspace.intacct.userDimensionsAdded', sageIntacctConfig?.mappings?.dimensions?.length)
                             : undefined
                     }
                     description={translate('workspace.intacct.userDefinedDimensions')}
