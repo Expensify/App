@@ -72,7 +72,12 @@ function ExportIntegration({action}: ExportIntegrationProps) {
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>
             <Text style={[styles.chatItemMessage, styles.colorMuted]}>{exportText} </Text>
             {links.map((link) => (
-                <TextLink href={link.url}>{link.text} </TextLink>
+                <TextLink
+                    key={link.url}
+                    href={link.url}
+                >
+                    {link.text}{' '}
+                </TextLink>
             ))}
         </View>
     );
