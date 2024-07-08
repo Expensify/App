@@ -101,7 +101,9 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
-    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {initWithStoredValues: true, allowStaleData: true, initialValue: []});
+    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isLoadingRecentWaypoints = account?.isLoadingRecentWaypoints ?? false;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -124,7 +126,6 @@ function IOURequestStepDistance({
     }
 
     useEffect(() => {
-        const isLoadingRecentWaypoints = !Array.isArray(recentWaypoints) && (recentWaypoints?.isLoading ?? false);
         const hasData = Array.isArray(recentWaypoints) && recentWaypoints.length > 0;
         const isStatusLoading = recentWaypointsStatus === 'loading';
         if (isLoadingRecentWaypoints || hasData || isStatusLoading) {
@@ -132,7 +133,7 @@ function IOURequestStepDistance({
         }
 
         TransactionAction.openDraftDistanceExpense();
-    }, [recentWaypoints, recentWaypointsStatus]);
+    }, [recentWaypoints, recentWaypointsStatus, isLoadingRecentWaypoints]);
 
     useEffect(() => {
         MapboxToken.init();

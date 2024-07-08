@@ -442,18 +442,20 @@ function openDraftDistanceExpense() {
     const onyxData: OnyxData = {
         optimisticData: [
             {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
                 value: {
-                    isLoading: true,
+                    isLoadingRecentWaypoints: true,
                 },
             }
         ],
-        failureData: [
+        finallyData: [
             {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-                value: [],
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoadingRecentWaypoints: false,
+                },
             }
         ],
     };
