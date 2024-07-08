@@ -5947,7 +5947,7 @@ function getSendMoneyParams(
 
 type OptimisticHoldReportExpenseActionID = {
     optimisticReportActionID: string;
-    oldReportActionID?: string;
+    oldReportActionID: string;
 };
 
 function getHoldReportActions(reportID: string) {
@@ -5992,17 +5992,15 @@ function getReportFromHoldRequestsOnyxData(
     );
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', firstHoldTransaction);
 
-    const updateHeldReports: Record<string, OnyxTypes.Report> = {};
+    const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
-    const deleteHoldReportActions: OnyxTypes.ReportActions = {};
+    const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
     holdReportActions.forEach((holdReportAction) => {
-        const reportAction = {...holdReportAction};
-        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OnyxTypes.OriginalMessageIOU;
+        const originalMessage = ReportActionsUtils.getOriginalMessage(holdReportAction);
 
-        deleteHoldReportActions[reportAction.reportActionID] = {
-            ...reportAction,
+        deleteHoldReportActions[holdReportAction.reportActionID] = {
             message: [
                 {
                     deleted: DateUtils.getDBTime(),
@@ -6014,7 +6012,7 @@ function getReportFromHoldRequestsOnyxData(
 
         const reportActionID = rand64();
         addHoldReportActions[reportActionID] = {
-            ...reportAction,
+            ...holdReportAction,
             reportActionID,
             originalMessage: {
                 ...originalMessage,
@@ -6022,12 +6020,11 @@ function getReportFromHoldRequestsOnyxData(
             },
         };
 
-        const heldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+        const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
         if (heldReport) {
-            optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: heldReport?.parentReportActionID});
+            optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: holdReportAction.reportActionID});
 
             updateHeldReports[heldReport.reportID] = {
-                ...heldReport,
                 parentReportActionID: reportActionID,
             };
         }
@@ -6045,9 +6042,7 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
-            value: {
-                ...optimisticExpenseReport,
-            },
+            value: optimisticExpenseReport,
         },
         // add preview report action to main chat
         {
@@ -6294,6 +6289,7 @@ function getPayMoneyRequestParams(
 
     let optimisticHoldReportID;
     let optimisticHoldActionID;
+    let optimisticHoldReportExpenseActionIDs;
     if (!full) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, iouReport, recipient);
 
@@ -6301,6 +6297,7 @@ function getPayMoneyRequestParams(
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
     return {
@@ -6313,6 +6310,7 @@ function getPayMoneyRequestParams(
             amount: Math.abs(total),
             optimisticHoldReportID,
             optimisticHoldActionID,
+            optimisticHoldReportExpenseActionIDs,
         },
         optimisticData,
         successData,
@@ -6565,6 +6563,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     let optimisticHoldReportID;
     let optimisticHoldActionID;
+    let optimisticHoldReportExpenseActionIDs;
     if (!full && !!chatReport && !!expenseReport) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
 
@@ -6572,6 +6571,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
     const parameters: ApproveMoneyRequestParams = {
@@ -6580,6 +6580,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         full,
         optimisticHoldReportID,
         optimisticHoldActionID,
+        optimisticHoldReportExpenseActionIDs,
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
