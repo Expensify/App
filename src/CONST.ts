@@ -719,7 +719,7 @@ const CONST = {
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
                 TRIPPREVIEW: 'TRIPPREVIEW',
-                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
@@ -2335,6 +2335,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',

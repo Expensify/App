@@ -70,6 +70,7 @@ import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
@@ -190,20 +191,6 @@ Onyx.connect({
     },
 });
 
-const currentReportData: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        currentReportData[reportID] = report;
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        handleReportChanged(report);
-    },
-});
-
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
 Onyx.connect({
@@ -242,7 +229,6 @@ Onyx.connect({
     callback: (value) => (reportMetadata = value),
 });
 
-const allReports: OnyxCollection<Report> = {};
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -493,7 +479,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         lastReadTime: currentTime,
     };
 
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
@@ -667,7 +653,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName: currentReportData?.[reportID]?.reportName ?? null,
+                reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
                 errors: {
                     reportName: Localize.translateLocal('common.genericErrorMessage'),
                 },
@@ -704,7 +690,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                avatarUrl: currentReportData?.[reportID]?.avatarUrl ?? null,
+                avatarUrl: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.avatarUrl ?? null,
                 pendingFields: {
                     avatar: null,
                 },
@@ -767,7 +753,7 @@ function openReport(
     const optimisticReport = reportActionsExist(reportID)
         ? {}
         : {
-              reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+              reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
           };
 
     const optimisticData: OnyxUpdate[] = [
@@ -951,7 +937,7 @@ function openReport(
         }
     }
 
-    parameters.clientLastReadTime = currentReportData?.[reportID]?.lastReadTime ?? '';
+    parameters.clientLastReadTime = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastReadTime ?? '';
 
     const paginationConfig = {
         resourceID: reportID,
@@ -1060,7 +1046,7 @@ function navigateToAndOpenChildReport(childReportID = '-1', parentReportAction: 
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[parentReportID];
+        const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
         const childReportChatType = parentReport && ReportUtils.isSelfDM(parentReport) ? undefined : parentReport?.chatType;
         const newChat = ReportUtils.buildOptimisticChatReport(
@@ -1252,7 +1238,9 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
     }, null);
 
     // If no action created date is provided, use the last action's from other user
-    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? allReports?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
+    const actionCreationTime =
+        reportActionCreated ||
+        (latestReportActionFromOtherUsers?.created ?? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -1354,9 +1342,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         return;
     }
 
-    if (allReports && report?.reportID) {
-        allReports[report.reportID] = report;
-
+    if (report?.reportID) {
         if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
@@ -1755,7 +1741,7 @@ function toggleSubscribeToChildReport(childReportID = '-1', parentReportAction: 
         }
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
-        const parentReport = allReports?.[parentReportID];
+        const parentReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
             ReportActionsUtils.getReportActionText(parentReportAction),
@@ -2168,7 +2154,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
 function deleteReport(reportID: string) {
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
@@ -2320,7 +2306,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     }
 
     // We don't want to send a local notification if the user preference is daily, mute or hidden.
-    const notificationPreference = allReports?.[reportID]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    const notificationPreference = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
@@ -2338,7 +2324,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
         return false;
@@ -2372,9 +2358,10 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
 
     Log.info('[LocalNotification] Creating notification');
 
-    const report = allReports?.[reportID] ?? null;
+    const localReportID = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = ReportConnection.getAllReports()?.[localReportID] ?? null;
     if (!report) {
-        Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {reportID, reportActionID: reportAction.reportActionID});
+        Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {localReportID, reportActionID: reportAction.reportActionID});
         return;
     }
 
@@ -2594,7 +2581,17 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(allReports, false, undefined, false, false, reportMetadata, undefined, [], currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(
+        ReportConnection.getAllReports(),
+        false,
+        undefined,
+        false,
+        false,
+        reportMetadata,
+        undefined,
+        [],
+        currentReport?.reportID,
+    )?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
@@ -2619,7 +2616,7 @@ function joinRoom(report: OnyxEntry<Report>) {
 }
 
 function leaveGroupChat(reportID: string) {
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
         return;
@@ -2647,7 +2644,7 @@ function leaveGroupChat(reportID: string) {
 
 /** Leave a report by setting the state to submitted and closed */
 function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
         return;
@@ -2730,7 +2727,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
 /** Invites people to a room */
 function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         return;
     }
@@ -2824,7 +2821,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
         participants: {
@@ -2886,7 +2883,7 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = currentReportData?.[reportID];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         return;
     }
@@ -3844,4 +3841,5 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    handleReportChanged,
 };
