@@ -3379,6 +3379,7 @@ export default {
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     reimburseableLink: 'View out of pocket expenses.',
                     nonReimbursableLink: 'View company card expenses.',
+                    pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,

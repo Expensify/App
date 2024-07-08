@@ -22,8 +22,16 @@ function ExportIntegration({action}: ExportIntegrationProps) {
     const wasExportedAfterBase62 = (action?.created ?? '') > '2022-11-14';
     const reportID = action?.reportID ?? '';
     const base62ReportID = ReportUtils.getBase62ReportID(Number(reportID));
+    const isPending = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-    const exportText = markedManually ? translate('report.actions.type.exportedToIntegration.manual', {label}) : translate('report.actions.type.exportedToIntegration.automatic', {label});
+    let exportText = '';
+    if (isPending) {
+        exportText = translate('report.actions.type.exportedToIntegration.pending', {label});
+    } else if (markedManually) {
+        exportText = translate('report.actions.type.exportedToIntegration.manual', {label});
+    } else {
+        exportText = translate('report.actions.type.exportedToIntegration.automatic', {label});
+    }
 
     const links: Array<{text: string; url: string}> = [];
 
