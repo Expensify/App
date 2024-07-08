@@ -82,6 +82,7 @@ function BaseListItem<TItem extends ListItem>({
                     onSelectRow(item);
                 }}
                 disabled={isDisabled && !item.isSelected}
+                interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
