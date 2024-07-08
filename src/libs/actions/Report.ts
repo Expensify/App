@@ -1,5 +1,5 @@
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import {ExpensiMark, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -62,7 +62,7 @@ import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -1498,21 +1498,19 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
-    const parser = new ExpensiMark();
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
 
-    const htmlForNewComment = parser.replace(newCommentText, {
+    const htmlForNewComment = Parser.replace(newCommentText, {
         extras: {videoAttributeCache},
     });
-    const removedLinks = parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
+    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
-    const parser = new ExpensiMark();
     const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
     if (!originalReportID || !originalReportAction) {
@@ -1523,7 +1521,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
-    const originalCommentMarkdown = parseHtmlToMarkdown(originalCommentHTML ?? '').trim();
+    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === textForNewComment) {
@@ -1531,14 +1529,14 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     }
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
 
-    const reportComment = parseHtmlToText(htmlForNewComment);
+    const reportComment = Parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
-        const autolinkFilter = {filterRules: parser.rules.map((rule) => rule.name).filter((name) => name !== 'autolink')};
-        parsedOriginalCommentHTML = parser.replace(originalCommentMarkdown, autolinkFilter);
+        const autolinkFilter = {filterRules: Parser.rules.map((rule) => rule.name).filter((name) => name !== 'autolink')};
+        parsedOriginalCommentHTML = Parser.replace(originalCommentMarkdown, autolinkFilter);
     }
 
     //  Delete the comment if it's empty

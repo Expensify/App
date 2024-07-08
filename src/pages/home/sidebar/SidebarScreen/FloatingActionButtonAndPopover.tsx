@@ -194,7 +194,7 @@ function FloatingActionButtonAndPopover(
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const renderQuickActionTooltip = useCallback(
@@ -306,7 +306,7 @@ function FloatingActionButtonAndPopover(
             setIsCreateMenuActive(true);
             onShowCreateMenu?.();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isFocused, shouldUseNarrowLayout],
     );
 
@@ -323,7 +323,7 @@ function FloatingActionButtonAndPopover(
             setIsCreateMenuActive(false);
             onHideCreateMenu?.();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isCreateMenuActive],
     );
 
@@ -349,7 +349,7 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (

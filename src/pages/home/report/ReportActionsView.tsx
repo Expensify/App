@@ -152,9 +152,10 @@ function ReportActionsView({
         }
         isFirstLinkedActionRender.current = true;
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
+        // eslint-disable-next-line react-compiler/react-compiler
         listOldID = newID;
         return newID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
@@ -256,7 +257,7 @@ function ReportActionsView({
         return combinedReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
 
     const reportActionIDMap = useMemo(() => {
@@ -325,7 +326,7 @@ function ReportActionsView({
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         Report.openReport(reportID, reportActionID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
@@ -333,7 +334,7 @@ function ReportActionsView({
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
             openReportIfNecessary();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [session, report]);
 
     useEffect(() => {
@@ -346,8 +347,8 @@ function ReportActionsView({
             openReportIfNecessary();
         }
         // update ref with current state
-        prevshouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        prevIsSmallScreenWidthRef.current = shouldUseNarrowLayout;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {

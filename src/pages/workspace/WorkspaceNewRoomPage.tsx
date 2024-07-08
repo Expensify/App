@@ -148,7 +148,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             return;
         }
         Navigation.dismissModal(newRoomReportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want this to update on changing the form State
     }, [isLoading, errorFields]);
 
     useEffect(() => {
