@@ -283,6 +283,125 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
+function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
+    policyID: string,
+    mappingName: TMappingName,
+    mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
+    oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
+) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            [mappingName]: mappingValue,
+                                            pendingFields: {
+                                                [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        [mappingName]: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            [mappingName]: mappingValue,
+                                            pendingFields: {
+                                                [mappingName]: null,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        [mappingName]: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            [mappingName]: oldMappingValue,
+                                            pendingFields: {
+                                                [mappingName]: null,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        mapping: mappingValue,
+    };
+
+    let commandName;
+    switch (mappingName) {
+        case 'departments':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_DEPARTMENTS_MAPPING;
+            break;
+        case 'classes':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_CLASSES_MAPPING;
+            break;
+        case 'locations':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_LOCATIONS_MAPPING;
+            break;
+        case 'customers':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOMERS_MAPPING;
+            break;
+        case 'jobs':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_JOBS_MAPPING;
+            break;
+        default:
+            return;
+    }
+
+    API.write(commandName, params, onyxData);
+}
+
 function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: boolean) {
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX, isSyncTaxEnabled, !isSyncTaxEnabled);
 
@@ -291,6 +410,21 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
         enabled: isSyncTaxEnabled,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION, params, onyxData);
+}
+
+function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, isCrossSubsidiaryCustomersEnabled: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(
+        policyID,
+        CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+        isCrossSubsidiaryCustomersEnabled,
+        !isCrossSubsidiaryCustomersEnabled,
+    );
+
+    const params = {
+        policyID,
+        enabled: isCrossSubsidiaryCustomersEnabled,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION, params, onyxData);
 }
 
 function updateNetSuiteExporter(policyID: string, exporter: string, oldExporter: string) {
@@ -613,6 +747,8 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    updateNetSuiteImportMapping,
+    updateNetSuiteCrossSubsidiaryCustomersConfiguration,
     updateNetSuiteAutoSync,
     updateNetSuiteSyncReimbursedReports,
     updateNetSuiteSyncPeople,

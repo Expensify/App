@@ -437,6 +437,18 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls: string[];
 };
 
+/** Model of `unapproved` report action */
+type OriginalMessageUnapproved = {
+    /** Unapproved expense amount */
+    amount: number;
+
+    /** Currency of the unapproved expense amount */
+    currency: string;
+
+    /** Report ID of the expense */
+    expenseReportID: string;
+};
+
 /** The map type of original message */
 type OriginalMessageMap = {
     /** */
@@ -532,7 +544,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     /** */
