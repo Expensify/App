@@ -30,7 +30,11 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
-type ReportFieldForList = ListItem & {value: string; fieldID: string};
+type ReportFieldForList = ListItem & {
+    value: string;
+    fieldID: string;
+    orderWeight?: number;
+};
 
 type WorkspaceReportFieldsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
@@ -49,7 +53,8 @@ function WorkspaceReportFieldsPage({
         if (!policy?.fieldList) {
             return {};
         }
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([key]) => key !== 'text_title'));
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
 
@@ -69,6 +74,7 @@ function WorkspaceReportFieldsPage({
             fieldID: reportField.fieldID,
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
+            pendingAction: reportField.pendingAction,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
             rightElement: (
@@ -86,6 +92,10 @@ function WorkspaceReportFieldsPage({
             ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
             : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
         setSelectedReportFields(updatedReportFields);
+    };
+
+    const navigateToReportFieldSettings = (reportField: ReportFieldForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
     const isLoading = reportFieldsList === undefined;
@@ -158,7 +168,7 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple
                         sections={[{data: reportFieldsList, isDisabled: false}]}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={() => {}}
+                        onSelectRow={navigateToReportFieldSettings}
                         onSelectAll={() => {}}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

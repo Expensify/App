@@ -683,6 +683,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/:categoryName',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}` as const,
     },
+    WORKSPACE_UPGRADE: {
+        route: 'settings/workspaces/:policyID/upgrade/:featureName',
+        getRoute: (policyID: string, featureName: string) => `settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const,
+    },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
@@ -788,6 +792,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    WORKSPACE_REPORT_FIELD_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportField/:reportFieldKey',
+        getRoute: (policyID: string, reportFieldKey: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldKey)}` as const,
+    },
     WORKSPACE_CREATE_REPORT_FIELD: {
         route: 'settings/workspaces/:policyID/reportFields/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
@@ -870,6 +878,34 @@ const ROUTES = {
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/merchant',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/merchant` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/category',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/category` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tag',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tax-code',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
+        route: 'r/:threadReportID/duplicates/confirm',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/reimbursable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/billable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
     },
 
     POLICY_ACCOUNTING_XERO_IMPORT: {

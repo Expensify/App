@@ -325,6 +325,9 @@ function ReportActionItem({
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
+    const isArchivedRoom = ReportUtils.isArchivedRoomWithID(originalReportID);
+    const disabledActions = useMemo(() => (!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
+    const isChronosReport = ReportUtils.chatIncludesChronosWithID(originalReportID);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -350,16 +353,16 @@ function ReportActionItem({
                 draftMessage ?? '',
                 () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoomWithID(originalReportID),
-                ReportUtils.chatIncludesChronosWithID(originalReportID),
+                isArchivedRoom,
+                isChronosReport,
                 false,
                 false,
-                [],
+                disabledActions,
                 false,
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, disabledActions, isArchivedRoom, isChronosReport],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -891,12 +894,12 @@ function ReportActionItem({
                                 reportActionID={action.reportActionID}
                                 anchor={popoverAnchorRef}
                                 originalReportID={originalReportID ?? '-1'}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(report)}
+                                isArchivedRoom={isArchivedRoom}
                                 displayAsGroup={displayAsGroup}
-                                disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
+                                disabledActions={disabledActions}
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
                                 draftMessage={draftMessage}
-                                isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
+                                isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                 setIsEmojiPickerActive={setIsEmojiPickerActive}
                             />

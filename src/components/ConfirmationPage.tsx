@@ -20,7 +20,7 @@ type ConfirmationPageProps = {
     heading: string;
 
     /** Description of the confirmation page */
-    description: string;
+    description: React.ReactNode;
 
     /** The text for the button label */
     buttonText?: string;
