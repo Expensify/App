@@ -620,7 +620,6 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
 
 function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
     const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
-
     return (bankAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,

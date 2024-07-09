@@ -998,14 +998,14 @@ type SageIntacctSyncConfig = {
     /** ID of the bank account for Sage Intacct bill payment account */
     reimbursementAccountID?: string;
 
-    /** Whether the reimbursed reports should be synched */
+    /** Whether the reimbursed reports should be synced */
     syncReimbursedReports: boolean | string;
 };
 
 /**
  * Connection config for Sage Intacct
  */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Sage Intacct credentials */
         credentials: {
@@ -1094,7 +1094,7 @@ type Connections = {
     netsuite: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectiosConfig>;
+    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
@@ -1461,5 +1461,5 @@ export type {
     NetSuiteCustomFormID,
     SageIntacctDataElementWithValue,
     SageIntacctDataElement,
-    SageIntacctConnectiosConfig,
+    SageIntacctConnectionsConfig,
 };
