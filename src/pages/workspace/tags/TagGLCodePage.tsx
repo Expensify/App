@@ -76,7 +76,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
-                        // defaultValue={glCode}
+                        defaultValue={glCode}
                         label={translate('workspace.tags.glCode')}
                         accessibilityLabel={translate('workspace.tags.glCode')}
                         inputID={INPUT_IDS.TAG_GL_CODE}
