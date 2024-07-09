@@ -440,6 +440,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
                             path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
@@ -562,12 +564,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.route,
-                            parse: {
-                                reportFieldName: (reportFieldKey: string) => decodeURIComponent(reportFieldKey),
-                            },
-                        },
                         [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
                         },
@@ -585,15 +581,36 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.route,
+                            parse: {
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
+                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.route,
+                            parse: {
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
+                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.route,
+                            parse: {
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
+                            },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.route,
+                            parse: {
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
+                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.route,
+                            parse: {
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
+                            },
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,

@@ -977,26 +977,26 @@ type SageIntacctDataElementWithValue = SageIntacctDataElement & {
  * Connection data for Sage Intacct
  */
 type SageIntacctConnectionData = {
-    /** Collection of credit cards */
-    creditCards: SageIntacctDataElement[];
+     /** Collection of credit cards */
+     creditCards: SageIntacctDataElement[];
 
-    /** Collection of entities */
-    entities: SageIntacctDataElementWithValue[];
-
-    /** Collection of bank accounts */
-    bankAccounts: SageIntacctDataElement[];
-
-    /** Collection of vendors */
-    vendors: SageIntacctDataElementWithValue[];
-
-    /** Collection of journals */
-    journals: SageIntacctDataElementWithValue[];
-
-    /** Collection of items */
-    items: SageIntacctDataElement[];
-
-    /** Collection of tax solutions IDs */
-    taxSolutionIDs: string[];
+     /** Collection of entities */
+     entities: SageIntacctDataElementWithValue[];
+ 
+     /** Collection of bank accounts */
+     bankAccounts: SageIntacctDataElement[];
+ 
+     /** Collection of vendors */
+     vendors: SageIntacctDataElementWithValue[];
+ 
+     /** Collection of journals */
+     journals: SageIntacctDataElementWithValue[];
+ 
+     /** Collection of items */
+     items: SageIntacctDataElement[];
+ 
+     /** Collection of tax solutions IDs */
+     taxSolutionIDs: string[];
 };
 
 /** Mapping value for Sage Intacct */
@@ -1040,6 +1040,21 @@ type SageIntacctMappingType = {
     dimensions: SageIntacctDimension[];
 };
 
+/** Configuration of automatic synchronization from Sage Intacct to the app */
+type SageIntacctAutoSyncConfig = {
+    /** Whether changes made in Sage Intacct should be reflected into the app automatically */
+    enabled: boolean;
+};
+
+/** Sage Intacct sync */
+type SageIntacctSyncConfig = {
+    /** ID of the bank account for Sage Intacct bill payment account */
+    reimbursementAccountID?: string;
+
+    /** Whether the reimbursed reports should be synced */
+    syncReimbursedReports: boolean | string;
+};
+
 /**
  * Connection config for Sage Intacct
  */
@@ -1048,7 +1063,7 @@ type SageIntacctOfflineStateKeys = keyof SageIntacctMappingType | `dimension_${s
 /**
  * Connection config for Sage Intacct
  */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Sage Intacct credentials */
         credentials: {
@@ -1104,13 +1119,25 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
             errorFields?: OnyxCommon.ErrorFields;
         }>;
 
+        /** Whether employees should be imported from Sage Intacct */
+        importEmployees: boolean;
+
+        /** Sage Intacct approval mode */
+        approvalMode: ValueOf<typeof CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL> | null;
+
+        /** Configuration of automatic synchronization from Sage Intacct to the app */
+        autoSync: SageIntacctAutoSyncConfig;
+
+        /** Sage Intacct sync */
+        sync: SageIntacctSyncConfig;
+
         /** Collection of Sage Intacct config errors */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    SageIntacctOfflineStateKeys
+    SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig
 >;
 
 /** State of integration connection */
@@ -1137,7 +1164,7 @@ type Connections = {
     netsuite: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectiosConfig>;
+    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
@@ -1191,7 +1218,7 @@ type PolicyReportField = {
     deletable: boolean;
 
     /** Value of the field */
-    value: string | null;
+    value?: string | null;
 
     /** Options to select from if field is of type dropdown */
     values: string[];
@@ -1509,4 +1536,6 @@ export type {
     SageIntacctMappingName,
     SageIntacctDimension,
     SageIntacctDataElementWithValue,
+    SageIntacctDataElement,
+    SageIntacctConnectionsConfig,
 };
