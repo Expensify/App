@@ -106,6 +106,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     }
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload);
+
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));

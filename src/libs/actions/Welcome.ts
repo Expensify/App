@@ -103,8 +103,7 @@ function handleHybridAppOnboarding() {
 }
 
 /**
-
-* Check if report data are loaded
+ * Check if report data are loaded
  */
 function checkServerDataReady() {
     if (isLoadingReportData) {
