@@ -249,4 +249,4 @@ export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyEx
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
-export type {default as UpdateSageIntacctGenericParams} from './UpdateSageIntacctGenericParams';
+export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
