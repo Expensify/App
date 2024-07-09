@@ -425,12 +425,9 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(() => {
-        runOnUI(() => {
-            'worklet';
-
-            tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        })();
-    }, [tag]);
+        const handle = findNodeHandle(textInputRef.current) ?? -1;
+        tag.value = handle;
+    }, []);
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
