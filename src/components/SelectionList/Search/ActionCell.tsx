@@ -38,9 +38,6 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    if (!isLargeScreenWidth) {
-        return null;
-    }
 
     const {currentSearchHash} = useSearchContext();
 
@@ -55,6 +52,10 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
             SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID]);
         }
     }, [action, currentSearchHash, transactionID]);
+
+    if (!isLargeScreenWidth) {
+        return null;
+    }
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -81,6 +82,8 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
         );
     }
 
+    const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
+
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
         return (
             <Button
@@ -89,6 +92,7 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
                 small
                 pressOnEnter
                 style={[styles.w100]}
+                innerStyles={buttonInnerStyles}
             />
         );
     }
@@ -100,7 +104,7 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
             small
             pressOnEnter
             style={[styles.w100]}
-            innerStyles={isSelected ? styles.buttonDefaultHovered : {}}
+            innerStyles={buttonInnerStyles}
         />
     );
 }

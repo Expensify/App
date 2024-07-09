@@ -92,6 +92,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 fallbackIcon={Expensicons.ReceiptPlus}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
+                fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
             />
         </View>
