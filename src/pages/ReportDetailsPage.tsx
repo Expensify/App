@@ -201,7 +201,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const canUnapproveRequest =
         ReportUtils.isExpenseReport(moneyRequestReport) &&
-        !ReportUtils.isArchivedRoom(moneyRequestReport) &&
         (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
         (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
 
