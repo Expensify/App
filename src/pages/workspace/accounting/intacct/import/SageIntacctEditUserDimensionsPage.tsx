@@ -35,7 +35,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
     const policyID: string = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
-    const editedUserDimension = userDimensions?.find((userDimension) => userDimension.name === editedUserDimensionName);
+    const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const validate = useCallback(
@@ -46,7 +46,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
             }
 
-            if (userDimensions?.some((userDimension) => userDimension.name === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
+            if (userDimensions?.some((userDimension) => userDimension.dimension === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
             }
 

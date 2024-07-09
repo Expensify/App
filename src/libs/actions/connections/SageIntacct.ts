@@ -275,13 +275,13 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
 
 function addSageIntacctUserDimensions(
     policyID: string,
-    name: string,
+    dimensionName: string,
     mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
     existingUserDimensions: SageIntacctDimension[],
 ) {
-    const newDimensions = [...existingUserDimensions, {mapping, name}];
+    const newDimensions = [...existingUserDimensions, {mapping, dimension: dimensionName}];
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: newDimensions}, prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions));
 }
 
 function editSageIntacctUserDimensions(
@@ -292,19 +292,19 @@ function editSageIntacctUserDimensions(
     existingUserDimensions: SageIntacctDimension[],
 ) {
     const newDimensions = existingUserDimensions.map((userDimension) => {
-        if (userDimension.name === previousName) {
-            return {name, mapping};
+        if (userDimension.dimension === previousName) {
+            return {dimension: name, mapping};
         }
         return userDimension;
     });
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: newDimensions}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
 }
 
-function removeSageIntacctUserDimensions(policyID: string, name: string, existingUserDimensions: SageIntacctDimension[]) {
-    const newDimensions = existingUserDimensions.filter((userDimension) => name !== userDimension.name);
+function removeSageIntacctUserDimensions(policyID: string, dimensionName: string, existingUserDimensions: SageIntacctDimension[]) {
+    const newDimensions = existingUserDimensions.filter((userDimension) => dimensionName !== userDimension.dimension);
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping: undefined}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: newDimensions}, prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions));
 }
 
 function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectiosConfig) {

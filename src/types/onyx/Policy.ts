@@ -1007,7 +1007,7 @@ type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>
  */
 type SageIntacctDimension = {
     /** Name of user defined dimention */
-    name: string;
+    dimension: string;
 
     /** Mapping value for user defined dimention */
     mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD;

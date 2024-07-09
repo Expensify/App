@@ -87,15 +87,15 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     <ScrollView>
                         {userDimensions.map((userDimension) => (
                             <OfflineWithFeedback
-                                key={userDimension.name}
-                                pendingAction={config?.pendingFields?.[`dimension_${userDimension.name}`]}
+                                key={userDimension.dimension}
+                                pendingAction={config?.pendingFields?.[`dimension_${userDimension.dimension}`]}
                             >
                                 <MenuItemWithTopDescription
-                                    title={userDimension.name}
+                                    title={userDimension.dimension}
                                     description={translate('workspace.intacct.userDefinedDimension')}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.name))}
-                                    brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.name}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
+                                    brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.dimension}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
                             </OfflineWithFeedback>
                         ))}

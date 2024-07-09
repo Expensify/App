@@ -35,7 +35,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
             }
 
-            if (userDimensions?.some((userDimension) => userDimension.name === values[INPUT_IDS.INTEGRATION_NAME])) {
+            if (userDimensions?.some((userDimension) => userDimension.dimension === values[INPUT_IDS.INTEGRATION_NAME])) {
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
             }
 

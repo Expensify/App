@@ -1,9 +1,8 @@
-import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctDimension} from '@src/types/onyx/Policy';
 
 type UpdateSageIntacctUserDimension = {
     policyID: string;
-    name: string;
-    mapping?: SageIntacctMappingValue;
+    dimensions: SageIntacctDimension[];
 };
 
 export default UpdateSageIntacctUserDimension;
