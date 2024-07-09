@@ -2267,6 +2267,14 @@ export default {
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: `Add the account in Sage Intacct and sync the connection again.`,
+            autoSync: 'Auto-sync',
+            autoSyncDescription: 'Sync Sage Intacct and Expensify automatically, every day.',
+            inviteEmployees: 'Invite employees',
+            inviteEmployeesDescription:
+                'Import Sage Intacct employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be furthered configured on the Members page.',
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
+            paymentAccount: 'Sage Intacct payment account',
         },
         netsuite: {
             subsidiary: 'Subsidiary',
@@ -2504,17 +2512,6 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
-        },
-        sageIntacct: {
-            autoSync: 'Auto-sync',
-            autoSyncDescription: 'Sync Sage Intacct and Expensify automatically, every day.',
-            inviteEmployees: 'Invite employees',
-            inviteEmployeesDescription:
-                'Import Sage Intacct employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be furthered configured on the Members page.',
-            syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
-            paymentAccount: 'Sage Intacct payment account',
-            notConfigured: 'Not configured',
         },
         type: {
             free: 'Free',
