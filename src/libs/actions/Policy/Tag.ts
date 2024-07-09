@@ -756,9 +756,11 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
                                 ...policyTagToUpdate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
-                                    glCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
-                                glCode,
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'GL Code': glCode,
                             },
                         },
                     },
@@ -776,7 +778,8 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
                                 errors: null,
                                 pendingAction: null,
                                 pendingFields: {
-                                    glCode: null,
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    'GL Code': null,
                                 },
                             },
                         },

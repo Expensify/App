@@ -131,9 +131,9 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.glCode}>
+                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
                         <MenuItemWithTopDescription
-                            title={currentPolicyTag.glCode}
+                            title={currentPolicyTag['GL Code']}
                             description={translate(`workspace.tags.glCode`)}
                             onPress={navigateToEditGlCode}
                             shouldShowRightIcon
