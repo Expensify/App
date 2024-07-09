@@ -294,15 +294,12 @@ function ReportActionsView({
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
-    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const handleReportActionPagination = useCallback(
         ({firstReportActionID}: {firstReportActionID: string}) => {
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
             if (!hasMoreCached) {
                 isFirstLinkedActionRender.current = false;
-                if (!hasNewestReportAction) {
-                    fetchNewerAction(newestReportAction);
-                }
+                fetchNewerAction(newestReportAction);
             }
             if (isFirstLinkedActionRender.current) {
                 isFirstLinkedActionRender.current = false;
@@ -314,6 +311,7 @@ function ReportActionsView({
 
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
+    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
@@ -418,7 +416,7 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((!!reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded && !hasNewestReportAction)) {
+            if ((!!reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
@@ -434,7 +432,6 @@ function ReportActionsView({
             isFocused,
             hasLoadingNewerReportActionsError,
             hasMoreCached,
-            hasNewestReportAction,
         ],
     );
 
