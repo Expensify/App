@@ -98,7 +98,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     query={query}
                     hash={hash}
                 />
-                <SearchRowSkeleton shouldAnimate />{' '}
+                <SearchRowSkeleton shouldAnimate />
             </>
         );
     }
