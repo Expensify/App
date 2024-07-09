@@ -1,7 +1,8 @@
 type UpdatePolicyTaxCodeParams = {
     policyID: string;
     taxID: string;
-    taxCode: string;
+    oldTaxCode: string;
+    newTaxCode: string;
 };
 
 export default UpdatePolicyTaxCodeParams;
