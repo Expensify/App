@@ -1,4 +1,4 @@
-import {ExpensiMark} from 'expensify-common';
+import Parser from '@libs/Parser';
 import React from 'react';
 import {View} from 'react-native';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-
-const parser = new ExpensiMark();
 
 function CustomSegmentInternalIdStep({customSegmentType}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
@@ -36,7 +34,7 @@ function CustomSegmentInternalIdStep({customSegmentType}: CustomFieldSubStepWith
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
                 <RenderHTML
-                    html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}InternalIDFooter`))}</comment>`}
+                    html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}InternalIDFooter`))}</comment>`}
                 />
             </View>
         </View>

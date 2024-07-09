@@ -1,4 +1,4 @@
-import {ExpensiMark} from 'expensify-common';
+import Parser from '@libs/Parser';
 import React from 'react';
 import {View} from 'react-native';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,8 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-
-const parser = new ExpensiMark();
 
 function TransactionFieldIDStep() {
     const styles = useThemeStyles();
@@ -31,7 +29,7 @@ function TransactionFieldIDStep() {
                 shouldSaveDraft
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
-                <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDFooter`))}</comment>`} />
+                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDFooter`))}</comment>`} />
             </View>
         </View>
     );
