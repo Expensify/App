@@ -2922,6 +2922,13 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            reconciliationAccount: 'Reconciliation account',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
+                accountMatches: 'Make sure this account matches your ',
+                settlementAccount: 'Expensify Card settlement account ',
+                reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',

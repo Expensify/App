@@ -490,7 +490,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
-        connection: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

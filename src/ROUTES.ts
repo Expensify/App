@@ -672,7 +672,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection: string) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
