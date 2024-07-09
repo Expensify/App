@@ -4,7 +4,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
@@ -29,7 +29,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
@@ -109,6 +108,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const {translate, formatPhoneNumber} = useLocalize();
     const activeRoute = useActiveRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
+
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -204,12 +206,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             },
         ];
 
-        if (shouldShowSubscriptionsMenu) {
+        if (privateSubscription) {
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
                 routeName: ROUTES.SETTINGS_SUBSCRIPTION,
-                // brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                brickRoadIndicator: privateSubscription?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 subtitle: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrialLabel') : undefined,
                 style: SubscriptionUtils.isUserOnFreeTrial() ? styles.lhnSuccessText : undefined,
             });
@@ -220,7 +222,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, styles.lhnSuccessText, styles.workspaceSettingsSectionContainer, translate]);
+    }, [policies, privateSubscription, styles, translate]);
 
     /**
      * Retuns a list of menu items data for general section
