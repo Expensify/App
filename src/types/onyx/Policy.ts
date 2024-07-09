@@ -1517,7 +1517,6 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     SageIntacctOfflineStateKeys,
-    SageIntacctConnectionsConfig,
     ConnectionName,
     Tenant,
     Account,
