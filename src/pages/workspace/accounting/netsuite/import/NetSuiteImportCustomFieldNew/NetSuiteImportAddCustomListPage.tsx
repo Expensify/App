@@ -47,7 +47,11 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         screenIndex,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER, onFinished: handleFinishStep});
+    } = useSubStep<CustomFieldSubStepWithPolicy>({
+        bodyContent: formSteps,
+        startFrom: CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER,
+        onFinished: handleFinishStep,
+    });
 
     const handleBackButtonPress = () => {
         if (isEditing) {

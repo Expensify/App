@@ -52,7 +52,7 @@ function NetSuiteImportCustomFieldView({
 
     const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldList =
-    customField && PolicyUtils.isNetSuiteCustomSegmentRecord(customField)
+        customField && PolicyUtils.isNetSuiteCustomSegmentRecord(customField)
             ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS
             : [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 

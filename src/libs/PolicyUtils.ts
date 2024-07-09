@@ -620,17 +620,17 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
-function isNetSuiteCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
-    return 'segmentName' in customRecord;
+function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
+    return 'segmentName' in customField;
 }
 
-function getNameFromNetSuiteCustomField(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): string {
-    return 'segmentName' in customRecord ? customRecord.segmentName : customRecord.listName;
+function getNameFromNetSuiteCustomField(customField: NetSuiteCustomList | NetSuiteCustomSegment): string {
+    return 'segmentName' in customField ? customField.segmentName : customField.listName;
 }
 
-function isNetSuiteCustomFieldPropertyEditable(customRecord: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
-    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customRecord) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
-    const fieldKey = fieldName as keyof typeof customRecord;
+function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
+    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
+    const fieldKey = fieldName as keyof typeof customField;
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 
