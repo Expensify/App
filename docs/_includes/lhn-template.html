@@ -21,25 +21,25 @@
     {% for platform in site.data.routes.platforms %}
         {% if platform.href == activePlatform %}
             <li>
-                <a href="/" class="icon-with-link selected">
-                    <img src="/assets/images/down.svg" class="base-icon"></img>
+                <div class="icon-with-link selected">
+                    <a href="/"><img src="/assets/images/down.svg" class="base-icon"></img></a>
                     <span>{{ platform.title }}</span>
-                </a>
+                </div>
                 {% for hub in platform.hubs %}
                 <ul>
                     {% if hub.href == activeHub %}
-                        <a href="/{{ activePlatform }}/hubs/" class="icon-with-link selected">
-                            <img src="/assets/images/down.svg" class="base-icon"></img>
+                        <div  class="icon-with-link selected">
+                            <a href="/{{ activePlatform }}/hubs"><img src="/assets/images/down.svg" class="base-icon"></img></a> 
                             <span>{{ hub.title }}</span>
-                        </a>
+                        </div>
                         <ul class="nested-treeview">
                             {% for section in hub.sections %}
                                 <li>
                                     {% if section.href == activeSection %}
-                                        <a href="/{{ activePlatform }}/hubs/{{ hub.href }}" class="icon-with-link selected">
-                                            <img src="/assets/images/down.svg" class="base-icon"></img>
+                                        <div class="icon-with-link selected">
+                                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}"><img src="/assets/images/down.svg" class="base-icon"></img></a>
                                             <span>{{ section.title }}</span>
-                                        </a>
+                                        </div>
                                         <ul>
                                             {% for article in section.articles %}
                                                 {% assign article_href = section.href | append: '/' | append: article.href %}

@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -11,13 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-
-const parser = new ExpensiMark();
 
 type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
 
@@ -62,7 +60,7 @@ function NetSuiteImportMappingPage({
         () => (
             <View style={[styles.ph5, styles.pb5]}>
                 <View style={[styles.flexRow]}>
-                    <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
+                    <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
                 </View>
             </View>
         ),
