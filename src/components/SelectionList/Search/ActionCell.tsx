@@ -38,6 +38,9 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, isL
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    if (!isLargeScreenWidth) {
+        return null;
+    }
 
     const {currentSearchHash} = useSearchContext();
 

@@ -87,7 +87,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
         setCurrentSearchHash(hash);
         SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
     const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
