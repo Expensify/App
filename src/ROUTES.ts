@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
@@ -678,6 +678,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/:categoryName',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}` as const,
     },
+    WORKSPACE_UPGRADE: {
+        route: 'settings/workspaces/:policyID/upgrade/:featureName',
+        getRoute: (policyID: string, featureName: string) => `settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const,
+    },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
@@ -783,6 +787,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    WORKSPACE_REPORT_FIELD_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportField/:reportFieldKey',
+        getRoute: (policyID: string, reportFieldKey: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldKey)}` as const,
+    },
     WORKSPACE_CREATE_REPORT_FIELD: {
         route: 'settings/workspaces/:policyID/reportFields/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
@@ -807,13 +815,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
-    // TODO: uncomment after development is done
-    // WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
-    // route: 'settings/workspaces/:policyID/expensify-card/issues-new',
-    // getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
-    // },
-    // TODO: remove after development is done - this one is for testing purposes
-    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'settings/workspaces/expensify-card/issue-new',
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
+        route: 'settings/workspaces/:policyID/expensify-card/issue-new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -865,6 +870,34 @@ const ROUTES = {
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/merchant',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/merchant` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/category',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/category` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tag',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tax-code',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
+        route: 'r/:threadReportID/duplicates/confirm',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/reimbursable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/billable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
     },
 
     POLICY_ACCOUNTING_XERO_IMPORT: {
@@ -960,9 +993,26 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
+        getRoute: (policyID: string, importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
@@ -1020,6 +1070,39 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/provincial-tax-posting-account/select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/provincial-tax-posting-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/reimbursement-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/collection-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/collection-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/expense-report-approval-level/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/expense-report-approval-level/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/vendor-bill-approval-level/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/vendor-bill-approval-level/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/journal-entry-approval-level/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/journal-entry-approval-level/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
