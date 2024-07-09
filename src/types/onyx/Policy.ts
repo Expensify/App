@@ -121,9 +121,6 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
     code?: string;
 
-    /** Tax code that corresponds to this tag in an accounting system. Similar to an ID */
-    taxCode?: string;
-
     /** This contains the tax name and tax value as one name */
     modifiedName?: string;
 
