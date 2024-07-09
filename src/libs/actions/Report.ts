@@ -56,6 +56,7 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -2573,7 +2574,7 @@ function openReportFromDeepLink(url: string) {
 
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
-                        const hasCompletedGuidedSetupFlow = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
+                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         if (!hasCompletedGuidedSetupFlow) {

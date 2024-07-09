@@ -9,6 +9,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {FSPage} from '@libs/Fullstory';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -81,13 +82,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {setActiveWorkspaceID} = useActiveWorkspace();
 
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: (onboarding) => {
-            // onboarding is an array for old accounts and accounts created from olddot
-            if (Array.isArray(onboarding)) {
-                return true;
-            }
-            return onboarding?.hasCompletedGuidedSetupFlow;
-        },
+        selector: hasCompletedGuidedSetupFlowSelector,
     });
 
     const initialState = useMemo(() => {
