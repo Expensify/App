@@ -2138,9 +2138,9 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
-                noAccountsFound: 'No accounts found',
-                noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
         },
         xero: {
             organization: 'Xero organization',

@@ -2175,9 +2175,9 @@ export default {
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
-                noAccountsFound: 'No se ha encontrado ninguna cuenta',
-                noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión.',
             },
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión.',
         },
         xero: {
             organization: 'Organización Xero',

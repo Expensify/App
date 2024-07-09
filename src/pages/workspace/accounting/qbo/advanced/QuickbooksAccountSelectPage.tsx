@@ -67,8 +67,8 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.accounts.noAccountsFound')}
-                subtitle={translate('workspace.qbo.accounts.noAccountsFoundDescription')}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ),
