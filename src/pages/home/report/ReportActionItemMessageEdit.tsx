@@ -425,8 +425,8 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(() => {
-        const handle = findNodeHandle(textInputRef.current) ?? -1;
-        tag.value = handle;
+        tag.value = findNodeHandle(textInputRef.current) ?? -1;
+        // eslint-disable-next-line react-compiler/react-compiler,
     }, []);
     useFocusedInputHandler(
         {
