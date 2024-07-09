@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
@@ -28,8 +30,6 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-
-    const validateBankAccountForm = () => ({});
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -80,14 +80,16 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             ) : (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-                    isSubmitButtonVisible={!!selectedPlaidAccountId}
+                    isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
                     submitButtonText={translate('common.saveAndContinue')}
                     scrollContextEnabled
                     onSubmit={submitBankAccountForm}
-                    validate={validateBankAccountForm}
+                    validate={BankAccounts.validatePlaidSelection}
                     style={[styles.mh5, styles.flex1]}
                 >
-                    <AddPlaidBankAccount
+                    <InputWrapper
+                        inputID={INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID}
+                        InputComponent={AddPlaidBankAccount}
                         onSelect={setSelectedPlaidAccountId}
                         text={translate('walletPage.chooseAccountBody')}
                         plaidData={plaidData}
