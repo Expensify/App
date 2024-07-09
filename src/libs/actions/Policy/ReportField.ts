@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {CreateWorkspaceReportFieldParams, PolicyReportFieldsReplace} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import {generateFieldID} from '@libs/WorkspaceReportFieldsUtils';
 import CONST from '@src/CONST';
@@ -26,13 +27,6 @@ Onyx.connect({
         listValues = value[INPUT_IDS.LIST_VALUES] ?? [];
         disabledListValues = value[INPUT_IDS.DISABLED_LIST_VALUES] ?? [];
     },
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
 });
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -143,7 +137,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
-    const newReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
+    const newReportField: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
         type,
         defaultValue: initialValue,
@@ -203,8 +197,9 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
             },
         ],
     };
-
-    const policyExpenseReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE) as Report[];
+    const policyExpenseReports = Object.values(ReportConnection.getAllReports() ?? {}).filter(
+        (report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE,
+    ) as Report[];
 
     onyxData.optimisticData?.push(
         ...(policyExpenseReports.map((report) => ({
