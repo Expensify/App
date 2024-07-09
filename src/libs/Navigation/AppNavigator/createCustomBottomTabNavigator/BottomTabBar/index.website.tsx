@@ -61,7 +61,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 navigationRef.resetRoot(adaptedState);
             },
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     // Parent navigator of the bottom tab bar is the root navigator.
