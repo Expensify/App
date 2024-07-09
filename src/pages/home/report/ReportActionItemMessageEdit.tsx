@@ -403,8 +403,6 @@ function ReportActionItemMessageEdit(
             }
             containerRef.current.measureInWindow(callback);
         },
-        // We added isFocused in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [isFocused],
     );
 
@@ -428,7 +426,6 @@ function ReportActionItemMessageEdit(
 
     useEffect(() => {
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     useFocusedInputHandler(
         {
