@@ -245,7 +245,7 @@ function ReimbursementAccountPage({
             BankAccounts.setPlaidEvent(null);
         }
         fetchData(false, isStepToOpenEmpty);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
@@ -311,7 +311,7 @@ function ReimbursementAccountPage({
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
