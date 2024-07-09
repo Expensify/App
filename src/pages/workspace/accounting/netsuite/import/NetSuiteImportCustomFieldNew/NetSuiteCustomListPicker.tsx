@@ -48,7 +48,7 @@ function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, 
             />
             <NetSuiteCustomListSelectorModal
                 isVisible={isPickerVisible}
-                currentCustomListValue={value ?? policy?.connections?.netsuite.options.data.customLists?.[0].name ?? ''}
+                currentCustomListValue={value ?? ''}
                 onCustomListSelected={updateInput}
                 onClose={hidePickerModal}
                 label={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
