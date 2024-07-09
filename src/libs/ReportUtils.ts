@@ -39,6 +39,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -548,6 +549,12 @@ Onyx.connect({
         }
         allReportActions = actions;
     },
+});
+
+let onboarding: OnyxEntry<Onboarding | []>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => (onboarding = value),
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -7052,9 +7059,15 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
 }
 
 /**
- * Whether the report is a system chat or concierge chat, depending on the user's account ID (used for A/B testing purposes).
+ * Whether the report is a system chat or concierge chat, depending on the onboarding report ID or fallbacking
+ * to the user's account ID (used for A/B testing purposes).
  */
 function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
+    // onboarding can be an array for old accounts and accounts created from olddot
+    if (!Array.isArray(onboarding) && onboarding?.chatReportID === report?.reportID) {
+        return true;
+    }
+
     return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1) ? isSystemChat(report) : isConciergeChatReport(report);
 }
 
