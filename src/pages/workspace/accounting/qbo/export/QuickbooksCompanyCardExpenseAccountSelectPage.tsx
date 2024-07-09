@@ -72,8 +72,8 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.common.noAccountsFound')}
-                subtitle={translate('workspace.common.noAccountsFoundDescription', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                title={translate('workspace.qbo.accounts.noAccountsFound')}
+                subtitle={translate('workspace.qbo.accounts.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ),

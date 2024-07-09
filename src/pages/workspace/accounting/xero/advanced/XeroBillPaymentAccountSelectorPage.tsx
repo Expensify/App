@@ -53,8 +53,8 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.common.noAccountsFound')}
-                subtitle={translate('workspace.common.noAccountsFoundDescription', CONST.POLICY.CONNECTIONS.NAME.XERO)}
+                title={translate('workspace.xero.noAccountsFound')}
+                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ),

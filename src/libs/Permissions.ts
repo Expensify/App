@@ -45,7 +45,7 @@ function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+    return true;
 }
 
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {

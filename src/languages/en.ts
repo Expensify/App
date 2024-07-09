@@ -127,10 +127,6 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
-function integrationName(fallbackName: string, integration?: ConnectionName): string {
-    return integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : fallbackName;
-}
-
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2041,8 +2037,6 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: (integration: ConnectionName) => `Add the account in ${integrationName('this integration', integration)} and sync the connection again.`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2144,6 +2138,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
+                noAccountsFound: 'No accounts found',
+                noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
             },
         },
         xero: {
@@ -2214,6 +2210,8 @@ export default {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
@@ -2261,6 +2259,8 @@ export default {
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: `Add the account in Sage Intacct and sync the connection again.`,
         },
         netsuite: {
             subsidiary: 'Subsidiary',
@@ -2397,6 +2397,8 @@ export default {
                     customFormID: 'Please enter a valid numeric custom form ID.',
                 },
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
             noItemsFound: 'No invoice items found',
@@ -2844,7 +2846,10 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: (integration?: ConnectionName): string => `Disconnect ${integrationName('integration', integration)}`,
+            disconnectTitle: (integration?: ConnectionName): string => {
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+                return `Disconnect ${integrationName}`;
+            },
             connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
 
             syncError: (integration?: ConnectionName): string => {
@@ -2874,7 +2879,13 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => `Are you sure you want to disconnect ${integrationName('this integration', currentIntegration)}?`,
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+                const integrationName =
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        : 'this integration';
+                return `Are you sure you want to disconnect ${integrationName}?`;
+            },
             connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `Are you sure you want to connect ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'

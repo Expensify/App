@@ -48,8 +48,8 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.common.noAccountsFound')}
-                subtitle={translate('workspace.common.noAccountsFoundDescription', CONST.POLICY.CONNECTIONS.NAME.NETSUITE)}
+                title={translate('workspace.netsuite.noAccountsFound')}
+                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ),
