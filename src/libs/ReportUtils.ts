@@ -5123,7 +5123,7 @@ function buildOptimisticTaskReport(
 }
 
 // Manual export
-function buildOptimisticExportIntegrationAction(label: ConnectionName, markedManually = false): OptimisticExportAction {
+function buildOptimisticExportIntegrationAction(label?: ConnectionName, markedManually = false): OptimisticExportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
