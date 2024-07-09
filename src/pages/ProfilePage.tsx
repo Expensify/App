@@ -30,6 +30,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
+import * as LinkActions from '@userActions/Link';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
 import * as ReportActions from '@userActions/Report';
 import * as SessionActions from '@userActions/Session';
@@ -79,6 +80,9 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => account?.guideCalendarLink,
+    });
 
     const reportKey = useMemo(() => {
         const accountID = Number(route.params?.accountID ?? -1);
@@ -174,6 +178,8 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
+
+    const isConcierge = ReportUtils.isConciergeChatReport(report);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
@@ -274,6 +280,16 @@ function ProfilePage({route}: ProfilePageProps) {
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        )}
+                        {isConcierge && guideCalendarLink && (
+                            <MenuItem
+                                title={translate('videoChatButtonAndMenu.tooltip')}
+                                icon={Expensicons.Phone}
+                                isAnonymousAction={false}
+                                onPress={SessionActions.checkIfActionIsAllowed(() => {
+                                    LinkActions.openExternalLink(guideCalendarLink);
+                                })}
                             />
                         )}
                     </ScrollView>
