@@ -1121,8 +1121,6 @@ const CONST = {
     // around each header.
     EMOJI_NUM_PER_ROW: 8,
 
-    EMOJI_FREQUENT_ROW_COUNT: 3,
-
     EMOJI_DEFAULT_SKIN_TONE: -1,
 
     // Amount of emojis to render ahead at the end of the update cycle
