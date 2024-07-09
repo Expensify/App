@@ -7,11 +7,14 @@
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$SCRIPTS_DIR/shellUtils.sh"
 
+# Wrapper to run patch-package.
+# We use `script` to preserve colorization when the output of patch-package is piped to tee
+# and we provide /dev/null to discard the output rather than sending it to a file
+# `script` has different syntax on macOS vs linux, so that's why we need a wrapper function
 function patchPackage {
   OS="$(uname)"
   if [[ "$OS" == "Darwin" ]]; then
     # macOS
-    # We use script to preserve colorization when the output of patch-package is piped to tee
     script -q /dev/null npx patch-package --error-on-fail
   elif [[ "$OS" == "Linux" ]]; then
     # Ubuntu/Linux
