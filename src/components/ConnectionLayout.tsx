@@ -66,6 +66,9 @@ type ConnectionLayoutProps = {
 
     /** Handler for back button press */
     onBackButtonPress?: () => void;
+
+    /** Whether or not to block user from accessing the page */
+    shouldBeBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -99,6 +102,7 @@ function ConnectionLayout({
     titleAlreadyTranslated,
     reverseConnectionEmptyCheck = false,
     onBackButtonPress = () => Navigation.goBack(),
+    shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -123,7 +127,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty}
+            shouldBeBlocked={(reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty) || shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}

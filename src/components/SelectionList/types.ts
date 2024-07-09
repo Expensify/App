@@ -87,6 +87,9 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
+
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
 
