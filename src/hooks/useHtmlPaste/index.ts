@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect} from 'react';
 import type {ClipboardEvent as PasteEvent} from 'react';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -64,7 +64,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             // eslint-disable-next-line no-empty
         } catch (e) {}
         // We only need to set the callback once.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -74,7 +74,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(parseHtmlToMarkdown(html));
+            paste(Parser.htmlToMarkdown(html));
         },
         [paste],
     );
@@ -134,7 +134,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             }
             handlePastePlainText(event);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 
@@ -158,7 +158,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             }
             document.removeEventListener('paste', handlePaste);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 };
 
