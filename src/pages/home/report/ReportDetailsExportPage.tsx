@@ -116,17 +116,15 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     }
                 }}
             />
-            {!!modalStatus && (
-                <ConfirmModal
-                    title={translate('workspace.exportAgainModal.title')}
-                    onConfirm={confirmExport}
-                    onCancel={() => setModalStatus(null)}
-                    prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
-                    confirmText={translate('workspace.exportAgainModal.confirmText')}
-                    cancelText={translate('workspace.exportAgainModal.cancelText')}
-                    isVisible
-                />
-            )}
+            <ConfirmModal
+                title={translate('workspace.exportAgainModal.title')}
+                onConfirm={confirmExport}
+                onCancel={() => setModalStatus(null)}
+                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                confirmText={translate('workspace.exportAgainModal.confirmText')}
+                cancelText={translate('workspace.exportAgainModal.cancelText')}
+                isVisible={!!modalStatus}
+            />
         </>
     );
 }
