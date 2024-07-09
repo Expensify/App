@@ -136,7 +136,7 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NETSUITE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION};
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION};
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
         default:
             return undefined;

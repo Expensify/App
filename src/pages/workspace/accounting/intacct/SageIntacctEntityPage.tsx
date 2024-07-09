@@ -4,8 +4,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -15,7 +13,6 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 
 function SageIntacctEntityPage({policy}: WithPolicyProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const config = policy?.connections?.intacct?.config;
     const entityID = config?.entity ?? '';
@@ -39,7 +36,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     };
 
     return (
-        <ConnectionLayout // TODO switch to selection screen when https://github.com/Expensify/App/pull/44739 is merged
+        <ConnectionLayout // switch to selection screen when https://github.com/Expensify/App/pull/44739 is merged
             displayName={SageIntacctEntityPage.displayName}
             headerTitle="workspace.intacct.entity"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
