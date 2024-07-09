@@ -789,6 +789,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
     [SCREENS.TRAVEL.TRAVEL_DETAILS]: {
         transactionID: string;
+        reservationID: string;
     };
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };

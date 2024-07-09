@@ -24,4 +24,14 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .flat();
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions};
+function getTransactionIDFromReservation(transactions: Transaction[], reservation: Reservation): string {
+    const transaction = transactions.find((tran) => tran.receipt?.reservationList?.some((res) => res.reservationID === reservation.reservationID));
+
+    if (transaction) {
+        return transaction.transactionID;
+    }
+
+    return '-1';
+}
+
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTransactionIDFromReservation};

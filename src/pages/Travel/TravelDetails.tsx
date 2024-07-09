@@ -1,26 +1,32 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import * as Link from '@userActions/Link';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TripDetailsMenuItem from '@components/TripDetailsMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReservationType} from '@src/types/onyx/Transaction';
 
 type TravelDetailsProps = {
     /* TransactionID of the transaction the Travel Details correspond to */
     transactionID: string;
+
+    /* ReservationID of the reservation selected to display the details for */
+    reservationID: string;
 };
 
-function TravelDetails({transactionID}: TravelDetailsProps) {
+function TravelDetails({transactionID, reservationID}: TravelDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -35,6 +41,16 @@ function TravelDetails({transactionID}: TravelDetailsProps) {
         type: CONST.RESERVATION_TYPE.FLIGHT,
     };
 
+    type HeaderReservationType = Exclude<ReservationType, 'car'>;
+
+    const headerTranslationPaths: Record<HeaderReservationType | 'DEFAULT', TranslationPaths> = {
+        [CONST.RESERVATION_TYPE.FLIGHT]: 'travel.flight',
+        [CONST.RESERVATION_TYPE.HOTEL]: 'travel.hotel',
+        DEFAULT: 'travel.travel',
+    };
+
+    const headerTranslationPath = (type: HeaderReservationType): TranslationPaths => headerTranslationPaths[type] || headerTranslationPaths.DEFAULT;
+
     const reservationIcon = TripReservationUtils.getTripReservationIcon(CONST.RESERVATION_TYPE.FLIGHT);
 
     return (
@@ -44,7 +60,7 @@ function TravelDetails({transactionID}: TravelDetailsProps) {
             testID={TravelDetails.displayName}
         >
             <HeaderWithBackButton
-                title={`${translate('travel.travel')} ${translate('travel.details')}`}
+                title={`${translate(headerTranslationPath(testDetails.type))} ${translate('travel.details')}`}
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={reservationIcon}
                 iconWidth={variables.iconSizeNormal}
@@ -53,14 +69,17 @@ function TravelDetails({transactionID}: TravelDetailsProps) {
             />
             <MenuItemWithTopDescription
                 title={`${testDetails.from} \u279C ${testDetails.to}`}
+                titleStyle={styles.textBold}
                 description={testDetails.date}
                 interactive={false}
             />
             <MenuItemWithTopDescription
                 title={testDetails.confirmationNo}
+                titleStyle={styles.textBold}
                 description={translate('travel.confirmationNo')}
                 interactive={false}
             />
+            <TripDetailsMenuItem />
             <MenuItem
                 title={translate('travel.tripSupport')}
                 onPress={() => Link.openExternalLink('www.google.pl')}

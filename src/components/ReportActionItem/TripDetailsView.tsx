@@ -11,11 +11,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
+import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 
 type TripDetailsViewProps = {
@@ -27,10 +29,12 @@ type TripDetailsViewProps = {
 };
 
 type ReservationViewProps = {
+    transactionID: string;
+
     reservation: Reservation;
 };
 
-function ReservationView({reservation}: ReservationViewProps) {
+function ReservationView({transactionID, reservation}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -122,6 +126,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             wrapperStyle={[styles.taskDescriptionMenuItem]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
+            onPress={() => Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute(transactionID, reservation.reservationID ?? '-1'))}
             interactive
             shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
@@ -154,11 +159,18 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                 </View>
             </View>
             <>
-                {reservations.map((reservation) => (
-                    <OfflineWithFeedback>
-                        <ReservationView reservation={reservation} />
-                    </OfflineWithFeedback>
-                ))}
+                {reservations.map((reservation) => {
+                    const transactionID = TripReservationUtils.getTransactionIDFromReservation(tripTransactions, reservation);
+
+                    return (
+                        <OfflineWithFeedback>
+                            <ReservationView
+                                transactionID={transactionID}
+                                reservation={reservation}
+                            />
+                        </OfflineWithFeedback>
+                    );
+                })}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}

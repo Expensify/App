@@ -4966,6 +4966,30 @@ const styles = (theme: ThemeColors) =>
             left: 0,
         },
 
+        tripDetailsContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        tripDetailsLine: {
+            flex: 1,
+            height: 1,
+            backgroundColor: theme.textSupporting,
+            marginHorizontal: 5,
+        },
+
+        tripDetailsLineTextContainer: {
+            position: 'relative',
+            alignItems: 'center',
+        },
+
+        tripDetailsLineSubtext: {
+            position: 'absolute',
+            top: 16,
+            minWidth: 100,
+            textAlign: 'center',
+        },
+
         videoThumbnailPlayButton: {
             backgroundColor: theme.videoPlayerBG,
             borderRadius: 100,
