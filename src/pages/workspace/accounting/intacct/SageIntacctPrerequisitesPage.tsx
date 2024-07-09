@@ -23,9 +23,9 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type IntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
-function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
+function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
@@ -67,7 +67,7 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={IntacctPrerequisitesPage.displayName}
+            testID={SageIntacctPrerequisitesPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
@@ -99,6 +99,6 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
     );
 }
 
-IntacctPrerequisitesPage.displayName = 'IntacctPrerequisitesPage';
+SageIntacctPrerequisitesPage.displayName = 'SageIntacctPrerequisitesPage';
 
-export default IntacctPrerequisitesPage;
+export default SageIntacctPrerequisitesPage;

@@ -24,9 +24,9 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
 import DimensionTypeSelector from './DimensionTypeSelector';
 
-type SageIntacctEditUserDimensionPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
+type SageIntacctEditUserDimensionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
 
-function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionPageProps) {
+function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimensionsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -60,7 +60,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctEditUserDimensionPage.displayName}
+            displayName={SageIntacctEditUserDimensionsPage.displayName}
             headerTitleAlreadyTranslated={editedUserDimensionName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -136,6 +136,6 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
     );
 }
 
-SageIntacctEditUserDimensionPage.displayName = 'SageIntacctEditUserDimensionPage';
+SageIntacctEditUserDimensionsPage.displayName = 'SageIntacctEditUserDimensionsPage';
 
-export default SageIntacctEditUserDimensionPage;
+export default SageIntacctEditUserDimensionsPage;

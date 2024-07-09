@@ -27,11 +27,8 @@ function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): Tr
         case CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD: {
             return 'workspace.accounting.importTypes.REPORT_FIELD';
         }
-        case CONST.SAGE_INTACCT_MAPPING_VALUE.NONE: {
-            return undefined;
-        }
         default: {
-            return undefined;
+            return 'workspace.accounting.notImported';
         }
     }
 }
@@ -103,7 +100,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     pendingAction={section.pendingAction}
                 >
                     <MenuItemWithTopDescription
-                        title={section.title ?? translate('workspace.accounting.notImported')}
+                        title={section.title}
                         description={section.description}
                         shouldShowRightIcon
                         onPress={section.action}

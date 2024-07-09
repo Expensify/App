@@ -39,9 +39,6 @@ function getDisplayTypeTranslationKeys(displayType?: SageIntacctMappingValue): D
         case CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD: {
             return {titleKey: 'workspace.common.reportFields', descriptionKey: 'workspace.intacct.displayedAsReportFieldDescription'};
         }
-        case CONST.SAGE_INTACCT_MAPPING_VALUE.NONE: {
-            return undefined;
-        }
         default: {
             return undefined;
         }
