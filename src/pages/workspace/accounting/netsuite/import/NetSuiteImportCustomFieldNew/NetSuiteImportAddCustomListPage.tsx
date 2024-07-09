@@ -143,7 +143,6 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     style={[styles.mt3, styles.flexGrow1]}
                     submitButtonStyles={[styles.ph5, styles.mb0]}
                     shouldUseScrollView={!selectionListForm}
-                    isSubmitButtonVisible={!selectionListForm}
                 >
                     <SubStep
                         isEditing={isEditing}

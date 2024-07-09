@@ -198,7 +198,6 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         style={[styles.flexGrow1]}
                         submitButtonStyles={[styles.ph5, styles.mb0]}
                         shouldUseScrollView={!selectionListForm}
-                        isSubmitButtonVisible={!selectionListForm}
                     >
                         {renderSubStepContent}
                     </FormProvider>
