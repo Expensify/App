@@ -121,7 +121,8 @@ function WorkspaceReportFieldsPage({
     };
 
     const isLoading = reportFieldsList === undefined;
-    const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
+    const shouldShowEmptyState =
+        Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length <= 0 && !isLoading;
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.REPORT_FIELDS_BULK_ACTION_TYPES>>> = [];
