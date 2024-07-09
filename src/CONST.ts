@@ -74,6 +74,7 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
@@ -1344,16 +1345,57 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_CONFIG: {
+        EXPORT: 'export',
+        EXPORT_DATE: 'exportDate',
+        NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
+        NON_REIMBURSABLE_VENDOR: 'nonReimbursableVendor',
+        REIMBURSABLE_VENDOR: 'reimbursableExpenseReportDefaultVendor',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        EXPORTER: 'exporter',
+        REIMBURSABLE: 'reimbursable',
+        AUTO_SYNC: 'autoSync',
+        AUTO_SYNC_ENABLED: 'enabled',
+        IMPORT_EMPLOYEES: 'importEmployees',
+        APPROVAL_MODE: 'approvalMode',
+        SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+    },
+
+    SAGE_INTACCT: {
+        APPROVAL_MODE: {
+            APPROVAL_MANUAL: 'APPROVAL_MANUAL',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
     },
 
+    SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
     XERO_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_EXPORTED: 'REPORT_EXPORTED',
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    SAGE_INTACCT_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
     },
 
     NETSUITE_CONFIG: {
@@ -1389,6 +1431,10 @@ const CONST = {
             4: 'enterCredentials',
         },
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        CUSTOM_FORM_ID_TYPE: {
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'nonReimbursable',
+        },
         SYNC_OPTIONS: {
             SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
             SYNC_PEOPLE: 'syncPeople',
@@ -1455,6 +1501,17 @@ const CONST = {
         JOURNALS_APPROVED_NONE: 'JOURNALS_APPROVED_NONE',
         JOURNALS_APPROVAL_PENDING: 'JOURNALS_APPROVAL_PENDING',
         JOURNALS_APPROVED: 'JOURNALS_APPROVED',
+    },
+
+    NETSUITE_ACCOUNT_TYPE: {
+        ACCOUNTS_PAYABLE: '_accountsPayable',
+        ACCOUNTS_RECEIVABLE: '_accountsReceivable',
+        OTHER_CURRENT_LIABILITY: '_otherCurrentLiability',
+        CREDIT_CARD: '_creditCard',
+        BANK: '_bank',
+        OTHER_CURRENT_ASSET: '_otherCurrentAsset',
+        LONG_TERM_LIABILITY: '_longTermLiability',
+        EXPENSE: '_expense',
     },
 
     NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
@@ -2113,6 +2170,10 @@ const CONST = {
             LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
+        },
+        CARD_TYPE: {
+            PHYSICAL: 'physical',
+            VIRTUAL: 'virtual',
         },
     },
     AVATAR_ROW_SIZE: {
