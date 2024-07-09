@@ -16,7 +16,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,7 +139,6 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                 },
             ]);
             Connections.updateNetSuiteCustomSegments(policyID, updatedCustomSegments, customSegments);
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
             nextScreen();
         },
         [customSegments, nextScreen, policyID],

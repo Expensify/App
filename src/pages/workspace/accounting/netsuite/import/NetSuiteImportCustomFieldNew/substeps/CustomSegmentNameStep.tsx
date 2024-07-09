@@ -31,7 +31,6 @@ function CustomSegmentNameStep({customSegmentType}: CustomFieldSubStepWithPolicy
                 aria-label={fieldLabel}
                 role={CONST.ROLE.PRESENTATION}
                 spellCheck={false}
-                shouldSaveDraft
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
                 <RenderHTML

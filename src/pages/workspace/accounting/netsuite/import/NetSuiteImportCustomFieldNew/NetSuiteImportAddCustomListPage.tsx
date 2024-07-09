@@ -15,7 +15,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -106,7 +105,6 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 },
             ]);
             Connections.updateNetSuiteCustomLists(policyID, updatedCustomLists, customLists);
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
             nextScreen();
         },
         [customLists, nextScreen, policyID],

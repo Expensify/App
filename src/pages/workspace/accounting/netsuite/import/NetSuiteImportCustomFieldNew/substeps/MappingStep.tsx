@@ -28,7 +28,6 @@ function MappingStep({importCustomField, customSegmentType}: CustomFieldSubStepW
             <InputWrapper
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}
-                shouldSaveDraft
             />
         </>
     );
