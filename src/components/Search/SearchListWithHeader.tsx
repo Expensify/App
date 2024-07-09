@@ -116,12 +116,12 @@ function SearchListWithHeader(
     }, []);
 
     useEffect(() => {
-        if (Object.keys(selectedItems).length !== 0) {
+        if (isMobileSelectionModeActive) {
             return;
         }
 
-        setIsMobileSelectionModeActive?.(false);
-    });
+        setSelectedItems({});
+    }, [setSelectedItems, isMobileSelectionModeActive]);
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchType === CONST.SEARCH.DATA_TYPES.REPORT;

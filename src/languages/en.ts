@@ -3263,6 +3263,7 @@ export default {
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
     search: {
+        selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
         searchResults: {
             emptyResults: {

@@ -56,7 +56,7 @@ function ExpenseItemHeaderNarrow({
                         role={CONST.ROLE.BUTTON}
                         disabled={isDisabled}
                         onPress={() => handleCheckboxPress?.(id)}
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                     >
                         <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!isSelected, !!isDisabled)]}>
                             {isSelected && (

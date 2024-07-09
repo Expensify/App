@@ -4,7 +4,6 @@ import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,27 +17,22 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const buttonRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<View>(null);
 
     const openMenu = () => setIsModalVisible(true);
     const closeMenu = () => setIsModalVisible(false);
 
     return (
         <View style={[styles.pb4]}>
-            <PressableWithFeedback
-                accessibilityLabel="selected"
-                ref={buttonRef}
-                style={[styles.tabSelectorButton, styles.ph5]}
+            <Button
                 onPress={openMenu}
-            >
-                <Button
-                    style={[styles.w100, styles.mh3]}
-                    text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
-                    shouldShowRightIcon
-                    centeredContent
-                    iconRight={Expensicons.DownArrow}
-                />
-            </PressableWithFeedback>
+                ref={buttonRef}
+                style={[styles.w100, styles.ph5]}
+                text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
+                shouldShowRightIcon
+                centeredContent
+                iconRight={Expensicons.DownArrow}
+            />
 
             <Modal
                 isVisible={isModalVisible}

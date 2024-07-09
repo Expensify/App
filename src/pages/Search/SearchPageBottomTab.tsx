@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -60,15 +61,21 @@ function SearchPageBottomTab() {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <TopBar
-                    activeWorkspaceID={policyIDs}
-                    breadcrumbLabel={translate('common.search')}
-                    shouldDisplaySearch={false}
-                />
-                <SearchFilters
-                    query={query}
-                    isMobileSelectionModeActive={isMobileSelectionModeActive}
-                />
+                {!isMobileSelectionModeActive ? (
+                    <>
+                        <TopBar
+                            activeWorkspaceID={policyIDs}
+                            breadcrumbLabel={translate('common.search')}
+                            shouldDisplaySearch={false}
+                        />
+                        <SearchFilters query={query} />
+                    </>
+                ) : (
+                    <HeaderWithBackButton
+                        title={translate('search.selectMultiple')}
+                        onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
+                    />
+                )}
                 {isSmallScreenWidth && (
                     <Search
                         policyIDs={policyIDs}
