@@ -19,6 +19,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type {SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -241,10 +242,6 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
-        policyID: string;
-        reportFieldKey: string;
-    };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
         orderWeight: number;
@@ -282,17 +279,28 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
+        reportFieldID?: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
         policyID: string;
+        reportFieldID?: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
         policyID: string;
         valueIndex: number;
+        reportFieldID?: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
         policyID: string;
         valueIndex: number;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+        policyID: string;
+        reportFieldID: string;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
+        policyID: string;
+        reportFieldID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
@@ -530,6 +538,55 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_CUSTOM_FORM_ID]: {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: {
+        policyID: string;
+        mapping: SageIntacctMappingName;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: {
+        policyID: string;
+        mapping: SageIntacctMappingName;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADD_USER_DIMENSION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_USER_DIMENSIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION]: {
+        policyID: string;
+        dimensionName: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {
+        policyID: string;
+        reimbursable: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
+        policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

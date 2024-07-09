@@ -981,34 +981,187 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
 /**
  * Connection data for Sage Intacct
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-type SageIntacctConnectionData = {};
+type SageIntacctConnectionData = {
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
+
+    /** Collection of entities */
+    entities: SageIntacctDataElementWithValue[];
+
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+
+    /** Collection of journals */
+    journals: SageIntacctDataElementWithValue[];
+
+    /** Collection of items */
+    items: SageIntacctDataElement[];
+
+    /** Collection of tax solutions IDs */
+    taxSolutionIDs: string[];
+};
+
+/** Mapping value for Sage Intacct */
+type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_MAPPING_VALUE>;
+
+/** Mapping names for Sage Intacct */
+type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+
+/**
+ * Sage Intacct dimension type
+ */
+type SageIntacctDimension = {
+    /** Name of user defined dimention */
+    dimension: string;
+
+    /** Mapping value for user defined dimention */
+    mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
+};
+
+/** Mapping type for Sage Intacct */
+type SageIntacctMappingType = {
+    /** Whether should sync items for Sage Intacct */
+    syncItems: boolean;
+
+    /** Mapping type for Sage Intacct */
+    departments: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    classes: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    locations: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    customers: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    projects: SageIntacctMappingValue;
+
+    /** User defined dimention type for Sage Intacct */
+    dimensions: SageIntacctDimension[];
+};
+
+/** Configuration of automatic synchronization from Sage Intacct to the app */
+type SageIntacctAutoSyncConfig = {
+    /** Whether changes made in Sage Intacct should be reflected into the app automatically */
+    enabled: boolean;
+};
+
+/** Sage Intacct sync */
+type SageIntacctSyncConfig = {
+    /** ID of the bank account for Sage Intacct bill payment account */
+    reimbursementAccountID?: string;
+
+    /** Whether the reimbursed reports should be synced */
+    syncReimbursedReports: boolean | string;
+};
 
 /**
  * Connection config for Sage Intacct
  */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Sage Intacct credentials */
-    credentials: {
-        /** Sage Intacct companyID */
-        companyID: string;
+type SageIntacctOfflineStateKeys = keyof SageIntacctMappingType | `dimension_${string}`;
 
-        /** Sage Intacct password */
-        password: string;
+/**
+ * Connection config for Sage Intacct
+ */
+type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Sage Intacct credentials */
+        credentials: {
+            /** Sage Intacct companyID */
+            companyID: string;
 
-        /** Sage Intacct userID */
-        userID: string;
-    };
+            /** Sage Intacct password */
+            password: string;
 
-    /** Collection of Sage Intacct config errors */
-    errors?: OnyxCommon.Errors;
+            /** Sage Intacct userID */
+            userID: string;
+        };
 
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Sage Intacct mappings */
+        mappings: SageIntacctMappingType;
+
+        /** Sage Intacct tax */
+        tax: {
+            /** Sage Intacct tax solution ID */
+            taxSolutionID: string;
+
+            /** Whether should sync tax with Sage Intacct */
+            syncTax: boolean;
+        };
+
+        /** Sage Intacct export configs */
+        export: OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /** Export date type */
+            exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+            /** The e-mail of the exporter */
+            exporter: string;
+
+            /** Defines how non-reimbursable expenses are exported */
+            nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+            /** Account that receives the non-reimbursable expenses */
+            nonReimbursableAccount: string;
+
+            /** Default vendor used for credit card transactions of non-reimbursable bill */
+            nonReimbursableCreditCardChargeDefaultVendor: string;
+
+            /** Default vendor of non-reimbursable bill */
+            nonReimbursableVendor: string;
+
+            /** Defines how reimbursable expenses are exported */
+            reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+            /** Default vendor of reimbursable bill */
+            reimbursableExpenseReportDefaultVendor: string;
+
+            /** Collection of mapping field errors, which will be triggered when update action fails  */
+            errorFields?: OnyxCommon.ErrorFields;
+        }>;
+
+        /** Whether employees should be imported from Sage Intacct */
+        importEmployees: boolean;
+
+        /** Sage Intacct approval mode */
+        approvalMode: ValueOf<typeof CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL> | null;
+
+        /** Configuration of automatic synchronization from Sage Intacct to the app */
+        autoSync: SageIntacctAutoSyncConfig;
+
+        /** Sage Intacct sync */
+        sync: SageIntacctSyncConfig;
+
+        /** Collection of Sage Intacct config errors */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
@@ -1034,7 +1187,7 @@ type Connections = {
     netsuite: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectiosConfig>;
+    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
@@ -1088,7 +1241,7 @@ type PolicyReportField = {
     deletable: boolean;
 
     /** Value of the field */
-    value: string | null;
+    value?: string | null;
 
     /** Options to select from if field is of type dropdown */
     values: string[];
@@ -1386,6 +1539,7 @@ export type {
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
     Connections,
+    SageIntacctOfflineStateKeys,
     ConnectionName,
     Tenant,
     Account,
@@ -1403,4 +1557,11 @@ export type {
     NetSuiteAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
+    SageIntacctMappingValue,
+    SageIntacctMappingType,
+    SageIntacctMappingName,
+    SageIntacctDimension,
+    SageIntacctDataElementWithValue,
+    SageIntacctDataElement,
+    SageIntacctConnectionsConfig,
 };

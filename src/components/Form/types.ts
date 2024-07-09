@@ -23,6 +23,7 @@ import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/su
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
+import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
@@ -42,6 +43,7 @@ type ValidInputs =
     | typeof CurrencySelector
     | typeof AmountForm
     | typeof BusinessTypePicker
+    | typeof DimensionTypeSelector
     | typeof StateSelector
     | typeof RoomNameInput
     | typeof ValuePicker
