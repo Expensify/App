@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 
 type NetSuiteCustomListPickerProps = {
-    
     /** Selected mapping value */
     value?: string;
 

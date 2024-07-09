@@ -25,6 +25,7 @@ type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM
 type NetSuiteImportCustomFieldPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
+            /** Whether the record is of type custom segment or list */
             importCustomField: ImportCustomFieldsKeys;
         };
     };

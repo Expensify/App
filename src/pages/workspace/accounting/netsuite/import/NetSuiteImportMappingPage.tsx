@@ -24,6 +24,7 @@ type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>
 type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
+            /** Whether the record is custom segment or custom list */
             importField: ImportFieldsKeys;
         };
     };

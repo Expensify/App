@@ -6,6 +6,7 @@ type NetSuiteMenuWithTopDescriptionFormProps = MenuItemProps & {
     /** The value of the menu item */
     value?: string;
 
+    /** Callback to format the value */
     valueRenderer?: (value?: string) => string | undefined;
 };
 
