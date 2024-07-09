@@ -1,6 +1,8 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+// eslint-disable-next-line no-restricted-imports
+import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -79,6 +81,9 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
+
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
 
@@ -131,6 +136,9 @@ type ListItem = {
 
     /** Whether item pressable wrapper should be focusable */
     tabIndex?: 0 | -1;
+
+    /** The style to override the cursor appearance */
+    cursorStyle?: CursorStyles[keyof CursorStyles];
 };
 
 type TransactionListItemType = ListItem &
