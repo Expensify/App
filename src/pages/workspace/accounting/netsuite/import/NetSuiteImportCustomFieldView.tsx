@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
-type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
+type CustomField = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
 type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
@@ -50,40 +50,40 @@ function NetSuiteImportCustomFieldView({
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
-    const customRecord: CustomRecord | undefined = allRecords[valueIndex];
+    const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldList =
-        customRecord && PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)
+    customField && PolicyUtils.isNetSuiteCustomSegmentRecord(customField)
             ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS
             : [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
     const removeRecord = useCallback(() => {
-        if (customRecord) {
+        if (customField) {
             // We allow multiple custom list records with the same internalID. Hence it is safe to remove by index.
             const filteredRecords = allRecords.filter((_, index) => index !== Number(valueIndex));
 
-            if (PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)) {
+            if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
                 updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
             } else {
                 updateNetSuiteCustomLists(policyID, filteredRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
             }
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, customRecord, importCustomField, policyID, valueIndex]);
+    }, [allRecords, customField, importCustomField, policyID, valueIndex]);
 
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
-            headerTitleAlreadyTranslated={customRecord ? PolicyUtils.getNameFromNetSuiteCustomField(customRecord) : ''}
+            headerTitleAlreadyTranslated={customField ? PolicyUtils.getNameFromNetSuiteCustomField(customField) : ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!customRecord}
+            shouldBeBlocked={!customField}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField))}
         >
-            {customRecord && (
+            {customField && (
                 <OfflineWithFeedback
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, importCustomField)}
                     errorRowStyles={[styles.ph5]}
@@ -91,7 +91,7 @@ function NetSuiteImportCustomFieldView({
                     onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
                 >
                     {fieldList.map((fieldName) => {
-                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customRecord, fieldName);
+                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}
@@ -99,8 +99,8 @@ function NetSuiteImportCustomFieldView({
                                 shouldShowRightIcon={isEditable}
                                 title={
                                     fieldName === 'mapping'
-                                        ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord].toUpperCase()}.label` as TranslationPaths)
-                                        : customRecord[fieldName as keyof CustomRecord]
+                                        ? translate(`workspace.netsuite.import.importTypes.${customField[fieldName as keyof CustomField].toUpperCase()}.label` as TranslationPaths)
+                                        : customField[fieldName as keyof CustomField]
                                 }
                                 onPress={
                                     isEditable

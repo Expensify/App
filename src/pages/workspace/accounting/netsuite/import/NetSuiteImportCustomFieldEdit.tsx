@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 import NetSuiteCustomFieldMappingPicker from './NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 
-type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
+type CustomField = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
 type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
@@ -51,14 +51,14 @@ function NetSuiteImportCustomFieldEdit({
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
-    const customRecord: CustomRecord | undefined = allRecords[valueIndex];
-    const fieldValue = customRecord?.[fieldName as keyof CustomRecord] ?? '';
+    const customField: CustomField | undefined = allRecords[valueIndex];
+    const fieldValue = customField?.[fieldName as keyof CustomField] ?? '';
 
     const updateRecord = useCallback(
         (formValues: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>>) => {
             const newValue = formValues[fieldName as keyof typeof formValues];
 
-            if (customRecord) {
+            if (customField) {
                 const updatedRecords = allRecords.map((record, index) => {
                     if (index === Number(valueIndex)) {
                         return {
@@ -69,7 +69,7 @@ function NetSuiteImportCustomFieldEdit({
                     return record;
                 });
 
-                if (PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)) {
+                if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
                     updateNetSuiteCustomSegments(policyID, updatedRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
                 } else {
                     updateNetSuiteCustomLists(policyID, updatedRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
@@ -78,7 +78,7 @@ function NetSuiteImportCustomFieldEdit({
 
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
         },
-        [allRecords, customRecord, fieldName, importCustomField, policyID, valueIndex],
+        [allRecords, customField, fieldName, importCustomField, policyID, valueIndex],
     );
 
     const validate = useCallback(
@@ -104,7 +104,7 @@ function NetSuiteImportCustomFieldEdit({
 
     const renderForm = useMemo(
         () =>
-            customRecord && (
+            customField && (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -126,12 +126,12 @@ function NetSuiteImportCustomFieldEdit({
                     />
                 </FormProvider>
             ),
-        [config?.syncOptions?.pendingFields, customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
+        [config?.syncOptions?.pendingFields, customField, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
     );
 
     const renderSelection = useMemo(
         () =>
-            customRecord && (
+            customField && (
                 <NetSuiteCustomFieldMappingPicker
                     onInputChange={(value) => {
                         updateRecord({
@@ -141,7 +141,7 @@ function NetSuiteImportCustomFieldEdit({
                     value={fieldValue}
                 />
             ),
-        [customRecord, fieldName, fieldValue, updateRecord],
+        [customField, fieldName, fieldValue, updateRecord],
     );
 
     const renderMap: Record<string, JSX.Element> = {
@@ -158,7 +158,7 @@ function NetSuiteImportCustomFieldEdit({
             contentContainerStyle={[styles.pb2, styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!customRecord || !PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customRecord, fieldName)}
+            shouldBeBlocked={!customField || !PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName)}
             shouldUseScrollView={false}
         >
             {renderMap[fieldName] || renderForm}
