@@ -157,7 +157,7 @@ function NetSuiteImportCustomFieldEdit({
             contentContainerStyle={[styles.pb2, styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!customRecord || !PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName)}
+            shouldBeBlocked={!customRecord || !!config?.syncOptions?.pendingFields?.[importCustomField] || !PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName)}
             shouldUseScrollView={false}
         >
             {renderMap[fieldName] || renderForm}

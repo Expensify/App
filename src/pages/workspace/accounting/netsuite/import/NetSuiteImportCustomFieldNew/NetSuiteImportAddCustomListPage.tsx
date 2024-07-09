@@ -127,6 +127,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
+            shouldBeBlocked={!!config?.syncOptions?.pendingFields?.customLists}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
