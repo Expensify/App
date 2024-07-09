@@ -1,6 +1,6 @@
 type UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams = {
     policyID: string;
-    vendorID: string | null;
+    vendorID: string;
 };
 
 export default UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams;

@@ -1,6 +1,6 @@
 type UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams = {
     policyID: string;
-    vendorID: string | null;
+    vendorID: string;
 };
 
 export default UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams;
