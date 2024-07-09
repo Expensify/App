@@ -129,30 +129,7 @@ function FormWrapper({
                 )}
             </FormElement>
         ),
-        [
-            formID,
-            style,
-            styles.pb5,
-            styles.mh0,
-            styles.mt5,
-            styles.flex1,
-            children,
-            isSubmitButtonVisible,
-            submitButtonText,
-            errors,
-            formState?.errorFields,
-            formState?.isLoading,
-            shouldHideFixErrorsAlert,
-            errorMessage,
-            onSubmit,
-            footerContent,
-            onFixTheErrorsLinkPressed,
-            submitFlexEnabled,
-            submitButtonStyles,
-            enabledWhenOffline,
-            isSubmitActionDangerous,
-            disablePressOnEnter,
-        ],
+        [formID, style, styles.pb5, styles.mh0, styles.mt5, styles.flex1, children, isSubmitButtonVisible, submitButtonText, isButtonDisabled, errors, formState?.errorFields, formState?.isLoading, shouldHideFixErrorsAlert, errorMessage, onSubmit, footerContent, onFixTheErrorsLinkPressed, submitFlexEnabled, submitButtonStyles, enabledWhenOffline, isSubmitActionDangerous, disablePressOnEnter],
     );
 
     if (!shouldUseScrollView) {
