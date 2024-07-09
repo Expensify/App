@@ -191,10 +191,6 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
-    if (Session.isAnonymousUser()) {
-        return;
-    }
-
     if (!currentUserAccountID) {
         return;
     }
