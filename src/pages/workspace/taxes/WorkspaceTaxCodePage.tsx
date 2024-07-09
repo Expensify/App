@@ -11,7 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setPolicyTaxCode} from '@libs/actions/TaxRate';
+import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -32,15 +32,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const submit = () => {
-        const taxName = name.trim();
-        // Do not call the API if the edited tax name is the same as the current tag name
-        if (currentTaxCode?.name !== taxName) {
-            renamePolicyTax(policyID, taxID, taxName);
-        }
-        Navigation.goBack();
-    };
-
     const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             const newTaxCode = values.taxCode.trim();
@@ -55,20 +46,17 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
+            if (!values[INPUT_IDS.TAX_CODE]) {
+                return {};
+            }
             if (!policy) {
                 return {};
             }
-            if (values[INPUT_IDS.TAX_CODE] === currentTaxRate?.name) {
-                return {};
-            }
-            return validateTaxName(policy, values);
-        },
-        [currentTaxRate?.name, policy],
-    );
 
-    if (!currentTaxRate) {
-        return <NotFoundPage />;
-    }
+            return validateTaxCode(policy, values);
+        },
+        [policy],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -101,7 +89,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             inputID={INPUT_IDS.TAX_CODE}
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
-                            value={name}
+                            defaultValue={currentTaxCode}
                             maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             ref={inputCallbackRef}
                         />

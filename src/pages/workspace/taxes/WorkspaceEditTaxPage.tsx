@@ -123,14 +123,14 @@ function WorkspaceEditTaxPage({
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'taxCode')}
-                        pendingAction={currentTaxRate?.pendingFields?.taxCode}
+                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'code')}
+                        pendingAction={currentTaxRate?.pendingFields?.code}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearTaxRateFieldError(policyID, taxID, 'taxCode')}
+                        onClose={() => clearTaxRateFieldError(policyID, taxID, 'code')}
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={currentTaxRate?.taxCode}
+                            title={taxID}
                             description={translate('workspace.taxes.taxCode')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
