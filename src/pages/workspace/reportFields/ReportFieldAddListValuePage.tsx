@@ -13,17 +13,22 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
-type ReportFieldAddListValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
+type ReportFieldAddListValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
 function ReportFieldAddListValuePage({
+    policy,
     route: {
         params: {policyID, reportFieldID},
     },
@@ -32,6 +37,8 @@ function ReportFieldAddListValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
@@ -51,6 +58,10 @@ function ReportFieldAddListValuePage({
         },
         [policyID, reportFieldID],
     );
+
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -93,4 +104,4 @@ function ReportFieldAddListValuePage({
 
 ReportFieldAddListValuePage.displayName = 'ReportFieldAddListValuePage';
 
-export default ReportFieldAddListValuePage;
+export default withPolicyAndFullscreenLoading(ReportFieldAddListValuePage);

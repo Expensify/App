@@ -14,7 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -43,6 +45,7 @@ function CreateReportFieldPage({
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
     const submitForm = useCallback(
@@ -91,6 +94,10 @@ function CreateReportFieldPage({
     useEffect(() => {
         ReportField.setInitialCreateReportFieldsForm();
     }, []);
+
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
