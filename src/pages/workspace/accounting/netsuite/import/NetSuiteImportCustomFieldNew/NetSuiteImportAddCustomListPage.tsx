@@ -144,7 +144,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     submitButtonStyles={[styles.ph5, styles.mb0]}
                     shouldUseScrollView={!selectionListForm}
                     enabledWhenOffline
-                    isButtonDisabled={!!config?.syncOptions?.pendingFields?.customLists}
+                    isSubmitDisabled={!!config?.syncOptions?.pendingFields?.customLists}
                     submitFlexEnabled={submitFlexAllowed}
                 >
                     <SubStep

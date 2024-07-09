@@ -1413,7 +1413,7 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_CUSTOM_LIST_THRESHOLD: 8,
+        NETSUITE_CUSTOM_LIST_LIMIT: 8,
         NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },

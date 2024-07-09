@@ -624,11 +624,11 @@ function isNetSuiteCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSui
     return 'segmentName' in customRecord;
 }
 
-function getNameFromNetSuiteCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): string {
+function getNameFromNetSuiteCustomField(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): string {
     return 'segmentName' in customRecord ? customRecord.segmentName : customRecord.listName;
 }
 
-function isFieldAllowedToEditNetSuiteCustomRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
+function isNetSuiteCustomFieldPropertyEditable(customRecord: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
     const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customRecord) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
     const fieldKey = fieldName as keyof typeof customRecord;
     return fieldsAllowedToEdit.includes(fieldKey);
@@ -763,8 +763,8 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     isNetSuiteCustomSegmentRecord,
-    getNameFromNetSuiteCustomSegmentRecord,
-    isFieldAllowedToEditNetSuiteCustomRecord,
+    getNameFromNetSuiteCustomField,
+    isNetSuiteCustomFieldPropertyEditable,
 };
 
 export type {MemberEmailsToAccountIDs};

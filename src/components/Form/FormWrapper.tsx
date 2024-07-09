@@ -39,7 +39,7 @@ type FormWrapperProps = ChildrenProps &
         inputRefs: RefObject<InputRefs>;
 
         /** Whether the submit button is disabled */
-        isButtonDisabled?: boolean;
+        isSubmitDisabled?: boolean;
 
         /** Callback to submit the form */
         onSubmit: () => void;
@@ -64,7 +64,7 @@ function FormWrapper({
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = true,
-    isButtonDisabled = false,
+    isSubmitDisabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -113,7 +113,7 @@ function FormWrapper({
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
-                        isDisabled={isButtonDisabled}
+                        isDisabled={isSubmitDisabled}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
@@ -139,7 +139,7 @@ function FormWrapper({
             children,
             isSubmitButtonVisible,
             submitButtonText,
-            isButtonDisabled,
+            isSubmitDisabled,
             errors,
             formState?.errorFields,
             formState?.isLoading,

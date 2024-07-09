@@ -73,7 +73,7 @@ function NetSuiteImportCustomFieldView({
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
-            headerTitleAlreadyTranslated={customRecord ? PolicyUtils.getNameFromNetSuiteCustomSegmentRecord(customRecord) : ''}
+            headerTitleAlreadyTranslated={customRecord ? PolicyUtils.getNameFromNetSuiteCustomField(customRecord) : ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -91,7 +91,7 @@ function NetSuiteImportCustomFieldView({
                     onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
                 >
                     {fieldList.map((fieldName) => {
-                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
+                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customRecord, fieldName);
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}

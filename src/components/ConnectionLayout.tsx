@@ -61,8 +61,8 @@ type ConnectionLayoutProps = {
     /** Name of the current connection */
     connectionName: ConnectionName;
 
-    /** Whether the screen should load for empty connection */
-    isForEmptyConnection?: boolean;
+    /** Whether the screen should load for an empty connection */
+    shouldLoadForEmptyConnection?: boolean;
 
     /** Handler for back button press */
     onBackButtonPress?: () => void;
@@ -100,7 +100,7 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
-    isForEmptyConnection = false,
+    shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
@@ -122,7 +122,7 @@ function ConnectionLayout({
         [title, titleStyle, children, titleAlreadyTranslated],
     );
 
-    const shouldBlockByConnection = isForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+    const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
 
     return (
         <AccessOrNotFoundWrapper

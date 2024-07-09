@@ -61,7 +61,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                       },
                   ],
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
-            showTextInput: customListData.length > CONST.NETSUITE_CONFIG.NETSUITE_CUSTOM_LIST_THRESHOLD,
+            showTextInput: customListData.length > CONST.NETSUITE_CONFIG.NETSUITE_CUSTOM_LIST_LIMIT,
         };
     }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, currentCustomListValue]);
 

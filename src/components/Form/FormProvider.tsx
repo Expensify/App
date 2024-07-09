@@ -75,7 +75,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
         submitFlexEnabled?: boolean;
 
         /** Whether button is disabled */
-        isButtonDisabled?: boolean;
+        isSubmitDisabled?: boolean;
     };
 
 function FormProvider(
