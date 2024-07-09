@@ -10,6 +10,7 @@ import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -228,34 +229,56 @@ function AttachmentView({
         }
         let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
 
+        const HighResolutionInfo = ({isUploaded}: {isUploaded: boolean}) => (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, !isUploaded ? styles.mbn1 : {}]}>
+                <Icon
+                    src={Expensicons.Info}
+                    height={variables.iconSizeExtraSmall}
+                    width={variables.iconSizeExtraSmall}
+                    fill={theme.icon}
+                    additionalStyles={styles.p1}
+                />
+                <Text style={[styles.textLabelSupporting]}>{isUploaded ? translate('attachmentPicker.attachmentImageResized') : translate('attachmentPicker.attachmentImageTooLarge')}</Text>
+            </View>
+        );
+
         if (isHighResolution) {
             if (!isUploaded) {
                 return (
-                    <DefaultAttachmentView
-                        icon={Expensicons.Gallery}
-                        fileName={file?.name}
-                        shouldShowDownloadIcon={shouldShowDownloadIcon}
-                        shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
-                        containerStyles={containerStyles}
-                    />
+                    <>
+                        <View style={styles.imageModalImageCenterContainer}>
+                            <DefaultAttachmentView
+                                icon={Expensicons.Gallery}
+                                fileName={file?.name}
+                                shouldShowDownloadIcon={shouldShowDownloadIcon}
+                                shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                                containerStyles={containerStyles}
+                            />
+                        </View>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </>
                 );
             }
-
             imageSource = previewSource?.toString() ?? imageSource;
         }
 
         return (
-            <AttachmentViewImage
-                url={imageSource}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                loadComplete={loadComplete}
-                isImage={isFileImage}
-                onPress={onPress}
-                onError={() => {
-                    setImageError(true);
-                }}
-            />
+            <>
+                <View style={styles.imageModalImageCenterContainer}>
+                    <AttachmentViewImage
+                        url={imageSource}
+                        file={file}
+                        isAuthTokenRequired={isAuthTokenRequired}
+                        loadComplete={loadComplete}
+                        isImage={isFileImage}
+                        onPress={onPress}
+                        onError={() => {
+                            setImageError(true);
+                        }}
+                    />
+                </View>
+                {isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}
+            </>
         );
     }
 
