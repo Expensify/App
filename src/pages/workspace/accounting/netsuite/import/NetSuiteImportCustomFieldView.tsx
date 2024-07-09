@@ -87,7 +87,7 @@ function NetSuiteImportCustomFieldView({
                     onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
                 >
                     {fieldList.map((fieldName) => {
-                        const isEditable = PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
+                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}
