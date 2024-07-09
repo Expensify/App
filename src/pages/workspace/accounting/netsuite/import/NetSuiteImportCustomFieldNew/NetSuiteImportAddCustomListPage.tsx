@@ -113,6 +113,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectionListForm = [2].includes(screenIndex);
+    const submitFlexAllowed = [0, 1].includes(screenIndex);
 
     return (
         <ConnectionLayout
@@ -146,6 +147,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     shouldUseScrollView={!selectionListForm}
                     enabledWhenOffline
                     isButtonDisabled={!!config?.syncOptions?.pendingFields?.customLists}
+                    submitFlexEnabled={submitFlexAllowed}
                 >
                     <SubStep
                         isEditing={isEditing}

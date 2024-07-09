@@ -164,6 +164,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     );
 
     const selectionListForm = [4].includes(screenIndex);
+    const submitFlexAllowed = [1, 2, 3].includes(screenIndex);
 
     return (
         <ConnectionLayout
@@ -200,6 +201,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         shouldUseScrollView={!selectionListForm}
                         enabledWhenOffline
                         isButtonDisabled={!!config?.syncOptions?.pendingFields?.customSegments}
+                        submitFlexEnabled={submitFlexAllowed}
                     >
                         {renderSubStepContent}
                     </FormProvider>
