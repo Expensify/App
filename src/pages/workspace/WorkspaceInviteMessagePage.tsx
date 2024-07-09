@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -94,7 +95,7 @@ function WorkspaceInviteMessagePage({
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
@@ -107,9 +108,7 @@ function WorkspaceInviteMessagePage({
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
-        // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+        Navigation.dismissModal();
     };
 
     /** Opens privacy url as an external link */

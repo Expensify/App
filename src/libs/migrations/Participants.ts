@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
+import * as ReportConnection from '@libs/ReportConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participants} from '@src/types/onyx/Report';
@@ -11,14 +12,7 @@ type OldReportCollection = Record<ReportKey, NullishDeep<OldReport>>;
 
 function getReports(): Promise<OnyxCollection<OldReport>> {
     return new Promise((resolve) => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
-            callback: (reports) => {
-                Onyx.disconnect(connectionID);
-                return resolve(reports);
-            },
-        });
+        resolve(ReportConnection.getAllReports());
     });
 }
 
