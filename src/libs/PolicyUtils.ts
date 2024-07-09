@@ -2,14 +2,16 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteAccount, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -142,7 +144,8 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     return (
         !!policy &&
         (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
+        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+        !!policy?.role
     );
 }
 
@@ -158,7 +161,7 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
 
 /**
- * Checks if the current user is an user of the policy.
+ * Checks if the current user is of the role "user" on the policy.
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.USER;
@@ -536,6 +539,74 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
 }
 
+function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
+
+    return accountOptions.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
+
+    return accountOptions.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const defaultApprovalAccount: NetSuiteAccount = {
+        id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+        name: Localize.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+        type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
+    };
+    const accountOptions = [defaultApprovalAccount].concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE));
+
+    return accountOptions.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: LocaleContextProps['translate']): string | undefined {
+    const importMapping = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
+    if (!importMapping?.customers && !importMapping?.jobs) {
+        return undefined;
+    }
+    const importFields: string[] = [];
+    const importCustomer = importMapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importJobs = importMapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+
+    if (importCustomer === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && importJobs === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+        return undefined;
+    }
+
+    const importedValue = importMapping?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
+
+    if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+        importFields.push(translate('workspace.netsuite.import.customersOrJobs.customers'));
+    }
+
+    if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+        importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
+    }
+
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
+    return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
+}
+
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
     if (!connection) {
         return undefined;
@@ -641,6 +712,9 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getNetSuiteReimbursableAccountOptions,
+    getNetSuiteCollectionAccountOptions,
+    getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
@@ -652,6 +726,7 @@ export {
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
+    getCustomersOrJobsLabelNetSuite,
 };
 
 export type {MemberEmailsToAccountIDs};

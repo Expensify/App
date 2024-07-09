@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,12 +21,14 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import PaginationUtils from '@libs/PaginationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -83,17 +86,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? '-1'}`, {
+    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID || '-1'}`, {
         canEvict: false,
         selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
+    const [reportActionPages = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${report.reportID || '-1'}`);
 
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions);
-    }, [sortedAllReportActions]);
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages, (reportAction) => reportAction.reportActionID);
+    }, [sortedAllReportActions, reportActionPages]);
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -104,6 +108,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
@@ -119,16 +124,19 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
-    const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
+    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+    const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
@@ -158,8 +166,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
-    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
-
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -175,7 +181,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
-    const moneyRequestReport = useMemo(() => {
+    const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
         if (caseID === CASES.MONEY_REQUEST) {
             return parentReport;
         }
@@ -190,9 +196,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
         canModifyTask;
-    const canDeleteRequest =
-        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
+
+    const canUnapproveRequest =
+        ReportUtils.isMoneyRequestReport(moneyRequestReport) &&
+        (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
+        (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -220,6 +230,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+
+    const unapproveExpenseReportOrShowModal = useCallback(() => {
+        if (PolicyUtils.hasAccountingConnections(policy)) {
+            setIsUnapproveModalVisible(true);
+            return;
+        }
+        Navigation.dismissModal();
+        IOU.unapproveExpenseReport(moneyRequestReport);
+    }, [moneyRequestReport, policy]);
 
     const shouldShowLeaveButton =
         !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
@@ -353,6 +372,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 },
             });
         }
+
+        if (canUnapproveRequest) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
+                icon: Expensicons.CircularArrowBackwards,
+                translationKey: 'iou.unapprove',
+                isAnonymousAction: false,
+                action: () => unapproveExpenseReportOrShowModal(),
+            });
+        }
         return items;
     }, [
         isSelfDM,
@@ -377,6 +406,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isPolicyAdmin,
         session,
         leaveChat,
+        canUnapproveRequest,
+        unapproveExpenseReportOrShowModal,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -395,6 +426,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             shouldUseFullTitle
         />
     ) : null;
+
+    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
+    const unapproveWarningText = (
+        <Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', connectedIntegrationName)}</Text>
+        </Text>
+    );
 
     const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
@@ -537,6 +576,47 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const titleField = useMemo<OnyxTypes.PolicyReportField | undefined>((): OnyxTypes.PolicyReportField | undefined => {
+        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
+    }, [report, policy?.fieldList]);
+    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
+    const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
+
+    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerApproverOrReportOwner(report, policy);
+
+    const nameSectionFurtherDetailsContent = (
+        <ParentNavigationSubtitle
+            parentNavigationSubtitleData={parentNavigationSubtitleData}
+            parentReportID={report?.parentReportID}
+            parentReportActionID={report?.parentReportActionID}
+            pressableStyles={[styles.mt1, styles.mw100]}
+        />
+    );
+
+    const nameSectionTitleField = titleField && (
+        <OfflineWithFeedback
+            pendingAction={report.pendingFields?.[fieldKey]}
+            errors={report.errorFields?.[fieldKey]}
+            errorRowStyles={styles.ph5}
+            key={`menuItem-${fieldKey}`}
+            onClose={() => Report.clearReportFieldErrors(report.reportID, titleField)}
+        >
+            <View style={[styles.flex1]}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isFieldDisabled}
+                    interactive={!isFieldDisabled}
+                    title={reportName}
+                    titleStyle={styles.newKansasLarge}
+                    shouldCheckActionAllowedOnPress={false}
+                    description={Str.UCFirst(titleField.name)}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
+                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
+                />
+            </View>
+        </OfflineWithFeedback>
+    );
+
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
@@ -565,8 +645,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && nameSectionExpenseIOU}
+                        {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
                     </View>
+
+                    {isExpenseReport && shouldShowTitleField && titleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
@@ -639,6 +721,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                />
+                <ConfirmModal
+                    title={translate('iou.unapproveReport')}
+                    isVisible={isUnapproveModalVisible}
+                    danger
+                    confirmText={translate('iou.unapproveReport')}
+                    onConfirm={() => {
+                        setIsUnapproveModalVisible(false);
+                        Navigation.dismissModal();
+                        IOU.unapproveExpenseReport(moneyRequestReport);
+                    }}
+                    cancelText={translate('common.cancel')}
+                    onCancel={() => setIsUnapproveModalVisible(false)}
+                    prompt={unapproveWarningText}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

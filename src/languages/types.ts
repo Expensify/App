@@ -298,6 +298,8 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type ConfirmHoldExpenseParams = {transactionCount: number};
+
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
@@ -310,7 +312,18 @@ type ExportedToIntegrationParams = {label: string};
 
 type ForwardedParams = {amount: string; currency: string};
 
-type IntegrationsMessageParams = {errorMessage: string; label: string};
+type IntegrationsMessageParams = {
+    label: string;
+    result: {
+        code?: number;
+        messages?: string[];
+        title?: string;
+        link?: {
+            url: string;
+            text: string;
+        };
+    };
+};
 
 type MarkedReimbursedParams = {amount: string; currency: string};
 
@@ -339,6 +352,7 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
