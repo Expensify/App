@@ -2050,6 +2050,7 @@ function getOptions(
             }
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
+
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
                 const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
                 if (getEnabledCategoriesCount(policyCategories) !== 0) {
@@ -2114,6 +2115,7 @@ function getOptions(
         personalDetailsOptions = [];
         recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true});
     }
+    
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
