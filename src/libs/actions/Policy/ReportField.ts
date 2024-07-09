@@ -265,7 +265,7 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
         reportFields: JSON.stringify(Object.values(updatedReportFields)),
     };
 
-    API.write(WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD, parameters, onyxData);
 }
 
 /**
