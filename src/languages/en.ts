@@ -3055,6 +3055,8 @@ export default {
                             return 'Updating people list';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Updating report fields';
+                        case 'jobDone':
+                            return 'Waiting for imported data to load';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Syncing chart of accounts';
                         case 'xeroSyncImportCategories':
