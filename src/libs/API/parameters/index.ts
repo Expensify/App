@@ -126,11 +126,6 @@ export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersF
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
 export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams';
 export type {default as ConnectPolicyToSageIntacctParams} from './ConnectPolicyToSageIntacctParams';
-export type {default as UpdateSageIntacctAutoSync} from './UpdateSageIntacctAutoSync';
-export type {default as UpdateSageIntacctImportEmployees} from './UpdateSageIntacctImportEmployees';
-export type {default as UpdateSageIntacctApprovalMode} from './UpdateSageIntacctApprovalMode';
-export type {default as UpdateSageIntacctSyncReimbursedReports} from './UpdateSageIntacctSyncReimbursedReports';
-export type {default as UpdateSageIntacctSyncReimbursementAccountID} from './UpdateSageIntacctSyncReimbursementAccountID';
 export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceReimburseViewParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';

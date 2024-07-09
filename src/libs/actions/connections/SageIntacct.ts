@@ -372,7 +372,7 @@ function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boole
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string | null) {
+function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID);
     const parameters = {
         policyID,
