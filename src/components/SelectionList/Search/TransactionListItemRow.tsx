@@ -155,7 +155,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.type);
+    const typeIcon = getTypeIcon(transactionItem.transactionType);
 
     return (
         <Icon

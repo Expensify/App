@@ -25,7 +25,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'type' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'transactionType' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
