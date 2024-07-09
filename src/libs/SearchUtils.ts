@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
@@ -166,6 +167,9 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...value,
+                keyForList: value.reportID,
+                from: data.personalDetailsList?.[value.accountID],
+                to: data.personalDetailsList?.[value.managerID],
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -199,7 +203,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
             } else {
-                reportIDToTransactions[reportKey] = {transactions: [transaction]};
+                reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
     }
@@ -217,7 +221,7 @@ const searchTypeToItemMap: SearchTypeToItemMap = {
         listItem: ReportListItem,
         getSections: getReportSections,
         // sorting for ReportItems not yet implemented
-        getSortedSections: (data) => data,
+        getSortedSections: getSortedReportData,
     },
 };
 
@@ -278,10 +282,39 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
+function getSortedReportData(data: ReportListItemType[]) {
+    return data.sort((a, b) => {
+        const aValue = a?.created;
+        const bValue = b?.created;
+
+        if (aValue === undefined || bValue === undefined) {
+            return 0;
+        }
+
+        return bValue.toLowerCase().localeCompare(aValue);
+    });
+}
+
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItemType, isTransactionListItemType};
+function isSearchResultsEmpty(searchResults: SearchResults) {
+    return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+}
+
+export {
+    getListItem,
+    getQueryHash,
+    getSections,
+    getSortedSections,
+    getShouldShowMerchant,
+    getSearchType,
+    getSearchParams,
+    shouldShowYear,
+    isReportListItemType,
+    isTransactionListItemType,
+    isSearchResultsEmpty,
+};
 export type {SearchColumnType, SortOrder};
