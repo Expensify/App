@@ -11,9 +11,10 @@ type NetSuiteCustomListPickerProps = {
     value?: string;
     policy?: Policy;
     onInputChange?: (value: string, key?: string) => void;
+    internalIDInputID?: string;
 };
 
-function NetSuiteCustomListPicker({value, policy, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, policy, internalIDInputID, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -26,6 +27,10 @@ function NetSuiteCustomListPicker({value, policy, onInputChange = () => {}}: Net
             keyForList: customListRecord.name,
             id: customListRecord.id,
         }));
+
+        if (!value && customListData.length > 0) {
+            customListData[0].isSelected = true;
+        }
 
         const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
         const filteredCustomLists = customListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));
@@ -44,8 +49,6 @@ function NetSuiteCustomListPicker({value, policy, onInputChange = () => {}}: Net
         };
     }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, value]);
 
-    const initiallyFocusedOptionKey = useMemo(() => sections?.[0]?.data?.find((record) => record.isSelected)?.keyForList, [sections]);
-
     return (
         <SelectionList
             sections={sections}
@@ -53,12 +56,15 @@ function NetSuiteCustomListPicker({value, policy, onInputChange = () => {}}: Net
             textInputLabel={showTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={(selected) => {
-                onInputChange(selected.value, selected.id);
+                onInputChange(selected.value);
+                if (internalIDInputID) {
+                    onInputChange(selected.id, internalIDInputID);
+                }
             }}
             headerMessage={headerMessage}
             ListItem={RadioListItem}
             isRowMultilineSupported
-            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            initiallyFocusedOptionKey={value}
         />
     );
 }

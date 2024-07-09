@@ -1,10 +1,8 @@
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldMapping} from '@src/types/onyx/Policy';
 import type Form from './Form';
 
 const INPUT_IDS = {
-    CUSTOM_SEGMENT_RECORD_TYPE: 'customSegmentRecordType',
     INTERNAL_ID: 'internalID',
     MAPPING: 'mapping',
     LIST_NAME: 'listName',
@@ -18,7 +16,6 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type NetSuiteCustomFieldForm = Form<
     InputID,
     {
-        [INPUT_IDS.CUSTOM_SEGMENT_RECORD_TYPE]: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>;
         [INPUT_IDS.INTERNAL_ID]: string;
         [INPUT_IDS.MAPPING]: NetSuiteCustomFieldMapping;
         [INPUT_IDS.LIST_NAME]: string;

@@ -1,7 +1,7 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,10 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as FormActions from '@userActions/FormActions';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,8 +76,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
         nextScreen();
     }, [goToTheLastStep, isEditing, nextScreen]);
 
-    const [formValuesDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM_DRAFT);
-    const customSegmentType = formValuesDraft?.[INPUT_IDS.CUSTOM_SEGMENT_RECORD_TYPE];
+    const [customSegmentType, setCustomSegmentType] = useState<ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES> | undefined>();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
@@ -158,6 +157,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                 policy={policy}
                 importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}
                 customSegmentType={customSegmentType}
+                setCustomSegmentType={setCustomSegmentType}
             />
         ),
         [SubStep, handleNextScreen, isEditing, moveTo, policy, policyID, screenIndex, customSegmentType],
