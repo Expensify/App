@@ -47,14 +47,16 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         screenIndex,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: 0, onFinished: handleFinishStep});
+    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToTheLastStep();
             return;
         }
-        if (screenIndex === 0) {
+
+        // Clicking back on the first screen should go back to listing
+        if (screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER) {
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
             return;
         }
@@ -75,9 +77,9 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
             switch (screenIndex) {
-                case 0:
+                case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER:
                     return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME]);
-                case 1:
+                case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.TRANSACTION_FIELD_ID:
                     if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.TRANSACTION_FIELD_ID])) {
                         const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`);
                         errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
@@ -85,7 +87,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                         errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.customLists.errors.uniqueTransactionFieldIDError');
                     }
                     return errors;
-                case 2:
+                case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING:
                     return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
                 default:
                     return errors;
@@ -110,8 +112,11 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         [customLists, nextScreen, policyID],
     );
 
-    const selectionListForm = [2].includes(screenIndex);
-    const submitFlexAllowed = [0, 1].includes(screenIndex);
+    const selectionListForm = [CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.MAPPING as number].includes(screenIndex);
+    const submitFlexAllowed = [
+        CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER as number,
+        CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.TRANSACTION_FIELD_ID as number,
+    ].includes(screenIndex);
 
     return (
         <ConnectionLayout
@@ -130,7 +135,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
-                    startStepIndex={0}
+                    startStepIndex={CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER}
                     stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES}
                 />
             </View>
