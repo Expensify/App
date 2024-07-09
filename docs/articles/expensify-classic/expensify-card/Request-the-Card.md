@@ -2,7 +2,6 @@
 title: Request the Card
 description: Details on requesting the Expensify Card as an employee
 ---
-## Get the Expensify Card
 To start using the Expensify Card, do the following:
 1. **Enable Expensify Cards:** An admin must first enable the cards. Then, an admin can assign you a card by setting a limit, which allows access to the card.
 2. **Request the Card:**
