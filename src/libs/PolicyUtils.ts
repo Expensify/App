@@ -241,6 +241,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 
     return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
 }
+
 /**
  * Gets all tag lists of a policy
  */
@@ -619,7 +620,6 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
 
 function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-
     return vendors.map(({id, value}) => ({
         value: id,
         text: value,
@@ -640,13 +640,11 @@ function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): stri
 
 function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
     const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-    const isMatchFound = creditCards?.some(({name}) => name === selectedAccount);
-
     return creditCards.map(({name}) => ({
         value: name,
         text: name,
         keyForList: name,
-        isSelected: isMatchFound && name === selectedAccount,
+        isSelected: name === selectedAccount,
     }));
 }
 
@@ -690,6 +688,13 @@ function getCurrentConnectionName(policy: Policy | undefined): string | undefine
     return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
 
+/**
+ * Check if the policy member is deleted from the workspace
+ */
+function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: boolean) {
+    return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -723,6 +728,7 @@ export {
     hasPolicyErrorFields,
     hasTaxRateError,
     isExpensifyTeam,
+    isDeletedPolicyEmployee,
     isFreeGroupPolicy,
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
