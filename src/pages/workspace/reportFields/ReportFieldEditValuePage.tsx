@@ -37,7 +37,6 @@ function ReportFieldEditValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
     const validate = useCallback(
@@ -68,7 +67,7 @@ function ReportFieldEditValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            shouldBeBlocked={hasAccountingConnections}
+            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
