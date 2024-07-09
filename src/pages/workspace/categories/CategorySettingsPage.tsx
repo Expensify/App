@@ -44,6 +44,14 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const policyCategory =
         policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
 
+    const navigateBack = () => {
+        if (backTo) {
+            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
+            return;
+        }
+        Navigation.goBack();
+    };
+
     useEffect(() => {
         if (policyCategory?.name === route.params.categoryName || !policyCategory) {
             return;
@@ -70,7 +78,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const deleteCategory = () => {
         Category.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
-        Navigation.dismissModal();
+        navigateBack();
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -88,7 +96,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
             >
                 <HeaderWithBackButton
                     title={route.params.categoryName}
-                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
+                    onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}
