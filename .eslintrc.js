@@ -66,6 +66,11 @@ const restrictedImportPaths = [
         name: 'lodash/memoize',
         message: "Please use '@src/libs/memoize' instead.",
     },
+    {
+        name: 'lodash',
+        importNames: ['memoize'],
+        message: "Please use '@src/libs/memoize' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
