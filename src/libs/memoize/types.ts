@@ -7,6 +7,12 @@ type ValueBox<V> = {value: V};
 type Cache<K, V> = {
     get: (key: K) => ValueBox<V> | undefined;
     set: (key: K, value: V) => void;
+    /**
+     * Get the value for the key if it exists, otherwise set the value to the result of the valueProducer and return it.
+     * @param key The key to get or set
+     * @param valueProducer The function to produce the value if the key does not exist
+     * @returns The value for the key
+     */
     getSet: (key: K, valueProducer: () => V) => ValueBox<V>;
     snapshot: {
         keys: () => K[];
