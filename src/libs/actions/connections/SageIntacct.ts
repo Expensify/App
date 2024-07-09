@@ -165,7 +165,7 @@ function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string,
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
     const parameters: UpdateSageIntacctNonreimbursableExpensesExportAccountParams = {
         policyID,
-        bankAccountID: nonReimbursableAccount,
+        creditCardAccountID: nonReimbursableAccount,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT, parameters, {optimisticData, failureData, successData});
