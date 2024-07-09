@@ -235,7 +235,7 @@ function CalendarPicker({
                                 style={themeStyles.calendarDayRoot}
                                 accessibilityLabel={day?.toString() ?? ''}
                                 tabIndex={day ? 0 : -1}
-                                accessible={Boolean(day)}
+                                accessible={!!day}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {({hovered, pressed}) => (

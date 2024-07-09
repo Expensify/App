@@ -1,3 +1,5 @@
+const path = require('path');
+
 const restrictedImportPaths = [
     {
         name: 'react-native',
@@ -6,7 +8,7 @@ const restrictedImportPaths = [
             '',
             "For 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.",
             "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.",
-            "For 'StatusBar', please use '@src/libs/StatusBar' instead.",
+            "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
         ].join('\n'),
@@ -55,6 +57,15 @@ const restrictedImportPaths = [
         name: 'date-fns/locale',
         message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
     },
+    {
+        name: 'expensify-common',
+        importNames: ['Device', 'ExpensiMark'],
+        message: [
+            '',
+            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+            "For 'ExpensiMark', please use '@libs/Parser' instead.",
+        ].join('\n'),
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -88,10 +99,11 @@ module.exports = {
         'plugin:you-dont-need-lodash-underscore/all',
         'prettier',
     ],
-    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library'],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler'],
+    ignorePatterns: ['lib/**'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
-        project: './tsconfig.json',
+        project: path.resolve(__dirname, './tsconfig.json'),
     },
     env: {
         jest: true,
@@ -100,10 +112,6 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
-        '@typescript-eslint/no-unsafe-call': 'off',
-        '@typescript-eslint/no-unsafe-member-access': 'off',
-        '@typescript-eslint/no-unsafe-assignment': 'off',
-
         // TypeScript specific rules
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
@@ -167,6 +175,7 @@ module.exports = {
 
         // Rulesdir specific rules
         'rulesdir/no-default-props': 'error',
+        'rulesdir/prefer-type-fest': 'error',
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',
@@ -182,6 +191,7 @@ module.exports = {
                 touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
             },
         ],
+        'react-compiler/react-compiler': 'error',
 
         // Disallow usage of certain functions and imports
         'no-restricted-syntax': [
@@ -210,6 +220,8 @@ module.exports = {
         // Other rules
         curly: 'error',
         'you-dont-need-lodash-underscore/throttle': 'off',
+        // The suggested alternative (structuredClone) is not supported in Hermes:https://github.com/facebook/hermes/issues/684
+        'you-dont-need-lodash-underscore/clone-deep': 'off',
         'prefer-regex-literals': 'off',
         'valid-jsdoc': 'off',
         'jsdoc/no-types': 'error',
@@ -235,10 +247,24 @@ module.exports = {
         ],
     },
 
-    // Remove once no JS files are left
     overrides: [
+        // Enforces every Onyx type and its properties to have a comment explaining its purpose.
+        {
+            files: ['src/types/onyx/**/*.ts'],
+            rules: {
+                'jsdoc/require-jsdoc': [
+                    'error',
+                    {
+                        contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSPropertySignature'],
+                    },
+                ],
+            },
+        },
+
+        // Remove once no JS files are left
         {
             files: ['*.js', '*.jsx'],
+            extends: ['plugin:@typescript-eslint/disable-type-checked'],
             rules: {
                 '@typescript-eslint/prefer-nullish-coalescing': 'off',
                 '@typescript-eslint/no-unsafe-return': 'off',

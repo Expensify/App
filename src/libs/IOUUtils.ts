@@ -1,8 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -60,7 +59,7 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * @param isDeleting - whether the user is deleting the expense
  * @param isUpdating - whether the user is updating the expense
  */
-function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     iouReport: TReport,
     actorAccountID: number,
     amount: number,

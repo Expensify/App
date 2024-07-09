@@ -29,7 +29,7 @@ function ConfirmationStep({onNext, onMove}: SubStepProps) {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
 
-    const isLoading = walletAdditionalDetailsDraft?.isLoading ?? false;
+    const isLoading = walletAdditionalDetails?.isLoading ?? false;
     const error = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails ?? {});
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
 

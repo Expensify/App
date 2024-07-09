@@ -10,7 +10,6 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +59,9 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 function MoneyRequestAction({
@@ -76,23 +78,22 @@ function MoneyRequestAction({
     isHovered = false,
     style,
     isWhisper = false,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
-            const reportActionID = action.reportActionID ?? '0';
+            const reportActionID = action.reportActionID ?? '-1';
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
             return;
         }
 
-        const childReportID = action?.childReportID ?? '0';
-        Report.openReport(childReportID);
+        const childReportID = action?.childReportID ?? '-1';
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
@@ -134,6 +135,7 @@ function MoneyRequestAction({
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
             isHovered={isHovered}
             isWhisper={isWhisper}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
         />
     );
 }

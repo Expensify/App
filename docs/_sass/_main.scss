@@ -524,6 +524,10 @@ button {
                 padding: 0;
                 margin: 0;
             }
+
+            li {
+                margin-left: 12px;
+            }
         }
     }
 }
@@ -745,6 +749,7 @@ button {
     width: 20px;
     height: 20px;
     cursor: pointer;
+    display: inline-block;
 }
 
 .homepage {

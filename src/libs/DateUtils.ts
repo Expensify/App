@@ -43,7 +43,7 @@ import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 import Log from './Log';
 
-type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -82,6 +82,10 @@ Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
+
+function isDate(arg: unknown): arg is Date {
+    return Object.prototype.toString.call(arg) === '[object Date]';
+}
 
 /**
  * Get the day of the week that the week starts on
@@ -133,7 +137,15 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
         }
         return res;
     }
-    const parsedDatetime = new Date(`${datetime}Z`);
+    let parsedDatetime;
+    try {
+        // in some cases we cannot add 'Z' to the date string
+        parsedDatetime = new Date(`${datetime}Z`);
+        parsedDatetime.toISOString(); // we need to call toISOString because it throws RangeError in case of an invalid date
+    } catch (e) {
+        parsedDatetime = new Date(datetime);
+    }
+
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
@@ -380,7 +392,8 @@ function getDBTime(timestamp: string | number = ''): string {
  */
 function getDBTimeWithSkew(timestamp: string | number = ''): string {
     if (networkTimeSkew > 0) {
-        return getDBTime(new Date(timestamp).valueOf() + networkTimeSkew);
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return getDBTime(datetime.valueOf() + networkTimeSkew);
     }
     return getDBTime(timestamp);
 }
@@ -650,7 +663,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
-        return 'common.error.invalidDateShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
 };
@@ -664,7 +677,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
-        return 'common.error.invalidTimeShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
 };
@@ -702,15 +715,6 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     };
 }
 
-/**
- * Return the date with full format if the created date is the current date.
- * Otherwise return the created date.
- */
-function enrichMoneyRequestTimestamp(created: string): string {
-    const now = new Date();
-    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
-    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
-}
 /**
  * Returns the last business day of given date month
  *
@@ -797,7 +801,26 @@ function getFormattedTransportDate(date: Date): string {
     return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
 }
 
+function doesDateBelongToAPastYear(date: string): boolean {
+    const transactionYear = new Date(date).getFullYear();
+    return transactionYear !== new Date().getFullYear();
+}
+
+/**
+ * Returns a boolean value indicating whether the card has expired.
+ * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
+ * @param expiryYear year when card expires
+ */
+
+function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
+}
+
 const DateUtils = {
+    isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
@@ -835,11 +858,12 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
-    enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
     getFormattedDateRange,
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
+    doesDateBelongToAPastYear,
+    isCardExpired,
 };
 
 export default DateUtils;

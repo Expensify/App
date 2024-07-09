@@ -42,6 +42,7 @@ import ChatBubbles from '@assets/images/chatbubbles.svg';
 import CheckCircle from '@assets/images/check-circle.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
+import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
@@ -51,6 +52,7 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
+import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
@@ -95,8 +97,11 @@ import Home from '@assets/images/home.svg';
 import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
+import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -115,6 +120,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
@@ -196,6 +202,7 @@ export {
     Wrench,
     BackArrow,
     Bank,
+    CircularArrowBackwards,
     Bill,
     Bell,
     BellSlash,
@@ -224,6 +231,7 @@ export {
     Copy,
     CreditCard,
     CreditCardHourglass,
+    CreditCardExclamation,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
@@ -268,6 +276,7 @@ export {
     History,
     Home,
     Hourglass,
+    Inbox,
     ImageCropCircleMask,
     ImageCropSquareMask,
     Info,
@@ -288,6 +297,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneySearch,
     MoneyWaving,
     Monitor,
     Mute,
@@ -342,6 +352,7 @@ export {
     Workflows,
     Workspace,
     XeroSquare,
+    SageIntacctSquare as IntacctSquare,
     Zoom,
     Twitter,
     Youtube,
@@ -360,4 +371,5 @@ export {
     Clear,
     CheckCircle,
     CheckmarkCircle,
+    NetSuiteSquare,
 };

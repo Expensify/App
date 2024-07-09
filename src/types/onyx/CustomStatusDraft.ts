@@ -1,3 +1,4 @@
+/** Model of custom status draft */
 type CustomStatusDraft = {
     /** The emoji code of the draft status */
     emojiCode?: string;

@@ -41,6 +41,7 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
                             source={UserUtils.getSmallSizeAvatar(source, accountID)}
                             fallbackIcon={fallbackIcon}
                             avatarID={accountID}
+                            type={CONST.ICON_TYPE_AVATAR}
                         />
                         <Indicator />
                     </>

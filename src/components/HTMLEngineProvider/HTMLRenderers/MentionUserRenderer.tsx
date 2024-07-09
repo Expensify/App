@@ -69,7 +69,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
 
         accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
-        navigationRoute = ROUTES.DETAILS.getRoute(mentionDisplayText);
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
@@ -86,7 +86,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <Text
                     suppressHighlighting
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     onPress={(event) => {
                         event.preventDefault();
                         Navigation.navigate(navigationRoute);

@@ -40,6 +40,10 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(decimals) : '';
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
+        if (values.taxClaimableValue === currentTaxReclaimableOnValue) {
+            Navigation.goBack();
+            return;
+        }
         DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [
             {
                 ...rate,
