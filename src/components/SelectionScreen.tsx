@@ -10,6 +10,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
@@ -117,7 +118,7 @@ function SelectionScreen({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
                 testID={displayName}
             >
                 <HeaderWithBackButton
