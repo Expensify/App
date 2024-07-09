@@ -87,7 +87,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             if (page === undefined) {
                 return;
             }
-
             const nextPageIndex = page + deltaSlide;
             updatePage(nextPageIndex);
             pagerRef.current?.setPage(nextPageIndex);
