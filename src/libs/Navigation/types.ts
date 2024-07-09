@@ -542,6 +542,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
+        policyID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -991,9 +994,6 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
