@@ -145,7 +145,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
