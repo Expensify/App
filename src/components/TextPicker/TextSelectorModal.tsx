@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,7 @@ import CONST from '@src/CONST';
 import type {TextSelectorModalProps} from './types';
 import usePaddingStyle from './usePaddingStyle';
 
-function TextSelectorModal({value, description = '', onValueSelected, isVisible, onClose, ...rest}: TextSelectorModalProps) {
+function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -23,6 +24,13 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const hide = useCallback(() => {
+        onClose();
+        if (shouldClearOnClose) {
+            setValue('');
+        }
+    }, [onClose, shouldClearOnClose]);
 
     useFocusEffect(
         useCallback(() => {
@@ -44,8 +52,8 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={onClose}
-            onModalHide={onClose}
+            onClose={hide}
+            onModalHide={hide}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
@@ -59,12 +67,13 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
             >
                 <HeaderWithBackButton
                     title={description}
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={hide}
                 />
                 <ScrollView
                     contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}
                     keyboardShouldPersistTaps="handled"
                 >
+                    <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
                     <View style={styles.flex1}>
                         <TextInput
                             // eslint-disable-next-line react/jsx-props-no-spreading
