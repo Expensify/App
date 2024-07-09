@@ -19,7 +19,7 @@ type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, ty
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params.policyID;
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.find((f) => f.alias === route.params.featureName);
+    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === route.params.featureName);
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
@@ -41,7 +41,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
             />
             {isUpgraded && (
                 <UpgradeConfirmation

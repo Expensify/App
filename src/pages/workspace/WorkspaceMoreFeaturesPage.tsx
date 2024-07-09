@@ -204,6 +204,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 if (isEnabled) {
+                    if (policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                        );
+                        return;
+                    }
+
                     Policy.enablePolicyReportFields(policyID, true);
                     return;
                 }

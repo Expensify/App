@@ -5206,8 +5206,8 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
-    UPGRADE_FEATURE_INTRO_MAPPING: [
-        {
+    UPGRADE_FEATURE_INTRO_MAPPING: {
+        reportFields: {
             id: 'reportFields',
             alias: 'report-fields',
             name: 'Report Fields',
@@ -5215,7 +5215,23 @@ const CONST = {
             description: 'workspace.upgrade.reportFields.description',
             icon: 'Pencil',
         },
-    ],
+        netSuite: {
+            id: 'netSuite',
+            alias: 'netsuite',
+            name: 'NetSuite',
+            title: 'workspace.upgrade.netSuite.title',
+            description: 'workspace.upgrade.netSuite.description',
+            icon: 'NetSuiteSquare',
+        },
+        sageIntacct: {
+            id: 'sageIntacct',
+            alias: 'sage-intacct',
+            name: 'Sage Intacct',
+            title: 'workspace.upgrade.sageIntacct.title',
+            description: 'workspace.upgrade.sageIntacct.description',
+            icon: 'IntacctSquare',
+        },
+    },
     REPORT_FIELD_TYPES: {
         TEXT: 'text',
         DATE: 'date',

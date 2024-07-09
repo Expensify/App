@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -18,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature: (typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING)[0];
+    feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
 };
 
@@ -26,13 +27,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const iconSrc = feature.icon in Illustrations ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
 
     return (
         <View style={styles.p5}>
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
-                        src={Illustrations[feature.icon]}
+                        src={iconSrc}
                         width={variables.iconSizeExtraLarge}
                         height={variables.iconSizeExtraLarge}
                     />
@@ -46,9 +48,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
-                        {translate(`workspace.upgrade.${feature.id}.pricing.onlyAvailableOnPlan`)}
-                        <Text style={[styles.themeTextColor, styles.textBold]}>{translate(`workspace.upgrade.${feature.id}.pricing.amount`)}</Text>
-                        {translate(`workspace.upgrade.${feature.id}.pricing.perActiveMember`)}
+                        {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
+                        <Text style={[styles.themeTextColor, styles.textBold]}>{translate(`workspace.upgrade.pricing.amount`)}</Text>
+                        {translate(`workspace.upgrade.pricing.perActiveMember`)}
                     </Text>
                 </View>
                 <Button

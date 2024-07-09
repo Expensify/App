@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
@@ -7,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToNetSuiteButtonProps} from './types';
 
@@ -14,6 +16,7 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -21,6 +24,11 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
         <>
             <Button
                 onPress={() => {
+                    if (policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netSuite.alias, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)));
+                        return;
+                    }
+
                     if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
