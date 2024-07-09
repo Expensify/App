@@ -11,8 +11,8 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';

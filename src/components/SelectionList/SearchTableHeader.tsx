@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchUtils from '@libs/SearchUtils';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';

@@ -13,7 +13,6 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -25,8 +24,10 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
+import type {SearchColumnType, SortOrder} from './types';
 
 type SearchProps = {
     query: SearchQuery;
@@ -47,6 +48,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+    const {setCurrentSearchHash} = useSearchContext();
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -83,6 +85,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             return;
         }
 
+        setCurrentSearchHash(hash);
         SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);

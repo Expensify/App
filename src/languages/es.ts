@@ -161,6 +161,7 @@ export default {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
+        review: 'Revisar',
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
