@@ -44,7 +44,8 @@ const test = () => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Open Chat Finder Page TTI',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 })
                     .then(() => {
                         openSearchPageResolve();
@@ -59,7 +60,8 @@ const test = () => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Load Search Options',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 })
                     .then(() => {
                         loadSearchOptionsResolve();
