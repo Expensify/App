@@ -94,7 +94,7 @@ function prepareOnyxDataForSyncUpdate(
     settingValue: string | boolean | null,
     auto = false,
 ) {
-    const sync = auto ? 'autoSync' : 'sync';
+    const sync = auto ? CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC : CONST.SAGE_INTACCT_CONFIG.SYNC;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

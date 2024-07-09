@@ -108,9 +108,11 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow
+                    key={section.label}
                     title={section.label}
                     subtitle={section.description}
                     shouldPlaceSubtitleBelowSwitch
@@ -142,6 +144,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctAdvancedPage.displayName = 'PolicySageIntacctAdvancedPage';
+SageIntacctAdvancedPage.displayName = 'SageIntacctAdvancedPage';
 
 export default withPolicy(SageIntacctAdvancedPage);
