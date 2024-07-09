@@ -29,7 +29,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
         >
             <PressableWithFeedback
                 accessibilityLabel={tooltipText}
-                onPress={(event)=> {
+                onPress={(event) => {
                     onPress?.(event);
                     cancelAutoHideVideoPlayerControls();
                 }}
