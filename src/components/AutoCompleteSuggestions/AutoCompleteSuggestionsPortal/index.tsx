@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
+import TransparentOverlay from './TransparentOverlay';
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 /**
@@ -31,7 +32,10 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
         !!width &&
         bodyElement &&
         ReactDOM.createPortal(
-            <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>,
+            <>
+                <TransparentOverlay resetSuggestions={props.resetSuggestions} />
+                <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>
+            </>,
             bodyElement,
         )
     );
