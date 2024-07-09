@@ -2,17 +2,14 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import type {PolicySelector} from '@hooks/useReportIDs';
-import {policySelector, useReportIDs} from '@hooks/useReportIDs';
+import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,9 +21,6 @@ type SidebarLinksDataOnyxProps = {
 
     /** The chat priority mode */
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
-
-    /** The policies which the user has access to */
-    policies: OnyxCollection<PolicySelector>;
 };
 
 type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
@@ -37,21 +31,18 @@ type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
     insets: EdgeInsets;
 };
 
-function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT, policies}: SidebarLinksDataProps) {
-    const {accountID} = useCurrentUserPersonalDetails();
+function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
 
-    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
+    const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '-1', policyMemberAccountIDs), [activeWorkspaceID]);
 
     const isLoading = isLoadingApp;
-    const {orderedReportIDs, currentReportID} = useReportIDs();
-
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
@@ -88,11 +79,6 @@ export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         key: ONYXKEYS.NVP_PRIORITY_MODE,
         initialValue: CONST.PRIORITY_MODE.DEFAULT,
     },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector,
-        initialValue: {},
-    },
 })(
     /* 
 While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
@@ -105,7 +91,6 @@ More details - https://github.com/Expensify/App/issues/35234#issuecomment-192691
             prevProps.isLoadingApp === nextProps.isLoadingApp &&
             prevProps.priorityMode === nextProps.priorityMode &&
             lodashIsEqual(prevProps.insets, nextProps.insets) &&
-            prevProps.onLinkClick === nextProps.onLinkClick &&
-            lodashIsEqual(prevProps.policies, nextProps.policies),
+            prevProps.onLinkClick === nextProps.onLinkClick,
     ),
 );
