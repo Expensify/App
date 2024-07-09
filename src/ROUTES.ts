@@ -240,8 +240,8 @@ const ROUTES = {
         },
     },
     REPORT_AVATAR: {
-        route: 'r/:reportID/avatar',
-        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
+        route: 'r/:reportID/avatar/:policyID',
+        getRoute: (reportID: string, policyID: string) => `r/${reportID}/avatar/${policyID}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
