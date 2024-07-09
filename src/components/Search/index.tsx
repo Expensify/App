@@ -200,7 +200,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             getItemHeight={getItemHeight}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+            listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}

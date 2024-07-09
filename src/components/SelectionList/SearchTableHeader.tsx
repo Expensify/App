@@ -108,7 +108,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
+            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
                 {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
