@@ -19,7 +19,6 @@ type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.Co
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfilePage').default,
     [SCREENS.WORKSPACE.CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/card/WorkspaceCardPage').default,
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default,
     [SCREENS.WORKSPACE.REIMBURSE]: () => require<ReactComponentModule>('../../../../pages/workspace/reimburse/WorkspaceReimbursePage').default,
     [SCREENS.WORKSPACE.BILLS]: () => require<ReactComponentModule>('../../../../pages/workspace/bills/WorkspaceBillsPage').default,
@@ -32,6 +31,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.TAGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsPage').default,
     [SCREENS.WORKSPACE.TAXES]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceTaxesPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/WorkspaceReportFieldsPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default,
 } satisfies Screens;
 
