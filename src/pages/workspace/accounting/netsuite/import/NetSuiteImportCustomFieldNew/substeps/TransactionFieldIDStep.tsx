@@ -1,4 +1,3 @@
-import Parser from '@libs/Parser';
 import React from 'react';
 import {View} from 'react-native';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -7,6 +6,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
