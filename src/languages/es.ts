@@ -616,7 +616,7 @@ export default {
         cameraErrorMessage: 'Se produjo un error al hacer una foto. Por favor, inténtalo de nuevo.',
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage:
-            'Usaremos su ubicación para determinar con precisión su moneda y zona horaria predeterminadas. Puede editar el acceso en la configuración de su dispositivo en cualquier momento.',
+            'Usaremos tu ubicación para determinar con precisión la moneda y zona horaria predeterminadas. Puedes editar el acceso en la configuración de tu dispositivo en cualquier momento.',
         locationErrorTitle: 'Habilitar ubicación en la configuración',
         locationErrorMessage:
             'Es necesario permitir el acceso a la ubicación para ayudar a determinar con precisión su moneda y zona horaria predeterminadas. Haz click en Configuración para actualizar los permisos.',
