@@ -84,7 +84,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     useEffect(() => {
         getRoomMembers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -185,7 +185,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
-            const isDisabled = (isPolicyExpenseChat && isAdmin) || accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const isDisabled =
+                (isPolicyExpenseChat && isAdmin) ||
+                accountID === session?.accountID ||
+                pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                details.accountID === report.ownerAccountID;
 
             result.push({
                 keyForList: String(accountID),

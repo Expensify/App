@@ -36,6 +36,7 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -64,9 +65,8 @@ type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
  * Inverts an object, equivalent of _.invert
  */
 function invertObject(object: Record<string, string>): Record<string, string> {
-    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key]);
-    const inverted: Record<string, string> = Object.fromEntries(invertedEntries);
-    return inverted;
+    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key] as const);
+    return Object.fromEntries(invertedEntries);
 }
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
@@ -95,6 +95,17 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+
+    const confirmModalPrompt = useMemo(() => {
+        const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
+        if (!approverAccountID) {
+            return translate('workspace.people.removeMembersPrompt');
+        }
+        return translate('workspace.people.removeMembersWarningPrompt', {
+            memberName: getDisplayNameForParticipant(approverAccountID),
+            ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
+        });
+    }, [selectedEmployees, policy, translate]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
@@ -125,7 +136,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             newErrors[member] = translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
     // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
@@ -135,7 +146,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             return;
         }
         getWorkspaceMembers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
     useEffect(() => {
@@ -163,7 +174,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
             return [prevSelectedElements, currentSelectedElements].reduce((prev, members) => prev.filter((item) => members.includes(item)));
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policy?.employeeList, policyMemberEmailsToAccountIDs]);
 
     useEffect(() => {
@@ -343,7 +354,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled: isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors)),
+                isDisabled:
+                    !!details.isOptimisticPersonalDetail ||
+                    (isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))),
+                cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -378,6 +392,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         selectedEmployees,
         session?.accountID,
         translate,
+        styles.cursorDefault,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
@@ -549,7 +564,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    prompt={confirmModalPrompt}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     onModalHide={() => {
@@ -567,6 +582,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         canSelectMultiple={isPolicyAdmin}
                         sections={[{data, isDisabled: false}]}
                         ListItem={TableListItem}
+                        shouldUseUserSkeletonView
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={!isSmallScreenWidth && getHeaderContent()}

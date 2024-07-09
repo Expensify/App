@@ -14,13 +14,17 @@ type ActionCellProps = {
     onButtonPress: () => void;
     action?: string;
     isLargeScreenWidth?: boolean;
+    isSelected?: boolean;
 };
 
-function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true}: ActionCellProps) {
+function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    if (!isLargeScreenWidth) {
+        return null;
+    }
 
     if (action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
@@ -53,6 +57,7 @@ function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isL
             small
             pressOnEnter
             style={[styles.w100]}
+            innerStyles={isSelected ? styles.buttonDefaultHovered : {}}
         />
     );
 }

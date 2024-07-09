@@ -24,7 +24,7 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
-    lastReportActionTransaction = {},
+    lastReportActionTransaction,
     transactionViolations,
     canUseViolations,
     ...propsToForward
@@ -57,7 +57,7 @@ function OptionRowLHNData({
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
         lastReportActionTransaction,

@@ -48,7 +48,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
             return;
         }
 
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
             isScrollingRef.current = scrolling;
             if (!isScrollingRef.current) {
                 setIsHovered(isHoveredRef.current);
@@ -102,7 +102,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
     const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
 
-    const {onMouseEnter, onMouseLeave, onMouseMove, onBlur}: OnMouseEvents = child.props;
+    const {onMouseEnter, onMouseLeave, onMouseMove, onBlur} = child.props as OnMouseEvents;
 
     const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {

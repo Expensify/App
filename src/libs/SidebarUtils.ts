@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
+import type {PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
@@ -68,7 +68,7 @@ type MiniReport = {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: OnyxCollection<ChatReportSelector>,
+    allReports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
@@ -82,41 +82,48 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
-    let reportsToDisplay = allReportsDictValues.filter((report) => {
+    let reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
+    allReportsDictValues.forEach((report) => {
         if (!report) {
-            return false;
+            return;
         }
-
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
-        const parentReportActions = allReportActions?.[parentReportActionsKey];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
-        const doesReportHaveViolations = !!(
-            betas?.includes(CONST.BETAS.VIOLATIONS) &&
-            !!parentReportAction &&
-            ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
-        );
+        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt =
             doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
+        if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
+            return;
+        }
+        if (hasErrorsOtherThanFailedReceipt) {
+            reportsToDisplay.push({
+                ...report,
+                hasErrorsOtherThanFailedReceipt: true,
+            });
+            return;
+        }
         const isSystemChat = ReportUtils.isSystemChat(report);
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
-            return false;
+            return;
         }
 
-        return ReportUtils.shouldReportBeInOptionList({
-            report,
-            currentReportId: currentReportId ?? '-1',
-            isInFocusMode,
-            betas,
-            policies: policies as OnyxCollection<Policy>,
-            excludeEmptyChats: true,
-            doesReportHaveViolations,
-            includeSelfDM: true,
-        });
+        if (
+            ReportUtils.shouldReportBeInOptionList({
+                report,
+                currentReportId: currentReportId ?? '-1',
+                isInFocusMode,
+                betas,
+                policies: policies as OnyxCollection<Policy>,
+                excludeEmptyChats: true,
+                doesReportHaveViolations,
+                includeSelfDM: true,
+            })
+        ) {
+            reportsToDisplay.push(report);
+        }
     });
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -128,10 +135,12 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
+
     const pinnedAndGBRReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
     const nonArchivedReports: MiniReport[] = [];
     const archivedReports: MiniReport[] = [];
+    const errorReports: MiniReport[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
@@ -140,7 +149,7 @@ function getOrderedReportIDs(
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
-        const report = reportToDisplay as OnyxEntry<Report>;
+        const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
             displayName: ReportUtils.getReportName(report),
@@ -155,6 +164,8 @@ function getOrderedReportIDs(
             draftReports.push(miniReport);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(miniReport);
+        } else if (report?.hasErrorsOtherThanFailedReceipt) {
+            errorReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
         }
@@ -162,6 +173,7 @@ function getOrderedReportIDs(
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    errorReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
 
     if (isInDefaultMode) {
@@ -182,7 +194,9 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
+
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
+
     return LHNReports;
 }
 
@@ -231,6 +245,8 @@ function getOptionData({
         searchText: undefined,
         isPinned: false,
         hasOutstandingChildRequest: false,
+        hasOutstandingChildTask: false,
+        hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
         isArchivedRoom: false,
@@ -284,6 +300,8 @@ function getOptionData({
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
+    result.hasOutstandingChildTask = report.hasOutstandingChildTask;
+    result.hasParentAccess = report.hasParentAccess;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -372,28 +390,33 @@ function getOptionData({
         }
     } else {
         if (!lastMessageText) {
-            // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
-            // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
-            lastMessageText = ReportUtils.isSelfDM(report)
-                ? Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM')
-                : Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
-                  displayNamesWithTooltips
-                      .map(({displayName, pronouns}, index) => {
-                          const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
+            if (ReportUtils.isSystemChat(report)) {
+                lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySystemDM');
+            } else if (ReportUtils.isSelfDM(report)) {
+                lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM');
+            } else {
+                // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
+                // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
+                lastMessageText =
+                    Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
+                    displayNamesWithTooltips
+                        .map(({displayName, pronouns}, index) => {
+                            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
 
-                          if (index === displayNamesWithTooltips.length - 1) {
-                              return `${formattedText}.`;
-                          }
-                          if (index === displayNamesWithTooltips.length - 2) {
-                              return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
-                          }
-                          if (index < displayNamesWithTooltips.length - 2) {
-                              return `${formattedText},`;
-                          }
+                            if (index === displayNamesWithTooltips.length - 1) {
+                                return `${formattedText}.`;
+                            }
+                            if (index === displayNamesWithTooltips.length - 2) {
+                                return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
+                            }
+                            if (index < displayNamesWithTooltips.length - 2) {
+                                return `${formattedText},`;
+                            }
 
-                          return '';
-                      })
-                      .join(' ');
+                            return '';
+                        })
+                        .join(' ');
+            }
         }
 
         result.alternateText =

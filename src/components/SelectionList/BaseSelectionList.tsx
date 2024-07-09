@@ -24,6 +24,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -36,6 +37,7 @@ function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
         ListItem,
+        shouldUseUserSkeletonView,
         canSelectMultiple = false,
         onSelectRow,
         shouldDebounceRowSelect = false,
@@ -164,7 +166,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
-                if (item.isSelected) {
+                if (item.isSelected && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
                     selectedOptions.push(item);
                 }
             });
@@ -220,7 +222,7 @@ function BaseSelectionList<TItem extends ListItem>(
         return [processedSections, showMoreButton];
         // we don't need to add styles here as they change
         // we don't need to add flattendedSections here as they will change along with sections
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
@@ -246,7 +248,7 @@ function BaseSelectionList<TItem extends ListItem>(
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
         },
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [flattenedSections.allOptions],
     );
 
@@ -257,7 +259,7 @@ function BaseSelectionList<TItem extends ListItem>(
         }
 
         setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
@@ -276,7 +278,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onChangeText?.('');
     }, [onChangeText]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
@@ -335,7 +337,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
     // enter presses runs the debounced function again.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
@@ -430,6 +432,13 @@ function BaseSelectionList<TItem extends ListItem>(
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
+        const handleOnCheckboxPress = () => {
+            if (SearchUtils.isReportListItemType(item)) {
+                return onCheckboxPress;
+            }
+            return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        };
+
         return (
             <>
                 <ListItem
@@ -439,7 +448,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onSelectRow={() => selectRow(item)}
-                    onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
+                    onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
@@ -539,14 +548,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const prevTextInputValue = usePrevious(textInputValue);
     const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
+    const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if ((prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) || flattenedSections.allOptions.length === 0) {
             return;
         }
-        // Remove the focus if the search input is empty or selected options length is changed else focus on the first non disabled item
-        const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
+        // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
+        // else focus on the first non disabled item
+        const newSelectedIndex =
+            textInputValue === '' || (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length) ? -1 : 0;
 
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
@@ -560,6 +572,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputValue,
         updateAndScrollToFocusedIndex,
         prevSelectedOptionsLength,
+        prevAllOptionsLength,
     ]);
 
     useEffect(
@@ -680,7 +693,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldAnimate />
+                        <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />
                     ) : (
                         <>
                             {!listHeaderContent && header()}
