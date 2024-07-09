@@ -132,6 +132,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
     scrollContextEnabled?: boolean;
 
+    /** Whether to use ScrollView */
+    shouldUseScrollView?: boolean;
+
     /** Container styles */
     style?: StyleProp<ViewStyle>;
 

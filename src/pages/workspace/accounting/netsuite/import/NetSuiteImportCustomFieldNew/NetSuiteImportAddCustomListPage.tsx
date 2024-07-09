@@ -12,10 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as FormActions from '@userActions/FormActions';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,14 +62,14 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         prevScreen();
     };
 
-    const handleNextScreen = () => {
+    const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
             return;
         }
         ref.current?.moveNext();
         nextScreen();
-    };
+    }, [goToTheLastStep, isEditing, nextScreen]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
@@ -111,6 +111,8 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         [customLists, nextScreen, policyID],
     );
 
+    const selectionListForm = [2].includes(screenIndex);
+
     return (
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomListPage.displayName}
@@ -138,8 +140,10 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
                     onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomLists : handleNextScreen}
                     validate={validate}
-                    style={[styles.flexGrow1]}
+                    style={[styles.mt3, styles.flexGrow1]}
                     submitButtonStyles={[styles.ph5, styles.mb0]}
+                    shouldUseScrollView={!selectionListForm}
+                    isSubmitButtonVisible={!selectionListForm}
                 >
                     <SubStep
                         isEditing={isEditing}

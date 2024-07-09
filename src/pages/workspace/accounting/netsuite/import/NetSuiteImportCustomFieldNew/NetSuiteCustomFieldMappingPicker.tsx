@@ -7,9 +7,10 @@ import CONST from '@src/CONST';
 type NetSuiteCustomListPickerProps = {
     value?: string;
     onInputChange?: (value: string) => void;
+    onSubmitEditing?: () => void;
 };
 
-function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomFieldMappingPicker({value, onInputChange, onSubmitEditing}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
 
     const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
@@ -26,7 +27,10 @@ function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustom
     return (
         <SelectionList
             sections={[{data: selectionData}]}
-            onSelectRow={(selected) => (onInputChange ? onInputChange(selected.value) : {})}
+            onSelectRow={(selected) => {
+                onInputChange?.(selected.value);
+                onSubmitEditing?.();
+            }}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
         />

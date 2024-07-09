@@ -1,71 +1,61 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
+import React, {useState} from 'react';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+import NetSuiteCustomListSelectorModal from './NetSuiteCustomListSelectorModal';
 
 type NetSuiteCustomListPickerProps = {
     value?: string;
     policy?: Policy;
     onInputChange?: (value: string, key?: string) => void;
     internalIDInputID?: string;
+    /** Form Error description */
+    errorText?: string;
 };
 
-function NetSuiteCustomListPicker({value, policy, internalIDInputID, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const [isPickerVisible, setIsPickerVisible] = useState(false);
 
-    const {sections, headerMessage, showTextInput} = useMemo(() => {
-        const customLists = policy?.connections?.netsuite?.options?.data?.customLists ?? [];
-        const customListData = customLists.map((customListRecord) => ({
-            text: customListRecord.name,
-            value: customListRecord.name,
-            isSelected: customListRecord.name === value,
-            keyForList: customListRecord.name,
-            id: customListRecord.id,
-        }));
+    const showPickerModal = () => {
+        setIsPickerVisible(true);
+    };
 
-        if (!value && customListData.length > 0) {
-            customListData[0].isSelected = true;
+    const hidePickerModal = () => {
+        setIsPickerVisible(false);
+    };
+
+    const updateInput = (item: CustomListSelectorType) => {
+        onInputChange?.(item.value);
+        if (internalIDInputID) {
+            onInputChange(item.id, internalIDInputID);
         }
-
-        const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
-        const filteredCustomLists = customListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));
-        const isEmpty = debouncedSearchValue.trim() && !filteredCustomLists.length;
-
-        return {
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          data: filteredCustomLists,
-                      },
-                  ],
-            headerMessage: isEmpty ? translate('common.noResultsFound') : '',
-            showTextInput: customListData.length > CONST.NETSUITE_CONFIG.NETSUITE_CUSTOM_LIST_THRESHOLD,
-        };
-    }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, value]);
+        hidePickerModal();
+    };
 
     return (
-        <SelectionList
-            sections={sections}
-            textInputValue={searchValue}
-            textInputLabel={showTextInput ? translate('common.search') : undefined}
-            onChangeText={setSearchValue}
-            onSelectRow={(selected) => {
-                onInputChange(selected.value);
-                if (internalIDInputID) {
-                    onInputChange(selected.id, internalIDInputID);
-                }
-            }}
-            headerMessage={headerMessage}
-            ListItem={RadioListItem}
-            isRowMultilineSupported
-            initiallyFocusedOptionKey={value}
-        />
+        <>
+            <MenuItemWithTopDescription
+                shouldShowRightIcon
+                title={value}
+                description={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
+                onPress={showPickerModal}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
+            />
+            <NetSuiteCustomListSelectorModal
+                isVisible={isPickerVisible}
+                currentCustomListValue={value ?? policy?.connections?.netsuite.options.data.customLists?.[0].name ?? ''}
+                onCustomListSelected={updateInput}
+                onClose={hidePickerModal}
+                label={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
+                policy={policy}
+                onBackdropPress={Navigation.dismissModal}
+            />
+        </>
     );
 }
 

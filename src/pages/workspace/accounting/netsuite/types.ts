@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import type {SelectorType} from '@components/SelectionScreen';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';
@@ -54,4 +55,8 @@ type CustomFieldSubStepWithPolicy = SubStepProps & {
     setCustomSegmentType?: (segmentType: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>) => void;
 };
 
-export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy};
+type CustomListSelectorType = SelectorType & {
+    id: string;
+};
+
+export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy, CustomListSelectorType};

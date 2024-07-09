@@ -57,6 +57,7 @@ function FormWrapper({
     enabledWhenOffline,
     isSubmitActionDangerous = false,
     formID,
+    shouldUseScrollView = true,
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = true,
@@ -148,6 +149,10 @@ function FormWrapper({
             disablePressOnEnter,
         ],
     );
+
+    if (!shouldUseScrollView) {
+        return scrollViewContent({});
+    }
 
     return (
         <SafeAreaConsumer>

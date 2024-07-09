@@ -13,10 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as FormActions from '@userActions/FormActions';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -163,6 +163,8 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
         [SubStep, handleNextScreen, isEditing, moveTo, policy, policyID, screenIndex, customSegmentType],
     );
 
+    const selectionListForm = [4].includes(screenIndex);
+
     return (
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomSegmentPage.displayName}
@@ -195,6 +197,8 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         validate={validate}
                         style={[styles.flexGrow1]}
                         submitButtonStyles={[styles.ph5, styles.mb0]}
+                        shouldUseScrollView={!selectionListForm}
+                        isSubmitButtonVisible={!selectionListForm}
                     >
                         {renderSubStepContent}
                     </FormProvider>
