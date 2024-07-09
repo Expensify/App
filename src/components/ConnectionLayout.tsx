@@ -60,6 +60,15 @@ type ConnectionLayoutProps = {
 
     /** Name of the current connection */
     connectionName: ConnectionName;
+
+    /** Block the screen when the connection is not empty */
+    reverseConnectionEmptyCheck?: boolean;
+
+    /** Handler for back button press */
+    onBackButtonPress?: () => void;
+
+    /** Whether or not to block user from accessing the page */
+    shouldBeBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -91,6 +100,9 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
+    reverseConnectionEmptyCheck = false,
+    onBackButtonPress = () => Navigation.goBack(),
+    shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -115,7 +127,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={isConnectionEmpty}
+            shouldBeBlocked={(reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty) || shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
@@ -125,7 +137,7 @@ function ConnectionLayout({
                 <HeaderWithBackButton
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle) : '')}
                     subtitle={headerSubtitle}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
                     <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
