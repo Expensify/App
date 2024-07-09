@@ -167,8 +167,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const isExpenseReport = reportItem.type === CONST.REPORT.TYPE.EXPENSE;
 
             const to = isExpenseReport
-            ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
-            : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
+                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
+                : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
