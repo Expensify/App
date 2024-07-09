@@ -2924,6 +2924,7 @@ export default {
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
