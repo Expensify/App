@@ -1219,6 +1219,10 @@ export default {
             updateAddress: 'Actualizar dirección',
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
+        chooseBankAccount: 'Elegir cuenta bancaria',
+        chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
+        accountEndingIn: 'Cuenta terminada en',
+        addNewBankAccount: 'Añadir nueva cuenta bancaria',
     },
     workflowsPage: {
         workflowTitle: 'Gasto',

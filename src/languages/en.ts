@@ -1214,6 +1214,10 @@ export default {
             updateAddress: 'Update address',
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
+        chooseBankAccount: 'Choose bank account',
+        chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
+        accountEndingIn: 'Account ending in',
+        addNewBankAccount: 'Add a new bank account',
     },
     workflowsPage: {
         workflowTitle: 'Spend',
