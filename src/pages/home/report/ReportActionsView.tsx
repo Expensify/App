@@ -306,7 +306,7 @@ function ReportActionsView({
             }
             setCurrentReportActionID(firstReportActionID);
         },
-        [fetchNewerAction, hasMoreCached, newestReportAction, hasNewestReportAction],
+        [fetchNewerAction, hasMoreCached, newestReportAction],
     );
 
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -416,7 +416,7 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((!!reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },

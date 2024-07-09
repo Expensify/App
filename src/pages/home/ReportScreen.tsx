@@ -330,8 +330,7 @@ function ReportScreen({
     // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
-    const isLinkedMessagePageReady =
-        isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || doesCreatedActionExists());
+    const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
@@ -423,7 +422,7 @@ function ReportScreen({
 
     const isInitialPageReady = isOffline
         ? reportActions.length > 0
-        : reportActions.length > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
+        : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
 
     /**
      * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
