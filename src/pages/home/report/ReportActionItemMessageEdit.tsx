@@ -222,12 +222,6 @@ function ReportActionItemMessageEdit(
         (newDraftInput: string) => {
             const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
-            if (emojis?.length > 0) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis?.length > 0) {
-                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
-                }
-            }
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
