@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -2010,6 +2010,7 @@ export default {
             categories: 'Categories',
             tags: 'Tags',
             reportFields: 'Report fields',
+            reportField: 'Report field',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2042,6 +2043,9 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            lineItemLevel: 'Line-item level',
+            reportLevel: 'Report level',
+            appliedOnExport: 'Not imported into Expensify, applied on export',
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2217,6 +2221,63 @@ export default {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
+        },
+        sageIntacct: {
+            preferredExporter: 'Preferred exporter',
+            notConfigured: 'Not configured',
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            reimbursableExpenses: {
+                label: 'Export reimbursable expenses as',
+                description: 'Reimbursable expenses will export as expense reports to Sage Intacct. Bills will export as vendor bills.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Expense reports',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
+                },
+            },
+            nonReimbursableExpenses: {
+                label: 'Export non-reimbursable expenses as',
+                description:
+                    'Non-reimbursable expenses will export to Sage Intacct as either credit card transactions or vendor bills and credit the account selected below. Learn more about assigning cards to individual accounts.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit card transactions',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
+                },
+            },
+            creditCardAccount: 'Credit card account',
+            defaultVendor: 'Default vendor',
+            defaultVendorDescription: (isReimbursable: boolean): string =>
+                `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
+            exportDescription: 'Configure how data in Expensify gets exported to Sage Intacct.',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: `Add the account in Sage Intacct and sync the connection again.`,
+            autoSync: 'Auto-sync',
+            autoSyncDescription: 'Sync Sage Intacct and Expensify automatically, every day.',
+            inviteEmployees: 'Invite employees',
+            inviteEmployeesDescription:
+                'Import Sage Intacct employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be furthered configured on the Members page.',
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
+            paymentAccount: 'Sage Intacct payment account',
         },
         netsuite: {
             subsidiary: 'Subsidiary',
@@ -2454,6 +2515,42 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
+            employeeDefault: 'Sage Intacct employee default',
+            employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
+            displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
+            displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
+            toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
+            toggleImportTitleSecondPart: ' in Expensify.',
+            expenseTypes: 'Expense types',
+            expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
+            importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
+            userDefinedDimensions: 'User-defined dimensions',
+            addUserDefinedDimension: 'Add user-defined dimension',
+            integrationName: 'Integration name',
+            dimensionExists: 'A dimension with this name already exists.',
+            removeDimension: 'Remove user-defined dimension',
+            removeDimensionPrompt: 'Are you sure you want to remove this user-defined dimension?',
+            userDefinedDimension: 'User-defined dimension',
+            addAUserDefinedDimension: 'Add a user-defined dimension',
+            detailedInstructionsLink: 'View detailed instructions',
+            detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
+            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} added`,
+            mappingTitle: (mappingName: SageIntacctMappingName): string => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return 'departments';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return 'classes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return 'locations';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return 'customers';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return 'projects (jobs)';
+                    default:
+                        return 'mappings';
+                }
+            },
         },
         type: {
             free: 'Free',
@@ -2570,7 +2667,9 @@ export default {
         reportFields: {
             addField: 'Add field',
             delete: 'Delete field',
-            deleteConfirmation: 'Are you sure that you want to delete this field?',
+            deleteFields: 'Delete fields',
+            deleteConfirmation: 'Are you sure you want to delete this report field?',
+            deleteFieldsConfirmation: 'Are you sure you want to delete these report fields?',
             emptyReportFields: {
                 title: "You haven't created any report fields",
                 subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
