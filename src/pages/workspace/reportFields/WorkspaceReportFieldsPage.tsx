@@ -65,25 +65,31 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields([]);
     }, [isFocused]);
 
-    const reportFieldsList = useMemo<ReportFieldForList[]>(() => {
+    const reportFieldsSections = useMemo(() => {
         if (!policy) {
-            return [];
+            return [{data: [], isDisabled: true}];
         }
-        return Object.values(filteredPolicyFieldList).map((reportField) => ({
-            value: reportField.name,
-            fieldID: reportField.fieldID,
-            keyForList: String(reportField.orderWeight),
-            orderWeight: reportField.orderWeight,
-            pendingAction: reportField.pendingAction,
-            isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
-            text: reportField.name,
-            rightElement: (
-                <ListItemRightCaretWithLabel
-                    shouldShowCaret={false}
-                    labelText={Str.recapitalize(reportField.type)}
-                />
-            ),
-        }));
+
+        return [
+            {
+                data: Object.values(filteredPolicyFieldList).map((reportField) => ({
+                    value: reportField.name,
+                    fieldID: reportField.fieldID,
+                    keyForList: String(reportField.fieldID),
+                    orderWeight: reportField.orderWeight,
+                    pendingAction: reportField.pendingAction,
+                    isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
+                    text: reportField.name,
+                    rightElement: (
+                        <ListItemRightCaretWithLabel
+                            shouldShowCaret={false}
+                            labelText={Str.recapitalize(reportField.type)}
+                        />
+                    ),
+                })),
+                isDisabled: false,
+            },
+        ];
     }, [filteredPolicyFieldList, policy, selectedReportFields]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
@@ -98,7 +104,7 @@ function WorkspaceReportFieldsPage({
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
-    const isLoading = reportFieldsList === undefined;
+    const isLoading = policy === undefined;
     const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
 
     const getHeaderButtons = () => (
@@ -148,7 +154,7 @@ function WorkspaceReportFieldsPage({
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!isSmallScreenWidth || reportFieldsList.length === 0 || isLoading) && getHeaderText()}
+                {(!isSmallScreenWidth || reportFieldsSections[0].data.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -166,7 +172,7 @@ function WorkspaceReportFieldsPage({
                 {!shouldShowEmptyState && !isLoading && (
                     <SelectionList
                         canSelectMultiple
-                        sections={[{data: reportFieldsList, isDisabled: false}]}
+                        sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
                         onSelectRow={navigateToReportFieldSettings}
                         onSelectAll={() => {}}

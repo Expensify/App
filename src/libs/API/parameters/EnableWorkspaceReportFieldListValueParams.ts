@@ -1,4 +1,4 @@
-type CreateWorkspaceReportFieldParams = {
+type EnableWorkspaceReportFieldListValueParams = {
     policyID: string;
     /**
      * Stringified JSON object with type of following structure:
@@ -7,4 +7,4 @@ type CreateWorkspaceReportFieldParams = {
     reportFields: string;
 };
 
-export default CreateWorkspaceReportFieldParams;
+export default EnableWorkspaceReportFieldListValueParams;
