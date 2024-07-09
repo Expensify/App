@@ -243,6 +243,4 @@ export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspac
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
-export type {default as UpdateSageIntacctMapping} from './UpdateSageIntacctMapping';
-export type {default as UpdateSageIntacctImportBooleanValues} from './UpdateSageIntacctImportBooleanValues';
-export type {default as UpdateSageIntacctUserDimension} from './UpdateSageIntacctUserDimension';
+export type {default as UpdateSageIntacctGenericParams} from './UpdateSageIntacctGenericParams';
