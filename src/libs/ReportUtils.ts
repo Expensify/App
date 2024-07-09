@@ -5385,7 +5385,7 @@ function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
     if (ReportActionsUtils.isCreatedAction(lastVisibleAction) && adminAccounts.length <= 1) {
         return false;
     }
-    return true;    
+    return true;
 }
 
 /**
@@ -5495,7 +5495,7 @@ function shouldReportBeInOptionList({
     }
 
     // Show #admins room only when it has some value to the user.
-    if(isAdminRoom(report) && !shouldAdminsRoomBeVisible(report)) {
+    if (isAdminRoom(report) && !shouldAdminsRoomBeVisible(report)) {
         return false;
     }
 
