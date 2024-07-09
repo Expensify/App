@@ -619,7 +619,6 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
 
 function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-
     return vendors.map(({id, value}) => ({
         value: id,
         text: value,
@@ -640,13 +639,11 @@ function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): stri
 
 function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
     const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-    const isMatchFound = creditCards?.some(({name}) => name === selectedAccount);
-
     return creditCards.map(({name}) => ({
         value: name,
         text: name,
         keyForList: name,
-        isSelected: isMatchFound && name === selectedAccount,
+        isSelected: name === selectedAccount,
     }));
 }
 
