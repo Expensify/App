@@ -27,9 +27,15 @@ type MoneyReportViewProps = {
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
+
+    /** Indicates whether the iou report is a combine report */
+    isCombineReport?: boolean;
+
+    /** Indicates whether the total should be shown */
+    shouldShowTotal?: boolean;
 };
 
-function MoneyReportView({report, policy}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, isCombineReport = false, shouldShowTotal = true}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -39,7 +45,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
-    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
+    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
     const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
@@ -57,12 +63,16 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
+    const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
+    const isOnlyTitleFieldEnable = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
+
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
             {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                 <>
                     {ReportUtils.reportFieldsEnabled(report) &&
+                        (!isCombineReport || !isOnlyTitleFieldEnable) &&
                         sortedPolicyReportFields.map((reportField) => {
                             if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
                                 return null;
@@ -98,32 +108,35 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                                 </OfflineWithFeedback>
                             );
                         })}
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('common.total')}
-                            </Text>
+                    {shouldShowTotal && (
+                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+                            <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('common.total')}
+                                </Text>
+                            </View>
+                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                {isSettled && !isPartiallyPaid && (
+                                    <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={theme.success}
+                                        />
+                                    </View>
+                                )}
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                                >
+                                    {formattedTotalAmount}
+                                </Text>
+                            </View>
                         </View>
-                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                            {isSettled && !isPartiallyPaid && (
-                                <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.success}
-                                    />
-                                </View>
-                            )}
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
-                            >
-                                {formattedTotalAmount}
-                            </Text>
-                        </View>
-                    </View>
+                    )}
+
                     {!!shouldShowBreakdown && (
                         <>
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>

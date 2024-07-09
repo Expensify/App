@@ -149,20 +149,18 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <OfflineWithFeedback pendingAction={action.pendingAction}>
                 {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                     <>
-                        {!!transaction && transactionCurrency !== report.currency && (
-                            <>
-                                <MoneyReportView
-                                    report={report}
-                                    policy={policy}
-                                />
-                                {renderThreadDivider}
-                            </>
-                        )}
+                        <MoneyReportView
+                            report={report}
+                            policy={policy}
+                            isCombineReport
+                            shouldShowTotal={transactionCurrency !== report.currency}
+                        />
+                        {renderThreadDivider}
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <View>
                                 <MoneyRequestView
                                     report={transactionThreadReport}
-                                    shouldShowAnimatedBackground={transactionCurrency === report.currency}
+                                    shouldShowAnimatedBackground={false}
                                 />
                                 {renderThreadDivider}
                             </View>
