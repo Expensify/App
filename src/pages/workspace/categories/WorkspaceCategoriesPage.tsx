@@ -255,7 +255,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
-    const isLoading = !isOffline && policyCategories === null;
+    const isLoading = !isOffline && policyCategories === undefined;
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
