@@ -42,7 +42,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, []);
 
     return (

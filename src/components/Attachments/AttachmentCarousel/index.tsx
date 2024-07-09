@@ -115,7 +115,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
         scrollRef.current.scrollToIndex({index: page, animated: false});
         // The hook is not supposed to run on page change, so we keep the page out of the dependencies
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [cellWidth]);
 
     /** Updates the page state when the user navigates between attachments */
@@ -135,7 +135,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 return;
             }
 
-            const item: Attachment = entry.item;
+            const item = entry.item as Attachment;
             if (entry.index !== null) {
                 setPage(entry.index);
                 setActiveSource(item.source);
