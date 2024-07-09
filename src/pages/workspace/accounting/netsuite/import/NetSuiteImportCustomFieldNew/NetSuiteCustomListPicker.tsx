@@ -10,10 +10,10 @@ import NetSuiteCustomListSelectorModal from './NetSuiteCustomListSelectorModal';
 type NetSuiteCustomListPickerProps = {
     /** Current value of the selected item */
     value?: string;
-    
+
     /** Current connected policy */
     policy?: Policy;
-    
+
     /** Callback when the list item is selected */
     onInputChange?: (value: string, key?: string) => void;
 

@@ -32,9 +32,16 @@ type NetSuiteImportCustomFieldPageProps = WithPolicyConnectionsProps & {
 };
 
 type HelpLinkComponentProps = {
+    /** Whether the record is of type custom segment or list */
     importCustomField: ImportCustomFieldsKeys;
+
+    /** Callback to localize content */
     translate: LocaleContextProps['translate'];
+
+    /** Theme styles to apply to the component */
     styles: ThemeStyles;
+
+    /** Text alignment style for the Text component   */
     alignmentStyle: StyleProp<TextStyle>;
 };
 
