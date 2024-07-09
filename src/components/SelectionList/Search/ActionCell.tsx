@@ -24,6 +24,9 @@ function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isL
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    if (!isLargeScreenWidth) {
+        return null;
+    }
 
     if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
