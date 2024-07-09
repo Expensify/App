@@ -11,11 +11,9 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {renamePolicyTax, validateTaxName} from '@libs/actions/TaxRate';
+import {setPolicyTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,22 +35,22 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const submit = () => {
         const taxName = name.trim();
         // Do not call the API if the edited tax name is the same as the current tag name
-        if (currentTaxRate?.name !== taxName) {
+        if (currentTaxCode?.name !== taxName) {
             renamePolicyTax(policyID, taxID, taxName);
         }
         Navigation.goBack();
     };
 
-    const editTaxCode = useCallback(
+    const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             const newTaxCode = values.taxCode.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentTaxCode !== newTaxCode) {
-                Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+                setPolicyTaxCode(route.params.policyID, currentTaxCode, newTaxCode);
             }
             Navigation.goBack();
         },
-        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
+        [currentTaxCode, route.params.policyID],
     );
 
     const validate = useCallback(
@@ -92,7 +90,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
-                    onSubmit={submit}
+                    onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
                 >
@@ -105,7 +103,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
                             value={name}
                             maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                            onChangeText={setName}
                             ref={inputCallbackRef}
                         />
                     </View>
