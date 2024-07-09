@@ -28,10 +28,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             setShowModal(true);
             setHasError(status === RESULTS.BLOCKED);
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
-    const errorHandler = (cb: () => void) => () => {
+    const handledBlockedPermission = (cb: () => void) => () => {
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
             setShowModal(false);
@@ -42,7 +42,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         cb();
     };
 
-    const onConfirm = errorHandler(() => {
+    const grantLocationPermission = handledBlockedPermission(() => {
         requestLocationPermission().then((status) => {
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 onGrant();
@@ -57,7 +57,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         });
     });
 
-    const onCancel = () => {
+    const skipLocationPermission = () => {
         onDeny(RESULTS.DENIED);
         setShowModal(false);
         setHasError(false);
@@ -66,8 +66,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     return (
         <ConfirmModal
             isVisible={showModal}
-            onConfirm={onConfirm}
-            onCancel={onCancel}
+            onConfirm={grantLocationPermission}
+            onCancel={skipLocationPermission}
             confirmText={hasError ? translate('common.settings') : translate('common.continue')}
             cancelText={translate('common.notNow')}
             prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
