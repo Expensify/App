@@ -50,6 +50,8 @@ function ConnectToQuickbooksOnlineButton({
                         setIsDisconnectModalOpen(true);
                         return;
                     }
+                    // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+                    PolicyAction.enablePolicyTaxes(policyID, false);
                     setWebViewOpen(true);
                 }}
                 text={translate('workspace.accounting.setup')}
