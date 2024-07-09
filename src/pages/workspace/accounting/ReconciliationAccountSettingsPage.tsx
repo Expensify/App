@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +35,9 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             isSelected: bankAccount.accountData?.bankAccountID === selectedBankAccount?.accountData?.bankAccountID,
         }));
         return [{data}];
-    }, [bankAccountList]);
+    }, [bankAccountList, selectedBankAccount]);
 
-    const selectBankAccount = (bankAccount: ListItem) => {
+    const selectBankAccount = () => {
         // TODO: add API call when it's implemented https://github.com/Expensify/Expensify/issues/407836
         // Navigation.goBack();
     };
@@ -50,7 +49,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[styles.pb2]}
+            contentContainerStyle={styles.pb2}
             connectionName={connection}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
