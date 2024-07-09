@@ -21,6 +21,9 @@ import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
+import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
+import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
+import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
@@ -49,7 +52,10 @@ type ValidInputs =
     | typeof AmountPicker
     | typeof TextPicker
     | typeof AddPlaidBankAccount
-    | typeof EmojiPickerButtonDropdown;
+    | typeof EmojiPickerButtonDropdown
+    | typeof NetSuiteCustomListPicker
+    | typeof NetSuiteCustomFieldMappingPicker
+    | typeof NetSuiteMenuWithTopDescriptionForm;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
 type ValueTypeMap = {
@@ -127,6 +133,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
     scrollContextEnabled?: boolean;
+
+    /** Whether to use ScrollView */
+    shouldUseScrollView?: boolean;
 
     /** Container styles */
     style?: StyleProp<ViewStyle>;
