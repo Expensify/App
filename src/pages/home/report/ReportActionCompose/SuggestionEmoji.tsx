@@ -150,7 +150,7 @@ function SuggestionEmoji(
      */
     const calculateEmojiSuggestion = useCallback(
         (selectionStart?: number, selectionEnd?: number) => {
-            if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !value) {
+            if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !value || (selectionStart === 0 && selectionEnd === 0)) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -178,7 +178,7 @@ function SuggestionEmoji(
     );
 
     useEffect(() => {
-        if (!isComposerFocused || (selection.start === 0 && selection.end === 0) || selection.start !== selection.end) {
+        if (!isComposerFocused) {
             return;
         }
 
