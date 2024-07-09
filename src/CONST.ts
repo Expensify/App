@@ -2130,6 +2130,10 @@ const CONST = {
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
         },
+        CARD_TYPE: {
+            PHYSICAL: 'physical',
+            VIRTUAL: 'virtual',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
