@@ -69,6 +69,7 @@ function AttachmentCarouselPager(
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
 
+        // eslint-disable-next-line react-compiler/react-compiler
         activePage.value = e.position;
         isPagerScrolling.value = e.offset !== 0;
     }, []);
