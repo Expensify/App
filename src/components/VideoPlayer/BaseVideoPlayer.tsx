@@ -24,6 +24,7 @@ import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
 import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
+import useVideoPlayerControls from './useVideoPlayerControls';
 
 function BaseVideoPlayer({
     url,
@@ -84,6 +85,7 @@ function BaseVideoPlayer({
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {shouldShowVideoPlayerControls, setShouldShowVideoPlayerControls} = useVideoPlayerControls();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -312,6 +314,7 @@ function BaseVideoPlayer({
                                         return;
                                     }
                                     togglePlayCurrentVideo();
+                                    setShouldShowVideoPlayerControls(true);
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
                             >
@@ -341,34 +344,34 @@ function BaseVideoPlayer({
                                             videoPlayerElementParentRef.current = el;
                                         }}
                                     >
-                                        <Video
-                                            ref={videoPlayerRef}
-                                            style={[styles.w100, styles.h100, videoPlayerStyle]}
-                                            videoStyle={[styles.w100, styles.h100, videoStyle]}
-                                            source={{
-                                                // if video is loading and is offline, we want to change uri to "" to
-                                                // reset the video player after connection is back
-                                                uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
-                                            }}
-                                            shouldPlay={shouldPlay}
-                                            useNativeControls={false}
-                                            resizeMode={resizeMode as ResizeMode}
-                                            isLooping={isLooping}
-                                            onReadyForDisplay={(e) => {
-                                                if (isCurrentlyURLSet && !isUploading) {
-                                                    playVideo();
-                                                }
-                                                onVideoLoaded?.(e);
-                                            }}
-                                            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-                                            onFullscreenUpdate={handleFullscreenUpdate}
-                                        />
+                                            <Video
+                                                ref={videoPlayerRef}
+                                                style={[styles.w100, styles.h100, videoPlayerStyle]}
+                                                videoStyle={[styles.w100, styles.h100, videoStyle]}
+                                                source={{
+                                                    // if video is loading and is offline, we want to change uri to "" to
+                                                    // reset the video player after connection is back
+                                                    uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
+                                                }}
+                                                shouldPlay={shouldPlay}
+                                                useNativeControls={false}
+                                                resizeMode={resizeMode as ResizeMode}
+                                                isLooping={isLooping}
+                                                onReadyForDisplay={(e) => {
+                                                    if (isCurrentlyURLSet && !isUploading) {
+                                                        playVideo();
+                                                    }
+                                                    onVideoLoaded?.(e);
+                                                }}
+                                                onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                                                onFullscreenUpdate={handleFullscreenUpdate}
+                                            />
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && shouldShowVideoPlayerControls && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}

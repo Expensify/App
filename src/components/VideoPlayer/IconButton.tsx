@@ -5,6 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useVideoPlayerControls from './useVideoPlayerControls';
 
 type IconButtonProps = {
     src: IconAsset;
@@ -19,6 +20,8 @@ type IconButtonProps = {
 
 function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
     const styles = useThemeStyles();
+    const {cancelAutoHideVideoPlayerControls} = useVideoPlayerControls();
+
     return (
         <Tooltip
             text={tooltipText}
@@ -26,7 +29,10 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
         >
             <PressableWithFeedback
                 accessibilityLabel={tooltipText}
-                onPress={onPress}
+                onPress={(event)=> {
+                    onPress?.(event);
+                    cancelAutoHideVideoPlayerControls();
+                }}
                 style={[styles.videoIconButton, style]}
                 hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
             >
