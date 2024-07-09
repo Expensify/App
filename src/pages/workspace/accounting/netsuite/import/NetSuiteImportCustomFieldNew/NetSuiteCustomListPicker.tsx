@@ -8,10 +8,18 @@ import type {Policy} from '@src/types/onyx';
 import NetSuiteCustomListSelectorModal from './NetSuiteCustomListSelectorModal';
 
 type NetSuiteCustomListPickerProps = {
+    /** Current value of the selected item */
     value?: string;
+    
+    /** Current connected policy */
     policy?: Policy;
+    
+    /** Callback when the list item is selected */
     onInputChange?: (value: string, key?: string) => void;
+
+    /** Id of the internalID input to be updated on input change */
     internalIDInputID?: string;
+
     /** Form Error description */
     errorText?: string;
 };
