@@ -145,7 +145,6 @@ function NetSuiteImportCustomFieldPage({
                 <Button
                     success
                     large
-                    isDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
                     onPress={() => {
                         if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS) {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(policyID));

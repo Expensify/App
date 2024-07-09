@@ -87,7 +87,7 @@ function NetSuiteImportCustomFieldView({
                     onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
                 >
                     {fieldList.map((fieldName) => {
-                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
+                        const isEditable = PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}
@@ -109,7 +109,6 @@ function NetSuiteImportCustomFieldView({
                     <MenuItem
                         icon={Expensicons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
                         onPress={() => setIsRemoveModalOpen(true)}
                     />
                 </OfflineWithFeedback>
