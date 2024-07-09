@@ -1822,6 +1822,7 @@ const CONST = {
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',
+            CONTROL: 'control',
         },
     },
 
