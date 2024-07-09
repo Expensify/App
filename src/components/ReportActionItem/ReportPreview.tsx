@@ -121,7 +121,7 @@ function ReportPreview({
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
@@ -454,6 +454,7 @@ function ReportPreview({
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={iouReport}
+                    transactionCount={numberOfRequests}
                 />
             )}
         </OfflineWithFeedback>
