@@ -232,6 +232,7 @@ function ReportActionsList({
     }));
 
     useEffect(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
 
@@ -284,7 +285,7 @@ function ReportActionsList({
         cacheUnreadMarkers.delete(report.reportID);
         lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         setCurrentUnreadMarker(null);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
 
     useEffect(() => {
@@ -297,7 +298,7 @@ function ReportActionsList({
         lastReadTimeRef.current = report.lastReadTime;
         setMessageManuallyMarkedUnread(0);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastReadTime, report.reportID]);
 
     useEffect(() => {
@@ -339,7 +340,7 @@ function ReportActionsList({
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const scrollToBottomForCurrentUserAction = useCallback(
@@ -381,7 +382,7 @@ function ReportActionsList({
 
         return cleanup;
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     /**
@@ -553,7 +554,7 @@ function ReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
