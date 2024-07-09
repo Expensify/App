@@ -48,7 +48,8 @@ function NetSuiteImportCustomFieldView({
 
     const removeRecord = useCallback(() => {
         if (customRecord) {
-            const filteredRecords = allRecords.filter((record) => record.internalID !== customRecord?.internalID);
+            // We allow multiple custom list records with the same internalID. Hence it is safe to remove by index.
+            const filteredRecords = allRecords.splice(valueIndex, 1);
             if (PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)) {
                 updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
             } else {
@@ -56,7 +57,7 @@ function NetSuiteImportCustomFieldView({
             }
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, customRecord, importCustomField, policyID]);
+    }, [allRecords, customRecord, importCustomField, policyID, valueIndex]);
 
     return (
         <ConnectionLayout
