@@ -35,13 +35,15 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             const newTaxCode = values.taxCode.trim();
-            // Do not call the API if the edited category name is the same as the current category name
-            if (currentTaxCode !== newTaxCode) {
-                setPolicyTaxCode(route.params.policyID, currentTaxCode, newTaxCode);
+            if (currentTaxCode === newTaxCode) {
+                Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
+                return;
             }
-            Navigation.goBack();
+
+            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode);
+            Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, newTaxCode));
         },
-        [currentTaxCode, route.params.policyID],
+        [currentTaxCode, policyID],
     );
 
     const validate = useCallback(
