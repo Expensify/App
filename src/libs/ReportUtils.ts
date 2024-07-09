@@ -5302,16 +5302,6 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
         return false;
     }
 
-    // We show #admin rooms when a) More than one admin exists or b) There exists policy audit log for review.
-    if (isAdminRoom(report)) {
-        const accountIDs = Object.entries(report?.participants ?? {}).map(([accountID]) => Number(accountID));
-        const adminAccounts = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs).filter((login) => !PolicyUtils.isExpensifyTeam(login));
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '');
-        if (ReportActionsUtils.isCreatedAction(lastVisibleAction) && adminAccounts.length <= 1) {
-            return false;
-        }
-    }
-
     return true;
 }
 
@@ -5382,6 +5372,20 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
     return transactions.some((transaction) => TransactionUtils.hasWarningTypeViolation(transaction.transactionID, transactionViolations));
+}
+
+/**
+ * Checks if #admins room chan be shown
+ * We show #admin rooms when a) More than one admin exists or b) There exists policy audit log for review.
+ */
+function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
+    const accountIDs = Object.entries(report?.participants ?? {}).map(([accountID]) => Number(accountID));
+    const adminAccounts = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs).filter((login) => !PolicyUtils.isExpensifyTeam(login));
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '');
+    if (ReportActionsUtils.isCreatedAction(lastVisibleAction) && adminAccounts.length <= 1) {
+        return false;
+    }
+    return true;    
 }
 
 /**
@@ -5487,6 +5491,11 @@ function shouldReportBeInOptionList({
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && canHideReport && isEmptyChat) {
+        return false;
+    }
+
+    // Show #admins room only when it has some value to the user.
+    if(isAdminRoom(report) && !shouldAdminsRoomBeVisible(report)) {
         return false;
     }
 
