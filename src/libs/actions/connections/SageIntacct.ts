@@ -89,13 +89,7 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
     return {optimisticData, failureData, successData};
 }
 
-function prepareOnyxDataForSyncUpdate(
-    policyID: string,
-    settingName: keyof Connections['intacct']['config']['sync'] | keyof Connections['intacct']['config']['autoSync'],
-    settingValue: string | boolean | null,
-    auto = false,
-) {
-    const sync = auto ? CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC : CONST.SAGE_INTACCT_CONFIG.SYNC;
+function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['sync'], settingValue: string | boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -104,7 +98,77 @@ function prepareOnyxDataForSyncUpdate(
                 connections: {
                     intacct: {
                         config: {
-                            [sync]: {
+                            sync: {
+                                [settingName]: settingValue,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
+}
+
+function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['autoSync'], settingValue: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            autoSync: {
                                 [settingName]: settingValue,
                             },
                             pendingFields: {
@@ -332,7 +396,7 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Con
 }
 
 function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, enabled, true);
+    const {optimisticData, failureData, successData} = prepareOnyxDataForAutoSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, enabled);
     const parameters = {
         policyID,
         enabled,
