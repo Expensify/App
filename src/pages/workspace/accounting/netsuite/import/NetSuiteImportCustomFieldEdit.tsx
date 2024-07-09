@@ -113,6 +113,7 @@ function NetSuiteImportCustomFieldEdit({
                     submitButtonText={translate('common.save')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    isButtonDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -125,7 +126,7 @@ function NetSuiteImportCustomFieldEdit({
                     />
                 </FormProvider>
             ),
-        [customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
+        [config?.syncOptions?.pendingFields, customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
     );
 
     const renderSelection = useMemo(
@@ -157,7 +158,7 @@ function NetSuiteImportCustomFieldEdit({
             contentContainerStyle={[styles.pb2, styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!customRecord || !!config?.syncOptions?.pendingFields?.[importCustomField] || !PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName)}
+            shouldBeBlocked={!customRecord || !PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName)}
             shouldUseScrollView={false}
         >
             {renderMap[fieldName] || renderForm}
