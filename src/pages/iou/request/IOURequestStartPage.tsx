@@ -101,7 +101,7 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
+    const shouldDisplayDistanceRequest = !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
