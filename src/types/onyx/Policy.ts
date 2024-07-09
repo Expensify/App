@@ -958,11 +958,31 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
 /**
  * Connection data for Sage Intacct
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-type SageIntacctConnectionData = {};
+type SageIntacctConnectionData = {
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+};
 
 /**
  * Connection config for Sage Intacct
@@ -979,6 +999,36 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Sage Intacct userID */
         userID: string;
     };
+
+    /** Sage Intacct export configs */
+    export: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Export date type */
+        exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+        /** The e-mail of the exporter */
+        exporter: string;
+
+        /** Defines how non-reimbursable expenses are exported */
+        nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** Account that receives the non-reimbursable expenses */
+        nonReimbursableAccount: string;
+
+        /** Default vendor used for credit card transactions of non-reimbursable bill */
+        nonReimbursableCreditCardChargeDefaultVendor: string;
+
+        /** Default vendor of non-reimbursable bill */
+        nonReimbursableVendor: string;
+
+        /** Defines how reimbursable expenses are exported */
+        reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** Default vendor of reimbursable bill */
+        reimbursableExpenseReportDefaultVendor: string;
+
+        /** Collection of mapping field errors, which will be triggered when update action fails  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;
@@ -1065,7 +1115,7 @@ type PolicyReportField = {
     deletable: boolean;
 
     /** Value of the field */
-    value: string | null;
+    value?: string | null;
 
     /** Options to select from if field is of type dropdown */
     values: string[];
@@ -1376,4 +1426,5 @@ export type {
     NetSuiteAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
+    SageIntacctDataElementWithValue,
 };

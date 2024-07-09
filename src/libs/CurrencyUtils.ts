@@ -97,11 +97,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string 
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = getCurrencyDecimals(currency);
+    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
     return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
 }
 
