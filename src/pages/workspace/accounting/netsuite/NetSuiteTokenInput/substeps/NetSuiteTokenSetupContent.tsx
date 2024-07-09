@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -8,10 +7,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-
-const parser = new ExpensiMark();
 
 function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     const styles = useThemeStyles();
@@ -27,7 +25,7 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
             <View style={[styles.flex1, styles.mb3, styles.ph5]}>
-                <RenderHTML html={`<comment><muted-text>${parser.replace(translate(description))}</muted-text></comment>`} />
+                <RenderHTML html={`<comment><muted-text>${Parser.replace(translate(description))}</muted-text></comment>`} />
             </View>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
