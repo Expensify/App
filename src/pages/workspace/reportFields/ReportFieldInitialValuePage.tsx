@@ -46,21 +46,13 @@ function ReportFieldInitialValuePage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            if (hasAccountingConnections) {
-                return;
-            }
-
             ReportField.updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
             Navigation.goBack();
         },
-        [hasAccountingConnections, policyID, reportFieldID],
+        [policyID, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {
-        if (hasAccountingConnections) {
-            return;
-        }
-
         ReportField.updateReportFieldInitialValue(policyID, reportFieldID, value);
         Navigation.goBack();
     };
