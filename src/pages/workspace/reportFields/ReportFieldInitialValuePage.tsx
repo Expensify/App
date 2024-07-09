@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -37,6 +38,7 @@ function ReportFieldInitialValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
 
@@ -44,13 +46,21 @@ function ReportFieldInitialValuePage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+            if (hasAccountingConnections) {
+                return;
+            }
+
             ReportField.updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
             Navigation.goBack();
         },
-        [policyID, reportFieldID],
+        [hasAccountingConnections, policyID, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {
+        if (hasAccountingConnections) {
+            return;
+        }
+
         ReportField.updateReportFieldInitialValue(policyID, reportFieldID, value);
         Navigation.goBack();
     };
@@ -82,7 +92,7 @@ function ReportFieldInitialValuePage({
         [availableListValuesLength, policy?.fieldList, translate],
     );
 
-    if (!reportField) {
+    if (!reportField || hasAccountingConnections) {
         return <NotFoundPage />;
     }
 

@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,6 +36,7 @@ function ReportFieldSettingsPage({
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
@@ -46,6 +48,10 @@ function ReportFieldSettingsPage({
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     const deleteReportFieldAndHideModal = () => {
+        if (hasAccountingConnections) {
+            return;
+        }
+
         ReportField.deleteReportFields(policyID, [reportFieldKey]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
@@ -85,8 +91,8 @@ function ReportFieldSettingsPage({
                     titleStyle={styles.flex1}
                     title={WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField)}
                     description={translate('common.initialValue')}
-                    shouldShowRightIcon={!isDateFieldType}
-                    interactive={!isDateFieldType}
+                    shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
+                    interactive={!isDateFieldType && !hasAccountingConnections}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                 />
                 {isListFieldType && (
@@ -98,16 +104,18 @@ function ReportFieldSettingsPage({
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID, reportFieldID))}
                     />
                 )}
-                <View style={styles.flexGrow1}>
-                    <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setIsDeleteModalVisible(true)}
-                    />
-                </View>
+                {!hasAccountingConnections && (
+                    <View style={styles.flexGrow1}>
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteModalVisible(true)}
+                        />
+                    </View>
+                )}
                 <ConfirmModal
                     title={translate('workspace.reportFields.delete')}
-                    isVisible={isDeleteModalVisible}
+                    isVisible={isDeleteModalVisible && !hasAccountingConnections}
                     onConfirm={deleteReportFieldAndHideModal}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     shouldSetModalVisibility={false}
