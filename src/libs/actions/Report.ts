@@ -3622,6 +3622,16 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         resolution,
     };
 
+    const optimisticReportActions = {
+        [reportAction.reportActionID]: {
+            originalMessage: {
+                resolution,
+            },
+        },
+    };
+
+    const reportUpdateDataWithPreviousLastMessage = ReportUtils.calcReportLastMessage(reportId, optimisticReportActions as ReportActions);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3634,6 +3644,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            value: reportUpdateDataWithPreviousLastMessage,
         },
     ];
 
@@ -3669,31 +3684,15 @@ function resolveActionableReportMentionWhisper(
         return;
     }
 
-    let optimisticReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
-    const optimisticReportActions: NullishDeep<ReportActions> = {
+    const optimisticReportActions = {
         [reportAction.reportActionID]: {
             originalMessage: {
                 resolution,
             },
         },
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(reportId, optimisticReportActions as ReportActions);
 
-    if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportId, optimisticReportActions as ReportActions);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
-        optimisticReport = {
-            lastMessageTranslationKey,
-            lastMessageText,
-            lastVisibleActionCreated,
-            lastActorAccountID,
-        };
-    }
+    const reportUpdateDataWithPreviousLastMessage = ReportUtils.calcReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3705,12 +3704,12 @@ function resolveActionableReportMentionWhisper(
                         resolution,
                     },
                 },
-            },
+            } as ReportActions,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
-            value: optimisticReport,
+            value: reportUpdateDataWithPreviousLastMessage,
         },
     ];
 
