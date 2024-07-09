@@ -161,15 +161,20 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-            const value = {...data[key]};
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
+            const reportItem = {...data[key]};
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
+            const isExpenseReport = reportItem.type === CONST.REPORT.TYPE.EXPENSE;
+
+            const to = isExpenseReport
+            ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
+            : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
 
             reportIDToTransactions[reportKey] = {
-                ...value,
-                keyForList: value.reportID,
-                from: data.personalDetailsList?.[value.accountID],
-                to: data.personalDetailsList?.[value.managerID],
+                ...reportItem,
+                keyForList: reportItem.reportID,
+                from: data.personalDetailsList?.[reportItem.accountID],
+                to,
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {

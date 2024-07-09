@@ -108,13 +108,16 @@ type SearchReport = {
     currency?: string;
 
     /** The report type */
-    type?: string;
+    type?: ValueOf();
 
     /** The accountID of the report manager */
     managerID?: number;
 
     /** The accountID of the user who created the report  */
     accountID?: number;
+
+    /** The policyID of the report */
+    policyID?: ValueOf<typeof CONST.REPORT.TYPE>;
 
     /** The date the report was created */
     created?: string;
