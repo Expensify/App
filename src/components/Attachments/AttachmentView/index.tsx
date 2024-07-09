@@ -10,7 +10,6 @@ import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -29,6 +28,7 @@ import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
+import HighResolutionInfo from './HighResolutionInfo';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -228,19 +228,6 @@ function AttachmentView({
             );
         }
         let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
-
-        const HighResolutionInfo = ({isUploaded}: {isUploaded: boolean}) => (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, !isUploaded ? styles.mbn1 : {}]}>
-                <Icon
-                    src={Expensicons.Info}
-                    height={variables.iconSizeExtraSmall}
-                    width={variables.iconSizeExtraSmall}
-                    fill={theme.icon}
-                    additionalStyles={styles.p1}
-                />
-                <Text style={[styles.textLabelSupporting]}>{isUploaded ? translate('attachmentPicker.attachmentImageResized') : translate('attachmentPicker.attachmentImageTooLarge')}</Text>
-            </View>
-        );
 
         if (isHighResolution) {
             if (!isUploaded) {
