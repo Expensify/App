@@ -1,20 +1,20 @@
-import type { BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList } from '@libs/Navigation/types';
-import { isCentralPaneName } from '@libs/NavigationUtils';
-import { extractPolicyIDFromPath, getPathWithoutPolicyID } from '@libs/PolicyUtils';
-import { isAnonymousUser } from '@libs/actions/Session';
+import type {NavigationState, PartialState, Route} from '@react-navigation/native';
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type {TupleToUnion} from 'type-fest';
+import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type { NavigationState, PartialState, Route } from '@react-navigation/native';
-import { findFocusedRoute, getStateFromPath } from '@react-navigation/native';
+import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import {isCentralPaneName} from '@libs/NavigationUtils';
+import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import * as ReportConnection from '@libs/ReportConnection';
-import type { TupleToUnion } from 'type-fest';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
-import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import config from './config';
 import extractPolicyIDsFromState from './extractPolicyIDsFromState';
+import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -381,5 +381,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
 };
 
 export default getAdaptedStateFromPath;
-export type { Metainfo };
-
+export type {Metainfo};
