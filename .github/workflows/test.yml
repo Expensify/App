@@ -43,18 +43,6 @@ jobs:
       - name: Jest tests
         run: NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
-  gitTests:
-    if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
-    name: Run Git CI tests
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/composite/setupNode
-
-      - name: Run Git CI tests
-        run: RUN_GIT_TESTS=true NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npx jest --silent tests/unit/CIGitLogicTest.ts
-
   storybookTests:
     if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest

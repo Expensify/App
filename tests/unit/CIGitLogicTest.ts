@@ -255,14 +255,6 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
     Log.success(`Verified PRs merged between ${from} and ${to} are [${expected.join(',')}]`);
 }
 
-function describeTestSuite(testName: string, callback: () => void) {
-    if (process.env.RUN_GIT_TESTS) {
-        describe(testName, callback);
-    } else {
-        describe.skip(testName, callback);
-    }
-}
-
 /*
  * These tests are different from most jest tests. They create a dummy git repo and simulate the GitHub Actions CI environment
  * and ensure that deploy checklists, comments, and releases are created correctly and completely,
@@ -274,7 +266,7 @@ function describeTestSuite(testName: string, callback: () => void) {
  */
 
 let startingDir: string;
-describeTestSuite('CIGitLogic', () => {
+describe('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
         startingDir = process.cwd();
