@@ -31,6 +31,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
+    const isExported = ReportUtils.isExported(report);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
         const optionTemplate = {
@@ -89,7 +90,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 onPress={(_, value) => {
-                    if (ReportUtils.isExported(report)) {
+                    if (isExported) {
                         setModalStatus(value);
                         return;
                     }

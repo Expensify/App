@@ -408,6 +408,7 @@ const ONYXKEYS = {
         REPORT_METADATA: 'reportMetadata_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_PAGES: 'reportActionsPages_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
@@ -564,6 +565,8 @@ const ONYXKEYS = {
         SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
         NETSUITE_TOKEN_INPUT_FORM: 'netsuiteTokenInputForm',
         NETSUITE_TOKEN_INPUT_FORM_DRAFT: 'netsuiteTokenInputFormDraft',
+        NETSUITE_CUSTOM_FORM_ID_FORM: 'netsuiteCustomFormIDForm',
+        NETSUITE_CUSTOM_FORM_ID_FORM_DRAFT: 'netsuiteCustomFormIDFormDraft',
     },
 } as const;
 
@@ -628,6 +631,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
     [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM]: FormTypes.NetSuiteTokenInputForm;
+    [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM]: FormTypes.NetSuiteCustomFormIDForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -652,6 +656,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES]: OnyxTypes.Pages;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
@@ -815,6 +820,7 @@ type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
 
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
+type OnyxPagesKey = typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */
@@ -822,4 +828,4 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxValueKey, OnyxValues};
+export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxPagesKey, OnyxValueKey, OnyxValues};

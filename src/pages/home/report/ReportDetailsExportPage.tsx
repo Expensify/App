@@ -35,6 +35,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const connectionName = route?.params?.connectionName;
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
+    const isExported = ReportUtils.isExported(report);
 
     const confirmExport = useCallback(
         (type = modalStatus) => {
@@ -108,7 +109,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 title="common.export"
                 connectionName={connectionName}
                 onSelectRow={({value}) => {
-                    if (ReportUtils.isExported(report)) {
+                    if (isExported) {
                         setModalStatus(value);
                     } else {
                         confirmExport(value);
