@@ -390,7 +390,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
 }
 
 /**
- * Adds a new list value to the workspace report fields.
+ * Adds a new option to the list type report field on a workspace.
  */
 function addReportFieldListValue(policyID: string, reportFieldID: string, valueName: string) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
