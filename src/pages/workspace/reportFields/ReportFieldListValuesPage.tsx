@@ -19,7 +19,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -106,7 +106,7 @@ function ReportFieldListValuesPage({
             return acc;
         }, []);
 
-        ReportFields.deleteReportFieldsListValue(valuesToDelete);
+        ReportField.deleteReportFieldsListValue(valuesToDelete);
         setDeleteValuesConfirmModalVisible(false);
     };
 
@@ -159,7 +159,7 @@ function ReportFieldListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedValues({});
-                        ReportFields.setReportFieldsListValueEnabled(valuesToDisable, false);
+                        ReportField.setReportFieldsListValueEnabled(valuesToDisable, false);
                     },
                 });
             }
@@ -185,7 +185,7 @@ function ReportFieldListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedValues({});
-                        ReportFields.setReportFieldsListValueEnabled(valuesToEnable, true);
+                        ReportField.setReportFieldsListValueEnabled(valuesToEnable, true);
                     },
                 });
             }
