@@ -319,19 +319,19 @@ function ReportScreen({
     const isEmptyChat = useMemo(() => ReportUtils.isEmptyReport(report), [report]);
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const indexOfLinkedMessage = useMemo(
-        (): number => sortedAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
-        [sortedAllReportActions, reportActionIDFromRoute],
+        (): number => reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
+        [reportActions, reportActionIDFromRoute],
     );
 
     const isPendingActionExist = !!reportActions.at(0)?.pendingAction;
     const doesCreatedActionExists = useCallback(() => !!sortedAllReportActions.findLast((action) => ReportActionsUtils.isCreatedAction(action)), [sortedAllReportActions]);
     const isLinkedMessageAvailable = useMemo(() => indexOfLinkedMessage > -1, [indexOfLinkedMessage]);
 
-    // The linked report actions should have at least minimum amount (15) messages (count as 1 page) above it, to fill the screen.
-    // If it is too much (same as web pagination size/50) and there is no cached messages on the report,
-    // the OpenReport will be called each time user scroll up report a bit, click on reportpreview then go back
+    // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
+    // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
+    // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady =
-        isLinkedMessageAvailable && (sortedAllReportActions.length - indexOfLinkedMessage > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || doesCreatedActionExists());
+        isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || doesCreatedActionExists());
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
@@ -424,7 +424,6 @@ function ReportScreen({
     const isInitialPageReady = isOffline
         ? reportActions.length > 0
         : reportActions.length > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
-    const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty());
 
     /**
      * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
@@ -435,11 +434,11 @@ function ReportScreen({
     const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
-        !isInitialPageReady ||
+        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions) ||
+        (!isLinkingToMessage && !isInitialPageReady) ||
         isLoadingReportOnyx ||
         !isCurrentReportLoadedFromOnyx ||
-        isLoading ||
-        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions);
+        isLoading;
 
     const currentReportIDFormRoute = route.params?.reportID;
 
@@ -563,8 +562,8 @@ function ReportScreen({
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReportIfNeeded();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLinkedMessagePageReady]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [route, isLinkedMessagePageReady, isLoadingReportOnyx, reportActionIDFromRoute]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
@@ -821,7 +820,6 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
-                                        reportActionIDFromRoute={reportActionIDFromRoute}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
