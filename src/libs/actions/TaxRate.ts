@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
+// eslint-disable-next-line import/no-named-default
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
