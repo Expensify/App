@@ -44,6 +44,10 @@ function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
+function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+}
+
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
 }
@@ -74,6 +78,7 @@ export default {
     canUseWorkflowsDelayedSubmission,
     canUseSpotnanaTravel,
     canUseNetSuiteIntegration,
+    canUseSageIntacctIntegration,
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,

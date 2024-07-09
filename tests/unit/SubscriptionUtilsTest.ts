@@ -8,8 +8,6 @@ import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} f
 import createRandomPolicy from '../utils/collections/policies';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
-    name: 'owner@email.com',
-    permissions: 'read',
     value: 0,
 };
 
@@ -179,6 +177,7 @@ describe('SubscriptionUtils', () => {
         afterEach(async () => {
             await Onyx.clear();
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: null,
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
@@ -244,36 +243,71 @@ describe('SubscriptionUtils', () => {
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
         });
 
-        it('should return false if the user is a workspace owner but is not past due billing', async () => {
+        it("should return false if the user is the workspace's owner but is not past due billing", async () => {
+            const accountID = 1;
             const policyID = '1001';
 
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(addDays(new Date(), 3)), // not past due
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
-        it("should return false if the user is a workspace owner but is past due billing but isn't owning any amount", async () => {
+        it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
+            const accountID = 1;
             const policyID = '1001';
 
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
-        it('should return true if the user is a workspace owner but is past due billing and is owning some amount', async () => {
+        it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
+            const accountID = 1;
             const policyID = '1001';
 
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+        });
+
+        it("should return false if the user is past due billing but is not the workspace's owner", async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: 2, // not the user
+                },
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
     });
 

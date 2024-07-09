@@ -1,10 +1,10 @@
 import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -35,13 +35,6 @@ let pendingRoute: Route | null = null;
 
 let shouldPopAllStateOnUP = false;
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
  */
@@ -69,7 +62,7 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
         originalDismissModal(ref);
         return;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
@@ -129,7 +122,9 @@ function getDistanceFromPathInRootNavigator(path?: string): number {
             break;
         }
 
-        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        // When comparing path and pathFromState, the policyID parameter isn't included in the comparison
+        const currentStateWithoutPolicyID = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
+        const pathFromState = getPathFromState(currentStateWithoutPolicyID, linkingConfig.config);
         if (path === pathFromState.substring(1)) {
             return index;
         }
