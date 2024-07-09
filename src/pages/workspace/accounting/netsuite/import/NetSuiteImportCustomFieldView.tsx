@@ -5,13 +5,16 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -77,7 +80,12 @@ function NetSuiteImportCustomFieldView({
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField))}
         >
             {customRecord && (
-                <>
+                <OfflineWithFeedback
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, importCustomField)}
+                    errorRowStyles={[styles.ph5]}
+                    pendingAction={config?.syncOptions?.pendingFields?.[importCustomField]}
+                    onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
+                >
                     {fieldList.map((fieldName) => {
                         const isEditable = PolicyUtils.isFieldAllowedToEditNetSuiteCustomRecord(customRecord, fieldName);
                         return (
@@ -101,9 +109,10 @@ function NetSuiteImportCustomFieldView({
                     <MenuItem
                         icon={Expensicons.Trashcan}
                         title={translate('common.remove')}
+                        disabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
                         onPress={() => setIsRemoveModalOpen(true)}
                     />
-                </>
+                </OfflineWithFeedback>
             )}
 
             <ConfirmModal
