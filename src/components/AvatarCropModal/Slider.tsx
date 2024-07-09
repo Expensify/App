@@ -7,6 +7,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import ControlSelection from '@libs/ControlSelection';
 
 type SliderProps = {
@@ -62,7 +63,7 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
                             shiftVertical={-2}
                         >
                             {/* pointerEventsNone is a workaround to make sure the pan gesture works correctly on mobile safari */}
-                            <View style={[styles.sliderKnobTooltipView, styles.pointerEventsNone]} />
+                            <View style={[styles.sliderKnobTooltipView, Browser.isMobileSafari() && styles.pointerEventsNone]} />
                         </Tooltip>
                     )}
                 </Animated.View>

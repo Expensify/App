@@ -180,7 +180,7 @@ function IOURequestStepConfirmation({
         }
         IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
 
     const navigateBack = useCallback(() => {
@@ -551,7 +551,9 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
+                        shouldShowThreeDotsButton={
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
+                        }
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {

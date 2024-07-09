@@ -136,7 +136,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
@@ -200,9 +200,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
-        ReportUtils.isMoneyRequestReport(moneyRequestReport) &&
-        (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
-        (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
+        ReportUtils.isExpenseReport(report) &&
+        (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
+        (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report));
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -645,10 +645,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
+                        {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
                     </View>
 
-                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
+                    {isExpenseReport && shouldShowTitleField && titleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
