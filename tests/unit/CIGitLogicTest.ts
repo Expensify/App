@@ -27,6 +27,7 @@ type ExecSyncError = {stderr: Buffer};
 
 function exec(command: string) {
     try {
+        Log.info(command);
         execSync(command, {stdio: 'inherit'});
     } catch (error) {
         if ((error as ExecSyncError).stderr) {
