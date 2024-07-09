@@ -2115,7 +2115,7 @@ function getOptions(
         personalDetailsOptions = [];
         recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true});
     }
-    
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
