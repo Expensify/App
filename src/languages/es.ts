@@ -2540,8 +2540,8 @@ export default {
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
             importedFromAccountingSoftware: 'Categorías importadas desde',
-            payrollCode: 'Payroll code',
-            updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again.',
+            payrollCode: 'Código de nómina',
+            updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
         },
         moreFeatures: {
             spendSection: {
