@@ -18,6 +18,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
@@ -50,7 +51,10 @@ function NetSuiteImportCustomFieldView({
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
     const customRecord: CustomRecord | undefined = allRecords[valueIndex];
-    const fieldList = customRecord && PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
+    const fieldList =
+        customRecord && PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)
+            ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS
+            : [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
     const removeRecord = useCallback(() => {
         if (customRecord) {
