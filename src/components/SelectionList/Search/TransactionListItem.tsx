@@ -32,9 +32,10 @@ function TransactionListItem<TItem extends ListItem>({
     ];
 
     // Clean the tag if it exists and starts with ':'
-    if (transactionItem.tag?.startsWith(':')) {
-        transactionItem.tag = PolicyUtils.cleanTagNameFromColon(transactionItem.tag);
-    }
+    const processedTransactionItem = {
+        ...transactionItem,
+        tag: transactionItem.tag?.startsWith(':') ? PolicyUtils.cleanTagNameFromColon(transactionItem.tag) : transactionItem.tag,
+    };
 
     return (
         <BaseListItem
@@ -56,7 +57,7 @@ function TransactionListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             <TransactionListItemRow
-                item={transactionItem}
+                item={processedTransactionItem}
                 showTooltip={showTooltip}
                 onButtonPress={() => {
                     onSelectRow(item);
