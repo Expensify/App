@@ -15,7 +15,7 @@ function patchPackage {
     script -q /dev/null npx patch-package --error-on-fail
   elif [[ "$OS" == "Linux" ]]; then
     # Ubuntu/Linux
-    npx patch-package --error-on-fail
+    script -q -c "npx patch-package --error-on-fail" /dev/null
   else
     error "Unsupported OS: $OS"
   fi
