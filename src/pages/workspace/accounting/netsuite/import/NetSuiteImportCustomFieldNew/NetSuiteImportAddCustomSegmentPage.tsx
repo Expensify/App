@@ -178,7 +178,6 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
-            shouldBeBlocked={!!config?.syncOptions?.pendingFields?.customSegments}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
@@ -200,6 +199,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         submitButtonStyles={[styles.ph5, styles.mb0]}
                         shouldUseScrollView={!selectionListForm}
                         enabledWhenOffline
+                        isButtonDisabled={!!config?.syncOptions?.pendingFields?.customSegments}
                     >
                         {renderSubStepContent}
                     </FormProvider>
