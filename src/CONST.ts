@@ -5073,6 +5073,7 @@ const CONST = {
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
         AUTOMATIC: 'automatic',
+        NONE: 'none',
     },
     REPORT_FIELD_TYPES: {
         TEXT: 'text',

@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
@@ -279,6 +279,50 @@ function clearOutstandingBalance() {
     API.write(WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE, null, onyxData);
 }
 
+function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, cancellationNote: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
+            value: {
+                cancellationReason,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
+            value: {
+                cancellationType: null,
+            },
+        },
+    ];
+
+    const parameters: CancelBillingSubscriptionParams = {
+        cancellationReason,
+        cancellationNote,
+    };
+
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -287,4 +331,5 @@ export {
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
     clearOutstandingBalance,
+    cancelBillingSubscription,
 };
