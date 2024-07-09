@@ -481,11 +481,13 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 value: {
                     taxRates: {
                         taxes: {
+                            [oldTaxCode]: null,
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 pendingFields: {code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
+                                previousTaxCode: oldTaxCode,
                             },
                         },
                     },
@@ -499,7 +501,14 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 value: {
                     taxRates: {
                         taxes: {
-                            [newTaxCode]: {pendingFields: {code: null}, pendingAction: null, errorFields: {code: null}},
+                            [oldTaxCode]: null,
+                            [newTaxCode]: {
+                                ...originalTaxRate,
+                                code: newTaxCode,
+                                pendingFields: {code: null},
+                                pendingAction: null,
+                                errorFields: {code: null},
+                            },
                         },
                     },
                 },
@@ -512,7 +521,9 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 value: {
                     taxRates: {
                         taxes: {
-                            [newTaxCode]: {
+                            [newTaxCode]: null,
+                            [oldTaxCode]: {
+                                ...originalTaxRate,
                                 code: originalTaxRate.code,
                                 pendingFields: {code: null},
                                 pendingAction: null,
