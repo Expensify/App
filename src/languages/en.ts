@@ -815,6 +815,11 @@ export default {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        unapprove: 'Unapprove',
+        unapproveReport: 'Unapprove report',
+        headsUp: 'Heads up!',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -933,7 +938,7 @@ export default {
     timezonePage: {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
-        getLocationAutomatically: 'Automatically determine your location.',
+        getLocationAutomatically: 'Automatically determine your location',
     },
     updateRequiredView: {
         updateRequired: 'Update required',
@@ -1009,7 +1014,7 @@ export default {
         },
         returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
-        accountSettings: 'Account Settings',
+        accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',
     },
@@ -2295,8 +2300,12 @@ export default {
                 autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the NetSuite account below.',
                 reimbursementsAccount: 'Reimbursements account',
+                reimbursementsAccountDescription: "Choose the bank account you'll use for reimbursements, and we'll create the associated payment in NetSuite.",
                 collectionsAccount: 'Collections account',
+                collectionsAccountDescription: 'Once an invoice is marked as paid in Expensify and exported to NetSuite, it’ll appear against the account below.',
                 approvalAccount: 'A/P approval account',
+                approvalAccountDescription:
+                    'Choose the account that transactions will be approved against in NetSuite. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
                 defaultApprovalAccount: 'NetSuite default',
                 inviteEmployees: 'Invite employees and set approvals',
                 inviteEmployeesDescription:
@@ -2310,6 +2319,7 @@ export default {
                 customFormIDNonReimbursable: 'Non-reimbursable expense',
                 exportReportsTo: {
                     label: 'Expense report approval level',
+                    description: 'Once an expense report is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
                     values: {
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE]: 'NetSuite default preference',
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_SUPERVISOR_APPROVED]: 'Only supervisor approved',
@@ -2319,6 +2329,7 @@ export default {
                 },
                 exportVendorBillsTo: {
                     label: 'Vendor bill approval level',
+                    description: 'Once a vendor bill is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
                     values: {
                         [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE]: 'NetSuite default preference',
                         [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVAL_PENDING]: 'Pending approval',
@@ -2327,11 +2338,15 @@ export default {
                 },
                 exportJournalsTo: {
                     label: 'Journal entry approval level',
+                    description: 'Once a journal entry is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
                     values: {
                         [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE]: 'NetSuite default preference',
                         [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVAL_PENDING]: 'Pending approval',
                         [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Approved for posting',
                     },
+                },
+                error: {
+                    customFormID: 'Please enter a valid numeric custom form ID.',
                 },
             },
             noAccountsFound: 'No accounts found',
@@ -2400,7 +2415,7 @@ export default {
                     jobs: 'projects',
                     label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
                 },
-                importTaxDescription: 'Import tax groups from NetSuite',
+                importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     customSegments: 'Custom segments/records',
                     customLists: 'Custom lists',
@@ -2760,6 +2775,21 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            connectionName: (integration: ConnectionName) => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default: {
+                        return '';
+                    }
+                }
+            },
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
