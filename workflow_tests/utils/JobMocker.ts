@@ -94,9 +94,7 @@ class JobMocker {
     }
 
     readWorkflowFile(location: PathOrFileDescriptor): YamlWorkflow {
-        const test: YamlWorkflow = yaml.parse(fs.readFileSync(location, 'utf8'));
-
-        return test;
+        return yaml.parse(fs.readFileSync(location, 'utf8')) as YamlWorkflow;
     }
 
     writeWorkflowFile(location: PathOrFileDescriptor, data: YamlWorkflow) {

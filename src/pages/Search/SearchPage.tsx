@@ -1,11 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,12 +11,10 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
@@ -27,13 +22,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const query = rawQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
-
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
-        all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
-        shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
-        drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
-        finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
-    };
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL));
 
@@ -55,11 +43,6 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <HeaderWithBackButton
-                    title={headerContent[query]?.title}
-                    icon={headerContent[query]?.icon}
-                    shouldShowBackButton={false}
-                />
                 <Search
                     policyIDs={policyIDs}
                     query={query}

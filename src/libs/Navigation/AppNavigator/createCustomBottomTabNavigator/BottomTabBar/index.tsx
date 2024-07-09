@@ -1,6 +1,6 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -17,7 +17,7 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -52,8 +52,13 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             return;
         }
 
+        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
+        if (NativeModules.HybridAppModule) {
+            return;
+        }
+
         Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     // Parent navigator of the bottom tab bar is the root navigator.
@@ -71,9 +76,12 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     const navigateToChats = useCallback(() => {
+        if (currentTabName === SCREENS.HOME) {
+            return;
+        }
         const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/home` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
-    }, [activeWorkspaceID]);
+    }, [activeWorkspaceID, currentTabName]);
 
     return (
         <View style={styles.bottomTabBarContainer}>
@@ -101,6 +109,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
+                        if (currentTabName === SCREENS.SEARCH.BOTTOM_TAB || currentTabName === SCREENS.SEARCH.CENTRAL_PANE) {
+                            return;
+                        }
                         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
                     }}
                     role={CONST.ROLE.BUTTON}
