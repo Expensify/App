@@ -238,6 +238,10 @@ const WRITE_COMMANDS = {
     REQUEST_REFUND: 'User_RefundPurchase',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
     CREATE_WORKSPACE_REPORT_FIELD: 'CreatePolicyReportField',
+    UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE: 'SetPolicyReportFieldDefault',
+    ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'EnablePolicyReportFieldOption',
+    CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'CreatePolicyReportFieldOption',
+    REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'RemovePolicyReportFieldOption',
     UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION: 'UpdateNetSuiteSyncTaxConfiguration',
     UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION: 'UpdateNetSuiteCrossSubsidiaryCustomerConfiguration',
     UPDATE_NETSUITE_DEPARTMENTS_MAPPING: 'UpdateNetSuiteDepartmentsMapping',
@@ -266,10 +270,26 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_AUTO_CREATE_ENTITIES: 'UpdateNetSuiteAutoCreateEntities',
     UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES: 'UpdateNetSuiteEnableNewCategories',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_ENABLED: 'UpdateNetSuiteCustomFormIDOptionsEnabled',
+    UPDATE_NETSUITE_REIMBURSEMENT_ACCOUNT_ID: 'UpdateNetSuiteReimbursementAccountID',
+    UPDATE_NETSUITE_COLLECTION_ACCOUNT: 'UpdateNetSuiteCollectionAccount',
+    UPDATE_NETSUITE_EXPORT_REPORTS_TO: 'UpdateNetSuiteExportReportsTo',
+    UPDATE_NETSUITE_VENDOR_BILLS_TO: 'UpdateNetSuiteExportVendorBillsTo',
+    UPDATE_NETSUITE_JOURNALS_TO: 'UpdateNetSuiteExportJournalsTo',
+    UPDATE_NETSUITE_APPROVAL_ACCOUNT: 'UpdateNetSuiteApprovalAccount',
+    UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsReimbursable',
+    UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsNonReimbursable',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
     CONNECT_POLICY_TO_NETSUITE: 'ConnectPolicyToNetSuite',
     CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
+    UPDATE_SAGE_INTACCT_EXPORTER: 'UpdateSageIntacctExporter',
+    UPDATE_SAGE_INTACCT_EXPORT_DATE: 'UpdateSageIntacctExportDate',
+    UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateSageIntacctReimbursableExpensesExportDestination',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateSageIntacctNonreimbursableExpensesExportDestination',
+    UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_REPORT_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctReimbursableExpensesReportExportDefaultVendor',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT: 'UpdateSageIntacctNonreimbursableExpensesExportAccount',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -509,6 +529,14 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.REQUEST_REFUND]: null;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT]: Parameters.ConnectPolicyToSageIntacctParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER]: Parameters.UpdateSageIntacctGenericTypeParams<'email', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORT_DATE]: Parameters.UpdateSageIntacctGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateSageIntacctGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateSageIntacctGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_REPORT_EXPORT_DEFAULT_VENDOR]: Parameters.UpdateSageIntacctGenericTypeParams<'vendorID', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR]: Parameters.UpdateSageIntacctGenericTypeParams<'vendorID', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT]: Parameters.UpdateSageIntacctGenericTypeParams<'creditCardAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR]: Parameters.UpdateSageIntacctGenericTypeParams<'vendorID', string>;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     // Netsuite parameters
@@ -517,6 +545,10 @@ type WriteCommandParameters = {
 
     // Workspace report field parameters
     [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE]: Parameters.UpdateWorkspaceReportFieldInitialValueParams;
+    [WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.EnableWorkspaceReportFieldListValueParams;
+    [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.CreateWorkspaceReportFieldListValueParams;
+    [WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.RemoveWorkspaceReportFieldListValueParams;
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
@@ -546,6 +578,14 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_CREATE_ENTITIES]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_ENABLED]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_COLLECTION_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_REPORTS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_REPORTS_APPROVAL_LEVEL>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_VENDOR_BILLS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
 };
 
 const READ_COMMANDS = {
