@@ -49,11 +49,12 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={styles.pb2}
+            contentContainerStyle={[styles.flex1, styles.pb2]}
             connectionName={connection}
+            shouldUseScrollView={false}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
-            <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>
+            <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
                 {translate('workspace.accounting.chooseReconciliationAccount.accountMatches')}
                 <TextLink
                     onPress={() => {
