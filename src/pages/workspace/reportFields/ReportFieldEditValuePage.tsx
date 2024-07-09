@@ -13,17 +13,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
-type ReportFieldEditValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
+type ReportFieldEditValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
 
 function ReportFieldEditValuePage({
+    policy,
     route: {
         params: {policyID, valueIndex},
     },
@@ -33,6 +37,7 @@ function ReportFieldEditValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
     const validate = useCallback(
@@ -63,6 +68,7 @@ function ReportFieldEditValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            shouldBeBlocked={hasAccountingConnections}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -100,4 +106,4 @@ function ReportFieldEditValuePage({
 
 ReportFieldEditValuePage.displayName = 'ReportFieldEditValuePage';
 
-export default ReportFieldEditValuePage;
+export default withPolicyAndFullscreenLoading(ReportFieldEditValuePage);
