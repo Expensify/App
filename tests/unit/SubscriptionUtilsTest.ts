@@ -8,8 +8,6 @@ import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} f
 import createRandomPolicy from '../utils/collections/policies';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
-    name: 'owner@email.com',
-    permissions: 'read',
     value: 0,
 };
 
