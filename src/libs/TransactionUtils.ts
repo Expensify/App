@@ -934,7 +934,6 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     if (!originalTransaction) {
         return undefined;
     }
-    console.log({...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant});
     return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant, comment: {comment: reviewDuplicateTransaction?.description}};
 }
 

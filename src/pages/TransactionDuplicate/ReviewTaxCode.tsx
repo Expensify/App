@@ -42,7 +42,7 @@ function ReviewTaxRate() {
     const getTaxAmount = useCallback(
         (taxID: string) => {
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxID);
-            return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage ?? '', TransactionUtils.getAmount(transaction)));
+            return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage ?? '', TransactionUtils.getAmount(transaction), transaction?.currency ?? ''));
         },
         [policy, transaction],
     );
