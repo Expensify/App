@@ -131,7 +131,7 @@ const WRITE_COMMANDS = {
     RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
-    POLICY_REPORT_FIELDS_REPLACE: 'Policy_ReportFields_Replace',
+    DELETE_POLICY_REPORT_FIELD: 'DeletePolicyReportField',
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
@@ -415,7 +415,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
-    [WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE]: Parameters.PolicyReportFieldsReplace;
+    [WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD]: Parameters.PolicyReportFieldsReplace;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
     [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTaglistParams;
