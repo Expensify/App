@@ -235,7 +235,7 @@ function Button(
                     !!icon && styles.textAlignLeft,
                     textStyles,
                     link && styles.link,
-                    link && isHovered && styles.linkHover,
+                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                     link && styles.fontWeightNormal,
                     link && styles.fontSizeLabel,
                 ]}

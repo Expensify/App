@@ -588,10 +588,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
-        linkHover: {
-            color: theme.linkHover,
-        },
-
         buttonText: {
             color: theme.text,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
