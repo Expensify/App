@@ -89,7 +89,7 @@ function StateSelector(
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRouteWithoutParams();
+                const activeRoute = Navigation.getActiveRoute();
                 didOpenStateSelector.current = true;
                 Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
             }}
