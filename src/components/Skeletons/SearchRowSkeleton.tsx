@@ -14,6 +14,21 @@ type SearchRowSkeletonProps = {
 const barHeight = 8;
 const longBarWidth = 120;
 
+// 375 is the width of the left pane
+const leftPaneWidth = 375;
+
+// 12 is the gap between the element and the right button
+const gapWidth = 12;
+
+// 80 is the width of the element itself
+const rightSideElementWidth = 80;
+
+// 24 is the padding of the central pane summing two sides
+const centralPanePadding = 24;
+
+// 80 is the width of the button on the right side
+const rightButtonWidth = 80;
+
 function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
@@ -145,26 +160,16 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                     )}
 
                     <Rect
-                        // We have to calculate this value to make sure the element is aligned to the button on the right side. Below is the calculation:
-                        // 375 is the width of the left pane
-                        // 80 is the width of the button on the right side
-                        // 12 is the margin between the element and the right border
-                        // 24 is the padding of the central pane summing two sides
-                        // 12 is the gap between the element and the right button
-                        // 80 is the width of the element itself
-                        x={windowWidth - 375 - 80 - 12 - 24 - 12 - 80}
+                        // We have to calculate this value to make sure the element is aligned to the button on the right side.
+                        x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
                         y={28}
                         width={80}
                         height={barHeight}
                     />
 
                     <Rect
-                        // We have to calculate this value to make sure the element is aligned to the right border. Below is the calculation:
-                        // 375 is the width of the left pane
-                        // 80 is the width of the element itself
-                        // 12 is the margin between the element and the right border
-                        // 24 is the padding of the central pane summing two sides
-                        x={windowWidth - 375 - 80 - 12 - 24}
+                        // We have to calculate this value to make sure the element is aligned to the right border.
+                        x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
                         y={18}
                         rx={15}
                         ry={15}
