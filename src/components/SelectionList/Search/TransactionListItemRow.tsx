@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -43,9 +45,13 @@ type TransactionListItemRowProps = {
     item: TransactionListItemType;
     showTooltip: boolean;
     onButtonPress: () => void;
+    onCheckboxPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     isChildListItem?: boolean;
+    isDisabled: boolean;
+    canSelectMultiple: boolean;
+    isButtonSelected?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -109,16 +115,20 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const description = TransactionUtils.getDescription(transactionItem);
-    let merchant = transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description;
+    let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
+    if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
+        merchantOrDescriptionToDisplay = description;
+    }
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : description;
 
     if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
-
+    const merchantToDisplay = StringUtils.getFirstLine(merchant);
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={merchant}
+            text={merchantToDisplay}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -159,18 +169,25 @@ function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
 
 function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
-    return isLargeScreenWidth ? (
+    return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.category}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
-        />
-    ) : (
-        <TextWithIconCell
-            icon={Expensicons.Folder}
-            showTooltip={showTooltip}
-            text={transactionItem?.category}
-            textStyle={[styles.textMicro, styles.mnh0]}
+            style={
+                isLargeScreenWidth
+                    ? [styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]
+                    : [
+                          styles.optionDisplayName,
+                          styles.label,
+                          styles.pre,
+                          styles.justifyContentCenter,
+                          styles.textMicro,
+                          styles.textSupporting,
+                          styles.flexShrink1,
+                          styles.textMicro,
+                          styles.mnh0,
+                      ]
+            }
         />
     );
 }
@@ -209,7 +226,18 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
     );
 }
 
-function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
+function TransactionListItemRow({
+    item,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onButtonPress,
+    onCheckboxPress,
+    showItemHeaderOnNarrowLayout = true,
+    containerStyle,
+    isChildListItem = false,
+    isButtonSelected = false,
+}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
@@ -234,42 +262,39 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         isLargeScreenWidth={false}
                         showTooltip={false}
                     />
-                    <View style={[styles.flex2, styles.gap1]}>
+                    <View style={[styles.flex2, !item.category && styles.justifyContentCenter, styles.gap1]}>
                         <MerchantCell
                             transactionItem={item}
                             showTooltip={showTooltip}
                             isLargeScreenWidth={false}
                         />
-                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
-                            <CategoryCell
-                                isLargeScreenWidth={isLargeScreenWidth}
-                                showTooltip={showTooltip}
-                                transactionItem={item}
-                            />
-                            <TagCell
-                                showTooltip={showTooltip}
-                                transactionItem={item}
-                                isLargeScreenWidth={isLargeScreenWidth}
-                            />
-                        </View>
+                        {item.category && (
+                            <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
+                                <CategoryCell
+                                    isLargeScreenWidth={false}
+                                    showTooltip={showTooltip}
+                                    transactionItem={item}
+                                />
+                            </View>
+                        )}
                     </View>
                     <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth={false}
                             isChildListItem={isChildListItem}
                         />
                         <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <TypeCell
                                 transactionItem={item}
-                                isLargeScreenWidth={isLargeScreenWidth}
+                                isLargeScreenWidth={false}
                                 showTooltip={false}
                             />
                             <DateCell
                                 transactionItem={item}
                                 showTooltip={showTooltip}
-                                isLargeScreenWidth={isLargeScreenWidth}
+                                isLargeScreenWidth={false}
                             />
                         </View>
                     </View>
@@ -280,11 +305,20 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            {canSelectMultiple && (
+                <Checkbox
+                    isChecked={item.isSelected}
+                    onPress={onCheckboxPress}
+                    disabled={!!item.isDisabled || isDisabled}
+                    accessibilityLabel={item.text ?? ''}
+                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                />
+            )}
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
-                        isLargeScreenWidth={false}
+                        isLargeScreenWidth
                         showTooltip={false}
                     />
                 </View>
@@ -292,14 +326,14 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                     <MerchantCell
                         transactionItem={item}
                         showTooltip={showTooltip}
-                        isLargeScreenWidth={false}
+                        isLargeScreenWidth
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
@@ -317,7 +351,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                 {item.shouldShowCategory && (
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                         <CategoryCell
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth
                             showTooltip={showTooltip}
                             transactionItem={item}
                         />
@@ -326,7 +360,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                 {item.shouldShowTag && (
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                         <TagCell
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth
                             showTooltip={showTooltip}
                             transactionItem={item}
                         />
@@ -336,7 +370,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
                         <TaxCell
                             transactionItem={item}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth
                             showTooltip={showTooltip}
                         />
                     </View>
@@ -346,14 +380,14 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth
                         isChildListItem={isChildListItem}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                     <TypeCell
                         transactionItem={item}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth
                         showTooltip={false}
                     />
                 </View>
@@ -361,6 +395,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <ActionCell
                         onButtonPress={onButtonPress}
                         action={item.action}
+                        isSelected={isButtonSelected}
                     />
                 </View>
             </View>

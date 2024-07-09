@@ -718,6 +718,18 @@ type NetSuiteCustomFormIDOptions = {
     journalEntry?: string;
 };
 
+/** The custom form ID object */
+type NetSuiteCustomFormID = {
+    /** The custom form selections for reimbursable transactions */
+    reimbursable: NetSuiteCustomFormIDOptions;
+
+    /** The custom form selections for non-reimbursable transactions */
+    nonReimbursable: NetSuiteCustomFormIDOptions;
+
+    /** Whether we'll use the custom form selections upon export to NetSuite */
+    enabled: boolean;
+};
+
 /** User configuration for the NetSuite accounting integration. */
 type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Invoice Item Preference */
@@ -742,9 +754,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     subsidiary: string;
 
     /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
-    syncOptions: {
+    syncOptions: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
-        mapping: {
+        mapping: OnyxCommon.OnyxValueWithOfflineFeedback<{
             /** A general type of classification category in NetSuite */
             classes: NetSuiteMappingValues;
 
@@ -759,7 +771,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
             /** A type of classification category in NetSuite linked to departments within the company */
             departments: NetSuiteMappingValues;
-        };
+        }>;
 
         /** Whether we want to import customers into NetSuite from across all subsidiaries */
         crossSubsidiaryCustomers: boolean;
@@ -838,7 +850,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** The approval level we set for a Journal Entry record created in NetSuite */
         exportJournalsTo: NetSuiteJournalApprovalLevels;
-    };
+    }>;
 
     /** Whther to automatically create employees and vendors upon export in NetSuite if they don't exist */
     autoCreateEntities: boolean;
@@ -880,16 +892,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     payableAcct: string;
 
     /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
-    customFormIDOptions?: {
-        /** The custom form selections for reimbursable transactions */
-        reimbursable: NetSuiteCustomFormIDOptions;
-
-        /** The custom form selections for non-reimbursable transactions */
-        nonReimbursable: NetSuiteCustomFormIDOptions;
-
-        /** Whether we'll use the custom form selections upon export to NetSuite */
-        enabled: boolean;
-    };
+    customFormIDOptions?: NetSuiteCustomFormID;
 
     /** The account to use for Invoices export to NetSuite */
     collectionAccount?: string;
@@ -934,7 +937,7 @@ type NetSuiteConnection = {
     source: JobSourceValues;
 
     /** Config object used solely to store autosync settings */
-    config: {
+    config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
             /** Whether data should be automatically synched between the app and NetSuite */
@@ -943,17 +946,43 @@ type NetSuiteConnection = {
             /** The bedrock job associated with the NetSuite Auto Sync job */
             jobID: string;
         };
-    };
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
     tokenSecret: string;
 };
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
 /**
  * Connection data for Sage Intacct
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-type SageIntacctConnectionData = {};
+type SageIntacctConnectionData = {
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+};
 
 /**
  * Connection config for Sage Intacct
@@ -970,6 +999,36 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Sage Intacct userID */
         userID: string;
     };
+
+    /** Sage Intacct export configs */
+    export: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Export date type */
+        exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+        /** The e-mail of the exporter */
+        exporter: string;
+
+        /** Defines how non-reimbursable expenses are exported */
+        nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** Account that receives the non-reimbursable expenses */
+        nonReimbursableAccount: string;
+
+        /** Default vendor used for credit card transactions of non-reimbursable bill */
+        nonReimbursableCreditCardChargeDefaultVendor: string;
+
+        /** Default vendor of non-reimbursable bill */
+        nonReimbursableVendor: string;
+
+        /** Defines how reimbursable expenses are exported */
+        reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** Default vendor of reimbursable bill */
+        reimbursableExpenseReportDefaultVendor: string;
+
+        /** Collection of mapping field errors, which will be triggered when update action fails  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;
@@ -1253,7 +1312,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         connections?: Connections;
 
         /** Report fields attached to the policy */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField>>;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
@@ -1296,6 +1355,21 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Object containing all policy information necessary to connect with Spontana */
         travelSettings?: WorkspaceTravelSettings;
+
+        /** Indicates if the policy is pending an upgrade */
+        isPendingUpgrade?: boolean;
+
+        /** Max expense age for a Policy violation */
+        maxExpenseAge?: number;
+
+        /** Max expense amount for a policy violation */
+        maxExpenseAmount?: number;
+
+        /** Max amount for an expense with no receipt violation */
+        maxExpenseAmountNoReceipt?: number;
+
+        /** Whether GL codes are enabled */
+        glCodes?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
@@ -1349,4 +1423,8 @@ export type {
     NetSuiteConnection,
     ConnectionLastSync,
     NetSuiteSubsidiary,
+    NetSuiteAccount,
+    NetSuiteCustomFormIDOptions,
+    NetSuiteCustomFormID,
+    SageIntacctDataElementWithValue,
 };
