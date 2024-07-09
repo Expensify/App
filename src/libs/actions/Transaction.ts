@@ -450,7 +450,7 @@ function openDraftDistanceExpense() {
             },
         ],
     };
-    API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, {}, onyxData);
+    API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
 export {
