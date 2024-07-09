@@ -167,6 +167,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...value,
+                keyForList: value.reportID,
                 from: data.personalDetailsList?.[value.accountID],
                 to: data.personalDetailsList?.[value.managerID],
                 transactions,

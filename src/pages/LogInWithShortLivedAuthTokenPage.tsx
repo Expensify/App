@@ -71,7 +71,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             });
         }
         // The only dependencies of the effect are based on props.route
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route]);
 
     if (account?.isLoading) {
