@@ -35,8 +35,8 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
     }, [onClose, shouldClearOnClose]);
 
     useEffect(() => {
-        inputValueRef.current = value;
-    }, [value]);
+        inputValueRef.current = currentValue;
+    }, [currentValue]);
 
     useFocusEffect(
         useCallback(() => {
