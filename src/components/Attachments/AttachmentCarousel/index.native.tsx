@@ -18,17 +18,7 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({
-    report,
-    reportActions,
-    parentReportActions,
-    source,
-    onNavigate,
-    setDownloadButtonVisibility,
-    onClose,
-    type,
-    accountID,
-}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
