@@ -1427,4 +1427,5 @@ export type {
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctDataElementWithValue,
+    NetSuiteMappingValues,
 };
