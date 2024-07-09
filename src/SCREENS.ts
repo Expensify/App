@@ -186,6 +186,13 @@ const SCREENS = {
 
     TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
+        MERCHANT: 'Transaction_Duplicate_Merchant',
+        CATEGORY: 'Transaction_Duplicate_Category',
+        TAG: 'Transaction_Duplicate_Tag',
+        DESCRIPTION: 'Transaction_Duplicate_Description',
+        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
+        BILLABLE: 'Transaction_Duplicate_Billable',
     },
 
     IOU_SEND: {
@@ -292,6 +299,13 @@ const SCREENS = {
             NETSUITE_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Tax_Posting_Account_Select',
             NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Provincial_Tax_Posting_Account_Select',
             NETSUITE_ADVANCED: 'Policy_Accounting_NetSuite_Advanced',
+            NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Reimbursement_Account_Select',
+            NETSUITE_COLLECTION_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Collection_Account_Select',
+            NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Expense_Report_Approval_Level_Select',
+            NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Vendor_Bill_Approval_Level_Select',
+            NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Journal_Entry_Approval_Level_Select',
+            NETSUITE_APPROVAL_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Approval_Account_Select',
+            NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
@@ -325,6 +339,7 @@ const SCREENS = {
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
+        REPORT_FIELD_SETTINGS: 'Workspace_ReportField_Settings',
         REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
         REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
         REPORT_FIELDS_ADD_VALUE: 'Workspace_ReportFields_AddValue',
@@ -367,6 +382,7 @@ const SCREENS = {
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
+        UPGRADE: 'Workspace_Upgrade',
     },
 
     EDIT_REQUEST: {
