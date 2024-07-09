@@ -5302,6 +5302,16 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
         return false;
     }
 
+    // We show #admin rooms when a) More than one admin exists or b) There exists policy audit log for review.
+    if (isAdminRoom(report)) {
+        const accountIDs = Object.entries(report?.participants ?? {}).map(([accountID]) => Number(accountID));
+        const adminAccounts = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs).filter((login) => !PolicyUtils.isExpensifyTeam(login));
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '');
+        if (ReportActionsUtils.isCreatedAction(lastVisibleAction) && adminAccounts.length <= 1) {
+            return false;
+        }
+    }
+
     return true;
 }
 
