@@ -154,8 +154,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             policy={policy}
                             isCombineReport
                             shouldShowTotal={transactionCurrency !== report.currency}
+                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
-                        {renderThreadDivider}
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <View>
                                 <MoneyRequestView
@@ -167,13 +167,11 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                         </ShowContextMenuContext.Provider>
                     </>
                 ) : (
-                    <>
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                        />
-                        {renderThreadDivider}
-                    </>
+                    <MoneyReportView
+                        report={report}
+                        policy={policy}
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    />
                 )}
             </OfflineWithFeedback>
         );
