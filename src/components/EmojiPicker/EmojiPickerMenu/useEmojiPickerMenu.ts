@@ -12,7 +12,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 const useEmojiPickerMenu = () => {
     const emojiListRef = useAnimatedRef<FlashList<EmojiUtils.EmojiPickerListItem>>();
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
     const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);
