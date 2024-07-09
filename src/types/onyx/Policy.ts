@@ -664,8 +664,22 @@ type InvoiceItem = {
     name: string;
 };
 
+/**
+ * NetSuite Custom List data modal
+ */
+type NetSuiteCustomListSource = {
+    /** Internal ID of the custom list in NetSuite */
+    id: string;
+
+    /** Name of the custom list */
+    name: string;
+};
+
 /** Data from the NetSuite accounting integration. */
 type NetSuiteConnectionData = {
+    /** Collection of the custom lists in the NetSuite account */
+    customLists: NetSuiteCustomListSource[];
+
     /** Collection of the subsidiaries present in the NetSuite account */
     subsidiaryList: NetSuiteSubsidiary[];
 
@@ -709,6 +723,9 @@ type NetSuiteExportDateOptions = 'SUBMITTED' | 'EXPORTED' | 'LAST_EXPENSE';
 /** NetSuite journal posting preference values */
 type NetSuiteJournalPostingPreferences = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNALS_POSTING_INDIVIDUAL_LINE';
 
+/** NetSuite custom segment/records and custom lists mapping values */
+type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD';
+
 /** The custom form selection options for transactions (any one will be used at most) */
 type NetSuiteCustomFormIDOptions = {
     /** If the option is expense report */
@@ -719,6 +736,36 @@ type NetSuiteCustomFormIDOptions = {
 
     /** If the option is journal entry */
     journalEntry?: string;
+};
+
+/** NetSuite custom list */
+type NetSuiteCustomList = {
+    /** The name of the custom list in NetSuite */
+    listName: string;
+
+    /** The internalID of the custom list in NetSuite */
+    internalID: string;
+
+    /** The ID of the transaction form field we'll code the list option onto during Export */
+    transactionFieldID: string;
+
+    /** Whether we import this list as a report field or tag */
+    mapping: NetSuiteCustomFieldMapping;
+};
+
+/** NetSuite custom segments/records */
+type NetSuiteCustomSegment = {
+    /** The name of the custom segment */
+    segmentName: string;
+
+    /** The ID of the custom segment in NetSuite */
+    internalID: string;
+
+    /** The ID of the transaction form field we'll code this segment onto during Export */
+    scriptID: string;
+
+    /** Whether we import this segment as a report field or tag */
+    mapping: NetSuiteCustomFieldMapping;
 };
 
 /** The custom form ID object */
@@ -798,19 +845,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncReimbursedReports: boolean;
 
         /** The relevant details of the custom segments we import into Expensify and code onto expenses */
-        customSegments?: Array<{
-            /** The name of the custom segment */
-            segmentName: string;
-
-            /** The ID of the custom segment in NetSuite */
-            internalID: string;
-
-            /** The ID of the transaction form field we'll code this segment onto during Export */
-            scriptID: string;
-
-            /** Whether we import this segment as a report field or tag */
-            mapping: 'tag' | 'reportField';
-        }>;
+        customSegments?: NetSuiteCustomSegment[];
 
         /** Whether to import Employees from NetSuite into Expensify */
         syncPeople: boolean;
@@ -831,19 +866,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncCustomSegments?: boolean;
 
         /** The relevant details of the custom lists we import into Expensify and code onto expenses */
-        customLists?: Array<{
-            /** The name of the custom list in NetSuite */
-            listName: string;
-
-            /** The internalID of the custom list in NetSuite */
-            internalID: string;
-
-            /** The ID of the transaction form field we'll code the list option onto during Export */
-            transactionFieldID: string;
-
-            /** Whether we import this list as a report field or tag */
-            mapping: 'tag' | 'reportField';
-        }>;
+        customLists?: NetSuiteCustomList[];
 
         /** Whether we'll import Expense Categories into Expensify as categories */
         syncCategories: boolean;
@@ -980,14 +1003,67 @@ type SageIntacctDataElementWithValue = SageIntacctDataElement & {
  * Connection data for Sage Intacct
  */
 type SageIntacctConnectionData = {
-    /** Collection of bank accounts */
-    bankAccounts: SageIntacctDataElement[];
-
     /** Collection of credit cards */
     creditCards: SageIntacctDataElement[];
 
+    /** Collection of entities */
+    entities: SageIntacctDataElementWithValue[];
+
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+
     /** Collection of vendors */
     vendors: SageIntacctDataElementWithValue[];
+
+    /** Collection of journals */
+    journals: SageIntacctDataElementWithValue[];
+
+    /** Collection of items */
+    items: SageIntacctDataElement[];
+
+    /** Collection of tax solutions IDs */
+    taxSolutionIDs: string[];
+};
+
+/** Mapping value for Sage Intacct */
+type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_MAPPING_VALUE>;
+
+/** Mapping names for Sage Intacct */
+type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+
+/**
+ * Sage Intacct dimension type
+ */
+type SageIntacctDimension = {
+    /** Name of user defined dimention */
+    dimension: string;
+
+    /** Mapping value for user defined dimention */
+    mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
+};
+
+/** Mapping type for Sage Intacct */
+type SageIntacctMappingType = {
+    /** Whether should sync items for Sage Intacct */
+    syncItems: boolean;
+
+    /** Mapping type for Sage Intacct */
+    departments: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    classes: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    locations: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    customers: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    projects: SageIntacctMappingValue;
+
+    /** User defined dimention type for Sage Intacct */
+    dimensions: SageIntacctDimension[];
 };
 
 /** Configuration of automatic synchronization from Sage Intacct to the app */
@@ -1008,6 +1084,11 @@ type SageIntacctSyncConfig = {
 /**
  * Connection config for Sage Intacct
  */
+type SageIntacctOfflineStateKeys = keyof SageIntacctMappingType | `dimension_${string}`;
+
+/**
+ * Connection config for Sage Intacct
+ */
 type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Sage Intacct credentials */
@@ -1020,6 +1101,18 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** Sage Intacct userID */
             userID: string;
+        };
+
+        /** Sage Intacct mappings */
+        mappings: SageIntacctMappingType;
+
+        /** Sage Intacct tax */
+        tax: {
+            /** Sage Intacct tax solution ID */
+            taxSolutionID: string;
+
+            /** Whether should sync tax with Sage Intacct */
+            syncTax: boolean;
         };
 
         /** Sage Intacct export configs */
@@ -1070,7 +1163,7 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig
+    SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig
 >;
 
 /** State of integration connection */
@@ -1449,6 +1542,7 @@ export type {
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
     Connections,
+    SageIntacctOfflineStateKeys,
     ConnectionName,
     Tenant,
     Account,
@@ -1459,9 +1553,17 @@ export type {
     NetSuiteConnection,
     ConnectionLastSync,
     NetSuiteSubsidiary,
+    NetSuiteCustomList,
+    NetSuiteCustomSegment,
+    NetSuiteCustomListSource,
+    NetSuiteCustomFieldMapping,
     NetSuiteAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
+    SageIntacctMappingValue,
+    SageIntacctMappingType,
+    SageIntacctMappingName,
+    SageIntacctDimension,
     SageIntacctDataElementWithValue,
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,

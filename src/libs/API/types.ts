@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {SageIntacctDimension, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
@@ -131,7 +132,7 @@ const WRITE_COMMANDS = {
     RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
-    POLICY_REPORT_FIELDS_REPLACE: 'Policy_ReportFields_Replace',
+    DELETE_POLICY_REPORT_FIELD: 'DeletePolicyReportField',
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
@@ -265,6 +266,8 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_TAX_POSTING_ACCOUNT: 'UpdateNetSuiteTaxPostingAccount',
     UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
+    UPDATE_NETSUITE_CUSTOM_SEGMENTS: 'UpdateNetSuiteCustomSegments',
+    UPDATE_NETSUITE_CUSTOM_LISTS: 'UpdateNetSuiteCustomLists',
     UPDATE_NETSUITE_AUTO_SYNC: 'UpdateNetSuiteAutoSync',
     UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS: 'UpdateNetSuiteSyncReimbursedReports',
     UPDATE_NETSUITE_SYNC_PEOPLE: 'UpdateNetSuiteSyncPeople',
@@ -288,6 +291,14 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateSageIntacctSyncReimbursementAccountID',
     CONNECT_POLICY_TO_NETSUITE: 'ConnectPolicyToNetSuite',
     CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
+    UPDATE_SAGE_INTACCT_BILLABLE: 'UpdateSageIntacctBillable',
+    UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING: 'UpdateSageIntacctDepartmentsMapping',
+    UPDATE_SAGE_INTACCT_CLASSES_MAPPING: 'UpdateSageIntacctClassesMapping',
+    UPDATE_SAGE_INTACCT_LOCATIONS_MAPPING: 'UpdateSageIntacctLocationsMapping',
+    UPDATE_SAGE_INTACCT_CUSTOMERS_MAPPING: 'UpdateSageIntacctCustomersMapping',
+    UPDATE_SAGE_INTACCT_PROJECTS_MAPPING: 'UpdateSageIntacctProjectsMapping',
+    UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION: 'UpdateSageIntacctSyncTaxConfiguration',
+    UPDATE_SAGE_INTACCT_USER_DIMENSION: 'UpdateSageIntacctUserDimension',
     UPDATE_SAGE_INTACCT_EXPORTER: 'UpdateSageIntacctExporter',
     UPDATE_SAGE_INTACCT_EXPORT_DATE: 'UpdateSageIntacctExportDate',
     UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateSageIntacctReimbursableExpensesExportDestination',
@@ -416,7 +427,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
-    [WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE]: Parameters.PolicyReportFieldsReplace;
+    [WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD]: Parameters.PolicyReportFieldsReplace;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
     [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTaglistParams;
@@ -585,6 +596,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_TAX_POSTING_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customSegments', string>; // JSON string NetSuiteCustomSegment[]
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customLists', string>; // JSON string NetSuiteCustomList[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
@@ -599,6 +612,14 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_CLASSES_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_LOCATIONS_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_CUSTOMERS_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_PROJECTS_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION]: Parameters.UpdateSageIntacctGenericTypeParams<'dimensions', SageIntacctDimension[]>;
 };
 
 const READ_COMMANDS = {
