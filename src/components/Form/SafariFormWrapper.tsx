@@ -1,5 +1,6 @@
-import {isSafari} from "@libs/Browser";
-import type ChildrenProps from "@src/types/utils/ChildrenProps";
+import React from 'react';
+import {isSafari} from '@libs/Browser';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SafariFormWrapperProps = ChildrenProps;
 
@@ -8,7 +9,7 @@ function SafariFormWrapper({children}: SafariFormWrapperProps) {
         return <form>{children}</form>;
     }
 
-   return <>{children}</>;
+    return children;
 }
 
 export default SafariFormWrapper;

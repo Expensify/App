@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -31,7 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ValidateCodeFormProps from './types';
-import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 
 type BaseValidateCodeFormOnyxProps = {
     /** The details about the account that the user is signing in with */
