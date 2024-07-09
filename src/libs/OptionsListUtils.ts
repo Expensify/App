@@ -2490,11 +2490,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values.push(item.login.replace(emailRegex, ''));
             }
 
-            if (!item.isChatRoom) {
-                const participantNames = getParticipantNames(item.participantsList ?? []);
-                values = values.concat(Array.from(participantNames));
-            }
-
             if (item.isThread) {
                 if (item.alternateText) {
                     values.push(item.alternateText);
@@ -2504,7 +2499,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
-            } else {
+            }
+
+            if (!item.isChatRoom) {
+                const participantNames = getParticipantNames(item.participantsList ?? []);
+                values = values.concat(Array.from(participantNames));
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 

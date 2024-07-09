@@ -718,6 +718,18 @@ type NetSuiteCustomFormIDOptions = {
     journalEntry?: string;
 };
 
+/** The custom form ID object */
+type NetSuiteCustomFormID = {
+    /** The custom form selections for reimbursable transactions */
+    reimbursable: NetSuiteCustomFormIDOptions;
+
+    /** The custom form selections for non-reimbursable transactions */
+    nonReimbursable: NetSuiteCustomFormIDOptions;
+
+    /** Whether we'll use the custom form selections upon export to NetSuite */
+    enabled: boolean;
+};
+
 /** User configuration for the NetSuite accounting integration. */
 type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Invoice Item Preference */
@@ -880,16 +892,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     payableAcct: string;
 
     /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
-    customFormIDOptions?: {
-        /** The custom form selections for reimbursable transactions */
-        reimbursable: NetSuiteCustomFormIDOptions;
-
-        /** The custom form selections for non-reimbursable transactions */
-        nonReimbursable: NetSuiteCustomFormIDOptions;
-
-        /** Whether we'll use the custom form selections upon export to NetSuite */
-        enabled: boolean;
-    };
+    customFormIDOptions?: NetSuiteCustomFormID;
 
     /** The account to use for Invoices export to NetSuite */
     collectionAccount?: string;
@@ -1394,4 +1397,7 @@ export type {
     NetSuiteConnection,
     ConnectionLastSync,
     NetSuiteSubsidiary,
+    NetSuiteAccount,
+    NetSuiteCustomFormIDOptions,
+    NetSuiteCustomFormID,
 };
