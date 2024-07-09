@@ -49,7 +49,8 @@ function NetSuiteImportCustomFieldView({
     const removeRecord = useCallback(() => {
         if (customRecord) {
             // We allow multiple custom list records with the same internalID. Hence it is safe to remove by index.
-            const filteredRecords = allRecords.splice(valueIndex, 1);
+            const filteredRecords = allRecords.filter((_, index) => index !== Number(valueIndex));
+
             if (PolicyUtils.isNetSuiteCustomSegmentRecord(customRecord)) {
                 updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
             } else {
