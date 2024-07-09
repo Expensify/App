@@ -30,16 +30,16 @@ type DisplayTypeTranslationKeys = {
 
 function getDisplayTypeTranslationKeys(displayType?: SageIntacctMappingValue): DisplayTypeTranslationKeys | undefined {
     switch (displayType) {
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT: {
             return {titleKey: 'workspace.intacct.employeeDefault', descriptionKey: 'workspace.intacct.employeeDefaultDescription'};
         }
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.TAG: {
             return {titleKey: 'workspace.common.tags', descriptionKey: 'workspace.intacct.displayedAsTagDescription'};
         }
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD: {
             return {titleKey: 'workspace.common.reportFields', descriptionKey: 'workspace.intacct.displayedAsReportFieldDescription'};
         }
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.NONE: {
             return undefined;
         }
         default: {
@@ -58,12 +58,12 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     const config = policy?.connections?.intacct?.config;
     const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
-    const [importMapping, setImportMapping] = useState(config?.mappings?.[mappingName] && config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
+    const [importMapping, setImportMapping] = useState(config?.mappings?.[mappingName] && config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
 
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
-            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.common.mappingTitle', mappingName))}
+            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', mappingName))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -74,7 +74,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
         >
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
-                <Text style={[styles.textStrong]}>{translate('workspace.common.mappingTitle', mappingName)}</Text>
+                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', mappingName)}</Text>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
             </Text>
             <OfflineWithFeedback
@@ -85,17 +85,17 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             >
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.import')}
-                    switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.common.mappingTitle', mappingName)}`}
+                    switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', mappingName)}`}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.mh5]}
                     isActive={importMapping ?? false}
                     onToggle={() => {
                         if (importMapping) {
                             setImportMapping(false);
-                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
+                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
                         } else {
                             setImportMapping(true);
-                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT);
+                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
                         }
                     }}
                 />

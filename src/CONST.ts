@@ -1344,13 +1344,14 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_MAPPING_VALUE: {
+        NONE: 'NONE',
+        DEFAULT: 'DEFAULT',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+    },
+
     SAGE_INTACCT_CONFIG: {
-        MAPPING_VALUE: {
-            NONE: 'NONE',
-            DEFAULT: 'DEFAULT',
-            TAG: 'TAG',
-            REPORT_FIELD: 'REPORT_FIELD',
-        },
         MAPPINGS: {
             DEPARTMENTS: 'departments',
             CLASSES: 'classes',

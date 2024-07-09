@@ -2067,30 +2067,16 @@ export default {
             lineItemLevel: 'Nivel de partida',
             reportLevel: 'Nivel de informe',
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
-            mappingTitle: (mappingName: SageIntacctMappingName): string => {
-                switch (mappingName) {
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
-                        return 'departamentos';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
-                        return 'clases';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
-                        return 'lugares';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
-                        return 'clientes';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
-                        return 'proyectos (empleos)';
-                    default:
-                        return 'asignaciones';
-                }
-            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
+            classes: 'Clases',
             locations: 'Lugares',
             customers: 'Clientes/proyectos',
             accountsDescription: 'Tu plan de cuentas de Quickbooks Online se importará a Expensify como categorías.',
             accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
+            classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
             customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Online en Expensify.',
             locationsDescription: 'Elige cómo gestionar los lugares de QuickBooks Online en Expensify.',
             taxesDescription: 'Elige cómo gestionar los impuestos de QuickBooks Online en Expensify.',
@@ -2512,7 +2498,23 @@ export default {
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
-            userDimensionsAdded: (dimensionsAmmount: number) => `${dimensionsAmmount} ${Str.pluralize('UDD', `UDDs`, dimensionsAmmount)} añadido`,
+            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} añadido`,
+            mappingTitle: (mappingName: SageIntacctMappingName): string => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return 'departamentos';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return 'clases';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return 'lugares';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return 'clientes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return 'proyectos (empleos)';
+                    default:
+                        return 'asignaciones';
+                }
+            },
         },
         type: {
             free: 'Gratis',
@@ -2941,11 +2943,6 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
-            classes: 'Clases',
-            classesDescription: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
-                return `Elige cómo gestionar las clases de ${integrationName} en Expensify.`;
-            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

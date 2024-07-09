@@ -29,7 +29,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             pendingAction: pendingFields?.enableNewCategories,
         },
         {
-            description: translate('workspace.accounting.classes'),
+            description: translate('workspace.qbo.classes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID)),
             hasError: !!policy?.errors?.syncClasses,
             title: translate(`workspace.accounting.importTypes.${syncClasses ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),

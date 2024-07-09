@@ -35,9 +35,9 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksClassesPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.accounting.classes')} />
+                <HeaderWithBackButton title={translate('workspace.qbo.classes')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                    <Text style={styles.pb5}>{translate('workspace.accounting.classesDescription', CONST.POLICY.CONNECTIONS.NAME.QBO)}</Text>
+                    <Text style={styles.pb5}>{translate('workspace.qbo.classesDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
                             <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
@@ -45,7 +45,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                         <OfflineWithFeedback pendingAction={pendingFields?.syncClasses}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
-                                    accessibilityLabel={translate('workspace.accounting.classes')}
+                                    accessibilityLabel={translate('workspace.qbo.classes')}
                                     isOn={isSwitchOn}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(

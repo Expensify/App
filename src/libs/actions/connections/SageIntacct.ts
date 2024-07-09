@@ -276,7 +276,7 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
 function addSageIntacctUserDimensions(
     policyID: string,
     dimensionName: string,
-    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+    mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
     existingUserDimensions: SageIntacctDimension[],
 ) {
     const newDimensions = [...existingUserDimensions, {mapping, dimension: dimensionName}];
@@ -288,7 +288,7 @@ function editSageIntacctUserDimensions(
     policyID: string,
     previousName: string,
     name: string,
-    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+    mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
     existingUserDimensions: SageIntacctDimension[],
 ) {
     const newDimensions = existingUserDimensions.map((userDimension) => {

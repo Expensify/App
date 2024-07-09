@@ -25,18 +25,18 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
 
     const selectionOptions = [
         {
-            value: CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG,
+            value: CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
             text: translate('common.tag'),
             alternateText: translate('workspace.common.lineItemLevel'),
-            keyForList: CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG,
-            isSelected: value === CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG,
+            keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
+            isSelected: value === CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
         },
         {
-            value: CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+            value: CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
             text: translate('workspace.common.reportField'),
             alternateText: translate('workspace.common.reportLevel'),
-            keyForList: CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
-            isSelected: value === CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+            keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
+            isSelected: value === CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
         },
     ];
 

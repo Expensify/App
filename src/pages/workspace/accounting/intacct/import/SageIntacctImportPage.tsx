@@ -18,16 +18,16 @@ import type {SageIntacctConnectiosConfig, SageIntacctMappingValue} from '@src/ty
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT: {
             return 'workspace.intacct.employeeDefault';
         }
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.TAG: {
             return 'workspace.accounting.importTypes.TAG';
         }
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD: {
             return 'workspace.accounting.importTypes.REPORT_FIELD';
         }
-        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE: {
+        case CONST.SAGE_INTACCT_MAPPING_VALUE.NONE: {
             return undefined;
         }
         default: {
@@ -54,7 +54,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
                 const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
                 return {
-                    description: Str.recapitalize(translate('workspace.common.mappingTitle', mapping)),
+                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
                     action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
                     title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
                     hasError: !!sageIntacctConfig?.errorFields?.[mapping],

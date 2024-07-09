@@ -9,13 +9,13 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type SageIntactDimensionForm = Form<
+type SageIntacctDimensionForm = Form<
     InputID,
     {
         [INPUT_IDS.INTEGRATION_NAME]: string;
-        [INPUT_IDS.DIMENSION_TYPE]: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD;
+        [INPUT_IDS.DIMENSION_TYPE]: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
     }
 >;
 
-export type {SageIntactDimensionForm};
+export type {SageIntacctDimensionForm};
 export default INPUT_IDS;

@@ -997,7 +997,7 @@ type SageIntacctConnectionData = {
 };
 
 /** Mapping value for Sage Intacct */
-type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_MAPPING_VALUE>;
 
 /** Mapping names for Sage Intacct */
 type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
@@ -1010,7 +1010,7 @@ type SageIntacctDimension = {
     dimension: string;
 
     /** Mapping value for user defined dimention */
-    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD;
+    mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
 };
 
 /** Mapping type for Sage Intacct */

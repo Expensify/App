@@ -2000,7 +2000,7 @@ export default {
             categories: 'Categories',
             tags: 'Tags',
             reportFields: 'Report fields',
-            reportField: 'Report Field',
+            reportField: 'Report field',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2036,30 +2036,16 @@ export default {
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
-            mappingTitle: (mappingName: SageIntacctMappingName): string => {
-                switch (mappingName) {
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
-                        return 'departments';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
-                        return 'classes';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
-                        return 'locations';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
-                        return 'customers';
-                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
-                        return 'projects (jobs)';
-                    default:
-                        return 'mappings';
-                }
-            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
+            classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
             accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
+            classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
@@ -2464,14 +2450,30 @@ export default {
             userDefinedDimensions: 'User-defined dimensions',
             addUserDefinedDimension: 'Add user-defined dimension',
             integrationName: 'Integration name',
-            dimensionExists: 'Dimension with such name already exists.',
+            dimensionExists: 'A dimension with this name already exists.',
             removeDimension: 'Remove user-defined dimension',
             removeDimensionPrompt: 'Are you sure you want to remove this user-defined dimension?',
             userDefinedDimension: 'User-defined dimension',
             addAUserDefinedDimension: 'Add a user-defined dimension',
             detailedInstructionsLink: 'View detailed instructions',
             detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
-            userDimensionsAdded: (dimensionsAmmount: number) => `${dimensionsAmmount} ${Str.pluralize('UDD', `UDDs`, dimensionsAmmount)} added`,
+            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} added`,
+            mappingTitle: (mappingName: SageIntacctMappingName): string => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return 'departments';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return 'classes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return 'locations';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return 'customers';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return 'projects (jobs)';
+                    default:
+                        return 'mappings';
+                }
+            },
         },
         type: {
             free: 'Free',
@@ -2826,11 +2828,6 @@ export default {
             },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
-            classes: 'Classes',
-            classesDescription: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
-                return `Choose how to handle ${integrationName} classes in Expensify.`;
-            },
             imported: 'Imported',
             notImported: 'Not imported',
             importAsCategory: 'Imported as categories',
