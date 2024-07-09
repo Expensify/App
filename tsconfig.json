@@ -1,37 +1,13 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "expo/tsconfig.base",
     "compilerOptions": {
-        "target": "esnext",
         "module": "commonjs",
         "types": ["react-native", "jest"],
-        "lib": [
-            "DOM",
-            "es2019",
-            "es2020.bigint",
-            "es2020.date",
-            "es2020.number",
-            "es2020.promise",
-            "es2020.string",
-            "es2020.symbol.wellknown",
-            "es2021.promise",
-            "es2021.string",
-            "es2021.weakref",
-            "es2022.array",
-            "es2022.object",
-            "es2022.string",
-            "ES2021.Intl",
-            "ES2023.Array"
-        ],
-        "allowJs": true,
-        "checkJs": false,
-        "jsx": "react-native",
-        "noEmit": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
         "strict": true,
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "skipLibCheck": true,
         "incremental": true,
         "baseUrl": ".",
         "paths": {
@@ -48,7 +24,6 @@
             "@userActions/*": ["./src/libs/actions/*"]
         }
     },
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],
     "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "workflow_tests", "scripts"],
-    "extends": "expo/tsconfig.base"
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }

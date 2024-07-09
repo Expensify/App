@@ -8,9 +8,16 @@ import type {FileDownload} from './types';
 /**
  * The function downloads an attachment on web/desktop platforms.
  */
-const fileDownload: FileDownload = (url, fileName) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
-    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => resolvedUrl.startsWith(prefix))) {
+    if (
+        // we have two file download cases that we should allow 1. dowloading attachments 2. downloading Expensify package for Sage Intacct
+        shouldOpenExternalLink ||
+        (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) &&
+            !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => resolvedUrl.startsWith(prefix)) &&
+            url !== CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT)
+    ) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
         Link.openExternalLink(url);

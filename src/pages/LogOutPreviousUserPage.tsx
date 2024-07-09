@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
+import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -32,6 +33,8 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
     const initialURL = useContext(InitialURLContext);
+    const {navigateToExitUrl} = useHybridAppMiddleware();
+
     useEffect(() => {
         const sessionEmail = session?.email;
         const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
@@ -63,7 +66,15 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
             const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
             SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
         }
+        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [initialURL]);
+
+    useEffect(() => {
         const exitTo = route.params.exitTo as Route | null;
+        const sessionEmail = session?.email;
+        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
@@ -72,12 +83,10 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
                 // remove this screen and navigate to exit route
                 const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                 Navigation.goBack();
-                Navigation.navigate(exitUrl);
+                navigateToExitUrl(exitUrl);
             });
         }
-
-        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
     return <FullScreenLoadingIndicator />;

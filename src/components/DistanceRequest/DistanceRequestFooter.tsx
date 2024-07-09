@@ -27,7 +27,7 @@ type DistanceRequestFooterOnyxProps = {
 };
 
 type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
-    /** The waypoints for the distance request */
+    /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
     /** Function to call when the user wants to add a new waypoint */

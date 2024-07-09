@@ -201,10 +201,10 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
         };
         job.steps.forEach((step) => {
             const workflowStep = {
-                name: step.name,
+                name: step.name ?? '',
                 inputs: Object.keys(step.with ?? {}),
                 envs: step.envs ?? [],
-            };
+            } as StepIdentifier;
             workflowJobs[jobId].steps.push(workflowStep);
         });
     });
@@ -243,7 +243,7 @@ const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>): string => 
 
     Object.entries(jobs).forEach(([jobId, job]) => {
         let stepAssertionsContent = '';
-        job.steps.forEach((step) => {
+        job.steps.forEach((step: StepIdentifier) => {
             stepAssertionsContent += stepAssertionTemplate(step.name, jobId.toUpperCase(), step.name, step.inputs, step.envs);
         });
         const jobAssertionName = `assert${jobId.charAt(0).toUpperCase() + jobId.slice(1)}JobExecuted`;
@@ -275,7 +275,7 @@ checkIfMocksFileExists(workflowTestMocksDirectory, workflowTestMocksFileName);
 const workflowTestAssertionsFileName = `${workflowName}Assertions.ts`;
 checkIfAssertionsFileExists(workflowTestAssertionsDirectory, workflowTestAssertionsFileName);
 
-const workflow = yaml.parse(fs.readFileSync(workflowFilePath, 'utf8'));
+const workflow = yaml.parse(fs.readFileSync(workflowFilePath, 'utf8')) as YamlWorkflow;
 const workflowJobs = parseWorkflowFile(workflow);
 
 const mockFileContent = getMockFileContent(workflowName, workflowJobs);

@@ -1,58 +1,88 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import type Response from './Response';
 
+/** Model of onyx requests sent to the API */
 type OnyxData = {
+    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
     successData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
     failureData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed after getting any response from server */
     finallyData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed before request is made to the server */
     optimisticData?: OnyxUpdate[];
 };
 
+/** HTTP request method names */
 type RequestType = 'get' | 'post';
 
+/** Model of overall requests sent to the API */
 type RequestData = {
+    /** Name of the API command */
     command: string;
+
+    /** Command name for logging purposes */
     commandName?: string;
+
+    /** Additional parameters that can be sent with the request */
     data?: Record<string, unknown>;
+
+    /** The HTTP request method name */
     type?: RequestType;
+
+    /** Whether the app should connect to the secure API endpoints */
     shouldUseSecure?: boolean;
+
+    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
     successData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
     failureData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed after getting any response from server */
     finallyData?: OnyxUpdate[];
-    getConflictingRequests?: (persistedRequests: Request[]) => Request[];
-    handleConflictingRequest?: (persistedRequest: Request) => unknown;
+
+    /** Promise resolve handler */
     resolve?: (value: Response) => void;
+
+    /** Promise reject handler */
     reject?: (value?: unknown) => void;
+
+    /** Whether the app should skip the web proxy to connect to API endpoints */
+    shouldSkipWebProxy?: boolean;
 };
 
-type RequestConflictResolver = {
-    /**
-     * A callback that's provided with all the currently serialized functions in the sequential queue.
-     * Should return a subset of the requests passed in that conflict with the new request.
-     * Any conflicting requests will be cancelled and removed from the queue.
-     *
-     * @example - In ReconnectApp, you'd only want to have one instance of that command serialized to run on reconnect. The callback for that might look like this:
-     * (persistedRequests) => persistedRequests.filter((request) => request.command === 'ReconnectApp')
-     * */
-    getConflictingRequests?: (persistedRequests: Request[]) => Request[];
+/** Model of requests sent to the API */
+type Request = RequestData & OnyxData;
 
+/**
+ * An object used to describe how a request can be paginated.
+ */
+type PaginationConfig = {
     /**
-     * Should the requests provided to getConflictingRequests include the new request?
-     * This is useful if the new request and an existing request cancel eachother out completely.
-     *
-     * @example - In DeleteComment, if you're deleting an optimistic comment, you'd want to cancel the optimistic AddComment call AND the DeleteComment call.
-     * */
-    shouldIncludeCurrentRequest?: boolean;
-
-    /**
-     * Callback to handle a single conflicting request.
-     * This is useful if you need to clean up some optimistic data for a request that was queue but never sent.
-     * In these cases the optimisticData will be applied immediately, but the successData, failureData, and/or finallyData will never be applied unless you do it manually in this callback.
+     * The ID of the resource we're trying to paginate (i.e: the reportID in the case of paginating reportActions).
      */
-    handleConflictingRequest?: (persistedRequest: Request) => unknown;
+    resourceID: string;
+
+    /**
+     * The ID used as a cursor/offset when making a paginated request.
+     */
+    cursorID?: string | null;
 };
 
-type Request = RequestData & OnyxData & RequestConflictResolver;
+/**
+ * A paginated request object.
+ */
+type PaginatedRequest = Request &
+    PaginationConfig & {
+        /**
+         * A boolean flag to mark a request as Paginated.
+         */
+        isPaginated: true;
+    };
 
 export default Request;
-export type {OnyxData, RequestType, RequestConflictResolver};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest};

@@ -137,6 +137,17 @@ type PressableProps = RNPressableProps &
 
         /** Turns off drag area for the component */
         noDragArea?: boolean;
+
+        /**
+         * Specifies if the pressable responder should be disabled
+         */
+        fullDisabled?: boolean;
+
+        /**
+         * Whether the menu item should be interactive at all
+         * e.g., show disabled cursor when disabled
+         */
+        interactive?: boolean;
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;

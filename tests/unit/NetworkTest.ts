@@ -16,6 +16,8 @@ import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type OnResolved = (params: {jsonCode?: string | number}) => void;
+
 const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
 jest.mock('@src/libs/Log');
@@ -28,7 +30,6 @@ OnyxUpdateManager();
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
@@ -54,18 +55,18 @@ describe('NetworkTests', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        let isOffline: boolean | null = null;
+        let isOffline: boolean;
 
         Onyx.connect({
             key: ONYXKEYS.NETWORK,
             callback: (val) => {
-                isOffline = val && val.isOffline;
+                isOffline = !!val?.isOffline;
             },
         });
 
         // Given a test user login and account ID
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
-            expect(isOffline).toBe(null);
+            expect(isOffline).toBe(false);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
             global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
@@ -108,7 +109,7 @@ describe('NetworkTests', () => {
             HttpUtils.xhr = mockedXhr;
 
             // This should first trigger re-authentication and then a Failed to fetch
-            PersonalDetails.openPersonalDetails();
+            PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
@@ -119,11 +120,11 @@ describe('NetworkTests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then we will eventually have 1 call to OpenPersonalDetailsPage and 1 calls to Authenticate
-                    const callsToOpenPersonalDetails = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPersonalDetailsPage');
+                    // Then we will eventually have 1 call to OpenPublicProfilePage and 1 calls to Authenticate
+                    const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                     const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
 
-                    expect(callsToOpenPersonalDetails.length).toBe(1);
+                    expect(callsToOpenPublicProfilePage.length).toBe(1);
                     expect(callsToAuthenticate.length).toBe(1);
                 });
         });
@@ -143,7 +144,7 @@ describe('NetworkTests', () => {
                 const mockedXhr = jest.fn();
                 mockedXhr
 
-                    // And mock the first call to openPersonalDetails return with an expired session code
+                    // And mock the first call to openPublicProfilePage return with an expired session code
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
@@ -176,17 +177,17 @@ describe('NetworkTests', () => {
                 // And then make 3 API READ requests in quick succession with an expired authToken and handle the response
                 // It doesn't matter which requests these are really as all the response is mocked we just want to see
                 // that we get re-authenticated
-                PersonalDetails.openPersonalDetails();
-                PersonalDetails.openPersonalDetails();
-                PersonalDetails.openPersonalDetails();
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToOpenPersonalDetails = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPersonalDetailsPage');
+                const callsToopenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                expect(callsToOpenPersonalDetails.length).toBe(3);
+                expect(callsToopenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });
@@ -290,7 +291,7 @@ describe('NetworkTests', () => {
     test('test Failed to fetch error for non-retryable requests resolve with unable to retry jsonCode', () => {
         // Setup xhr handler that rejects once with a Failed to Fetch
         global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
-        const onResolved = jest.fn();
+        const onResolved = jest.fn() as jest.MockedFunction<OnResolved>;
 
         // Given we have a request made while online
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})

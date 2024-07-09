@@ -102,7 +102,7 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                style={[style, safeAreaPaddingBottomStyle]}
+                style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
             >
                 {children}
                 {isSubmitButtonVisible && (
@@ -118,31 +118,33 @@ function FormWrapper({
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
+                        enterKeyEventListenerPriority={1}
                     />
                 )}
             </FormElement>
         ),
         [
-            children,
-            enabledWhenOffline,
-            errorMessage,
-            errors,
-            footerContent,
             formID,
-            formState?.errorFields,
-            formState?.isLoading,
-            isSubmitActionDangerous,
-            isSubmitButtonVisible,
-            onSubmit,
             style,
-            styles.flex1,
+            styles.pb5,
             styles.mh0,
             styles.mt5,
-            submitButtonStyles,
-            submitFlexEnabled,
+            styles.flex1,
+            children,
+            isSubmitButtonVisible,
             submitButtonText,
+            errors,
+            formState?.errorFields,
+            formState?.isLoading,
             shouldHideFixErrorsAlert,
+            errorMessage,
+            onSubmit,
+            footerContent,
             onFixTheErrorsLinkPressed,
+            submitFlexEnabled,
+            submitButtonStyles,
+            enabledWhenOffline,
+            isSubmitActionDangerous,
             disablePressOnEnter,
         ],
     );

@@ -32,9 +32,10 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
 
     const isLocalFile = receiptURIs.isLocalFile;
 
-    const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
+    const isTrackExpenseAction = ReportActionUtils.isTrackExpenseAction(parentReportAction);
 
     useEffect(() => {
         if (report && transaction) {
@@ -42,14 +43,14 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
         }
         ReportActions.openReport(route.params.reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isTrackExpenseReport ? !transaction : (moneyRequestReportID ?? '') !== transaction?.reportID;
+    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
 
     return (
         <AttachmentModal
@@ -59,10 +60,11 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             isReceiptAttachment
             canEditReceipt={canEditReceipt}
             allowDownload={!isEReceipt}
+            isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}
             defaultOpen
             onModalClose={() => {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'));
             }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
@@ -74,12 +76,12 @@ TransactionReceipt.displayName = 'TransactionReceipt';
 
 export default withOnyx<TransactionReceiptProps, TransactionReceiptOnyxProps>({
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '0'}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`,
     },
     reportMetadata: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '0'}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '-1'}`,
     },
 })(TransactionReceipt);

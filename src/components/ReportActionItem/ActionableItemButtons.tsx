@@ -10,10 +10,12 @@ type ActionableItem = {
     key: string;
     onPress: () => void;
     text: TranslationPaths;
+    isMediumSized?: boolean;
 };
 
 type ActionableItemButtonsProps = {
     items: ActionableItem[];
+    layout?: 'horizontal' | 'vertical';
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -21,14 +23,14 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.gap2]}>
+        <View style={[props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], styles.gap2, styles.mt2]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
-                    style={[styles.mt2]}
                     onPress={item.onPress}
                     text={translate(item.text)}
-                    small
+                    small={!item.isMediumSized}
+                    medium={item.isMediumSized}
                     success={item.isPrimary}
                 />
             ))}

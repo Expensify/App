@@ -1,23 +1,16 @@
 // Issue - https://github.com/Expensify/App/issues/26719
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
-import type {
-    GetMissingOnyxMessagesParams,
-    HandleRestrictedEventParams,
-    OpenAppParams,
-    OpenOldDotLinkParams,
-    OpenProfileParams,
-    ReconnectAppParams,
-    UpdatePreferredLocaleParams,
-} from '@libs/API/parameters';
+import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
-import DateUtils from '@libs/DateUtils';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,12 +19,12 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as Policy from './Policy';
+import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -41,30 +34,37 @@ type PolicyParamsForOpenOrReconnect = {
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-let currentUserAccountID: number | null;
+let currentUserAccountID: number | undefined;
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID ?? null;
+        currentUserAccountID = val?.accountID;
         currentUserEmail = val?.email ?? '';
     },
 });
 
-let isSidebarLoaded: boolean | null;
+let isSidebarLoaded: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | null;
+let preferredLocale: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => {
+        preferredLocale = val;
+        if (preferredLocale) {
+            importEmojiLocale(preferredLocale as Locale).then(() => {
+                buildEmojisTrie(preferredLocale as Locale);
+            });
+        }
+    },
 });
 
-let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | null;
+let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (nextPriorityMode) => {
@@ -74,6 +74,38 @@ Onyx.connect({
             openApp();
         }
         priorityMode = nextPriorityMode;
+    },
+});
+
+const KEYS_TO_PRESERVE: OnyxKey[] = [
+    ONYXKEYS.ACCOUNT,
+    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.MODAL,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.CREDENTIALS,
+];
+
+Onyx.connect({
+    key: ONYXKEYS.RESET_REQUIRED,
+    callback: (isResetRequired) => {
+        if (!isResetRequired) {
+            return;
+        }
+
+        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+            // Set this to false to reset the flag for this client
+            Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            openApp();
+        });
     },
 });
 
@@ -116,6 +148,10 @@ function setLocale(locale: Locale) {
     const parameters: UpdatePreferredLocaleParams = {
         value: locale,
     };
+
+    importEmojiLocale(locale).then(() => {
+        buildEmojisTrie(locale);
+    });
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
@@ -238,9 +274,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
-            getConflictingRequests: (persistedRequests) => persistedRequests.filter((request) => request?.command === WRITE_COMMANDS.RECONNECT_APP),
-        });
+        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
     });
 }
 
@@ -365,7 +399,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  */
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
-    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
+    if (!session || !currentUrl?.includes('exitTo')) {
         return;
     }
 
@@ -409,52 +443,6 @@ function redirectThirdPartyDesktopSignIn() {
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
-        });
-    }
-}
-
-function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
-    const oldTimezoneData = personalDetails.timezone ?? {};
-    let newTimezoneData = oldTimezoneData;
-
-    if (oldTimezoneData?.automatic ?? true) {
-        newTimezoneData = {
-            automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
-        };
-    }
-
-    newTimezoneData = DateUtils.formatToSupportedTimezone(newTimezoneData);
-
-    const parameters: OpenProfileParams = {
-        timezone: JSON.stringify(newTimezoneData),
-    };
-
-    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
-    if (typeof currentUserAccountID === 'number') {
-        API.write(WRITE_COMMANDS.OPEN_PROFILE, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: newTimezoneData,
-                        },
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: oldTimezoneData,
-                        },
-                    },
-                },
-            ],
         });
     }
 }
@@ -514,7 +502,6 @@ export {
     setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    openProfile,
     redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
@@ -527,4 +514,5 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    KEYS_TO_PRESERVE,
 };

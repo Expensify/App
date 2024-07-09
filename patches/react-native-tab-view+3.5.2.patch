@@ -1,0 +1,25 @@
+diff --git a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
+index cb7073e..7d2448b 100644
+--- a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
++++ b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
+@@ -130,9 +130,10 @@ export function PagerViewAdapter<T extends Route>({
+     };
+   }, []);
+ 
++  const [forceRender, setForceRender] = React.useState(0)
+   const memoizedPosition = React.useMemo(
+     () => Animated.add(position, offset),
+-    [offset, position]
++    [offset, position, forceRender]
+   );
+ 
+   return children({
+@@ -162,6 +163,8 @@ export function PagerViewAdapter<T extends Route>({
+         onPageSelected={(e) => {
+           const index = e.nativeEvent.position;
+           indexRef.current = index;
++          position.setValue(index);
++          setForceRender((fr) => fr+1)
+           onIndexChange(index);
+         }}
+         onPageScrollStateChanged={onPageScrollStateChanged}

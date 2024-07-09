@@ -42,7 +42,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
         setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
 
         // Only need to update search value when the first time the data is loaded
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo((): PronounEntry[] => {
@@ -70,6 +70,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
 
     const updatePronouns = (selectedPronouns: PronounEntry) => {
         PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronounsKey ? '' : selectedPronouns?.value ?? '');
+        Navigation.goBack();
     };
 
     return (
@@ -94,6 +95,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
                         sections={[{data: filteredPronounsList}]}
                         ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         initiallyFocusedOptionKey={currentPronounsKey}
                     />

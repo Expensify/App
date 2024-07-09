@@ -72,7 +72,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                     </FormScrollView>
                     <FixedFooter>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={Boolean(onfidoError)}
+                            isAlertVisible={!!onfidoError}
                             onSubmit={openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
                                 formRef.current?.scrollTo({y: 0, animated: true});

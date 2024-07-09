@@ -1,5 +1,6 @@
-import type {ComponentMeta} from '@storybook/react';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import type {Meta} from '@storybook/react';
+// eslint-disable-next-line no-restricted-imports
+import {ExpensiMark} from 'expensify-common';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import Composer from '@components/Composer';
@@ -19,7 +20,7 @@ const ComposerWithNavigation = withNavigationFallback(Composer);
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof ComposerWithNavigation> = {
+const story: Meta<typeof ComposerWithNavigation> = {
     title: 'Components/Composer',
     component: ComposerWithNavigation,
 };

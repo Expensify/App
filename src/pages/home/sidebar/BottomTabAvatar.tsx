@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useCallback} from 'react';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
@@ -49,7 +48,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     }
 
     return (
-        <Tooltip text={translate('profilePage.profile')}>
+        <Tooltip text={translate('initialSettingsPage.accountSettings')}>
             <PressableWithFeedback
                 onPress={showSettingsPage}
                 role={CONST.ROLE.BUTTON}

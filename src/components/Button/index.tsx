@@ -115,6 +115,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** Whether the button should use split style or not */
+    isSplitButton?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -144,7 +147,7 @@ function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPre
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [shouldDisableEnterShortcut, isFocused],
     );
 
@@ -198,9 +201,10 @@ function Button(
 
         id = '',
         accessibilityLabel = '',
+        isSplitButton = false,
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View | HTMLDivElement>,
+    ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -223,7 +227,7 @@ function Button(
                     large && styles.buttonLargeText,
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
-                    Boolean(icon) && styles.textAlignLeft,
+                    !!icon && styles.textAlignLeft,
                     textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -253,13 +257,22 @@ function Button(
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
-                            <Icon
-                                src={iconRight}
-                                fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
-                                small={small}
-                                medium={medium}
-                                large={large}
-                            />
+                            {!isSplitButton ? (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={medium}
+                                    medium={large}
+                                />
+                            ) : (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
+                                />
+                            )}
                         </View>
                     )}
                 </View>
@@ -316,7 +329,7 @@ function Button(
                 ]}
                 style={[
                     styles.button,
-                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, Boolean(icon), Boolean(text?.length > 0), shouldShowRightIcon),
+                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
                     success ? styles.buttonSuccess : undefined,
                     danger ? styles.buttonDanger : undefined,
                     isDisabled ? styles.buttonOpacityDisabled : undefined,

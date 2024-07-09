@@ -1,4 +1,4 @@
-import type {ComponentStory} from '@storybook/react';
+import type {StoryFn} from '@storybook/react';
 import React from 'react';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -6,7 +6,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import type {SubscriptAvatarProps} from '@components/SubscriptAvatar';
 import CONST from '@src/CONST';
 
-type SubscriptAvatarStory = ComponentStory<typeof SubscriptAvatar>;
+type SubscriptAvatarStory = StoryFn<typeof SubscriptAvatar>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

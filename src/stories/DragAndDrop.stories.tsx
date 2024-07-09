@@ -1,4 +1,4 @@
-import type {ComponentMeta} from '@storybook/react';
+import type {Meta} from '@storybook/react';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -11,7 +11,7 @@ import {defaultStyles} from '@src/styles';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof DragAndDropConsumer> = {
+const story: Meta<typeof DragAndDropConsumer> = {
     title: 'Components/DragAndDrop',
     component: DragAndDropConsumer,
 };

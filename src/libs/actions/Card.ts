@@ -5,9 +5,20 @@ import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFrau
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Response} from '@src/types/onyx';
+import type {ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ReplacementReason = 'damaged' | 'stolen';
+
+type IssueNewCardFlowData = {
+    /** Step to be set in Onyx */
+    step?: IssueNewCardStep;
+
+    /** Whether the user is editing step */
+    isEditing?: boolean;
+
+    /** Data required to be sent to issue a new card */
+    data?: Partial<IssueNewCardData>;
+};
 
 function reportVirtualExpensifyCardFraud(cardID: number) {
     const optimisticData: OnyxUpdate[] = [
@@ -44,7 +55,11 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -89,7 +104,11 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         reason,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -158,7 +177,7 @@ function clearCardListErrors(cardID: number) {
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number): Promise<Response> {
+function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
         const parameters: RevealExpensifyCardDetailsParams = {cardID};
 
@@ -170,12 +189,31 @@ function revealVirtualCardDetails(cardID: number): Promise<Response> {
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;
                 }
-                resolve(response);
+                resolve(response as ExpensifyCardDetails);
             })
             // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
 
-export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud, revealVirtualCardDetails};
+function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
+}
+
+function clearIssueNewCardFlow() {
+    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {
+        currentStep: null,
+        data: {},
+    });
+}
+
+export {
+    requestReplacementExpensifyCard,
+    activatePhysicalExpensifyCard,
+    clearCardListErrors,
+    reportVirtualExpensifyCardFraud,
+    revealVirtualCardDetails,
+    setIssueNewCardStepAndData,
+    clearIssueNewCardFlow,
+};
 export type {ReplacementReason};

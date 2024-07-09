@@ -86,4 +86,5 @@ function FullPageNotFoundView({
 
 FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
+export type {FullPageNotFoundViewProps};
 export default FullPageNotFoundView;

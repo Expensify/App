@@ -1,18 +1,18 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import Chase from '@assets/images/bankicons/chase.svg';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import variables from '@styles/variables';
 
-type MenuItemStory = ComponentStory<typeof MenuItem>;
+type MenuItemStory = StoryFn<typeof MenuItem>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof MenuItem> = {
+const story: Meta<typeof MenuItem> = {
     title: 'Components/MenuItem',
     component: MenuItem,
 };

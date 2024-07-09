@@ -12,10 +12,13 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +52,7 @@ type IOURequestStepDescriptionOnyxProps = {
 
 type IOURequestStepDescriptionProps = IOURequestStepDescriptionOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
@@ -92,18 +95,22 @@ function IOURequestStepDescription({
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
+            const errors = {};
 
-        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
-            ]);
-        }
+            if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'moneyRequestComment',
+                    translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
+                );
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -120,15 +127,16 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '0', {comment: newComment});
+            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {comment: newComment});
             navigateBack();
             return;
         }
+        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '0', newComment, action === CONST.IOU.ACTION.CREATE);
+        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '0', reportID, newComment, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '-1', reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -140,7 +148,7 @@ function IOURequestStepDescription({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
@@ -174,8 +182,9 @@ function IOURequestStepDescription({
                             updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
+                        isMarkdownEnabled
                     />
                 </View>
             </FormProvider>
@@ -188,18 +197,18 @@ IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProps, IOURequestStepDescriptionOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
+            const transactionID = route?.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
     },
     reportActions: {
         key: ({
@@ -208,9 +217,9 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
                 params: {action, iouType},
             },
         }) => {
-            let reportID = '0';
+            let reportID = '-1';
             if (action === CONST.IOU.ACTION.EDIT) {
-                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '0' : report?.parentReportID ?? '0';
+                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '-1' : report?.parentReportID ?? '-1';
             }
             return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
         },
@@ -222,8 +231,8 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
 })(IOURequestStepDescription);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithOnyx);
+const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithWritableReportOrNotFound);
+const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
-export default IOURequestStepDescriptionWithFullTransactionOrNotFound;
+export default IOURequestStepDescriptionWithWritableReportOrNotFound;

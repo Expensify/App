@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -23,40 +23,35 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {LoginList, Policy, SecurityGroup, Session as TSession} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type ContactMethodDetailsPageOnyxProps = {
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<LoginList>;
+const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
+    id: policy?.id ?? '-1',
+    ownerAccountID: policy?.ownerAccountID,
+    owner: policy?.owner ?? '',
+});
 
-    /** Current user session */
-    session: OnyxEntry<TSession>;
+type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
-    /** User's security group IDs by domain */
-    myDomainSecurityGroups: OnyxEntry<Record<string, string>>;
+function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
+    const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
+    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
 
-    /** All of the user's security groups and their settings */
-    securityGroups: OnyxCollection<SecurityGroup>;
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult, policiesResult);
 
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: OnyxEntry<boolean>;
-
-    /** The list of this user's policies */
-    policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>;
-};
-
-type ContactMethodDetailsPageProps = ContactMethodDetailsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
-
-function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, securityGroups, isLoadingReportData = true, route, policies}: ContactMethodDetailsPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -150,7 +145,7 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
             return;
         }
         User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
@@ -160,19 +155,12 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
             return;
         }
 
-        // If the selected contactMethod is the current session['login'] and the account is unvalidated,
-        // the current authToken is invalid after the successful magic code verification.
-        // So we need to sign out the user and redirect to the sign in page.
-        if (isDefaultContactMethod) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
-    if (isLoadingReportData && isEmptyObject(loginList)) {
+    if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
 
@@ -190,7 +178,7 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
     }
 
     // Replacing spaces with "hard spaces" to prevent breaking the number
-    const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
+    const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
@@ -235,7 +223,7 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
                             type="success"
                             style={[themeStyles.mb3]}
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
+                            messages={{0: translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
                         />
 
                         <ValidateCodeForm
@@ -290,28 +278,4 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
 
 ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
-export default withOnyx<ContactMethodDetailsPageProps, ContactMethodDetailsPageOnyxProps>({
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    myDomainSecurityGroups: {
-        key: ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
-    },
-    securityGroups: {
-        key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
-    },
-    isLoadingReportData: {
-        key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-        selector: (data) => ({
-            id: data?.id ?? '',
-            ownerAccountID: data?.ownerAccountID,
-            owner: data?.owner ?? '',
-        }),
-    },
-})(ContactMethodDetailsPage);
+export default ContactMethodDetailsPage;

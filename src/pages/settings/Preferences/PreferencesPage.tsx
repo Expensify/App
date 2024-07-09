@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -20,22 +19,12 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PreferredTheme, PriorityMode, User as UserType} from '@src/types/onyx';
 
-type PreferencesPageOnyxProps = {
-    /** The chat priority mode */
-    priorityMode: PriorityMode;
+function PreferencesPage() {
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [user] = useOnyx(ONYXKEYS.USER);
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
-    /** The app's color theme */
-    preferredTheme: PreferredTheme;
-
-    /** The details about the user that is signed in */
-    user: OnyxEntry<UserType>;
-};
-
-type PreferencesPageProps = PreferencesPageOnyxProps;
-
-function PreferencesPage({priorityMode, preferredTheme, user}: PreferencesPageProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -125,14 +114,4 @@ function PreferencesPage({priorityMode, preferredTheme, user}: PreferencesPagePr
 
 PreferencesPage.displayName = 'PreferencesPage';
 
-export default withOnyx<PreferencesPageProps, PreferencesPageOnyxProps>({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-    preferredTheme: {
-        key: ONYXKEYS.PREFERRED_THEME,
-    },
-})(PreferencesPage);
+export default PreferencesPage;

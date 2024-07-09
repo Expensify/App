@@ -29,7 +29,7 @@ type EnableBankAccountOnyxProps = {
 
 type EnableBankAccountProps = EnableBankAccountOnyxProps & {
     /** Bank account currently in setup */
-    reimbursementAccount: ReimbursementAccount;
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: () => void;

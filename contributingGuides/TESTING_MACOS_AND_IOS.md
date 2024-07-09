@@ -30,13 +30,14 @@ So we’ll set up [Chrome Remote Desktop](https://remotedesktop.google.com/) on 
 2.  Install and run a VNC client like - [real VNC](https://www.realvnc.com/en/connect/download/vnc/) on your local machine.  
 3.  On the VNC client, enter the IP address followed by the port number 5900 to connect to the Mac instance. Eg: 158.72.143.9:5900
 
-You now have access to the MacOS GUI. Now let’s set up chrome remote desktop on it.
+You now have access to the MacOS GUI. Now, let’s set up chrome remote desktop on it.
 
 4.  Download google chrome.
 5.  Go to [remotedesktop.google.com/access](https://remotedesktop.google.com/access) and set up remote access on the MacOS instance. 
 6.  Once that’s done, you can access the Mac instance’s GUI using your local machine from this website - [remotedesktop.google.com/access](https://remotedesktop.google.com/access).
 7.  Run the following commands to install tools like cocoapods, node etc which are needed to run New Expensify.
-```
+
+```shell
 # Install homebrew
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 

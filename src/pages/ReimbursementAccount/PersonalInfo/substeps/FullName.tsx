@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -27,19 +27,6 @@ type FullNameProps = FullNameOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
-
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
-        errors.firstName = 'bankAccount.error.firstName';
-    }
-
-    if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
-        errors.lastName = 'bankAccount.error.lastName';
-    }
-    return errors;
-};
-
 function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -48,6 +35,21 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
         firstName: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
         lastName: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
+                errors.firstName = translate('bankAccount.error.firstName');
+            }
+
+            if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
+                errors.lastName = translate('bankAccount.error.lastName');
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

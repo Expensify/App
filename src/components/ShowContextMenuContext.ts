@@ -13,13 +13,15 @@ type ShowContextMenuContextProps = {
     anchor: ContextMenuAnchor;
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
+    transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
-    report: null,
-    action: null,
+    report: undefined,
+    action: undefined,
+    transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
 });
 
@@ -63,3 +65,4 @@ function showContextMenuForReport(
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};
+export type {ShowContextMenuContextProps};

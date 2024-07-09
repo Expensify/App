@@ -8,8 +8,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
+import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
-import MenuItem from './MenuItem';
 
 type ContextMenuItemProps = {
     /** Icon Component */
@@ -49,6 +49,12 @@ type ContextMenuItemProps = {
 
     /** The ref of mini context menu item */
     buttonRef?: React.RefObject<View>;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
+
+    /** Handles what to do when the item loose focus */
+    onBlur?: () => void;
 };
 
 type ContextMenuItemHandle = {
@@ -70,6 +76,8 @@ function ContextMenuItem(
         wrapperStyle,
         shouldPreventDefaultFocusOnPress = true,
         buttonRef = {current: null},
+        onFocus = () => {},
+        onBlur = () => {},
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -113,7 +121,7 @@ function ContextMenuItem(
             )}
         </BaseMiniContextMenuItem>
     ) : (
-        <MenuItem
+        <FocusableMenuItem
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
@@ -125,6 +133,8 @@ function ContextMenuItem(
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}
+            onFocus={onFocus}
+            onBlur={onBlur}
         />
     );
 }

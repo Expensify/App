@@ -1,7 +1,7 @@
 import React from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
+import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -16,7 +16,7 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
-type ContextMenuAnchor = View | RNText | HTMLDivElement | null | undefined;
+type ContextMenuAnchor = View | RNText | TextInput | HTMLDivElement | null | undefined;
 
 type ShowContextMenu = (
     type: ContextMenuType,
@@ -105,9 +105,9 @@ function showContextMenu(
     event: GestureResponderEvent | MouseEvent,
     selection: string,
     contextMenuAnchor: ContextMenuAnchor,
-    reportID = '0',
-    reportActionID = '0',
-    originalReportID = '0',
+    reportID = '-1',
+    reportActionID = '-1',
+    originalReportID = '-1',
     draftMessage: string | undefined = undefined,
     onShow = () => {},
     onHide = () => {},
