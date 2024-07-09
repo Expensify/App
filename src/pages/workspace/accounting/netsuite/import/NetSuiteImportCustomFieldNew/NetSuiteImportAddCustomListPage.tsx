@@ -37,7 +37,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
     }, [policyID]);
 
     const {
@@ -53,6 +53,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToTheLastStep();
+            return;
         }
         if (screenIndex === 0) {
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
