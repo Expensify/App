@@ -618,6 +618,16 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
+function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
+    const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
+    return (bankAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
 function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     return vendors.map(({id, value}) => ({
@@ -761,6 +771,7 @@ export {
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
+    getSageIntacctBankAccounts,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,
