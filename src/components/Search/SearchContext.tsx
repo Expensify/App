@@ -4,7 +4,7 @@ import type {SearchContext} from './types';
 
 const defaultSearchContext = {
     currentSearchHash: -1,
-    selectedTransactionIds: [],
+    selectedTransactionIDs: [],
     setCurrentSearchHash: () => {},
     setSelectedTransactionIds: () => {},
 };
@@ -12,9 +12,9 @@ const defaultSearchContext = {
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactionIds'>>({
+    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactionIDs'>>({
         currentSearchHash: defaultSearchContext.currentSearchHash,
-        selectedTransactionIds: defaultSearchContext.selectedTransactionIds,
+        selectedTransactionIDs: defaultSearchContext.selectedTransactionIDs,
     });
 
     const setCurrentSearchHash = useCallback(
@@ -28,10 +28,10 @@ function SearchContextProvider({children}: ChildrenProps) {
     );
 
     const setSelectedTransactionIds = useCallback(
-        (selectedTransactionIds: string[]) => {
+        (selectedTransactionIDs: string[]) => {
             setSearchContextData({
                 ...searchContextData,
-                selectedTransactionIds,
+                selectedTransactionIDs,
             });
         },
         [searchContextData],

@@ -21,7 +21,7 @@ type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 
 type SearchContext = {
     currentSearchHash: number;
-    selectedTransactionIds: string[];
+    selectedTransactionIDs: string[];
     setCurrentSearchHash: (hash: number) => void;
     setSelectedTransactionIds: (selectedTransactionIds: string[]) => void;
 };
