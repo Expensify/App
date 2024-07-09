@@ -201,7 +201,7 @@ function AttachmentModal({
 
     useEffect(() => {
         const fileName = file?.name ?? '';
-        // Early return for non-image files or when carousel is scrolling
+        // Prevent iOS crashes by delaying modal footer toggles until carousel scrolling finishes.
         if (!file || isAttachmentCarouselScrolling) {
             return;
         }
