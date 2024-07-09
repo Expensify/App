@@ -9,10 +9,10 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { HybridAppRoute, Route } from '@src/ROUTES';
-import ROUTES, { HYBRID_APP_ROUTES } from '@src/ROUTES';
-import { PROTECTED_SCREENS } from '@src/SCREENS';
-import type { Report } from '@src/types/onyx';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
+import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
+import {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
@@ -26,8 +26,7 @@ import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
-import type { NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams } from './types';
-
+import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
