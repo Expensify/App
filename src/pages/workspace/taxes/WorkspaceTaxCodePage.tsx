@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {renamePolicyTax, validateTaxName} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -33,12 +32,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const currentTaxCode = route.params.taxID;
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currentTaxRate = PolicyUtils.getTaxByID(policy, currentTaxCode);
     const {inputCallbackRef} = useAutoFocusInput();
-
-    const [name, setName] = useState(() => Parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
-
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
 
     const submit = () => {
         const taxName = name.trim();
@@ -46,8 +40,20 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
         if (currentTaxRate?.name !== taxName) {
             renamePolicyTax(policyID, taxID, taxName);
         }
-        goBack();
+        Navigation.goBack();
     };
+
+    const editTaxCode = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
+            const newTaxCode = values.taxCode.trim();
+            // Do not call the API if the edited category name is the same as the current category name
+            if (currentTaxCode !== newTaxCode) {
+                Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+            }
+            Navigation.goBack();
+        },
+        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {

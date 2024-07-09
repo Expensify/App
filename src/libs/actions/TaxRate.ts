@@ -2,7 +2,14 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
-import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, RenamePolicyTaxParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
+import type {
+    CreatePolicyTaxParams,
+    DeletePolicyTaxesParams,
+    RenamePolicyTaxParams,
+    SetPolicyTaxesEnabledParams,
+    UpdatePolicyTaxCodeParams,
+    UpdatePolicyTaxValueParams,
+} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -463,6 +470,70 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
 }
 
+function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const originalTaxRate = {...policy?.taxRates?.taxes[oldTaxCode]};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [newTaxCode]: {
+                                ...originalTaxRate,
+                                pendingFields: {code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                errorFields: {code: null},
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [newTaxCode]: {pendingFields: {code: null}, pendingAction: null, errorFields: {code: null}},
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            [newTaxCode]: {
+                                code: originalTaxRate.code,
+                                pendingFields: {code: null},
+                                pendingAction: null,
+                                errorFields: {code: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyTaxCodeParams = {
+        policyID,
+        oldTaxCode,
+        newTaxCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_CODE, parameters, onyxData);
+}
+
 export {
     createPolicyTax,
     getNextTaxCode,
@@ -475,4 +546,5 @@ export {
     deletePolicyTaxes,
     updatePolicyTaxValue,
     renamePolicyTax,
+    setPolicyTaxCode,
 };
