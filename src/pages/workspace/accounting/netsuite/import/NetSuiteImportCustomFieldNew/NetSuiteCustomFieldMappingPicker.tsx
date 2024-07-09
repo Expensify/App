@@ -5,8 +5,14 @@ import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 
 type NetSuiteCustomListPickerProps = {
+    
+    /** Selected mapping value */
     value?: string;
+
+    /** Callback to fire when mapping is selected */
     onInputChange?: (value: string) => void;
+
+    /** Callback to fire submit when editing */
     onSubmitEditing?: () => void;
 };
 
