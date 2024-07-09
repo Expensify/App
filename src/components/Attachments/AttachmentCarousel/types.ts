@@ -38,9 +38,6 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
 
     /** A callback that is called when swipe-down-to-close gesture happens */
     onClose: () => void;
-
-    /** A callback that is called when the pager's scrolling state changes. */
-    onIsPagerScrollingChange?: (isScrolling: boolean) => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};

@@ -28,7 +28,6 @@ function AttachmentCarousel({
     onClose,
     type,
     accountID,
-    onIsPagerScrollingChange,
 }: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -99,15 +98,13 @@ function AttachmentCarousel({
                 return;
             }
 
-            // Initially set the scroll value to false by default on each navigation action, then immediately switch it to true after clicking the carousel arrow.
-            onIsPagerScrollingChange?.(true);
             const nextPageIndex = page + deltaSlide;
             updatePage(nextPageIndex);
             pagerRef.current?.setPage(nextPageIndex);
 
             autoHideArrows();
         },
-        [autoHideArrows, page, updatePage, onIsPagerScrollingChange],
+        [autoHideArrows, page, updatePage],
     );
 
     const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
@@ -149,7 +146,6 @@ function AttachmentCarousel({
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
                         ref={pagerRef}
-                        onIsPagerScrollingChange={onIsPagerScrollingChange}
                     />
                 </>
             )}
