@@ -335,6 +335,8 @@ const CONST = {
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
             VERIFYING: 'VERIFYING',
+            VALIDATING: 'VALIDATING',
+            SETUP: 'SETUP',
             PENDING: 'PENDING',
             OPEN: 'OPEN',
         },

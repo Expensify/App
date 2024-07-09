@@ -1214,10 +1214,6 @@ export default {
             updateAddress: 'Update address',
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
-        chooseBankAccount: 'Choose bank account',
-        chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
-        accountEndingIn: 'Account ending in',
-        addNewBankAccount: 'Add a new bank account',
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -2472,6 +2468,12 @@ export default {
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
             cashBack: 'Cash back',
             cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            issueNewCard: 'Issue new card',
+            finishSetup: 'Finish setup',
+            chooseBankAccount: 'Choose bank account',
+            chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
+            accountEndingIn: 'Account ending in',
+            addNewBankAccount: 'Add a new bank account',
         },
         categories: {
             deleteCategories: 'Delete categories',

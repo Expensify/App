@@ -31,7 +31,9 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     const handleSelectBankAccount = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW);
+        // TODO: replace the previous line with this one after #44741 is merged
+        // Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
     const renderBankOptions = () => {
@@ -39,16 +41,19 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        // const eligibleBankAccounts = Object.values(bankAccountsList).filter((bankAccount) => bankAccount.accountData.allowDebit || bankAccount.accountData.type === 'BUSINESS');
+        // const eligibleBankAccounts = Object.values(bankAccountsList).filter((bankAccount) => bankAccount.accountData.allowDebit || bankAccount.accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
         const eligibleBankAccounts = Object.values(bankAccountsList);
+
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
+            const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
             return (
                 <MenuItem
                     title={bankName}
-                    description={`${translate('cardPage.accountEndingIn')} ${(bankAccount.accountData?.accountNumber ?? '').slice(-4)}`}
+                    description={`${translate('workspace.expensifyCard.accountEndingIn')} ${bankAccountNumber.slice(-4)}`}
                     onPress={handleSelectBankAccount}
                     icon={icon}
                     iconHeight={iconSize}
@@ -69,13 +74,13 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             <HeaderWithBackButton
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                title={translate('cardPage.chooseBankAccount')}
+                title={translate('workspace.expensifyCard.chooseBankAccount')}
             />
-            <Text style={[styles.mh5, styles.mb3]}>{translate('cardPage.chooseExistingBank')}</Text>
+            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
             {renderBankOptions()}
             <MenuItem
                 icon={Expensicons.Plus}
-                title={translate('cardPage.addNewBankAccount')}
+                title={translate('workspace.expensifyCard.addNewBankAccount')}
                 onPress={handleAddBankAccount}
             />
         </ScreenWrapper>

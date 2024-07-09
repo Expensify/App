@@ -19,22 +19,16 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     // const policyID = route.params.policyID ?? '-1';
     // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
-    // return (
-    //     <AccessOrNotFoundWrapper
-    //         accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-    //         policyID={route.params.policyID}
-    //         featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
-    //     >
-    //         {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
-    //         {isEmptyObject(cardsList) && <WorkspaceExpensifyCardPageEmptyState route={route} />}
-    //         {!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}
-    //     </AccessOrNotFoundWrapper>
-    // );
     return (
-        <>
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+        >
+            {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
             {isEmptyObject(cardsList) && <WorkspaceExpensifyCardPageEmptyState route={route} />}
             {!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}
-        </>
+        </AccessOrNotFoundWrapper>
     );
 }
 
