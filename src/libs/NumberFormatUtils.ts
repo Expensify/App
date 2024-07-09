@@ -1,6 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import intlPolyfill from './IntlPolyfill';
 import memoize from './memoize';
+
+intlPolyfill();
 
 const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10});
 
