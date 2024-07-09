@@ -14,7 +14,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {SageIntacctConnectiosConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -33,10 +33,10 @@ function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): Tr
     }
 }
 
-const checkForUserDimensionWithError = (config?: SageIntacctConnectiosConfig) =>
+const checkForUserDimensionWithError = (config?: SageIntacctConnectionsConfig) =>
     config?.mappings?.dimensions?.some((dimension) => !!config?.errorFields?.[`dimension_${dimension.dimension}`]);
 
-const checkForUserDimensionWithPendingAction = (config?: SageIntacctConnectiosConfig) =>
+const checkForUserDimensionWithPendingAction = (config?: SageIntacctConnectionsConfig) =>
     config?.mappings?.dimensions?.some((dimension) => !!config?.pendingFields?.[`dimension_${dimension.dimension}`]);
 
 function SageIntacctImportPage({policy}: WithPolicyProps) {

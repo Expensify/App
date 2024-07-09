@@ -977,26 +977,26 @@ type SageIntacctDataElementWithValue = SageIntacctDataElement & {
  * Connection data for Sage Intacct
  */
 type SageIntacctConnectionData = {
-     /** Collection of credit cards */
-     creditCards: SageIntacctDataElement[];
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
 
-     /** Collection of entities */
-     entities: SageIntacctDataElementWithValue[];
- 
-     /** Collection of bank accounts */
-     bankAccounts: SageIntacctDataElement[];
- 
-     /** Collection of vendors */
-     vendors: SageIntacctDataElementWithValue[];
- 
-     /** Collection of journals */
-     journals: SageIntacctDataElementWithValue[];
- 
-     /** Collection of items */
-     items: SageIntacctDataElement[];
- 
-     /** Collection of tax solutions IDs */
-     taxSolutionIDs: string[];
+    /** Collection of entities */
+    entities: SageIntacctDataElementWithValue[];
+
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+
+    /** Collection of journals */
+    journals: SageIntacctDataElementWithValue[];
+
+    /** Collection of items */
+    items: SageIntacctDataElement[];
+
+    /** Collection of tax solutions IDs */
+    taxSolutionIDs: string[];
 };
 
 /** Mapping value for Sage Intacct */
@@ -1517,7 +1517,7 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     SageIntacctOfflineStateKeys,
-    SageIntacctConnectiosConfig,
+    SageIntacctConnectionsConfig,
     ConnectionName,
     Tenant,
     Account,

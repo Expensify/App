@@ -10,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Connections,
     SageIntacctConnectionsConfig,
-    SageIntacctConnectiosConfig,
     SageIntacctDimension,
     SageIntacctMappingName,
     SageIntacctMappingType,
@@ -475,7 +474,7 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Con
     }
 }
 
-function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectiosConfig) {
+function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 
