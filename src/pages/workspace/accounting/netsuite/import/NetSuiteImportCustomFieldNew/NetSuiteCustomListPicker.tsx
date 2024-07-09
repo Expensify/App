@@ -28,10 +28,6 @@ function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, 
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
-    const showPickerModal = () => {
-        setIsPickerVisible(true);
-    };
-
     const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
@@ -50,7 +46,7 @@ function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, 
                 shouldShowRightIcon
                 title={value}
                 description={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
-                onPress={showPickerModal}
+                onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
             />

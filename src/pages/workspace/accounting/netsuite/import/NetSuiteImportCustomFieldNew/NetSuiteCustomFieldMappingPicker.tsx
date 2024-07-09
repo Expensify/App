@@ -10,12 +10,9 @@ type NetSuiteCustomListPickerProps = {
 
     /** Callback to fire when mapping is selected */
     onInputChange?: (value: string) => void;
-
-    /** Callback to fire submit when editing */
-    onSubmitEditing?: () => void;
 };
 
-function NetSuiteCustomFieldMappingPicker({value, onInputChange, onSubmitEditing}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
 
     const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
@@ -34,7 +31,6 @@ function NetSuiteCustomFieldMappingPicker({value, onInputChange, onSubmitEditing
             sections={[{data: selectionData}]}
             onSelectRow={(selected) => {
                 onInputChange?.(selected.value);
-                onSubmitEditing?.();
             }}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
