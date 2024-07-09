@@ -69,7 +69,7 @@ function NetSuiteImportCustomFieldPage({
             <WorkspaceEmptyStateSection
                 shouldStyleAsCard={false}
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={Illustrations.EmptyStateRecords}
+                icon={Illustrations.FolderWithPapers}
                 subtitleComponent={
                     <HelpLinkComponent
                         importCustomField={importCustomField}
