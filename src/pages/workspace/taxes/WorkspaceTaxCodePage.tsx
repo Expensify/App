@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
+import INPUT_IDS from '@src/types/form/WorkspaceTaxCodeForm';
 
 type WorkspaceTaxCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CODE>;
 
@@ -50,11 +50,11 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             if (!policy) {
                 return {};
             }
-            if (values[INPUT_IDS.NAME] === currentTaxRate?.name) {
+            if (values[INPUT_IDS.TAX_CODE] === currentTaxRate?.name) {
                 return {};
             }
             return validateTaxName(policy, values);
@@ -83,7 +83,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 />
 
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
                     onSubmit={submit}
@@ -94,9 +94,9 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            inputID={INPUT_IDS.TAX_CODE}
+                            label={translate('workspace.taxes.taxCode')}
+                            accessibilityLabel={translate('workspace.taxes.taxCode')}
                             value={name}
                             maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             onChangeText={setName}
