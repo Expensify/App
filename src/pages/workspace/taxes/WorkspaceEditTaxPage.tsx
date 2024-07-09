@@ -122,6 +122,21 @@ function WorkspaceEditTaxPage({
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'taxCode')}
+                        pendingAction={currentTaxRate?.pendingFields?.taxCode}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearTaxRateFieldError(policyID, taxID, 'taxCode')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={currentTaxRate?.taxCode}
+                            description={translate('workspace.taxes.taxCode')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID))}
+                        />
+                    </OfflineWithFeedback>
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
