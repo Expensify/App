@@ -2,16 +2,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {
-    UpdateSageIntacctExportDateParams,
-    UpdateSageIntacctExporterParams,
-    UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams,
-    UpdateSageIntacctNonreimbursableExpensesExportAccountParams,
-    UpdateSageIntacctNonreimbursableExpensesExportDestinationParams,
-    UpdateSageIntacctNonreimbursableExpensesExportVendorParams,
-    UpdateSageIntacctReimbursableExpensesExportDestinationParams,
-    UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams,
-} from '@libs/API/parameters';
 import type ConnectPolicyToSageIntacctParams from '@libs/API/parameters/ConnectPolicyToSageIntacctParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -109,7 +99,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Con
 
 function updateSageIntacctExporter(policyID: string, exporter: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
-    const parameters: UpdateSageIntacctExporterParams = {
+    const parameters = {
         policyID,
         email: exporter,
     };
@@ -119,7 +109,7 @@ function updateSageIntacctExporter(policyID: string, exporter: string) {
 
 function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date);
-    const parameters: UpdateSageIntacctExportDateParams = {
+    const parameters = {
         policyID,
         value: date,
     };
@@ -129,7 +119,7 @@ function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONS
 
 function updateSageIntacctReimbursableExpensesExportDestination(policyID: string, reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, reimbursable);
-    const parameters: UpdateSageIntacctReimbursableExpensesExportDestinationParams = {
+    const parameters = {
         policyID,
         value: reimbursable,
     };
@@ -139,7 +129,7 @@ function updateSageIntacctReimbursableExpensesExportDestination(policyID: string
 
 function updateSageIntacctNonreimbursableExpensesExportDestination(policyID: string, nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE, nonReimbursable);
-    const parameters: UpdateSageIntacctNonreimbursableExpensesExportDestinationParams = {
+    const parameters = {
         policyID,
         value: nonReimbursable,
     };
@@ -149,7 +139,7 @@ function updateSageIntacctNonreimbursableExpensesExportDestination(policyID: str
 
 function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID: string, vendor: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
-    const parameters: UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams = {
+    const parameters = {
         policyID,
         vendorID: vendor,
     };
@@ -159,7 +149,7 @@ function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID
 
 function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID: string, vendor: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
-    const parameters: UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams = {
+    const parameters = {
         policyID,
         vendorID: vendor,
     };
@@ -169,7 +159,7 @@ function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVe
 
 function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string, nonReimbursableAccount: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
-    const parameters: UpdateSageIntacctNonreimbursableExpensesExportAccountParams = {
+    const parameters = {
         policyID,
         creditCardAccountID: nonReimbursableAccount,
     };
@@ -179,7 +169,7 @@ function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string,
 
 function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, vendor: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR, vendor);
-    const parameters: UpdateSageIntacctNonreimbursableExpensesExportVendorParams = {
+    const parameters = {
         policyID,
         vendorID: vendor,
     };

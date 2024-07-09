@@ -249,11 +249,4 @@ export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyEx
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
-export type {default as UpdateSageIntacctExporterParams} from './UpdateSageIntacctExporterParams';
-export type {default as UpdateSageIntacctExportDateParams} from './UpdateSageIntacctExportDateParams';
-export type {default as UpdateSageIntacctReimbursableExpensesExportDestinationParams} from './UpdateSageIntacctReimbursableExpensesExportDestinationParams';
-export type {default as UpdateSageIntacctNonreimbursableExpensesExportDestinationParams} from './UpdateSageIntacctNonreimbursableExpensesExportDestinationParams';
-export type {default as UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams} from './UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams';
-export type {default as UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams} from './UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams';
-export type {default as UpdateSageIntacctNonreimbursableExpensesExportAccountParams} from './UpdateSageIntacctNonreimbursableExpensesExportAccountParams';
-export type {default as UpdateSageIntacctNonreimbursableExpensesExportVendorParams} from './UpdateSageIntacctNonreimbursableExpensesExportVendorParams';
+export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
