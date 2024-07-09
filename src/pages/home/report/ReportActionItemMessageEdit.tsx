@@ -403,6 +403,7 @@ function ReportActionItemMessageEdit(
             }
             containerRef.current.measureInWindow(callback);
         },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isFocused],
     );
 
@@ -425,8 +426,9 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(() => {
-        // eslint-disable-next-line react-compiler/react-compiler,
+        // eslint-disable-next-line react-compiler/react-compiler
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     useFocusedInputHandler(
         {
