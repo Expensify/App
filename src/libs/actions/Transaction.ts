@@ -447,10 +447,22 @@ function openDraftDistanceExpense() {
 
                 // By optimistically setting the recent waypoints to an empty array, no further loading attempts will be made
                 value: [],
-            }
+            },
         ],
     };
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, {}, onyxData);
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey, openDraftDistanceExpense,};
+export {
+    addStop,
+    createInitialWaypoints,
+    saveWaypoint,
+    removeWaypoint,
+    getRoute,
+    updateWaypoints,
+    clearError,
+    markAsCash,
+    dismissDuplicateTransactionViolation,
+    setReviewDuplicatesKey,
+    openDraftDistanceExpense,
+};
