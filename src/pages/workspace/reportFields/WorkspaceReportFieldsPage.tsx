@@ -133,7 +133,8 @@ function WorkspaceReportFieldsPage({
     const isLoading = policy === undefined;
     const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.REPORT_FIELDS_BULK_ACTION_TYPES>>> = [];
@@ -173,23 +174,37 @@ function WorkspaceReportFieldsPage({
         );
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
-            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.type')}</Text>
-        </View>
-    );
+    const getCustomListHeader = () => {
+        const header = (
+            <View
+                style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    !hasAccountingConnections && styles.pl3,
+                ]}
+            >
+                <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.type')}</Text>
+            </View>
+        );
+        if (!hasAccountingConnections) {
+            return header;
+        }
+        return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            {hasAccountingConnections ? (
+            {isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
                         style={[styles.textNormal, styles.link]}
                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                     >
-                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
                     </TextLink>
                     <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                 </Text>
@@ -247,7 +262,7 @@ function WorkspaceReportFieldsPage({
                 )}
                 {!shouldShowEmptyState && !isLoading && (
                     <SelectionList
-                        canSelectMultiple
+                        canSelectMultiple={!hasAccountingConnections}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
                         onSelectRow={navigateToReportFieldSettings}
