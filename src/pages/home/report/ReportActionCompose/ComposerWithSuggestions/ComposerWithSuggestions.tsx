@@ -303,7 +303,6 @@ function ComposerWithSuggestions(
     const [composerHeight, setComposerHeight] = useState(0);
 
     const textInputRef = useRef<TextInput | null>(null);
-    const insertedEmojisRef = useRef<Emoji[]>([]);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -411,7 +410,6 @@ function ComposerWithSuggestions(
                     if (suggestionsRef.current) {
                         suggestionsRef.current.resetSuggestions();
                     }
-                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
