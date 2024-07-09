@@ -241,6 +241,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 
     return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
 }
+
 /**
  * Gets all tag lists of a policy
  */
@@ -617,6 +618,36 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+    const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
+    return vendors.map(({id, value}) => ({
+        value: id,
+        text: value,
+        keyForList: id,
+        isSelected: selectedVendorId === id,
+    }));
+}
+
+function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | undefined {
+    const {
+        nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
+        nonReimbursableVendor: expenseReportDefaultVendor,
+        nonReimbursable,
+    } = policy?.connections?.intacct?.config.export ?? {};
+
+    return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
+}
+
+function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
+    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
+    return creditCards.map(({name}) => ({
+        value: name,
+        text: name,
+        keyForList: name,
+        isSelected: name === selectedAccount,
+    }));
+}
+
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.
  * @param workspace1 Details of the first workspace to be compared.
@@ -657,6 +688,13 @@ function getCurrentConnectionName(policy: Policy | undefined): string | undefine
     return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
 
+/**
+ * Check if the policy member is deleted from the workspace
+ */
+function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: boolean) {
+    return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -690,6 +728,7 @@ export {
     hasPolicyErrorFields,
     hasTaxRateError,
     isExpensifyTeam,
+    isDeletedPolicyEmployee,
     isFreeGroupPolicy,
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
@@ -719,6 +758,9 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getSageIntacctVendors,
+    getSageIntacctNonReimbursableActiveDefaultVendor,
+    getSageIntacctCreditCards,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,

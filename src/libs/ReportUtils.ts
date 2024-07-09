@@ -5148,7 +5148,7 @@ function buildTransactionThread(
         participantAccountIDs,
         getTransactionReportName(reportAction),
         undefined,
-        moneyRequestReport?.policyID,
+        moneyRequestReport?.policyID ?? '-1',
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',

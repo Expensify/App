@@ -510,6 +510,28 @@ type SettingsNavigatorParamList = {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {
+        policyID: string;
+        reimbursable: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -541,6 +563,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAX_VALUE]: {
         policyID: string;
         taxID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
+        policyID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -993,7 +1018,6 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
-
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
@@ -1004,6 +1028,9 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
 };

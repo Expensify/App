@@ -815,13 +815,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
-    // TODO: uncomment after development is done
-    // WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
-    // route: 'settings/workspaces/:policyID/expensify-card/issues-new',
-    // getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
-    // },
-    // TODO: remove after development is done - this one is for testing purposes
-    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'settings/workspaces/expensify-card/issue-new',
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
+        route: 'settings/workspaces/:policyID/expensify-card/issue-new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -1118,6 +1115,34 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/date',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/date` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
+        getRoute: (policyID: string, reimbursable: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/credit-card-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/credit-card-account` as const,
     },
 } as const;
 

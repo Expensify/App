@@ -200,9 +200,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
-        ReportUtils.isMoneyRequestReport(moneyRequestReport) &&
-        (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
-        (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
+        ReportUtils.isExpenseReport(report) &&
+        (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
+        (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report));
 
     useEffect(() => {
         if (canDeleteRequest) {
