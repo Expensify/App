@@ -76,7 +76,7 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
     const fetchExpensifyCards = useCallback(() => {
         // TODO: uncomment when OpenPolicyExpensifyCardsPage API call is supported
         // Policy.openPolicyExpensifyCardsPage(policyID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policyID]);
 
     useFocusEffect(fetchExpensifyCards);
