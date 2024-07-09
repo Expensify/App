@@ -30,21 +30,22 @@ type WorkspaceTagsSettingsPageOnyxProps = {
 type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
 
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
+    const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            Tag.setPolicyRequiresTag(route.params.policyID, value);
+            Tag.setPolicyRequiresTag(policyID, value);
         },
-        [route.params.policyID],
+        [policyID],
     );
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             {({policy}) => (
@@ -75,13 +76,14 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         {!isMultiLevelTags && (
                             <OfflineWithFeedback
                                 errors={policyTags?.[policyTagLists[0].name]?.errors}
+                                onClose={() => Tag.clearPolicyTagListErrors(policyID, policyTagLists[0].orderWeight)}
                                 pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
                                 errorRowStyles={styles.mh5}
                             >
                                 <MenuItemWithTopDescription
                                     title={policyTagLists[0].name}
                                     description={translate(`workspace.tags.customTagName`)}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, policyTagLists[0].orderWeight))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists[0].orderWeight))}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
