@@ -41,7 +41,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID));
                 break;
             default:
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRM_PAGE.getRoute(threadReportID));
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID));
                 break;
         }
     };

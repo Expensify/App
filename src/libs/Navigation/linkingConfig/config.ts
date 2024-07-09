@@ -809,8 +809,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
                             exact: true,
                         },
-                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRM_PAGE.route,
+                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
                             exact: true,
                         },
                     },

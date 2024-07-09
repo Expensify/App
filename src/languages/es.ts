@@ -4182,9 +4182,9 @@ export default {
         categoryToKeep: 'Elige qué categoría quieres conservar',
         isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
-        confirmDetails: 'Confirme los datos que conserva',
-        confirmDuplicatesInfo: 'Las solicitudes duplicadas que no conserve se guardarán para que el socio las elimine',
-        hold: 'Bloqueada',
+        confirmDetails: 'Confirma los detalles que conserva',
+        confirmDuplicatesInfo: 'Los duplicados que no conserve se guardarán para que el usuario los elimine',
+        hold: 'Bloqueado',
     },
     violationDismissal: {
         rter: {

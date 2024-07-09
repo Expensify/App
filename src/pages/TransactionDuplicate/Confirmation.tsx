@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
-function Confirm() {
+function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
@@ -38,16 +38,16 @@ function Confirm() {
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const mergeDuplicates = useCallback(() => {
         IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '0'));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     return (
         <ScreenWrapper
-            testID={Confirm.displayName}
+            testID={Confirmation.displayName}
             shouldShowOfflineIndicator
         >
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ScrollView>
+            <ScrollView style={styles.mb3}>
                 <View style={[styles.ph5, styles.pb8]}>
                     <Text
                         family="EXP_NEW_KANSAS_MEDIUM"
@@ -61,13 +61,13 @@ function Confirm() {
                 <MoneyRequestView
                     report={report}
                     shouldShowAnimatedBackground={false}
-                    nonEditableMode
+                    readonly
                     updatedTransaction={transaction}
                 />
                 <Button
                     text={translate('common.confirm')}
                     success
-                    style={styles.ph5}
+                    style={[styles.ph5, styles.mt2]}
                     onPress={mergeDuplicates}
                 />
             </ScrollView>
@@ -75,6 +75,6 @@ function Confirm() {
     );
 }
 
-Confirm.displayName = 'Confirm';
+Confirmation.displayName = 'Confirmation';
 
-export default Confirm;
+export default Confirmation;

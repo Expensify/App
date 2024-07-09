@@ -931,25 +931,25 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     if (!originalTransaction) {
         return undefined;
     }
-
-    return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant};
+    console.log({...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant});
+    return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant, comment: {comment: reviewDuplicateTransaction?.description}};
 }
 
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: OnyxEntry<Transaction>): TransactionMergeParams {
     return {
-        transactionID: reviewDuplicates?.transactionID ?? '',
-        transactionIDList: reviewDuplicates?.duplicates ?? [],
         amount: originalTransaction?.modifiedAmount ?? 0,
         reportID: originalTransaction?.reportID ?? '',
+        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        currency: originalTransaction?.currency ?? '',
+        created: originalTransaction?.created ?? '',
+        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionIDList: reviewDuplicates?.duplicates ?? [],
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
         tag: reviewDuplicates?.tag ?? '',
         merchant: reviewDuplicates?.merchant ?? '',
         comment: reviewDuplicates?.description ?? '',
-        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
-        created: originalTransaction?.created ?? '',
-        currency: originalTransaction?.currency ?? '',
     };
 }
 

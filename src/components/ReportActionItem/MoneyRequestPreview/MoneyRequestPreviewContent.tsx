@@ -291,7 +291,7 @@ function MoneyRequestPreviewContent({
         } else if ('reimbursable' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID));
         } else {
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRM_PAGE.getRoute(route.params?.threadReportID));
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID));
         }
     };
 
