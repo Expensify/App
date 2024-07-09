@@ -1015,16 +1015,16 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         nonReimbursableAccount: string;
 
         /** Default vendor used for credit card transactions of non-reimbursable bill */
-        nonReimbursableCreditCardChargeDefaultVendor: string | null;
+        nonReimbursableCreditCardChargeDefaultVendor: string;
 
         /** Default vendor of non-reimbursable bill */
-        nonReimbursableVendor: string | null;
+        nonReimbursableVendor: string;
 
         /** Defines how reimbursable expenses are exported */
         reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
 
         /** Default vendor of reimbursable bill */
-        reimbursableExpenseReportDefaultVendor: string | null;
+        reimbursableExpenseReportDefaultVendor: string;
 
         /** Collection of mapping field errors, which will be triggered when update action fails  */
         errorFields?: OnyxCommon.ErrorFields;

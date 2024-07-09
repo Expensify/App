@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -23,8 +23,8 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
 };
 
-function getDefaultVendorName(defaultVendor: string, vendors: SageIntacctDataElementWithValue[]): string {
-    return vendors.find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
+function getDefaultVendorName(defaultVendor?: string, vendors?: SageIntacctDataElementWithValue[]): string | undefined {
+    return (vendors ?? []).find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
 }
 
 function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
@@ -53,30 +53,38 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
         [reimbursable, policyID],
     );
 
-    const defaultVendorSection = {
-        description: translate('workspace.sageIntacct.defaultVendor'),
-        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)),
-        title: reimbursableExpenseReportDefaultVendor
-            ? getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors ?? [])
-            : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.export?.errorFields?.reimbursableExpenseReportDefaultVendor,
-        pendingAction: config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor,
-    };
+    const defaultVendor = useMemo(() => {
+        const defaultVendorName = getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors);
+        const defaultVendorSection = {
+            description: translate('workspace.sageIntacct.defaultVendor'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)),
+            title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
+            hasError: !!config?.export?.errorFields?.reimbursableExpenseReportDefaultVendor,
+            pendingAction: config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor,
+        };
 
-    const defaultVendor = (
-        <OfflineWithFeedback
-            key={defaultVendorSection.description}
-            pendingAction={defaultVendorSection.pendingAction}
-        >
-            <MenuItemWithTopDescription
-                title={defaultVendorSection.title}
-                description={defaultVendorSection.description}
-                shouldShowRightIcon
-                onPress={defaultVendorSection.action}
-                brickRoadIndicator={defaultVendorSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            />
-        </OfflineWithFeedback>
-    );
+        return (
+            <OfflineWithFeedback
+                key={defaultVendorSection.description}
+                pendingAction={defaultVendorSection.pendingAction}
+            >
+                <MenuItemWithTopDescription
+                    title={defaultVendorSection.title}
+                    description={defaultVendorSection.description}
+                    shouldShowRightIcon
+                    onPress={defaultVendorSection.action}
+                    brickRoadIndicator={defaultVendorSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+        );
+    }, [
+        config?.export?.errorFields?.reimbursableExpenseReportDefaultVendor,
+        config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor,
+        intacctData?.vendors,
+        policyID,
+        reimbursableExpenseReportDefaultVendor,
+        translate,
+    ]);
 
     return (
         <ConnectionLayout
@@ -108,7 +116,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                                 switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                                 isActive={!!reimbursableExpenseReportDefaultVendor}
                                 onToggle={(enabled) => {
-                                    const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
+                                    const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
                                     updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
                                 }}
                                 wrapperStyle={[styles.ph5, styles.pv3]}

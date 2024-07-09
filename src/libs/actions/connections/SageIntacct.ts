@@ -147,7 +147,7 @@ function updateSageIntacctNonreimbursableExpensesExportDestination(policyID: str
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID: string, vendor: string | null) {
+function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID: string, vendor: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
     const parameters: UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams = {
         policyID,
@@ -157,7 +157,7 @@ function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_REPORT_EXPORT_DEFAULT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID: string, vendor: string | null) {
+function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID: string, vendor: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
     const parameters: UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams = {
         policyID,
@@ -171,13 +171,13 @@ function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string,
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
     const parameters: UpdateSageIntacctNonreimbursableExpensesExportAccountParams = {
         policyID,
-        bankAccountID: nonReimbursableAccount,
+        creditCardAccountID: nonReimbursableAccount,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, vendor: string | null) {
+function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, vendor: string) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR, vendor);
     const parameters: UpdateSageIntacctNonreimbursableExpensesExportVendorParams = {
         policyID,
@@ -187,7 +187,7 @@ function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], vendor: string | null) {
+function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], vendor: string) {
     if (settingName === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR) {
         updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID, vendor);
     } else if (settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR) {

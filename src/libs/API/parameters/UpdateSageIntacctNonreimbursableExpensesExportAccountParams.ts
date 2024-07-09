@@ -1,6 +1,6 @@
 type UpdateSageIntacctNonreimbursableExpensesExportAccountParams = {
     policyID: string;
-    bankAccountID: string;
+    creditCardAccountID: string;
 };
 
 export default UpdateSageIntacctNonreimbursableExpensesExportAccountParams;

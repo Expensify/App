@@ -617,19 +617,18 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string | null): SelectorType[] {
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
 
     return vendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
-        isSelected: isMatchFound && selectedVendorId === id,
+        isSelected: selectedVendorId === id,
     }));
 }
 
-function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | null | undefined {
+function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | undefined {
     const {
         nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
         nonReimbursableVendor: expenseReportDefaultVendor,

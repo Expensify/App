@@ -24,8 +24,8 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
 };
 
-function getDefaultVendorName(defaultVendor: string, vendors: SageIntacctDataElementWithValue[]): string {
-    return vendors.find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
+function getDefaultVendorName(defaultVendor?: string, vendors?: SageIntacctDataElementWithValue[]): string | undefined {
+    return (vendors ?? []).find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
 }
 
 function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
@@ -53,10 +53,12 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     const defaultVendor = useMemo(() => {
         const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+        const defaultVendorName = getDefaultVendorName(activeDefaultVendor, intacctData?.vendors);
+
         const defaultVendorSection = {
             description: translate('workspace.sageIntacct.defaultVendor'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
-            title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
+            title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
             hasError:
                 config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
                     ? !!config?.export?.errorFields?.nonReimbursableVendor
@@ -151,7 +153,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                                     switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                                     isActive={!!config?.export.nonReimbursableCreditCardChargeDefaultVendor}
                                     onToggle={(enabled) => {
-                                        const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
+                                        const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
                                         updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
                                     }}
                                     wrapperStyle={[styles.ph5, styles.pv3]}
