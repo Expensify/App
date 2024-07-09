@@ -124,14 +124,14 @@ function IOURequestStepDistance({
     }
 
     useEffect(() => {
-        if (recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
+        if (isOffline || recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
             return;
         }
 
         // Only load the recent waypoints if they have been read from Onyx as undefined
         // If the account doesn't have recent waypoints they will be returned as an empty array
         TransactionAction.openDraftDistanceExpense();
-    }, [recentWaypointsStatus, recentWaypoints]);
+    }, [recentWaypointsStatus, recentWaypoints, isOffline]);
 
     useEffect(() => {
         MapboxToken.init();
