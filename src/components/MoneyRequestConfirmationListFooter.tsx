@@ -255,8 +255,9 @@ function MoneyRequestConfirmationListFooter({
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
     // Do not hide fields in case of paying someone
     const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
-    // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
+    // Calculate the formatted tax amount based on the transaction's tax amount returned from getTaxAmount and the IOU currency code
+    const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
