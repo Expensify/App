@@ -24,20 +24,20 @@ import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
-type WorkspaceCreateReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+type CreateReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
-function WorkspaceCreateReportFieldPage({
+function CreateReportFieldPage({
     policy,
     route: {
         params: {policyID},
     },
-}: WorkspaceCreateReportFieldPageProps) {
+}: CreateReportFieldPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
@@ -101,7 +101,7 @@ function WorkspaceCreateReportFieldPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={WorkspaceCreateReportFieldPage.displayName}
+                testID={CreateReportFieldPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -190,6 +190,6 @@ function WorkspaceCreateReportFieldPage({
     );
 }
 
-WorkspaceCreateReportFieldPage.displayName = 'WorkspaceCreateReportFieldPage';
+CreateReportFieldPage.displayName = 'CreateReportFieldPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldPage);
+export default withPolicyAndFullscreenLoading(CreateReportFieldPage);
