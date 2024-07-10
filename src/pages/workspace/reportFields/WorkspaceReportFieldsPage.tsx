@@ -19,6 +19,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,6 +66,7 @@ function WorkspaceReportFieldsPage({
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (isFocused) {
@@ -126,9 +128,9 @@ function WorkspaceReportFieldsPage({
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
-    const isLoading = policy === undefined;
+    const isLoading = !isOffline && policy === undefined;
     const shouldShowEmptyState =
-        Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length <= 0 && !isLoading;
+        !Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
