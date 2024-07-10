@@ -65,7 +65,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id ?? '-1'));
         }
-    }, [bankAccountList]);
+    }, [bankAccountList, policy?.id]);
 
     return (
         <WorkspacePageWithSections

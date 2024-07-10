@@ -27,13 +27,12 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const policyID = route.params.policyID ?? '-1';
 
     const handleAddBankAccount = () => {
+        // TODO: call to API - UpdateCardSettlementAccount
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW);
-        // TODO: replace the previous line with this one after #44741 is merged
-        // Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
     const renderBankOptions = () => {
