@@ -3111,6 +3111,13 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
+            reconciliationAccount: 'Cuenta de conciliación',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
+                accountMatches: 'Asegúrate de que esta cuenta coincide con ',
+                settlementAccount: 'la cuenta de liquidación de tu Tarjeta Expensify ',
+                reconciliationWorks: (lastFourPAN: string) => `(que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
