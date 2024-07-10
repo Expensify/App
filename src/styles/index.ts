@@ -5105,7 +5105,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             height: '100%',
-            padding: isSmallScreenWidth ? 24 : 0,
+            padding: isSmallScreenWidth ? 32 : 0,
             width: '100%',
         }),
 
