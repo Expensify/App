@@ -10,23 +10,17 @@ import Text from './Text';
 type ReceiptAuditProps = {
     /** List of audit notes */
     notes: string[];
-
-    /** Weather to show success message (e.g. When receipt is scanning, we don't want to show `Verified` message) */
-    shouldShowAuditSuccess: boolean;
-
-    /** Weather to show failure message (e.g. When receipt isn't required, we don't want to show `Issues Found` message) */
-    shouldShowAuditFailure: boolean;
 };
 
-function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: ReceiptAuditProps) {
+function ReceiptAudit({notes}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     let auditText = '';
-    if (notes.length > 0 && shouldShowAuditFailure) {
+    if (notes.length > 0) {
         auditText = translate('iou.receiptIssuesFound', notes.length);
-    } else if (!notes.length && shouldShowAuditSuccess) {
+    } else if (!notes.length) {
         auditText = translate('common.verified');
     }
 

@@ -531,6 +531,10 @@ function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
 }
 
+function isRceiptStateOpen(transaction: OnyxEntry<Transaction>): boolean {
+    return CONST.IOU.RECEIPT_STATE.OPEN === transaction?.receipt?.state;
+}
+
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
@@ -951,6 +955,7 @@ export {
     hasRoute,
     isReceiptBeingScanned,
     didRceiptScanSucceed,
+    isRceiptStateOpen,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,

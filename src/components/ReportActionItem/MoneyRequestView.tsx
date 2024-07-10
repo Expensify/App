@@ -164,6 +164,7 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
+    const isRceiptStateOpen = hasReceipt && TransactionUtils.isRceiptStateOpen(transaction);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
@@ -343,7 +344,7 @@ function MoneyRequestView({
         CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
-    const receiptViolations =
+    let receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowAuditMessage = !isReceiptBeingScanned && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
@@ -384,17 +385,15 @@ function MoneyRequestView({
         );
     });
 
+    if (!shouldShowAuditMessage || !hasReceipt || (!didRceiptScanSucceed && !isRceiptStateOpen)) {
+        receiptViolations = [];
+    }
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {shouldShowReceiptAudit && (
-                    <ReceiptAudit
-                        notes={receiptViolations}
-                        shouldShowAuditSuccess={shouldShowAuditMessage && didRceiptScanSucceed}
-                        shouldShowAuditFailure={shouldShowAuditMessage && hasReceipt}
-                    />
-                )}
+                {shouldShowReceiptAudit && <ReceiptAudit notes={receiptViolations} />}
                 {(hasReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
