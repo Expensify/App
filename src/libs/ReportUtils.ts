@@ -3702,16 +3702,18 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
         return '';
     }
 
+    const dataAtrributes = `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}" ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}= "${file.uri}" data-name="${file.name}"`;
+
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        return `<img src="${file.uri}" alt="${file.name}" data-optimistic-src="${file.uri}" />`;
+        return `<img src="${file.uri}" alt="${file.name}" ${dataAtrributes} />`;
     }
     if (file.type?.startsWith('video')) {
-        return `<video src="${file.uri}" data-optimistic-src="${file.uri}">${file.name}</video>`;
+        return `<video src="${file.uri}" ${dataAtrributes}>${file.name}</video>`;
     }
 
-    // For all other types, we present a generic preview
-    return `<a href="${file.uri}" data-expensify-source="${file.uri}">${file.name}</a>`;
+    // For all other types, we present a generic download link
+    return `<a href="${file.uri}" ${dataAtrributes}>${file.name}</a>`;
 }
 
 function getReportDescriptionText(report: Report): string {
