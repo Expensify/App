@@ -26,7 +26,7 @@ type AccountListItem = ListItem & {
 function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, syncLocations, nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {creditCards, bankAccounts, accountPayable, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const isLocationEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
@@ -93,11 +93,10 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.exportAs')} />
                 <View style={styles.flex1}>
                     <SelectionList
                         containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportCompanyCard}

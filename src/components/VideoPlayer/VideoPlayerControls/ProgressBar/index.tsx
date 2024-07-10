@@ -30,6 +30,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const wasVideoPlayingOnCheck = useSharedValue(false);
 
     const onCheckVideoPlaying = (isPlaying: boolean) => {
+        // eslint-disable-next-line react-compiler/react-compiler
         wasVideoPlayingOnCheck.value = isPlaying;
     };
 

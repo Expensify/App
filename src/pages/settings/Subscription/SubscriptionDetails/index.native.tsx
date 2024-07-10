@@ -35,10 +35,7 @@ function SubscriptionDetails() {
                 style={styles.mt5}
             />
         ) : (
-            <Text style={styles.mt5}>
-                <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-            </Text>
+            <Text style={[styles.mt5, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>
         );
     }
 

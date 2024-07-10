@@ -36,19 +36,21 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
 
         if (!policy.errorFields && policy.isChangeOwnerFailed) {
             // there are some errors but not related to change owner flow - show an error page
+            Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
             return;
         }
 
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
             // no errors - show a success page
+            Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
             return;
         }
 
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
-        if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+        if (changeOwnerErrors && changeOwnerErrors.length > 0) {
             Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);

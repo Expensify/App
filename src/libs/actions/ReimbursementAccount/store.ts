@@ -4,7 +4,7 @@ import BankAccount from '@libs/models/BankAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-let bankAccountList: OnyxEntry<OnyxTypes.BankAccountList> = null;
+let bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 Onyx.connect({
     key: ONYXKEYS.BANK_ACCOUNT_LIST,
     callback: (val) => {

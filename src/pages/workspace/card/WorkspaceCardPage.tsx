@@ -30,7 +30,7 @@ function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
         >
             {(hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => (
                 <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID ?? ''} />}
+                    {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID ?? '-1'} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 

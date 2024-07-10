@@ -39,7 +39,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         buttonText: '',
     });
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const updateDisplayTexts = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -53,7 +53,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
     useEffect(() => {
         updateDisplayTexts();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

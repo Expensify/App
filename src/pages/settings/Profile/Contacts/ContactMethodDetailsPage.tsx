@@ -35,7 +35,7 @@ import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
-    id: policy?.id ?? '',
+    id: policy?.id ?? '-1',
     ownerAccountID: policy?.ownerAccountID,
     owner: policy?.owner ?? '',
 });
@@ -145,7 +145,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
@@ -223,7 +223,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             type="success"
                             style={[themeStyles.mb3]}
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
+                            messages={{0: translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
                         />
 
                         <ValidateCodeForm

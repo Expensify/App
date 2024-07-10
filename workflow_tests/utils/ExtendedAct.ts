@@ -18,7 +18,7 @@ type ActOptions = {
 // @ts-expect-error Override shouldn't be done on private methods wait until https://github.com/kiegroup/act-js/issues/77 is resolved or try to create a params workaround
 class ExtendedAct extends Act {
     async parseRunOpts(opts?: ExtendedActOpts): Promise<ActOptions> {
-        const {cwd, actArguments, proxy} = await super['parseRunOpts'](opts);
+        const {cwd, actArguments, proxy} = await (super['parseRunOpts'] as (opts?: ExtendedActOpts) => Promise<ActOptions>)(opts);
 
         if (opts?.actor) {
             actArguments.push('--actor', opts.actor);

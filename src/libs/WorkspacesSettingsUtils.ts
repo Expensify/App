@@ -4,25 +4,18 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReimbursementAccount, Report, ReportActions} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
+import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 
 type CheckingMethod = () => boolean;
 
-let allReports: OnyxCollection<Report>;
-
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -66,10 +59,10 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     }
 
     // To determine if the report requires attention from the current user, we need to load the parent report action
-    let itemParentReportAction = {};
+    let itemParentReportAction: OnyxEntry<ReportAction>;
     if (report.parentReportID) {
         const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
-        itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : {};
+        itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : undefined;
     }
     const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
     const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
@@ -100,6 +93,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+    const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return undefined;
     }

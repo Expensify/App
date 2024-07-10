@@ -33,7 +33,7 @@ function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: bo
             Onyx.disconnect(connectionID);
 
             // Use set to completely overwrite the original transaction
-            Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction);
+            Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
             removeBackupTransaction(transactionID);
         },
     });

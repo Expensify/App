@@ -5,9 +5,12 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = []): MarkdownStyle {
+const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
+
+function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
-    const emojiFontSize = containsOnlyEmojis(message ?? '') ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
+    const hasMessageOnlyEmojis = message != null && message.length > 0 && containsOnlyEmojis(message);
+    const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
     const nonStylingDefaultValues: Record<string, string | number> = useMemo(

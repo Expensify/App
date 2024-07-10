@@ -28,7 +28,7 @@ const ACCESS_VARIANTS = {
         policy: OnyxEntry<OnyxTypes.Policy>,
         login: string,
         report: OnyxEntry<OnyxTypes.Report>,
-        allPolicies: OnyxCollection<OnyxTypes.Policy>,
+        allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null,
         iouType?: IOUType,
     ) =>
         !!iouType &&
@@ -36,7 +36,10 @@ const ACCESS_VARIANTS = {
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
         (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies)),
-} as const satisfies Record<string, (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) => boolean>;
+} as const satisfies Record<
+    string,
+    (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null, iouType?: IOUType) => boolean
+>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperOnyxProps = {
@@ -113,7 +116,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         }
 
         Policy.openWorkspace(policyID, []);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);
