@@ -223,15 +223,9 @@ function MoneyRequestView({
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newBillable === TransactionUtils.getBillable(transaction)) {
-                if (!isReportOpenInRHP) {
-                    Navigation.dismissModal();
-                }
                 return;
             }
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID, newBillable, policy, policyTagList, policyCategories);
-            if (!isReportOpenInRHP) {
-                Navigation.dismissModal();
-            }
         },
         [transaction, report, policy, policyTagList, policyCategories, isReportOpenInRHP],
     );
