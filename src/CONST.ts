@@ -609,6 +609,7 @@ const CONST = {
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
 
@@ -1345,16 +1346,73 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_MAPPING_VALUE: {
+        NONE: 'NONE',
+        DEFAULT: 'DEFAULT',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+    },
+
+    SAGE_INTACCT_CONFIG: {
+        MAPPINGS: {
+            DEPARTMENTS: 'departments',
+            CLASSES: 'classes',
+            LOCATIONS: 'locations',
+            CUSTOMERS: 'customers',
+            PROJECTS: 'projects',
+        },
+        SYNC_ITEMS: 'syncItems',
+        TAX: 'tax',
+        EXPORT: 'export',
+        EXPORT_DATE: 'exportDate',
+        NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
+        NON_REIMBURSABLE_VENDOR: 'nonReimbursableVendor',
+        REIMBURSABLE_VENDOR: 'reimbursableExpenseReportDefaultVendor',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        EXPORTER: 'exporter',
+        REIMBURSABLE: 'reimbursable',
+        AUTO_SYNC: 'autoSync',
+        AUTO_SYNC_ENABLED: 'enabled',
+        IMPORT_EMPLOYEES: 'importEmployees',
+        APPROVAL_MODE: 'approvalMode',
+        SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+    },
+
+    SAGE_INTACCT: {
+        APPROVAL_MODE: {
+            APPROVAL_MANUAL: 'APPROVAL_MANUAL',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
     },
 
+    SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
     XERO_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_EXPORTED: 'REPORT_EXPORTED',
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    SAGE_INTACCT_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
     },
 
     NETSUITE_CONFIG: {
@@ -1389,7 +1447,12 @@ const CONST = {
             3: 'createAccessToken',
             4: 'enterCredentials',
         },
-        IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        IMPORT_CUSTOM_FIELDS: {
+            CUSTOM_SEGMENTS: 'customSegments',
+            CUSTOM_LISTS: 'customLists',
+        },
+        CUSTOM_SEGMENT_FIELDS: ['segmentName', 'internalID', 'scriptID', 'mapping'],
+        CUSTOM_LIST_FIELDS: ['listName', 'internalID', 'transactionFieldID', 'mapping'],
         CUSTOM_FORM_ID_TYPE: {
             REIMBURSABLE: 'reimbursable',
             NON_REIMBURSABLE: 'nonReimbursable',
@@ -1407,6 +1470,40 @@ const CONST = {
                 CUSTOMERS: 'customers',
                 JOBS: 'jobs',
             },
+        },
+        NETSUITE_CUSTOM_LIST_LIMIT: 8,
+        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
+    },
+
+    NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
+        CUSTOM_LISTS: {
+            CUSTOM_LIST_PICKER: 0,
+            TRANSACTION_FIELD_ID: 1,
+            MAPPING: 2,
+            CONFIRM: 3,
+        },
+        CUSTOM_SEGMENTS: {
+            SEGMENT_TYPE: 0,
+            SEGMENT_NAME: 1,
+            INTERNAL_ID: 2,
+            SCRIPT_ID: 3,
+            MAPPING: 4,
+            CONFIRM: 5,
+        },
+    },
+
+    NETSUITE_CUSTOM_RECORD_TYPES: {
+        CUSTOM_SEGMENT: 'customSegment',
+        CUSTOM_RECORD: 'customRecord',
+    },
+
+    NETSUITE_FORM_STEPS_HEADER_HEIGHT: 40,
+
+    NETSUITE_IMPORT: {
+        HELP_LINKS: {
+            CUSTOM_SEGMENTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments',
+            CUSTOM_LISTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists',
         },
     },
 
@@ -2130,6 +2227,10 @@ const CONST = {
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
         },
+        CARD_TYPE: {
+            PHYSICAL: 'physical',
+            VIRTUAL: 'virtual',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2351,6 +2452,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
@@ -3796,6 +3898,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -5062,6 +5165,9 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
             VIEW: 'view',
+            REVIEW: 'review',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -5158,6 +5264,10 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 
