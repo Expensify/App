@@ -5,7 +5,7 @@ import useThemeStyles from './useThemeStyles';
 
 const useExtraSafePaddingBottomStyle = () => {
     const styles = useThemeStyles();
-    const [willKeyboardShow, setWillKeyboardShow] = useState(false);
+    const [willKeyboardShow, setWillKeyboardShow] = useState<boolean>(false);
     useEffect(() => {
         const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', () => {
             setWillKeyboardShow(true);
