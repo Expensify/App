@@ -32,7 +32,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const payrollCode = policyCategories?.[categoryName]?.payrollCode;
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const editGLCode = useCallback(
+    const editPayrollCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newPayrollCode = values.payrollCode.trim();
             if (newPayrollCode !== payrollCode) {
@@ -61,7 +61,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
-                    onSubmit={editGLCode}
+                    onSubmit={editPayrollCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
