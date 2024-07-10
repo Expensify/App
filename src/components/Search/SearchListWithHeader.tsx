@@ -1,7 +1,10 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useMemo, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
+import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
@@ -34,9 +37,23 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
 }
 
 function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
+    const {translate} = useLocalize();
     const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
+    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
 
     const clearSelectedItems = () => setSelectedItems({});
+
+    const handleDeleteExpenses = () => {
+        const itemsToDelete = Object.keys(selectedItems).filter((id) => selectedItems[id].canDelete);
+
+        if (itemsToDelete.length === 0) {
+            return;
+        }
+
+        clearSelectedItems();
+        setDeleteExpensesConfirmModalVisible(false);
+        SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
+    };
 
     useEffect(() => {
         clearSelectedItems();
@@ -104,6 +121,7 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
                 clearSelectedItems={clearSelectedItems}
                 query={query}
                 hash={hash}
+                setDeleteModalVisible={setDeleteExpensesConfirmModalVisible}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -114,6 +132,16 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
                 ref={ref}
                 onCheckboxPress={toggleTransaction}
                 onSelectAll={toggleAllTransactions}
+            />
+            <ConfirmModal
+                isVisible={deleteExpensesConfirmModalVisible}
+                onConfirm={handleDeleteExpenses}
+                onCancel={() => setDeleteExpensesConfirmModalVisible(false)}
+                title={translate('iou.deleteExpense')}
+                prompt={translate('iou.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
             />
         </>
     );
