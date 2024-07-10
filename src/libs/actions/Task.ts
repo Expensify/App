@@ -126,7 +126,7 @@ function createTaskAndNavigate(
 
     const currentTime = DateUtils.getDBTimeWithSkew();
     const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
-    const parentReport = getReport(parentReportID);
+    const parentReport = ReportUtils.getReport(parentReportID);
     const optimisticParentReport = {
         lastVisibleActionCreated: optimisticAddCommentReport.reportAction.created,
         lastMessageText: lastCommentText,
@@ -907,13 +907,6 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
 }
 
 /**
- * Returns the report
- */
-function getReport(reportID: string): OnyxEntry<OnyxTypes.Report> {
-    return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-}
-
-/**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
 function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
@@ -1163,7 +1156,6 @@ export {
     clearTaskErrors,
     canModifyTask,
     setNewOptimisticAssignee,
-    getReport,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
