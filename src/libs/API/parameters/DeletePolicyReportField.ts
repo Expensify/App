@@ -1,4 +1,4 @@
-type PolicyReportFieldsReplace = {
+type DeletePolicyReportField = {
     policyID: string;
     /**
      * Stringified JSON object with type of following structure:
@@ -7,4 +7,4 @@ type PolicyReportFieldsReplace = {
     reportFields: string;
 };
 
-export default PolicyReportFieldsReplace;
+export default DeletePolicyReportField;
