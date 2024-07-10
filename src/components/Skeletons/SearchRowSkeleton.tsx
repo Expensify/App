@@ -2,6 +2,7 @@ import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -13,9 +14,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-
-// 375 is the width of the left pane
-const leftPaneWidth = 375;
+const leftPaneWidth = variables.sideBarWidth;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
