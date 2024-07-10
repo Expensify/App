@@ -110,7 +110,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -211,9 +210,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
                 routeName: ROUTES.SETTINGS_SUBSCRIPTION,
-                brickRoadIndicator: privateSubscription?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 subtitle: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrialLabel') : undefined,
-                style: SubscriptionUtils.isUserOnFreeTrial() ? styles.lhnSuccessText : undefined,
+                style: SubscriptionUtils.isUserOnFreeTrial() ? (styles.lhnSuccessText as StyleProp<ViewStyle>) : undefined,
             });
         }
 
