@@ -1168,8 +1168,6 @@ function findLastAccessedReport(
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
-    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
-
     let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
         adminReport = reportsValues.find((report) => {
@@ -1220,7 +1218,7 @@ function findLastAccessedReport(
     }
 
     // We are getting the last read report from the metadata of the report.
-    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+    const lastRead = getMostRecentlyVisitedReport(reportsValues, reportMetadata);
 
     return adminReport ?? lastRead;
 }
