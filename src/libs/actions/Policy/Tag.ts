@@ -670,21 +670,21 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         ],
     };
 
-    const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
-        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-        onyxMethod: Onyx.METHOD.MERGE,
-        value: {
-            ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
-                acc[key] = {
-                    ...acc[key],
-                    required,
-                };
-                return acc;
-            }, {}),
-        },
-    });
-
     if (isMultiLevelTags) {
+        const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
+                    acc[key] = {
+                        ...acc[key],
+                        required,
+                    };
+                    return acc;
+                }, {}),
+            },
+        });
+
         onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
         onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
         onyxData.successData?.push(getUpdatedTagsData(requiresTag));
