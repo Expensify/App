@@ -30,6 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as ReportField from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
@@ -96,7 +97,7 @@ function WorkspaceReportFieldsPage({
                     rightElement: (
                         <ListItemRightCaretWithLabel
                             shouldShowCaret={false}
-                            labelText={Str.recapitalize(reportField.type)}
+                            labelText={Str.recapitalize(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type))}
                         />
                     ),
                 })),
