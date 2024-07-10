@@ -3725,7 +3725,7 @@ function buildOptimisticAddCommentReportAction(
         textForNewComment = `${Parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
     }
 
-    const isAttachmentWithText = !text && file !== undefined;
+    const isAttachmentWithText = !!text && file !== undefined;
     const accountID = actorAccountID ?? currentUserAccountID;
 
     // Remove HTML from text when applying optimistic offline comment
