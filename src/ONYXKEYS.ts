@@ -535,8 +535,8 @@ const ONYXKEYS = {
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
         GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
-        REPORT_FIELD_EDIT_FORM: 'reportFieldEditForm',
-        REPORT_FIELD_EDIT_FORM_DRAFT: 'reportFieldEditFormDraft',
+        REPORT_FIELDS_EDIT_FORM: 'reportFieldsEditForm',
+        REPORT_FIELDS_EDIT_FORM_DRAFT: 'reportFieldsEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
         PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccount',
@@ -622,7 +622,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: FormTypes.ReportVirtualCardFraudForm;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.ReportPhysicalCardForm;
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.GetPhysicalCardForm;
-    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: FormTypes.ReportFieldEditForm;
+    [ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM]: FormTypes.ReportFieldsEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;

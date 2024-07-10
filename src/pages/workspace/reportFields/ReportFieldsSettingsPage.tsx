@@ -87,7 +87,7 @@ function ReportFieldsSettingsPage({
                     description={translate('common.initialValue')}
                     shouldShowRightIcon={!isDateFieldType}
                     interactive={!isDateFieldType}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                 />
                 {isListFieldType && (
                     <MenuItemWithTopDescription
@@ -95,7 +95,7 @@ function ReportFieldsSettingsPage({
                         titleStyle={styles.flex1}
                         description={translate('workspace.reportFields.listValues')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID, reportFieldID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID, reportFieldID))}
                     />
                 )}
                 <View style={styles.flexGrow1}>
