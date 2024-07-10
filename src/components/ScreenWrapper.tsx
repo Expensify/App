@@ -131,7 +131,7 @@ function ScreenWrapper(
 ) {
     /**
      * We are only passing navigation as prop from
-     * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+     * ReportScreen -> ScreenWrapper
      *
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.
@@ -211,7 +211,7 @@ function ScreenWrapper(
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());

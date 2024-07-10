@@ -1,10 +1,10 @@
 import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -13,7 +13,6 @@ import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
@@ -35,13 +34,6 @@ const navigationIsReadyPromise = new Promise<void>((resolve) => {
 let pendingRoute: Route | null = null;
 
 let shouldPopAllStateOnUP = false;
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
 
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
@@ -70,7 +62,7 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
         originalDismissModal(ref);
         return;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
@@ -79,7 +71,7 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
 // This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
 // Then we can pass the report as a param without getting it from the Onyx.
-const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
+const dismissModalWithReport = (report: OnyxEntry<Report>, ref = navigationRef) => originalDismissModalWithReport(report, ref);
 
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
@@ -130,7 +122,9 @@ function getDistanceFromPathInRootNavigator(path?: string): number {
             break;
         }
 
-        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        // When comparing path and pathFromState, the policyID parameter isn't included in the comparison
+        const currentStateWithoutPolicyID = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
+        const pathFromState = getPathFromState(currentStateWithoutPolicyID, linkingConfig.config);
         if (path === pathFromState.substring(1)) {
             return index;
         }

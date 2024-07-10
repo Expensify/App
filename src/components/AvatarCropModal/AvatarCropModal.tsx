@@ -123,6 +123,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         ImageSize.getSize(imageUri).then(({width, height, rotation: orginalRotation}) => {
             // On Android devices ImageSize library returns also rotation parameter.
             if (orginalRotation === 90 || orginalRotation === 270) {
+                // eslint-disable-next-line react-compiler/react-compiler
                 originalImageHeight.value = width;
                 originalImageWidth.value = height;
             } else {
