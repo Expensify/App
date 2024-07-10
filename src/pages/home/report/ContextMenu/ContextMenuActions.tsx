@@ -260,8 +260,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unholdExpense',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
+        shouldShow: (type, reportAction) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
         onPress: (closePopover, {reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
@@ -277,8 +276,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
+        shouldShow: (type, reportAction) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
         onPress: (closePopover, {reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
