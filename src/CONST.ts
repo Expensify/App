@@ -2335,6 +2335,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
