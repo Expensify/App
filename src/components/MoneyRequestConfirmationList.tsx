@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextStyle} from 'react-native';
@@ -48,6 +48,7 @@ import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -726,11 +727,12 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const {inputCallbackRef} = useAutoFocusInput();
     const confirmButtonRef = useRef<View>(null);
 
-    useEffect(() => {
-        confirmButtonRef.current?.focus();
-    }, []);
+    useFocusEffect(useCallback(() => {
+        // confirmButtonRef.current?.focus();
+    },[]))
 
     const footerContent = useMemo(() => {
         if (isReadOnly) {
@@ -763,7 +765,10 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
-                buttonRef={confirmButtonRef}
+                // buttonRef={confirmButtonRef}
+                buttonRef={(ref) => {
+                    inputCallbackRef(ref);
+                }}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}

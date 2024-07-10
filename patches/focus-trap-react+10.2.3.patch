@@ -1,0 +1,46 @@
+diff --git a/node_modules/focus-trap-react/src/focus-trap-react.js b/node_modules/focus-trap-react/src/focus-trap-react.js
+index c11345c..2c003d3 100644
+--- a/node_modules/focus-trap-react/src/focus-trap-react.js
++++ b/node_modules/focus-trap-react/src/focus-trap-react.js
+@@ -154,7 +154,8 @@ class FocusTrap extends React.Component {
+   getReturnFocusNode() {
+     const node = this.getNodeForOption(
+       'setReturnFocus',
+-      this.previouslyFocusedElement
++      this.previouslyFocusedElement,
++      this.focusTrapElements,
+     );
+     return node ? node : node === false ? false : this.previouslyFocusedElement;
+   }
+@@ -215,6 +216,7 @@ class FocusTrap extends React.Component {
+   }
+ 
+   handleDeactivate() {
++    console.log(`<<<<<<<<<<<<<<< HandleDeactivate: ${this.internalOptions.testID} >>>>>>>>>>>>>>>`);
+     if (this.originalOptions.onDeactivate) {
+       this.originalOptions.onDeactivate.call(null); // call user's handler out of context
+     }
+@@ -222,6 +224,7 @@ class FocusTrap extends React.Component {
+   }
+ 
+   handlePostDeactivate() {
++    console.log(`<<<<<<<<<<<<<<< HandlePostDeactivate: ${this.internalOptions.testID} >>>>>>>>>>>>>>>`, this.focusTrapElements);
+     const finishDeactivation = () => {
+       const returnFocusNode = this.getReturnFocusNode();
+       const canReturnFocus = !!(
+@@ -338,6 +341,7 @@ class FocusTrap extends React.Component {
+       }
+ 
+       if (hasDeactivated) {
++        console.log(`<<<<<<<<<<<<<<< ComponentDidUpdate:${this.internalOptions.testID}:DeactivateTrap >>>>>>>>>>>>>>>`);
+         this.deactivateTrap();
+         return; // un/pause does nothing on an inactive trap
+       }
+@@ -370,6 +374,7 @@ class FocusTrap extends React.Component {
+   }
+ 
+   componentWillUnmount() {
++    console.log(`<<<<<<<<<<<<<<< ComponentWillUnmount:${this.internalOptions.testID} >>>>>>>>>>>>>>>`);
+     this.deactivateTrap();
+   }
+ 
