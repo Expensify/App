@@ -12,7 +12,6 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
-import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -116,7 +115,6 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const isReportOpenInRHP = useIsReportOpenInRHP();
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
