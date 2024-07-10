@@ -2187,7 +2187,7 @@ function deleteReport(reportID: string) {
 function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop?: boolean) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
-        Navigation.setShouldPopAllStateOnUP();
+        Navigation.setShouldPopAllStateOnUP(true);
     }
     Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
