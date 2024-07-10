@@ -10,6 +10,9 @@ type BaseOnboardingPersonalDetailsOnyxProps = {
 
     /** Saved onboarding admin chat report ID */
     onboardingAdminsChatReportID: OnyxEntry<string>;
+
+    /** Saved onboarding policy ID */
+    onboardingPolicyID: OnyxEntry<string>;
 };
 
 type BaseOnboardingPersonalDetailsProps = WithCurrentUserPersonalDetailsProps &
