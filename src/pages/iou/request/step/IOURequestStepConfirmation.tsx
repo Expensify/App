@@ -207,8 +207,9 @@ function IOURequestStepConfirmation({
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useFocusEffect(
         useCallback(() => {
+            const backToParam = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID);
             if (!receiptPath && requestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(action, iouType, transactionID, transaction?.reportID ?? reportID), true);
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToParam));
                 return;
             }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -225,9 +226,8 @@ function IOURequestStepConfirmation({
                 setReceiptFile(receipt);
             };
 
-            const backToParam = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID);
             IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType, backToParam);
-        }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt, transaction?.reportID]),
+        }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]),
     );
 
     const requestMoney = useCallback(
