@@ -214,7 +214,7 @@ function ReportPreview({
         }
 
         return CurrencyUtils.convertToDisplayString(reimbursableSpend, iouReport?.currency);
-    }
+    };
 
     const getDisplayAmount = (): string => {
         if (totalDisplaySpend) {
