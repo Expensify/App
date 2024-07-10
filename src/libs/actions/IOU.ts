@@ -3777,7 +3777,7 @@ function createSplitsAndOnyxData(
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
-    const receipt: Receipt|undefined = (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
+    const receipt: Receipt | undefined = iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
 
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
@@ -4931,7 +4931,11 @@ function createDistanceRequest(
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
-        const {splitData, splits, onyxData: splitOnyxData} = createSplitsAndOnyxData(
+        const {
+            splitData,
+            splits,
+            onyxData: splitOnyxData,
+        } = createSplitsAndOnyxData(
             participants,
             currentUserLogin ?? '',
             currentUserAccountID,

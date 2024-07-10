@@ -20,7 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */

@@ -344,7 +344,7 @@ function IOURequestStepConfirmation({
             formHasBeenSubmitted.current = true;
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest((iouType === CONST.IOU.TYPE.SPLIT) ? splitParticipants : selectedParticipants, trimmedComment);
+                createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 return;
             }
 
