@@ -11,11 +11,11 @@ import type {
     Connections,
     SageIntacctConnectionsConfig,
     SageIntacctDimension,
+    SageIntacctExportConfig,
     SageIntacctMappingName,
     SageIntacctMappingType,
     SageIntacctMappingValue,
     SageIntacctOfflineStateKeys,
-    SageIntacctExportConfig,
 } from '@src/types/onyx/Policy';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
