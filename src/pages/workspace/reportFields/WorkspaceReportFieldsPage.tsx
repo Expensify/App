@@ -1,7 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -66,7 +66,14 @@ function WorkspaceReportFieldsPage({
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
-    const {isOffline} = useNetwork();
+
+    const fetchReportFields = useCallback(() => {
+        ReportField.openPolicyReportFieldsPage(policyID);
+    }, [policyID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchReportFields});
+
+    useFocusEffect(fetchReportFields);
 
     useEffect(() => {
         if (isFocused) {
