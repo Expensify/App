@@ -73,6 +73,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Whether to apply flex to the submit button */
         submitFlexEnabled?: boolean;
+
+        /** Whether button is disabled */
+        isSubmitDisabled?: boolean;
     };
 
 function FormProvider(
@@ -176,7 +179,7 @@ function FormProvider(
         onValidate(trimmedStringValues, !hasServerError);
 
         // Only run when locales change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [preferredLocale]);
 
     /** @param inputID - The inputID of the input being touched */
@@ -239,6 +242,7 @@ function FormProvider(
                 inputRefs.current[inputID] = newRef;
             }
             if (inputProps.value !== undefined) {
+                // eslint-disable-next-line react-compiler/react-compiler
                 inputValues[inputID] = inputProps.value;
             } else if (inputProps.shouldSaveDraft && draftValues?.[inputID] !== undefined && inputValues[inputID] === undefined) {
                 inputValues[inputID] = draftValues[inputID];

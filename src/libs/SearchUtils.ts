@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -6,15 +6,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
-type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -166,6 +164,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...value,
+                keyForList: value.reportID,
                 from: data.personalDetailsList?.[value.accountID],
                 to: data.personalDetailsList?.[value.managerID],
                 transactions,
@@ -298,5 +297,20 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItemType, isTransactionListItemType};
-export type {SearchColumnType, SortOrder};
+function isSearchResultsEmpty(searchResults: SearchResults) {
+    return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+}
+
+export {
+    getListItem,
+    getQueryHash,
+    getSections,
+    getSortedSections,
+    getShouldShowMerchant,
+    getSearchType,
+    getSearchParams,
+    shouldShowYear,
+    isReportListItemType,
+    isTransactionListItemType,
+    isSearchResultsEmpty,
+};
