@@ -149,7 +149,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <OfflineWithFeedback pendingAction={action.pendingAction}>
                 {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                     <>
-                        {transactionCurrency !== report.currency && (
+                        {!!transaction && transactionCurrency !== report.currency && (
                             <>
                                 <MoneyReportView
                                     report={report}
