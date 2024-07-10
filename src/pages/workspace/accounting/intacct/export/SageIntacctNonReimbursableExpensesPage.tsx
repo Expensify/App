@@ -153,7 +153,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1]}
                 />
             </OfflineWithFeedback>
-            <View style={[styles.flexGrow1, styles.flexShrink1]}>
+            <View style={[styles.flexGrow1, styles.flexShrink1, styles.mt3]}>
                 {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && defaultVendor}
                 {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && (
                     <View>
