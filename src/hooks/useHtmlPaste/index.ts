@@ -1,35 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect} from 'react';
-import type {ClipboardEvent as PasteEvent} from 'react';
 import Parser from '@libs/Parser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
     document.execCommand('insertText', false, text);
-};
-
-const insertAtCaret = (target: HTMLElement, text: string) => {
-    const selection = window.getSelection();
-    if (selection?.rangeCount) {
-        const range = selection.getRangeAt(0);
-        range.deleteContents();
-        const node = document.createTextNode(text);
-        range.insertNode(node);
-
-        // Move caret to the end of the newly inserted text node.
-        range.setStart(node, node.length);
-        range.setEnd(node, node.length);
-        selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
-
-        // Dispatch paste event to make Markdown Input properly set cursor position
-        const pasteEvent = new ClipboardEvent('paste', {bubbles: true, cancelable: true});
-        (pasteEvent as unknown as PasteEvent<HTMLElement>).isDefaultPrevented = () => false;
-        target.dispatchEvent(pasteEvent);
-        // Dispatch input event to trigger Markdown Input to parse the new text
-        target.dispatchEvent(new Event('input', {bubbles: true}));
-    } else {
-        insertByCommand(text);
-    }
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
@@ -42,10 +17,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
     const paste = useCallback((text: string) => {
         try {
             const textInputHTMLElement = textInputRef.current as HTMLElement;
+            insertByCommand(text);
             if (textInputHTMLElement?.hasAttribute('contenteditable')) {
-                insertAtCaret(textInputHTMLElement, text);
-            } else {
-                insertByCommand(text);
+                return;
             }
 
             if (!textInputRef.current?.isFocused()) {
