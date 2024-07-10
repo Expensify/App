@@ -551,26 +551,6 @@ Onyx.connect({
     },
 });
 
-let allReportMetadata: OnyxCollection<ReportMetadata>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportMetadata = value;
-    },
-});
-
-let isFirstTimeNewExpensifyUser = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    callback: (value) => {
-        isFirstTimeNewExpensifyUser = value ?? false;
-    },
-});
-
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1157,6 +1137,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
+
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter(
         (report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime),
@@ -1164,21 +1145,30 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
     return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
 }
 
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
+function findLastAccessedReport(
+    reports: OnyxCollection<Report>,
+    ignoreDomainRooms: boolean,
+    policies: OnyxCollection<Policy>,
+    isFirstTimeNewExpensifyUser: boolean,
+    openOnAdminRoom = false,
+    reportMetadata: OnyxCollection<ReportMetadata> = {},
+    policyID?: string,
+    policyMemberAccountIDs: number[] = [],
+    excludeReportID?: string,
+): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
 
-    const policyMemberAccountIDs = PolicyUtils.getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
-
-    const allReports = ReportConnection.getAllReports();
-    let reportsValues = Object.values(allReports ?? {});
+    let reportsValues = Object.values(reports ?? {});
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
+
+    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
 
     let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {

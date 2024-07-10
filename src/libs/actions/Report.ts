@@ -95,6 +95,7 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
+    ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
@@ -222,6 +223,13 @@ Onyx.connect({
         const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
         draftNoteMap[reportID] = value;
     },
+});
+
+let reportMetadata: OnyxCollection<ReportMetadata> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+    waitForCollectionCallback: true,
+    callback: (value) => (reportMetadata = value),
 });
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
@@ -2595,7 +2603,17 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(
+        ReportConnection.getAllReports(),
+        false,
+        undefined,
+        false,
+        false,
+        reportMetadata,
+        undefined,
+        [],
+        currentReport?.reportID,
+    )?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');

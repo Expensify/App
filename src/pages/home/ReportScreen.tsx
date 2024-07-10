@@ -20,13 +20,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import withCurrentReportID from '@components/withCurrentReportID';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
+import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -147,12 +146,10 @@ function ReportScreen({
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
     const flatListRef = useRef<FlatList>(null);
-    const {canUseDefaultRooms} = usePermissions();
     const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
@@ -172,6 +169,8 @@ function ReportScreen({
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
+    // Check if there's a reportID in the route. If not, set it to the last accessed reportID
+    const lastAccessedReportID = useLastAccessedReportID(!!route.params.openOnAdminRoom);
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
@@ -183,8 +182,6 @@ function ReportScreen({
             return;
         }
 
-        const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom, activeWorkspaceID)?.reportID;
-
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
         if (!lastAccessedReportID) {
@@ -193,7 +190,7 @@ function ReportScreen({
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-    }, [activeWorkspaceID, canUseDefaultRooms, navigation, route]);
+    }, [lastAccessedReportID, navigation, route]);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by

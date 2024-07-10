@@ -42,10 +42,8 @@ describe('ReportUtils', () => {
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
-    });
 
-    beforeEach(async () => {
-        await Onyx.multiSet({
+        Onyx.multiSet({
             ...mockedPoliciesMap,
             ...mockedReportsMap,
         });
@@ -57,17 +55,13 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] findLastAccessedReport on 2k reports and policies', async () => {
         const ignoreDomainRooms = true;
+        const isFirstTimeNewExpensifyUser = true;
         const reports = getMockedReports(2000);
         const policies = getMockedPolicies(2000);
         const openOnAdminRoom = true;
 
-        await Onyx.multiSet({
-            [ONYXKEYS.COLLECTION.REPORT]: reports,
-            [ONYXKEYS.COLLECTION.POLICY]: policies,
-        });
-
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
+        await measureFunction(() => ReportUtils.findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
