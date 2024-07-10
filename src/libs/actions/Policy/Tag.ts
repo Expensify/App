@@ -1,4 +1,4 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled, SetPolicyTagsRequired} from '@libs/API/parameters';
@@ -670,49 +670,24 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         ],
     };
 
+    const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
+                acc[key] = {
+                    ...acc[key],
+                    required,
+                };
+                return acc;
+            }, {}),
+        },
+    });
+
     if (isMultiLevelTags) {
-        onyxData.optimisticData?.push({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
-                    acc[key] = {
-                        ...acc[key],
-                        required: requiresTag,
-                    };
-
-                    return acc;
-                }, {}),
-            },
-        });
-        onyxData.failureData?.push({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
-                    acc[key] = {
-                        ...acc[key],
-                        required: !requiresTag,
-                    };
-
-                    return acc;
-                }, {}),
-            },
-        });
-        onyxData.successData?.push({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
-                    acc[key] = {
-                        ...acc[key],
-                        required: !requiresTag,
-                    };
-
-                    return acc;
-                }, {}),
-            },
-        });
+        onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
+        onyxData.successData?.push(getUpdatedTagsData(requiresTag));
+        onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
     }
 
     const parameters = {
