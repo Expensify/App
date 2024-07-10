@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -21,17 +22,11 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
-    const isConnectedToXero = policy?.connections?.xero;
     const policyID = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    let toggleSubtitle = '';
-    if (isConnectedToQbo) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}.`;
-    }
-    if (isConnectedToXero) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}.`;
-    }
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+
+    const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.` : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);
@@ -54,7 +49,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     <ToggleSettingOptionRow
                         title={translate('workspace.categories.requiresCategory')}
                         subtitle={toggleSubtitle}
-                        switchAccessibilityLabel={toggleSubtitle}
+                        switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
                         isActive={policy?.requiresCategory ?? false}
                         onToggle={updateWorkspaceRequiresCategory}
                         pendingAction={policy?.pendingFields?.requiresCategory}

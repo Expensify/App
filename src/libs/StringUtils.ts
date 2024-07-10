@@ -105,4 +105,13 @@ function lineBreaksToSpaces(text = '') {
     return text.replace(CONST.REGEX.LINE_BREAK, ' ');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, getAcronym, lineBreaksToSpaces};
+/**
+ * Get the first line of the string
+ */
+function getFirstLine(text = '') {
+    // Split the input string by newline characters and return the first element of the resulting array
+    const lines = text.split('\n');
+    return lines[0];
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, getAcronym, lineBreaksToSpaces, getFirstLine};
