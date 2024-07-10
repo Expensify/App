@@ -251,7 +251,6 @@ function TransactionListItemRow({
             <View style={containerStyle}>
                 {showItemHeaderOnNarrowLayout && (
                     <ExpenseItemHeaderNarrow
-                        id={item.transactionID}
                         text={item.text}
                         participantFrom={item.from}
                         participantFromDisplayName={item.formattedFrom}

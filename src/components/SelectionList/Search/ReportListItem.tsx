@@ -140,7 +140,6 @@ function ReportListItem<TItem extends ListItem>({
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (
                     <ExpenseItemHeaderNarrow
-                        id={item.reportID}
                         participantFrom={participantFrom}
                         participantFromDisplayName={participantFromDisplayName}
                         participantTo={participantTo}

@@ -13,7 +13,6 @@ import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
 type ExpenseItemHeaderNarrowProps = {
-    id?: string;
     text?: string;
     participantFrom: SearchAccountDetails;
     participantTo: SearchAccountDetails;
@@ -25,7 +24,7 @@ type ExpenseItemHeaderNarrowProps = {
     isSelected?: boolean;
     isDisabled?: boolean | null;
     isDisabledCheckbox?: boolean;
-    handleCheckboxPress?: (id?: string) => void;
+    handleCheckboxPress?: () => void;
 };
 
 function ExpenseItemHeaderNarrow({
@@ -40,7 +39,6 @@ function ExpenseItemHeaderNarrow({
     isSelected,
     isDisabled,
     handleCheckboxPress,
-    id,
     text,
 }: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
@@ -55,7 +53,7 @@ function ExpenseItemHeaderNarrow({
                         accessibilityLabel={text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         disabled={isDisabled}
-                        onPress={() => handleCheckboxPress?.(id)}
+                        onPress={() => handleCheckboxPress?.()}
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                     >
                         <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!isSelected, !!isDisabled)]}>
