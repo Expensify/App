@@ -106,7 +106,7 @@ function CardSection() {
                             <Icon
                                 src={Expensicons.CreditCard}
                                 additionalStyles={styles.subscriptionAddedCardIcon}
-                                fill={theme.text}
+                                fill={theme.icon}
                                 medium
                             />
                             <View style={styles.flex1}>
