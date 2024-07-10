@@ -241,9 +241,6 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
-
-        // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput, shouldResetAmount]);
 
     // Modifies the amount to match the decimals for changed currency.
