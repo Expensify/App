@@ -227,7 +227,7 @@ function MoneyRequestView({
             }
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
-        [transaction, report, policy, policyTagList, policyCategories, isReportOpenInRHP],
+        [transaction, report, policy, policyTagList, policyCategories],
     );
 
     if (isCardTransaction) {
