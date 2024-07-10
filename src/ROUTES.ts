@@ -54,6 +54,11 @@ const ROUTES = {
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
+    TRANSACTION_HOLD_REASON_RHP: {
+        route: '/search/:query/hold/:transactionID',
+        getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {

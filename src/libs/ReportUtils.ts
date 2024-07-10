@@ -5,6 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
@@ -1097,20 +1098,6 @@ function filterReportsByPolicyIDAndMemberAccountIDs(reports: Array<OnyxEntry<Rep
 }
 
 /**
- * Given an array of reports, return them sorted by the last read timestamp.
- */
-function sortReportsByLastRead(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
-    return reports
-        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
-        .sort((a, b) => {
-            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
-            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
-
-            return aTime.valueOf() - bTime.valueOf();
-        });
-}
-
-/**
  * Returns true if report is still being processed
  */
 function isProcessingReport(report: OnyxEntry<Report>): boolean {
@@ -1170,6 +1157,13 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
+    const filteredReports = reports.filter(
+        (report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime),
+    );
+    return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
+}
+
 function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
@@ -1186,11 +1180,9 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
-    let sortedReports = sortReportsByLastRead(reportsValues, allReportMetadata);
-
     let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
-        adminReport = sortedReports.find((report) => {
+        adminReport = reportsValues.find((report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
@@ -1199,7 +1191,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
     if (shouldFilter) {
-        sortedReports = sortedReports.filter((report) => {
+        reportsValues = reportsValues.filter((report) => {
             if (excludeReportID && report?.reportID === excludeReportID) {
                 return false;
             }
@@ -1222,22 +1214,25 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 
     if (isFirstTimeNewExpensifyUser) {
         // Filter out the systemChat report from the reports list, as we don't want to drop the user into that report over Concierge when they first log in
-        sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
-        if (sortedReports.length === 1) {
-            return sortedReports[0];
+        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
+        if (reportsValues.length === 1) {
+            return reportsValues[0];
         }
 
-        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report));
+        return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
     }
 
     // If we only have two reports and one of them is the system chat, filter it out so we don't
     // overwrite showing the concierge chat
-    const hasSystemChat = sortedReports.find((report) => isSystemChat(report)) ?? false;
-    if (sortedReports.length === 2 && hasSystemChat) {
-        sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
+    const hasSystemChat = reportsValues.find((report) => isSystemChat(report)) ?? false;
+    if (reportsValues.length === 2 && hasSystemChat) {
+        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
     }
 
-    return adminReport ?? sortedReports.at(-1);
+    // We are getting the last read report from the metadata of the report.
+    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+
+    return adminReport ?? lastRead;
 }
 
 /**
@@ -7344,7 +7339,6 @@ export {
     shouldShowFlagComment,
     shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
-    sortReportsByLastRead,
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
@@ -7362,6 +7356,7 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
+    getMostRecentlyVisitedReport,
 };
 
 export type {

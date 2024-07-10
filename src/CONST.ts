@@ -2452,6 +2452,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
@@ -3897,6 +3898,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -5163,6 +5165,9 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
             VIEW: 'view',
+            REVIEW: 'review',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -5259,6 +5264,10 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 

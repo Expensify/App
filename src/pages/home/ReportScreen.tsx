@@ -586,7 +586,7 @@ function ReportScreen({
             }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
-                Navigation.setShouldPopAllStateOnUP();
+                Navigation.setShouldPopAllStateOnUP(true);
                 Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
