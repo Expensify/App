@@ -5250,6 +5250,13 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+
+    EMPTY_STATE_MEDIA: {
+        ANIMATION: 'animation',
+        ILLUSTRATION: 'illustration',
+        VIDEO: 'video',
+    },
+
     UPGRADE_FEATURE_INTRO_MAPPING: [
         {
             id: 'reportFields',
@@ -5260,6 +5267,7 @@ const CONST = {
             icon: 'Pencil',
         },
     ],
+
     REPORT_FIELD_TYPES: {
         TEXT: 'text',
         DATE: 'date',
