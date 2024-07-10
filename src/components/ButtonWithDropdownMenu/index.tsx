@@ -81,8 +81,7 @@ function ButtonWithDropdownMenu<IValueType>({
     );
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (caretButton.current || !buttonRef?.current || !(shouldAlwaysShowDropdownMenu || options.length > 1)) {
+        if (!!caretButton.current || !buttonRef?.current || !(shouldAlwaysShowDropdownMenu || options.length > 1)) {
             return;
         }
         caretButton.current = buttonRef.current;
