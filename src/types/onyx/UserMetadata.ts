@@ -12,6 +12,9 @@ type UserMetadata = {
     /** User's account ID */
     accountID?: number;
 
+    /** User email so we can filter out certain accounts */
+    email?: string;
+
     /** Type of environment the user is using (staging or production) */
     environment?: string;
 };

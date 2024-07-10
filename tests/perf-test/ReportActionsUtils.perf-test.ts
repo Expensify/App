@@ -20,13 +20,13 @@ const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 
     const reportKeysMap = Array.from({length: reportsLength}, (v, i) => {
         const key = i + 1;
 
-        return {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`]: Object.assign({}, ...mockReportActions)};
+        return {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`]: Object.assign({}, ...mockReportActions) as Partial<ReportAction>};
     });
 
     return Object.assign({}, ...reportKeysMap) as Partial<ReportAction>;
 };
 
-const mockedReportActionsMap = getMockedReportActionsMap(2, 10000);
+const mockedReportActionsMap: Partial<ReportAction> = getMockedReportActionsMap(2, 10000);
 
 const reportActions = createCollection<ReportAction>(
     (item) => `${item.reportActionID}`,

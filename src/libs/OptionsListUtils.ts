@@ -53,6 +53,7 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
+import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -222,6 +223,10 @@ type FilterOptionsConfig = Pick<
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
 > & {preferChatroomsOverThreads?: boolean};
 
+type HasText = {
+    text?: string;
+};
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -339,13 +344,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
 let allReportsDraft: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
@@ -357,6 +355,7 @@ Onyx.connect({
  * Get the report or draft report given a reportID
  */
 function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
+    const allReports = ReportConnection.getAllReports();
     if (!allReports && !allReportsDraft) {
         return undefined;
     }
@@ -658,10 +657,11 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = visibleReportActionItems[report?.reportID ?? '-1'] ?? null;
+    const reportID = report?.reportID ?? '-1';
+    const lastReportAction = visibleReportActionItems[reportID] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    const lastOriginalReportAction = lastReportActions[report?.reportID ?? '-1'] ?? null;
+    const lastOriginalReportAction = lastReportActions[reportID] ?? null;
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isArchivedRoom(report)) {
@@ -721,8 +721,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else if (ReportActionUtils.isApprovedOrSubmittedReportAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+        lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(reportID);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+        lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(reportID);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -992,7 +994,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
     const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
-    const hierarchy = {};
+    const hierarchy: Hierarchy = {};
     /**
      * Iterates over all categories to set each category in a proper place in hierarchy
      * It gets a path based on a category name e.g. "Parent: Child: Subcategory" -> "Parent.Child.Subcategory".
@@ -1010,7 +1012,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
      */
     sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = lodashGet(hierarchy, path, {});
+        const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
         lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
@@ -1066,7 +1068,7 @@ function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<Po
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptionsName: string[] = []): OptionTree[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
@@ -1091,6 +1093,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
+            const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
+            const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
                 return;
@@ -1101,8 +1105,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : !selectedOptionsName.includes(searchText),
-                isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
+                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
+                isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
             });
         });
@@ -1130,7 +1134,8 @@ function getCategoryListSections(
 
     selectedOptions.forEach((option) => {
         if (enabledCategoriesNames.includes(option.name)) {
-            selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: true});
+            const categoryObj = enabledCategories.find((category) => category.name === option.name);
+            selectedOptionsWithDisabledState.push({...(categoryObj ?? option), isSelected: true, enabled: true});
             return;
         }
         selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: false});
@@ -1190,7 +1195,7 @@ function getCategoryListSections(
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionNames);
+        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1225,7 +1230,7 @@ function getCategoryListSections(
         });
     }
 
-    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionNames);
+    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
@@ -2492,11 +2497,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values.push(item.login.replace(emailRegex, ''));
             }
 
-            if (!item.isChatRoom) {
-                const participantNames = getParticipantNames(item.participantsList ?? []);
-                values = values.concat(Array.from(participantNames));
-            }
-
             if (item.isThread) {
                 if (item.alternateText) {
                     values.push(item.alternateText);
@@ -2506,7 +2506,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
-            } else {
+            }
+
+            if (!item.isChatRoom) {
+                const participantNames = getParticipantNames(item.participantsList ?? []);
+                values = values.concat(Array.from(participantNames));
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
@@ -2562,6 +2566,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
+function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
+    return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2587,6 +2595,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortItemsAlphabetically,
     sortTags,
     getCategoryOptionTree,
     hasEnabledTags,

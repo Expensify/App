@@ -1,3 +1,4 @@
+import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
@@ -7,6 +8,7 @@ import ConciergeExclamation from '@assets/images/product-illustrations/concierge
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
+import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
@@ -91,6 +93,7 @@ import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustrati
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
@@ -176,6 +179,7 @@ export {
     Binoculars,
     CompanyCard,
     ReceiptUpload,
+    ExpensifyCardIllustration,
     SplitBill,
     PiggyBank,
     Accounting,
@@ -194,4 +198,6 @@ export {
     CheckmarkCircle,
     CreditCardEyes,
     LockClosedOrange,
+    FolderWithPapers,
+    VirtualCard,
 };
