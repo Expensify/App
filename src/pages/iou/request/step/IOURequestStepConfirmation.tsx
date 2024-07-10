@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -203,32 +202,25 @@ function IOURequestStepConfirmation({
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. We will navigate to the user to the scanning page and resume the flow once the user has re-uploaded the file
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
-    useFocusEffect(
-        useCallback(() => {
-            const backToParam = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID);
-            if (!receiptPath && requestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToParam));
-                return;
-            }
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const isLocalFile = FileUtils.isLocalFile(receiptPath);
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const isLocalFile = FileUtils.isLocalFile(receiptPath);
 
-            if (!isLocalFile) {
-                setReceiptFile(transaction?.receipt);
-                return;
-            }
+        if (!isLocalFile) {
+            setReceiptFile(transaction?.receipt);
+            return;
+        }
 
-            const onSuccess = (file: File) => {
-                const receipt: Receipt = file;
-                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                setReceiptFile(receipt);
-            };
+        const onSuccess = (file: File) => {
+            const receipt: Receipt = file;
+            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            setReceiptFile(receipt);
+        };
 
-            IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType, backToParam);
-        }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]),
-    );
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
