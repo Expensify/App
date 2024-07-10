@@ -13,13 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
-import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldsUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
 type ReportFieldEditValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
 
@@ -37,7 +37,12 @@ function ReportFieldEditValuePage({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME),
+            WorkspaceReportFieldUtils.validateReportFieldListValueName(
+                values[INPUT_IDS.NEW_VALUE_NAME].trim(),
+                currentValueName,
+                formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+                INPUT_IDS.NEW_VALUE_NAME,
+            ),
         [currentValueName, formDraft],
     );
 
