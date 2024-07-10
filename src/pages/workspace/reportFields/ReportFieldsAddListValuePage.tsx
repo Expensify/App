@@ -21,41 +21,35 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
-type ReportFieldEditValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
+type ReportFieldsAddListValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
-function ReportFieldEditValuePage({
+function ReportFieldsAddListValuePage({
     route: {
-        params: {policyID, valueIndex},
+        params: {policyID, reportFieldID},
     },
-}: ReportFieldEditValuePageProps) {
+}: ReportFieldsAddListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            WorkspaceReportFieldUtils.validateReportFieldListValueName(
-                values[INPUT_IDS.NEW_VALUE_NAME].trim(),
-                currentValueName,
-                formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
-                INPUT_IDS.NEW_VALUE_NAME,
-            ),
-        [currentValueName, formDraft],
+            WorkspaceReportFieldUtils.validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.VALUE_NAME),
+        [formDraft],
     );
 
-    const editValue = useCallback(
+    const createValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
-            if (currentValueName !== valueName) {
-                ReportField.renameReportFieldsListValue(valueIndex, valueName);
+            if (reportFieldID) {
+                ReportField.addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+            } else {
+                ReportField.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [currentValueName, valueIndex],
+        [policyID, reportFieldID],
     );
 
     return (
@@ -67,16 +61,16 @@ function ReportFieldEditValuePage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={ReportFieldEditValuePage.displayName}
+                testID={ReportFieldsAddListValuePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.reportFields.editValue')}
+                    title={translate('workspace.reportFields.addValue')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    onSubmit={editValue}
+                    onSubmit={createValue}
                     submitButtonText={translate('common.save')}
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
@@ -85,10 +79,9 @@ function ReportFieldEditValuePage({
                     <InputWrapper
                         InputComponent={TextInput}
                         maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
-                        defaultValue={currentValueName}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
-                        inputID={INPUT_IDS.NEW_VALUE_NAME}
+                        inputID={INPUT_IDS.VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
@@ -98,6 +91,6 @@ function ReportFieldEditValuePage({
     );
 }
 
-ReportFieldEditValuePage.displayName = 'ReportFieldEditValuePage';
+ReportFieldsAddListValuePage.displayName = 'ReportFieldsAddListValuePage';
 
-export default ReportFieldEditValuePage;
+export default ReportFieldsAddListValuePage;

@@ -162,6 +162,7 @@ export default {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
+        review: 'Revisar',
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
@@ -1477,6 +1478,7 @@ export default {
             title: '¿Qué quieres hacer hoy?',
             errorSelection: 'Por favor selecciona una opción para continuar.',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -2075,6 +2077,7 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
             reportLevel: 'Nivel de informe',
@@ -2529,8 +2532,77 @@ export default {
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
-                    customSegments: 'Segmentos/registros personalizados',
-                    customLists: 'Listas personalizado',
+                    chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    requiredFieldError: (fieldName: string) => `Por favor, introduzca el ${fieldName}`,
+                    customSegments: {
+                        title: 'Segmentos/registros personalizados',
+                        addText: 'Añadir segmento/registro personalizado',
+                        recordTitle: 'Segmento personalizado',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre la configuración de segmentos/registros personalizado.',
+                        emptyTitle: 'Añadir un segmento personalizado o un registro personalizado',
+                        fields: {
+                            segmentName: 'Name',
+                            internalID: 'Identificación interna',
+                            scriptID: 'ID de guión',
+                            mapping: 'Mostrado como',
+                            customRecordScriptID: 'ID de columna de transacción',
+                        },
+                        removeTitle: 'Eliminar segmento/registro personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar este segmento/registro personalizado?',
+                        addForm: {
+                            customSegmentName: 'nombre de segmento personalizado',
+                            customRecordName: 'nombre de registro personalizado',
+                            segmentTitle: 'Segmento personalizado',
+                            customSegmentAddTitle: 'Añadir segmento personalizado',
+                            customRecordAddTitle: 'Añadir registro personalizado',
+                            recordTitle: 'Registro personalizado',
+                            segmentRecordType: '¿Desea añadir un segmento personalizado o un registro personalizado?',
+                            customSegmentNameTitle: '¿Cuál es el nombre del segmento personalizado?',
+                            customRecordNameTitle: '¿Cuál es el nombre del registro personalizado?',
+                            customSegmentNameFooter: `Puede encontrar los nombres de los segmentos personalizados en NetSuite en la página *Personalizaciones > Vínculos, registros y campos > Segmentos personalizados*.\nn_Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customRecordNameFooter: `Puede encontrar nombres de registros personalizados en NetSuite introduciendo el "Campo de columna de transacción" en la búsqueda global.\nn_Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentInternalIDTitle: '¿Cuál es la identificación interna?',
+                            customSegmentInternalIDFooter: `En primer lugar, asegúrese de que ha habilitado los ID internos en NetSuite en *Inicio > Establecer preferencias > Mostrar ID interno*. *Personalización > Listas, registros y campos > Segmentos personalizados*.\n2. Haga clic en un segmento personalizado. Haga clic en un segmento personalizado. Haga clic en el hipervínculo situado junto a *Tipo de registro personalizado*.\n4. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            customRecordInternalIDFooter: `Puede encontrar IDs internos de registros personalizados en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de línea de transacción" en la búsqueda global. Haga clic en un registro personalizado. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentScriptIDTitle: '¿Cuál es el ID del guión?',
+                            customSegmentScriptIDFooter: `Puede encontrar IDs de script de segmentos personalizados en NetSuite en: \n\n1. *Personalización > Listas, Registros y Campos > Segmentos Personalizados*.\n2. Haga clic en un segmento personalizado. a. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpestaña *Columnas de transacción* y utilice el *ID de campo*. b. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpestaña *Columnas de transacción* y utilice el *ID de campo*. Si desea mostrar el segmento personalizado como un *campo de informe* (a nivel de informe) en Expensify, haga clic en la subpestaña *Transacciones* y utilice el *ID de campo*. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            customRecordScriptIDTitle: '¿Cuál es el ID de columna de la transacción?',
+                            customRecordScriptIDFooter: `Puede encontrar IDs de script de registro personalizados en NetSuite en:\n\n1. Introduzca "Campos de línea de transacción" en la búsqueda global.\n2. Haga clic en un registro personalizado.\n3. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentMappingTitle: '¿Cómo debería mostrarse este segmento personalizado en Expensify?',
+                            customRecordMappingTitle: '¿Cómo debería mostrarse este registro de segmento personalizado en Expensify?',
+                        },
+                        errors: {
+                            uniqueFieldError: (fieldName: string) => `Ya existe un segmento/registro personalizado con este ${fieldName?.toLowerCase()}.`,
+                        },
+                    },
+                    customLists: {
+                        title: 'Listas personalizados',
+                        addText: 'Añadir lista personalizado',
+                        recordTitle: 'Lista personalizado',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre cómo configurar listas personalizado.',
+                        emptyTitle: 'Añadir una lista personalizado',
+                        fields: {
+                            listName: 'Nombre',
+                            internalID: 'Identificación interna',
+                            transactionFieldID: 'ID del campo de transacción',
+                            mapping: 'Mostrado como',
+                        },
+                        removeTitle: 'Eliminar lista personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar esta lista personalizado?',
+                        addForm: {
+                            listNameTitle: 'Elija una lista personalizada',
+                            transactionFieldIDTitle: '¿Cuál es el ID del campo de transacción?',
+                            transactionFieldIDFooter: `Puede encontrar los ID de campo de transacción en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de línea de transacción" en búsqueda global. Introduzca "Campos de línea de transacción" en la búsqueda global.\n2. Haga clic en una lista personalizada.\n3. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            mappingTitle: '¿Cómo debería mostrarse esta lista personalizada en Expensify?',
+                        },
+                        errors: {
+                            uniqueTransactionFieldIDError: `Ya existe una lista personalizada con este ID de campo de transacción.`,
+                        },
+                    },
                 },
                 importTypes: {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
@@ -2975,6 +3047,8 @@ export default {
                             return 'Actualizando empleados';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Actualizando clases';
+                        case 'jobDone':
+                            return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Sincronizando plan de cuentas';
                         case 'xeroSyncImportCategories':
@@ -3030,6 +3104,7 @@ export default {
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
@@ -3043,6 +3118,13 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
+            reconciliationAccount: 'Cuenta de conciliación',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
+                accountMatches: 'Asegúrate de que esta cuenta coincide con ',
+                settlementAccount: 'la cuenta de liquidación de tu Tarjeta Expensify ',
+                reconciliationWorks: (lastFourPAN: string) => `(que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -4497,7 +4579,7 @@ export default {
         },
         paymentCard: {
             addPaymentCard: 'Añade tarjeta de pago',
-            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago.',
+            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago',
             security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
             learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
         },

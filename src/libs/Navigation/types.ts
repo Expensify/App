@@ -11,8 +11,8 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -294,7 +294,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         valueIndex: number;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+    [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
         policyID: string;
         reportFieldID: string;
     };
@@ -449,6 +449,27 @@ type SettingsNavigatorParamList = {
         policyID: string;
         importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_FIELD]: {
+        policyID: string;
+        importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_FIELD_VIEW]: {
+        policyID: string;
+        importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+        internalID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_FIELD_EDIT]: {
+        policyID: string;
+        importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+        internalID: string;
+        fieldName: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: {
         policyID: string;
     };
@@ -566,6 +587,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
@@ -1187,6 +1212,8 @@ type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
 
+type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
+
 type SwitchPolicyIDParams = {
     policyID?: string;
     route?: Routes;
@@ -1217,6 +1244,7 @@ export type {
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingModalNavigatorParamList,
+    OnboardingFlowName,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,

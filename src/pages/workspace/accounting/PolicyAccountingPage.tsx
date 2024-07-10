@@ -152,7 +152,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
         !!connectionSyncProgress?.stageInProgress &&
-        connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy.connections?.[connectionSyncProgress.connectionName]) &&
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 

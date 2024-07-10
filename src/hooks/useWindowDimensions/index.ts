@@ -23,7 +23,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         unlockWindowDimensions: () => {},
     };
 
-    const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileSafari();
+    const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileWebKit();
     const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 
