@@ -605,8 +605,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.route,
                         },
-                        [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.route,
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.route,
                             parse: {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },

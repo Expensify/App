@@ -116,7 +116,7 @@ function WorkspaceReportFieldsPage({
     };
 
     const navigateToReportFieldSettings = (reportField: ReportFieldForList) => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
     const handleDeleteReportFields = () => {

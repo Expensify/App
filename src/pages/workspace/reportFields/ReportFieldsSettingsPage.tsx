@@ -23,14 +23,14 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS>;
+type ReportFieldsSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS>;
 
-function ReportFieldSettingsPage({
+function ReportFieldsSettingsPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldSettingsPageProps) {
+}: ReportFieldsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -60,7 +60,7 @@ function ReportFieldSettingsPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={ReportFieldSettingsPage.displayName}
+                testID={ReportFieldsSettingsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={reportField.name}
@@ -121,6 +121,6 @@ function ReportFieldSettingsPage({
     );
 }
 
-ReportFieldSettingsPage.displayName = 'ReportFieldSettingsPage';
+ReportFieldsSettingsPage.displayName = 'ReportFieldsSettingsPage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldSettingsPage);
+export default withPolicyAndFullscreenLoading(ReportFieldsSettingsPage);

@@ -353,7 +353,7 @@ const SCREENS = {
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
-        REPORT_FIELD_SETTINGS: 'Workspace_ReportField_Settings',
+        REPORT_FIELDS_SETTINGS: 'Workspace_ReportFields_Settings',
         REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
         REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
         REPORT_FIELDS_ADD_VALUE: 'Workspace_ReportFields_AddValue',
