@@ -982,7 +982,7 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
     const message = getReportActionMessage(reportAction);
 
     if (reportAction && ('isAttachmentOnly' in reportAction || 'isAttachmentWithText' in reportAction)) {
-        return reportAction?.isAttachmentOnly ?? !!reportAction?.isAttachmentWithText ?? false;
+        return reportAction?.isAttachmentOnly ?? reportAction?.isAttachmentWithText ?? false;
     }
 
     if (message) {
