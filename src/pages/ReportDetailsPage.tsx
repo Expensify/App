@@ -231,7 +231,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+    }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
         if (PolicyUtils.hasAccountingConnections(policy)) {
@@ -413,6 +413,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
+        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
