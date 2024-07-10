@@ -5,8 +5,8 @@ import * as API from '@libs/API';
 import type {
     CreateWorkspaceReportFieldListValueParams,
     CreateWorkspaceReportFieldParams,
+    DeletePolicyReportField,
     EnableWorkspaceReportFieldListValueParams,
-    PolicyReportFieldsReplace,
     RemoveWorkspaceReportFieldListValueParams,
     UpdateWorkspaceReportFieldInitialValueParams,
 } from '@libs/API/parameters';
@@ -260,12 +260,12 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
         ],
     };
 
-    const parameters: PolicyReportFieldsReplace = {
+    const parameters: DeletePolicyReportField = {
         policyID,
         reportFields: JSON.stringify(Object.values(updatedReportFields)),
     };
 
-    API.write(WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD, parameters, onyxData);
 }
 
 /**

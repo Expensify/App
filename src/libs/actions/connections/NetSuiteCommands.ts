@@ -7,7 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections, NetSuiteCustomFormID, NetSuiteMappingValues} from '@src/types/onyx/Policy';
+import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type SubsidiaryParam = {
@@ -539,6 +539,31 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION, params, onyxData);
 }
 
+function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomSegment[], oldRecords: NetSuiteCustomSegment[]) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords);
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS,
+        {
+            policyID,
+            customSegments: JSON.stringify(records),
+        },
+        onyxData,
+    );
+}
+
+function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[]) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords);
+    API.write(
+        WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
+        {
+            policyID,
+            customLists: JSON.stringify(records),
+        },
+        onyxData,
+    );
+}
+
 function updateNetSuiteExporter(policyID: string, exporter: string, oldExporter: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.EXPORTER, exporter, oldExporter);
 
@@ -961,6 +986,8 @@ export {
     updateNetSuiteExportToNextOpenPeriod,
     updateNetSuiteImportMapping,
     updateNetSuiteCrossSubsidiaryCustomersConfiguration,
+    updateNetSuiteCustomSegments,
+    updateNetSuiteCustomLists,
     updateNetSuiteAutoSync,
     updateNetSuiteSyncReimbursedReports,
     updateNetSuiteSyncPeople,
