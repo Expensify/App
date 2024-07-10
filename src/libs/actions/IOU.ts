@@ -2010,7 +2010,7 @@ function getMoneyRequestInformation(
             undefined,
             false,
             false,
-            receiptObject,
+            optimisticTransaction.receipt,
             false,
             undefined,
             linkedTrackedExpenseReportAction?.childReportID,
