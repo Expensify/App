@@ -1157,7 +1157,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function getLatestReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter(
         (report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime),
     );
@@ -1230,7 +1230,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     }
 
     // We are getting the last read report from the metadata of the report.
-    const lastRead = getLatestReport(reportsValues, allReportMetadata);
+    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
 
     return adminReport ?? lastRead;
 }
@@ -7356,7 +7356,7 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
-    getLatestReport,
+    getMostRecentlyVisitedReport,
 };
 
 export type {
