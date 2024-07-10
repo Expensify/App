@@ -191,12 +191,4 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
 ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
 
-export default memo(
-    ReportActionItemContentCreated,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
-        lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
-        prevProps.transactionID === nextProps.transactionID &&
-        prevProps.draftMessage === nextProps.draftMessage &&
-        prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
-);
+export default ReportActionItemContentCreated;

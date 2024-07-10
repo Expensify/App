@@ -981,42 +981,4 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     modal: {
         key: ONYXKEYS.MODAL,
     },
-})(
-    memo(ReportActionItem, (prevProps, nextProps) => {
-        const prevParentReportAction = prevProps.parentReportAction;
-        const nextParentReportAction = nextProps.parentReportAction;
-        return (
-            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible &&
-            prevProps.displayAsGroup === nextProps.displayAsGroup &&
-            prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
-            prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-            lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
-            lodashIsEqual(prevProps.action, nextProps.action) &&
-            lodashIsEqual(prevProps.iouReport, nextProps.iouReport) &&
-            lodashIsEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
-            lodashIsEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
-            lodashIsEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
-            prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum &&
-            prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
-            prevProps.report?.parentReportActionID === nextProps.report?.parentReportActionID &&
-            // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
-            ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
-            prevProps.action.actionName === nextProps.action.actionName &&
-            prevProps.report.reportName === nextProps.report.reportName &&
-            prevProps.report.description === nextProps.report.description &&
-            ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
-            prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-            prevProps.report?.total === nextProps.report?.total &&
-            prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
-            lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
-            lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-            lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-            lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
-            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible
-        );
-    }),
-);
+})(ReportActionItem);

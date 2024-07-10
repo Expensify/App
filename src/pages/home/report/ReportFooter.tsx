@@ -221,14 +221,4 @@ function ReportFooter({
 
 ReportFooter.displayName = 'ReportFooter';
 
-export default memo(
-    ReportFooter,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.report, nextProps.report) &&
-        prevProps.pendingAction === nextProps.pendingAction &&
-        prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-        prevProps.isEmptyChat === nextProps.isEmptyChat &&
-        prevProps.lastReportAction === nextProps.lastReportAction &&
-        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
-);
+export default ReportFooter;
