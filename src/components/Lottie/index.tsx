@@ -34,15 +34,17 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 
-    return animationFile ? <LottieView
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        source={animationFile}
-        ref={ref}
-        style={[aspectRatioStyle, props.style]}
-        webStyle={{...aspectRatioStyle, ...webStyle}}
-        onAnimationFailure={() => setIsError(true)}
-    /> : null
+    return animationFile ? (
+        <LottieView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            source={animationFile}
+            ref={ref}
+            style={[aspectRatioStyle, props.style]}
+            webStyle={{...aspectRatioStyle, ...webStyle}}
+            onAnimationFailure={() => setIsError(true)}
+        />
+    ) : null;
 }
 
 Lottie.displayName = 'Lottie';
