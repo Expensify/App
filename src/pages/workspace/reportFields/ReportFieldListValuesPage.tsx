@@ -19,12 +19,14 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,8 +47,9 @@ type ValueListItem = ListItem & {
 type ReportFieldListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
 function ReportFieldListValuesPage({
+    policy,
     route: {
-        params: {policyID},
+        params: {policyID, reportFieldID},
     },
 }: ReportFieldListValuesPageProps) {
     const styles = useThemeStyles();
@@ -57,26 +60,44 @@ function ReportFieldListValuesPage({
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
 
+    const [listValues, disabledListValues] = useMemo(() => {
+        let reportFieldValues: string[];
+        let reportFieldDisabledValues: boolean[];
+
+        if (reportFieldID) {
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+            reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+            reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
+        } else {
+            reportFieldValues = formDraft?.listValues ?? [];
+            reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
+        }
+
+        return [reportFieldValues, reportFieldDisabledValues];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
+
     const listValuesSections = useMemo(() => {
-        const data = Object.values(formDraft?.listValues ?? {}).map((value, index) => ({
+        const data = listValues.map<ValueListItem>((value, index) => ({
             value,
             index,
             text: value,
             keyForList: value,
             isSelected: selectedValues[value],
-            enabled: formDraft?.disabledListValues?.[index] ?? true,
+            enabled: !disabledListValues[index] ?? true,
+            pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
             rightElement: (
                 <ListItemRightCaretWithLabel
                     shouldShowCaret={false}
-                    labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                    labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
                 />
             ),
         }));
 
         return [{data, isDisabled: false}];
-    }, [formDraft?.disabledListValues, formDraft?.listValues, selectedValues, translate]);
+    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
 
-    const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
+    const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
 
     const toggleValue = (valueItem: ValueListItem) => {
@@ -87,7 +108,6 @@ function ReportFieldListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const listValues = formDraft?.listValues ?? [];
         const isAllSelected = listValues.length === Object.keys(selectedValues).length;
 
         setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
@@ -97,7 +117,7 @@ function ReportFieldListValuesPage({
         setSelectedValues({});
 
         const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-            const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+            const index = listValues?.indexOf(valueName) ?? -1;
 
             if (index !== -1) {
                 acc.push(index);
@@ -106,7 +126,12 @@ function ReportFieldListValuesPage({
             return acc;
         }, []);
 
-        ReportFields.deleteReportFieldsListValue(valuesToDelete);
+        if (reportFieldID) {
+            ReportField.removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+        } else {
+            ReportField.deleteReportFieldsListValue(valuesToDelete);
+        }
+
         setDeleteValuesConfirmModalVisible(false);
     };
 
@@ -115,7 +140,7 @@ function ReportFieldListValuesPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, valueItem.index));
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
 
         setSelectedValues({});
     };
@@ -139,14 +164,14 @@ function ReportFieldListValuesPage({
             });
 
             const enabledValues = selectedValuesArray.filter((valueName) => {
-                const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                return !formDraft?.disabledListValues?.[index];
+                const index = listValues?.indexOf(valueName) ?? -1;
+                return !disabledListValues?.[index];
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                    if (!formDraft?.disabledListValues?.[index] && index !== -1) {
+                    const index = listValues?.indexOf(valueName) ?? -1;
+                    if (!disabledListValues?.[index] && index !== -1) {
                         acc.push(index);
                     }
 
@@ -159,20 +184,26 @@ function ReportFieldListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedValues({});
-                        ReportFields.setReportFieldsListValueEnabled(valuesToDisable, false);
+
+                        if (reportFieldID) {
+                            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToDisable, false);
+                            return;
+                        }
+
+                        ReportField.setReportFieldsListValueEnabled(valuesToDisable, false);
                     },
                 });
             }
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
-                const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                return formDraft?.disabledListValues?.[index];
+                const index = listValues?.indexOf(valueName) ?? -1;
+                return disabledListValues?.[index];
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                    if (formDraft?.disabledListValues?.[index] && index !== -1) {
+                    const index = listValues?.indexOf(valueName) ?? -1;
+                    if (disabledListValues?.[index] && index !== -1) {
                         acc.push(index);
                     }
 
@@ -185,7 +216,13 @@ function ReportFieldListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedValues({});
-                        ReportFields.setReportFieldsListValueEnabled(valuesToEnable, true);
+
+                        if (reportFieldID) {
+                            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToEnable, true);
+                            return;
+                        }
+
+                        ReportField.setReportFieldsListValueEnabled(valuesToEnable, true);
                     },
                 });
             }
@@ -211,7 +248,7 @@ function ReportFieldListValuesPage({
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID, reportFieldID))}
             />
         );
     };
@@ -278,4 +315,4 @@ function ReportFieldListValuesPage({
 
 ReportFieldListValuesPage.displayName = 'ReportFieldListValuesPage';
 
-export default ReportFieldListValuesPage;
+export default withPolicyAndFullscreenLoading(ReportFieldListValuesPage);
