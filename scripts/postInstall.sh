@@ -10,6 +10,9 @@ cd "$ROOT_DIR" || exit 1
 # Apply packages using patch-package
 scripts/applyPatches.sh
 
+# Generate the search query parser
+npm run generate-search-parser
+
 # Install node_modules in subpackages, unless we're in a CI/CD environment,
 # where the node_modules for subpackages are cached separately.
 # See `.github/actions/composite/setupNode/action.yml` for more context.
