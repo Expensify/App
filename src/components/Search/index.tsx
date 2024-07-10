@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,7 +13,6 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -25,8 +24,10 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
+import type {SearchColumnType, SortOrder} from './types';
 
 type SearchProps = {
     query: SearchQuery;
@@ -47,6 +48,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+    const {setCurrentSearchHash} = useSearchContext();
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -83,6 +85,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             return;
         }
 
+        setCurrentSearchHash(hash);
         SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
@@ -98,7 +101,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     query={query}
                     hash={hash}
                 />
-                <TableListItemSkeleton shouldAnimate />
+                <SearchRowSkeleton shouldAnimate />
             </>
         );
     }
@@ -197,14 +200,14 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             getItemHeight={getItemHeight}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+            listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
             listFooterContent={
                 isLoadingMoreItems ? (
-                    <TableListItemSkeleton
+                    <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
                     />
