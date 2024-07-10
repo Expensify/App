@@ -53,6 +53,7 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
+import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -222,6 +223,10 @@ type FilterOptionsConfig = Pick<
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
 > & {preferChatroomsOverThreads?: boolean};
 
+type HasText = {
+    text?: string;
+};
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -339,13 +344,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
 let allReportsDraft: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
@@ -357,6 +355,7 @@ Onyx.connect({
  * Get the report or draft report given a reportID
  */
 function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
+    const allReports = ReportConnection.getAllReports();
     if (!allReports && !allReportsDraft) {
         return undefined;
     }
@@ -2495,11 +2494,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values.push(item.login.replace(emailRegex, ''));
             }
 
-            if (!item.isChatRoom) {
-                const participantNames = getParticipantNames(item.participantsList ?? []);
-                values = values.concat(Array.from(participantNames));
-            }
-
             if (item.isThread) {
                 if (item.alternateText) {
                     values.push(item.alternateText);
@@ -2509,7 +2503,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
-            } else {
+            }
+
+            if (!item.isChatRoom) {
+                const participantNames = getParticipantNames(item.participantsList ?? []);
+                values = values.concat(Array.from(participantNames));
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
@@ -2565,6 +2563,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
+function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
+    return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2590,6 +2592,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortItemsAlphabetically,
     sortTags,
     getCategoryOptionTree,
     hasEnabledTags,

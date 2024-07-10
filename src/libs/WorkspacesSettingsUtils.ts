@@ -10,19 +10,12 @@ import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
+import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 
 type CheckingMethod = () => boolean;
 
-let allReports: OnyxCollection<Report>;
-
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -100,6 +93,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+    const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return undefined;
     }

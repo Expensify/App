@@ -6,7 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
@@ -15,11 +15,12 @@ type ExpenseItemHeaderNarrowProps = {
     participantTo: SearchAccountDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
+    action?: SearchTransactionAction;
+    transactionID?: string;
     onButtonPress: () => void;
-    action?: string;
 };
 
-function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, onButtonPress, action}: ExpenseItemHeaderNarrowProps) {
+function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, action, transactionID, onButtonPress}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -48,9 +49,9 @@ function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, p
             </View>
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
-                    onButtonPress={onButtonPress}
                     action={action}
-                    isLargeScreenWidth={false}
+                    transactionID={transactionID}
+                    goToItem={onButtonPress}
                 />
             </View>
         </View>
