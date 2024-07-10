@@ -89,7 +89,8 @@ function StateSelector(
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRoute();
+                // Check the route has policyID because getActiveRouteWithoutParams is used in profile page only
+                const activeRoute = /[?&]policyID=([^&]+)/.test(Navigation.getActiveRoute()) ? Navigation.getActiveRoute() : Navigation.getActiveRouteWithoutParams();
                 didOpenStateSelector.current = true;
                 Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
             }}
