@@ -87,6 +87,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
     PersonalDetailsList,
@@ -252,6 +253,12 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+let introSelected: OnyxEntry<IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
 });
 
 registerPaginationConfig({
@@ -719,6 +726,51 @@ function clearAvatarErrors(reportID: string) {
     });
 }
 
+// Add a helper function called getInviteOnboardingDetails to Report. That function will:
+// Read the value of nvp_introSelected
+// Check that it is set, if not return early
+// Check that isInviteOnboardingComplete is false, if not return early
+// Check that inviteType is not iou or invoice, if it is, return early
+// Get the first and last names from personal details
+// Get the correct onboarding message from ONBOARDING_MESSAGES (link)
+// When choice is newDotSubmit we want to call ONBOARDING_MESSAGES[newDotEmployer]
+// When choice is newDotAdmin we want to call ONBOARDING_MESSAGES[newDotAdmin] which will be added here.
+// Optimistically set nvp_introSelected.isInviteOnboardingComplete to true
+// Return the firstName, lastName, and onboardingMessage values
+
+function getInviteOnboardingDetails() {
+    if (!introSelected) {
+        return;
+    }
+    const {choice, isInviteOnboardingComplete, inviteType} = introSelected;
+    if (isInviteOnboardingComplete) {
+        return;
+    }
+    if (inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE) {
+        return;
+    }
+    const personalDetails = allPersonalDetails?.[currentUserAccountID];
+    const firstName = personalDetails?.firstName ?? '';
+    const lastName = personalDetails?.lastName ?? '';
+
+    Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
+
+    if (choice === CONST.ONBOARDING_CHOICES.ADMIN) {
+        return {
+            firstName,
+            lastName,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES.ADMIN,
+        };
+    }
+    if (choice === CONST.ONBOARDING_CHOICES.SUBMIT) {
+        return {
+            firstName,
+            lastName,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES.EMPLOYER,
+        };
+    }
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -750,6 +802,8 @@ function openReport(
         : {
               reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
           };
+
+    const inviteOnboardingDetails = getInviteOnboardingDetails();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -806,6 +860,7 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        ...inviteOnboardingDetails,
     };
 
     if (ReportUtils.isGroupChat(newReportObject)) {
@@ -3761,6 +3816,8 @@ function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: On
 function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
+
+export type {Video};
 
 export {
     searchInServer,
