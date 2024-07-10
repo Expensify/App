@@ -94,3 +94,4 @@ export default (main: Metric | string, delta: Metric | string, outputFile: strin
         return writeToMarkdown(outputFile, outputData);
     }
 };
+export {compareResults};
