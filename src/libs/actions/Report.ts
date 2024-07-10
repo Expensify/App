@@ -2169,9 +2169,10 @@ function deleteReport(reportID: string) {
     Onyx.multiSet(onyxData);
 
     Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
-        if (reportAction.childReportID) {
-            deleteReport(reportAction.childReportID);
+        if (!reportAction.childReportID) {
+            return;
         }
+        deleteReport(reportAction.childReportID);
     });
 
     // Delete linked IOU report
