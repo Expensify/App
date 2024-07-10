@@ -1,174 +1,134 @@
 ---
 title: Admin Card Settings and Features 
-description: An in-depth look into the Expensify Card program's admin controls and settings.
+description: A deep dive into the available controls and settings for the Expensify Card.
 ---
+# Expensify Visa® Commercial Card Overview
+The Expensify Visa® Commercial Card offers various settings to help admins manage expenses and card usage efficiently. Here’s how to use these features:
 
-# Overview
+## Smart Limits
+Smart Limits allow you to set custom spending limits for each Expensify cardholder or default limits for groups. Setting a Smart Limit activates an Expensify card for your user and issues a virtual card for immediate use.
 
-The Expensify Visa® Commercial Card offers a range of settings and functionality to customize how admins manage expenses and card usage in Expensify. To start, we'll lay out the best way to make these options work for you.
+#### Set Limits for Individual Cardholders
+As a Domain Admin, you can set or edit Custom Smart Limits for a card:
+1. Go to _**Settings > Domains > Domain Name > Company Cards**_.
+2. Click **Edit Limit** to set the limit.
 
-Set Smart Limits to control card spend. Smart Limits are spend limits that can be set for individual cards or specific groups. Once a given Smart Limit is reached, the card is temporarily disabled until expenses are approved.
+This limit restricts the amount of unapproved (unsubmitted and processing) expenses a cardholder can incur. Once the limit is reached, the cardholder cannot use their card until they submit outstanding expenses and have their card spend approved. If you set the Smart Limit to $0, the user’s card cannot be used.
 
-Monitor spend using your Domain Limit and the Reconciliation Dashboard.
-Your Domain Limit is the total Expensify Card limit across your entire organization. No member can spend more than what's available here, no matter what their individual Smart Limit is. A Domain Limit is dynamic and depends on a number of factors, which we'll explain below.
+#### Set Default Group Limits
+Domain Admins can set or edit custom Smart Limits for a domain group:
 
-Decide the settlement model that works best for your business
-Monthly settlement is when your Expensify Card balance is paid in full on a certain day each month. Though the Expensify Card is set to settle daily by default, any Domain Admin can change this setting to monthly. 
+1. Go to _**Settings > Domains > Domain Name > Groups**_.
+2. Click on the limit in-line for your chosen group and amend the value.
 
-Now, let's get into the mechanics of each piece mentioned above. 
+This limit applies to all members of the Domain Group who do not have an individual limit set via _**Settings > Domains > Domain Name > Company Cards**_.
 
-# How to set Smart Limits
-Smart Limits allow you to set a custom spend limit for each Expensify cardholder, or default limits for groups. Setting a Smart Limit is the step that activates an Expensify card for your user (and issues a virtual card for immediate use).
+#### Refreshing Smart Limits
+To let cardholders continue spending, you can approve their pending expenses via the Reconciliation tab. This frees up their limit, allowing them to use their card again.
 
-## Set limits for individual cardholders
-As a Domain Admin, you can set or edit Custom Smart Limits for a card by going to Settings > Domains > Domain Name > Company Cards. Simply click Edit Limit to set the limit. This limit will restrict the amount of unapproved (unsubmitted and Processing) expenses that a cardholder can incur. After the limit is reached, the cardholder won't be able to use their card until they submit outstanding expenses and have their card spend approved.  If you set the Smart Limit to $0, the user's card can't be used. 
-## Set default group limits
-Domain Admins can set or edit custom Smart Limits for a domain group by going to Settings > Domains > Domain Name > Groups. Just click on the limit in-line for your chosen group and amend the value.
+To check an unapproved card balance and approve expenses:
+1. Click on **Reconciliation** and enter a date range.
+2. Click on the Unapproved total to see what needs approval.
+3. You can add to a new report or approve an existing report from here.
 
-This limit will apply to all members of the Domain Group who do not have an individual limit set via Settings > Domains > Domain Name > Company Cards.
+You can also increase a Smart Limit at any time by clicking **Edit Limit**.
 
-## Refreshing Smart Limits
-To let cardholders keep spending, you can approve their pending expenses via the Reconciliation tab. This will free up their limit, allowing them to use their card again. 
+### Understanding Your Domain Limit
+To ensure you have the most accurate Domain Limit for your company, follow these steps:
 
-To check an unapproved card balance and approve expenses, click on Reconciliation and enter a date range, then click though the Unapproved total to see what needs approving. You can add to a new report or approve an existing report from here.
+1. **Connect Your Bank Account:** Go to _**Settings > Account > Payments > Add Verified Bank Account**_ and connect via Plaid.
 
-You can also increase a Smart Limit at any time by clicking Edit Limit.
+2. **Request a Custom Limit:** If your bank isn’t supported or you’re experiencing connection issues, you can request a custom limit at _**Settings > Domains > Domain Name > Company Cards > Request Limit Increase**_. Note that you’ll need to provide three months of unredacted bank statements for review by our risk management team.
 
-# Understanding your Domain Limit
+### Factors Affecting Your Domain Limit
+Your Domain Limit may fluctuate due to several factors:
 
-To get the most accurate Domain Limit for your company, connect your bank account via Plaid under Settings > Account > Payments > Add Verified Bank Account. 
+- **Available Funds in Your Verified Business Bank Account:** We regularly monitor balances via Plaid. A sudden decrease in balance within the last 24 hours may impact your limit. For accounts with 'sweep' functionality, maintain a sufficient balance even when sweeping daily.
 
-If your bank isn't supported or you're having connection issues, you can request a custom limit under Settings > Domains > Domain Name > Company Cards > Request Limit Increase. As a note, you'll need to provide three months of unredacted bank statements for review by our risk management team. 
+- **Pending Expenses:** Check the Reconciliation Dashboard for large pending expenses that could affect your available balance. Your Domain Limit automatically adjusts to include pending expenses.
 
-Your Domain Limit may fluctuate from time to time based on various factors, including:
+- **Processing Settlements:** Settlements typically take about three business days to process and clear. Multiple large settlements over consecutive days may affect your Domain Limit, which updates dynamically once settlements are cleared.
 
-- Available funds in your Verified Business Bank Account: We regularly check bank balances via Plaid. A sudden drop in balance within the last 24 hours may affect your limit. For 'sweep' accounts, be sure to maintain a substantial balance even if you're sweeping daily.
-- Pending expenses: Review the Reconciliation Dashboard to check for large pending expenses that may impact your available balance. Your Domain Limit will adjust automatically to include pending expenses.
-- Processing settlements: Settlements need about three business days to process and clear. Several large settlements over consecutive days may impact your Domain Limit, which will dynamically update when settlements have cleared.
+Please note: If your Domain Limit is reduced to $0, cardholders cannot make purchases, even if they have higher Smart Limits set on their individual cards.
 
-As a note, if your Domain Limit is reduced to $0, your cardholders can't make purchases even if they have a larger Smart Limit set on their individual cards.
+## Reconciling Expenses and Settlements
+Reconciling expenses ensures your financial records are accurate and up-to-date. Follow these steps to review and reconcile expenses associated with your Expensify Cards:
 
-# How to reconcile Expensify Cards
-## How to reconcile expenses
-Reconciling expenses is essential to ensuring your financial records are accurate and up-to-date. 
+#### How to Reconcile Expenses:
+1. Go to _**Settings > Domains > Domain Name > Company Cards > Reconciliation > Expenses**_.
+2. Enter your start and end dates, then click *Run*.
+3. The Imported Total will display all Expensify Card transactions for the period.
+4. You'll see a list of all Expensify Cards, the total spend on each card, and a snapshot of expenses that have been approved and have not been approved (Approved Total and Unapproved Total, respectively).
+5. Click on the amounts to view the associated expenses.
 
-Follow the steps below to quickly review and reconcile expenses associated with your Expensify Cards:
+#### How to Reconcile Settlements:
+A settlement is the payment to Expensify for purchases made using the Expensify Cards. The program can settle on either a daily or monthly basis. Note that not all transactions in a settlement will be approved when running reconciliation.
 
-1. Go to Settings > Domains > Domain Name > Company Cards > Reconciliation > Expenses
-2. Enter your start and end dates, then click Run
-3. The Imported Total will show all Expensify Card transactions for the period
-4. You'll also see a list of all Expensify Cards, the total spend on each card, and a snapshot of expenses that have and have not been approved (Approved Total and Unapproved Total, respectively)
-By clicking on the amounts, you can view the associated expenses 
+1. Log into the Expensify web app.
+2. Click _**Settings > Domains > Domain Name > Company Cards > Reconciliation > `Settlements**_.
+3. Use the Search function to generate a statement for the specific period you need.
 
+The search results will include the following info for each entry:
+- **Date:** When a purchase was made or funds were debited for payments.
+- **Posted Date:** When the purchase transaction is posted.
+- **Entry ID:** A unique number grouping card payments and transactions settled by those payments.
+- **Amount:** The amount debited from the Business Bank Account for payments.
+- **Merchant:** The business where a purchase was made.
+- **Card:** Refers to the Expensify Card number and cardholder’s email address.
+- **Business Account:** The business bank account connected to Expensify that the settlement is paid from.
+- **Transaction ID:** A special ID that helps Expensify support locate transactions if there’s an issue.
 
-## How to reconcile settlements
-A settlement is the payment to Expensify for the purchases made using the Expensify Cards. 
+Review the individual transactions (debits) and the payments (credits) that settled them. Each cardholder will have a virtual and a physical card listed, handled the same way for settlements, reconciliation, and exporting.
 
-The Expensify Card program can settle on either a daily or monthly basis. One thing to note is that not all transactions in a settlement will be approved when running reconciliation.
+4. Click **Download CSV** for reconciliation. This will list everything you see on the screen.
+5. To reconcile pre-authorizations, use the Transaction ID column in the CSV file to locate the original purchase.
+6. Review account payments: You’ll see payments made from the accounts listed under _**Settings > Account > Payments > Bank Accounts**_. Payment data won’t show for deleted accounts.
 
-You can view the Expensify Card settlements under Settings > Domains > Domain Name > Company Cards > Reconciliation > Settlements. 
+Use the Reconciliation Dashboard to confirm the status of expenses missing from your accounting system. It allows you to view both approved and unapproved expenses within your selected date range that haven’t been exported yet.
 
-By clicking each settlement amount, you can see the transactions contained in that specific payment amount. 
+### Set a Preferred Workspace
+Many customers find it helpful to separate their company card expenses from other types of expenses for easier coding. To do this, create a separate workspace specifically for card expenses.
 
-Follow the below steps to run reconciliation on the Expensify Card settlements:
+**Using a Preferred Workspace:** 
+Combine this feature with Scheduled Submit to automatically add new card expenses to reports connected to your card-specific workspace.
 
-1. Log into the Expensify web app
-2. Click Settings > Domains > Domain Name > Company Cards > Reconciliation tab > Settlements
-3. Use the Search function to generate a statement for the specific period you need
-4. The search results will include the following info for each entry:
-    - Date: when a purchase was made or funds were debited for payments
-    - Posted Date: when the purchase transaction posted
-    - Entry ID: a unique number grouping card payments and transactions settled by those payments
-    - Amount: the amount debited from the Business Bank Account for payments
-    - Merchant: the business where a purchase was made
-    - Card: refers to the Expensify Card number and cardholder's email address
-    - Business Account: the business bank account connected to Expensify that the settlement is paid from
-    - Transaction ID: a special ID that helps Expensify support locate transactions if there's an issue
+### Change the Settlement Account
+You can change your settlement account to any verified business bank account in Expensify. If your current bank account is closing, make sure to set up a replacement as soon as possible.
 
-5. Review the individual transactions (debits) and the payments (credits) that settled them
-6. Every cardholder will have a virtual and a physical card listed. They're handled the same way for settlements, reconciliation, and exporting.
-7. Click Download CSV for reconciliation
-8. This will list everything that you see on screen
-9. To reconcile pre-authorizations, you can use the Transaction ID column in the CSV file to locate the original purchase
-10. Review account payments
-11. You'll see payments made from the accounts listed under Settings > Account > Payments > Bank Accounts. Payment data won't show for deleted accounts. 
+#### Steps to Select a Different Settlement Account:
+1. Go to _**Settings > Domains > Domain Name > Company Cards > Settings**_ tab.
+2. Use the Expensify Card settlement account dropdown to select a new account.
+3. Click **Save**.
 
-You can use the Reconciliation Dashboard to confirm the status of expenses that are missing from your accounting system. It allows you to view both approved and unapproved expenses within your selected date range that haven't been exported yet.
+### Change the Settlement Frequency
+By default, Expensify Cards settle daily. However, you can switch to monthly settlements.
 
+#### Monthly Settlement Requirements:
+  - The settlement account must not have had a negative balance in the last 90 days.
+  - There will be an initial settlement for any outstanding spending before the switch.
+  - The settlement date going forward will be the date you switch (e.g., if you switch on September 15th, future settlements will be on the 15th of each month).
 
-# Deep dive
-## Set a preferred workspace
-Some customers choose to split their company card expenses from other expense types for coding purposes. Most commonly this is done by creating a separate workspace for card expenses. 
+#### Steps to Change the Settlement Frequency:
+1. Go to _**Settings > Domains > Domain Name > Company Cards > Settings**_ tab.
+2. Click the **Settlement Frequency** dropdown and select **Monthly**.
+3. Click **Save** to confirm the change.
 
-You can use the preferred workspace feature in conjunction with Scheduled Submit to make sure all newly imported card expenses are automatically added to reports connected to your card-specific workspace.
+### Declined Expensify Card Transactions
+If you have 'Receive real-time alerts' enabled, you'll get a notification explaining why a transaction was declined. To enable alerts:
+1. Open the mobile app.
+2. Click the three-bar icon in the upper-left corner.
+3. Go to Settings.
+4. Toggle 'Receive real-time alerts' on.
 
-## How to change your settlement account
-You can change your settlement account to any other verified business bank account in Expensify. If your bank account is closing, make sure you set up the replacement bank account in Expensify as early as possible. 
+If you or your employees notice any unfamiliar purchases or need a new card, go to _**Settings > Account > Credit Card Import**_ and click on **Request a New Card**.
 
-To select a different settlement account:
+#### Common Reasons for Declines:
+- **Insufficient Card Limit:** If a transaction exceeds your card's limit, it will be declined. Always check your balance under _**Settings > Account > Credit Card Import**_ on the web or mobile app. Approve pending expenses to free up your limit.
 
-1. Go to Settings > Domains > Domain Name > Company Cards > Settings tab
-2. Use the Expensify Card settlement account dropdown to select a new account
-3. Click Save
+- **Card Not Activated or Canceled:** Transactions won't process if the card hasn't been activated or has been canceled.
 
+- **Incorrect Card Information:** Entering incorrect card details, such as the CVC, ZIP, or expiration date, will lead to declines.
 
-## Change the settlement frequency
+- **Suspicious Activity:** Expensify may block transactions if unusual activity is detected. This could be due to irregular spending patterns, risky vendors, or multiple rapid transactions. Check your Expensify Home page to approve unusual merchants. If further review is needed, Expensify will perform a manual due diligence check and lock your cards temporarily.
 
-By default, the Expensify Cards settle on a daily cadence. However, you can choose to have the cards settle on a monthly basis.
-
-1. Monthly settlement is only available if the settlement account hasn't had a negative balance in the last 90 days
-2. There will be an initial settlement to settle any outstanding spend that happened before switching the settlement frequency 
-3. The date that the settlement is changed to monthly is the settlement date going forward (e.g. If you switch to monthly settlement on September 15th, Expensify Cards will settle on the 15th of each month going forward)
-
-To change the settlement frequency:
-1. Go to Settings > Domains > Domain Name > Company Cards > Settings tab
-2. Click the Settlement Frequency dropdown and select Monthly
-3. Click Save to confirm the change
-
-
-
-## Declined Expensify Card transactions 
-As long as you have 'Receive realtime alerts' enabled, you'll get a notification explaining the decline reason. You can enable alerts in the mobile app by clicking on three-bar icon in the upper-left corner > Settings > toggle Receive realtime alerts on. 
-
-If you ever notice any unfamiliar purchases or need a new card, go to Settings > Account > Credit Card Import and click on Request a New Card right away.
-
-Here are some reasons an Expensify Card transaction might be declined:
-
-1. You have an insufficient card limit
-    - If a transaction amount exceeds the available limit on your Expensify Card, the transaction will be declined. It's essential to be aware of the available balance before making a purchase to avoid this - you can see the balance under Settings > Account > Credit Card Import on the web app or mobile app. Submitting expenses and having them approved will free up your limit for more spend.
-
-2. Your card hasn't been activated yet, or has been canceled
-    - If the card has been canceled or not yet activated, it won't process any transactions. 
-
-3. Your card information was entered incorrectly. Entering incorrect card information, such as the CVC, ZIP or expiration date will also lead to declines.
-
-4. There was suspicious activity
-    - If Expensify detects unusual or suspicious activity, we may block transactions as a security measure. This could happen due to irregular spending patterns, attempted purchases from risky vendors, or multiple rapid transactions. Check your Expensify Home page to approve unsual merchants and try again.
-    If the spending looks suspicious, we may do a manual due diligence check, and our team will do this as quickly as possible - your cards will all be locked while this happens.  
-5. The merchant is located in a restricted country
-    - Some countries may be off-limits for transactions. If a merchant or their headquarters (billing address) are physically located in one of these countries, Expensify Card purchases will be declined. This list may change at any time, so be sure to check back frequently: Belarus, Burundi, Cambodia, Central African Republic, Democratic Republic of the Congo, Cuba, Iran, Iraq, North Korea, Lebanon, Libya, Russia, Somalia, South Sudan, Syrian Arab Republic, Tanzania, Ukraine, Venezuela, Yemen, and Zimbabwe.
-
-{% include faq-begin.md %} 
-## What happens when I reject an Expensify Card expense?
-Rejecting an Expensify Card expense from an Expensify report will simply allow it to be reported on a different report. 
-
-If an Expensify Card expense needs to be rejected, you can reject the report or the specific expense so it can be added to a different report. The rejected expense will become Unreported and return to the submitter's Expenses page.
-
-If you want to dispute a card charge, please message Concierge to start the dispute process.
-
-If your employee has accidentally made an unauthorised purchase, you will need to work that out with the employee to determine how they will pay back your company.
-
-
-## What happens when an Expensify Card transaction is refunded?
-
-
-The way a refund is displayed in Expensify depends on the status of the expense (pending or posted) and whether or not the employee also submitted an accompanying SmartScanned receipt. Remember, a SmartScanned receipt will auto-merge with the Expensify Card expense.
-
-- Full refunds:
-If a transaction is pending and doesn't have a receipt attached (except for eReceipts), getting a full refund will make the transaction disappear.
-If a transaction is pending and has a receipt attached (excluding eReceipts), a full refund will zero-out the transaction (amount becomes zero).
-- Partial refunds:
-If a transaction is pending, a partial refund will reduce the amount of the transaction.
-- If a transaction is posted, a partial refund will create a negative transaction for the refund amount.
-
-{% include faq-end.md %}
+- **Merchant in a Restricted Country:** Transactions will be declined if the merchant is in a restricted country. 

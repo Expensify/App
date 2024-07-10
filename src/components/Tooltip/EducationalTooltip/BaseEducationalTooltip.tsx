@@ -41,6 +41,7 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
             {...props}
         >
             {({showTooltip, hideTooltip, updateTargetBounds}) => {
+                // eslint-disable-next-line react-compiler/react-compiler
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {
                     onLayout: (e: LayoutEvent) => {

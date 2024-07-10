@@ -1,6 +1,6 @@
 import {mapValues} from 'lodash';
 import React, {useCallback} from 'react';
-import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +13,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -59,7 +60,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     canDismissError?: boolean;
 };
 
-type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
+type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
 
 function OfflineWithFeedback({
     pendingAction,
@@ -106,9 +107,10 @@ function OfflineWithFeedback({
                     return child;
                 }
 
-                const childProps: {children: React.ReactNode | undefined; style: AllStyles} = child.props;
+                type ChildComponentProps = ChildrenProps & {style?: AllStyles};
+                const childProps = child.props as ChildComponentProps;
                 const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(childProps.style, styles.offlineFeedback.deleted, styles.userSelectNone),
+                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
 
                 if (childProps.children) {
@@ -134,7 +136,7 @@ function OfflineWithFeedback({
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
-                    {children}
+                    <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
             {shouldShowErrorMessages && hasErrorMessages && (

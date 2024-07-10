@@ -44,7 +44,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
             .then((attachment) => {
-                documentPathUri = attachment.data;
+                documentPathUri = attachment.data as string | null;
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }
@@ -94,7 +94,7 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
 
                 FileUtils.showSuccessAlert(successMessage);
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 // iOS shows permission popup only once. Subsequent request will only throw an error.
                 // We catch the error and show a redirection link to the settings screen
                 if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {

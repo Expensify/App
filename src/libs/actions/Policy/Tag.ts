@@ -363,7 +363,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: n
     });
 }
 
-function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
+function clearPolicyTagListErrorField(policyID: string, tagListIndex: number, errorField: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
     if (!policyTag.name) {
@@ -375,6 +375,20 @@ function clearPolicyTagListError(policyID: string, tagListIndex: number, errorFi
             errorFields: {
                 [errorField]: null,
             },
+        },
+    });
+}
+
+function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [policyTag.name]: {
+            errors: null,
         },
     });
 }
@@ -500,7 +514,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             },
         ],
     };
-    const policyTagList = allPolicyTags?.[policyID];
+
+    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     if (!policyTagList) {
         const defaultTagList: PolicyTagList = {
             Tag: {
@@ -520,6 +535,33 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             value: null,
         });
+    } else if (!enabled) {
+        const policyTag = PolicyUtils.getTagLists(policyTagList)[0];
+        onyxData.optimisticData?.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: Object.fromEntries(
+                            Object.keys(policyTag.tags).map((tagName) => [
+                                tagName,
+                                {
+                                    enabled: false,
+                                },
+                            ]),
+                        ),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag: false,
+                },
+            },
+        );
     }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
@@ -541,7 +583,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
                     [oldName]: null,
                 },
             },
@@ -561,12 +603,12 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    errors: {
-                        [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                    },
                     [newName]: null,
-                    [oldName]: oldPolicyTags,
+                    [oldName]: {
+                        ...oldPolicyTags,
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    },
                 },
             },
         ],
@@ -692,17 +734,18 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
 }
 
 export {
-    openPolicyTagsPage,
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
     setPolicyTagsRequired,
-    renamePolicyTaglist,
-    enablePolicyTags,
     createPolicyTag,
-    renamePolicyTag,
     clearPolicyTagErrors,
-    clearPolicyTagListError,
+    clearPolicyTagListErrors,
+    clearPolicyTagListErrorField,
     deletePolicyTags,
+    enablePolicyTags,
+    openPolicyTagsPage,
+    renamePolicyTag,
+    renamePolicyTaglist,
     setWorkspaceTagEnabled,
 };
 
