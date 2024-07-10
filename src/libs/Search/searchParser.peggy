@@ -18,24 +18,41 @@
       filters
     };
   }
+  
+  function updateDefaultValues(field, value) {
+    defaultValues[field] = value;
+  }
+
+  function isDefaultField(field) {
+    return defaultValues.hasOwnProperty(field);
+  }
 }
 
 query
-  = _ filters:filterList { return applyDefaults(filters); }
+  = _ filters:filterList? _ { return applyDefaults(filters); }
 
 filterList
-  = head:filter tail:(filter logicalAnd)* {
-      return tail.reduce((result, [right, op]) => buildFilter(op, result, right), head);
+  = head:filter tail:(logicalAnd filter)* {
+      const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null);
+      if (!allFilters.length) {
+      	return null;
+      }
+      return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     }
 
 filter
   = _ field:key? _ op:operator? _ value:identifier {
+      if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
+
       if (!field && !op) {
         return buildFilter('eq', 'freeText', value.trim());
-      } else {
-        const values = value.split(',');
-        return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter('eq', field, val.trim())), buildFilter('eq', field, values[0]));
       }
+
+      const values = value.split(',');
+      return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter('eq', field, val.trim())), buildFilter('eq', field, values[0]));
     }
 
 operator
@@ -67,10 +84,10 @@ key
   / "sortBy" { return "sortBy"; }
   / "sortOrder" { return "sortOrder"; }
   / "offset" { return "offset"; }
-  
+
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
- 
+
 quotedString
   = '"' chars:[^"\r\n]* '"' { return chars.join(''); }
 
