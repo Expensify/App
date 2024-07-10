@@ -29,7 +29,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const categoryName = route.params.categoryName;
-    const payrollCode = policyCategories?.[categoryName]?.payrollCode;
+    const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const editPayrollCode = useCallback(

@@ -344,9 +344,11 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            payrollCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        payrollCode,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': payrollCode,
                     },
                 },
             },
@@ -360,9 +362,11 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
-                            payrollCode: null,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': null,
                         },
-                        payrollCode,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': payrollCode,
                     },
                 },
             },
@@ -377,7 +381,8 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updatePayrollCodeFailureMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            payrollCode: null,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': null,
                         },
                     },
                 },
