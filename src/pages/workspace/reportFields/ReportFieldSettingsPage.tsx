@@ -48,10 +48,6 @@ function ReportFieldSettingsPage({
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
 
     const deleteReportFieldAndHideModal = () => {
-        if (hasAccountingConnections) {
-            return;
-        }
-
         ReportField.deleteReportFields(policyID, [reportFieldKey]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
