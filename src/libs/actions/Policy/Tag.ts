@@ -686,8 +686,8 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
 
     if (isMultiLevelTags) {
         onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
-        onyxData.successData?.push(getUpdatedTagsData(requiresTag));
         onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
+        onyxData.successData?.push(getUpdatedTagsData(requiresTag));
     }
 
     const parameters = {
