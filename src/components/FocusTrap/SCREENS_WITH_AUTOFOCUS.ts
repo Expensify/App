@@ -17,6 +17,7 @@ const SCREENS_WITH_AUTOFOCUS: string[] = [
     SCREENS.MONEY_REQUEST.CREATE,
     SCREENS.WORKSPACE.INVITE,
     SCREENS.SIGN_IN_ROOT,
+    SCREENS.REFERRAL_DETAILS,
 ];
 
 function getScreenWithAutofocus(isAuthenticated: boolean) {
