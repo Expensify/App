@@ -8,21 +8,23 @@ import CONST from '@src/CONST';
 type TransparentOverlayProps = {
     resetSuggestions: () => void;
 };
+
 type OnPressHandler = (event: GestureResponderEvent) => void;
 
 function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
     const styles = useThemeStyles();
 
-    const onResetSuggestions: OnPressHandler = useCallback(
-        (event: GestureResponderEvent) => {
+    const onResetSuggestions = useCallback<OnPressHandler>(
+        (event) => {
             event?.preventDefault();
             resetSuggestions();
         },
         [resetSuggestions],
     );
+
     return (
         <View
-            onPointerDown={(e: GestureResponderEvent) => {
+            onPointerDown={(e) => {
                 e?.preventDefault();
             }}
             style={styles.fullScreen}
