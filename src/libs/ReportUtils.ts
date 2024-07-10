@@ -551,6 +551,26 @@ Onyx.connect({
     },
 });
 
+let allReportMetadata: OnyxCollection<ReportMetadata>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportMetadata = value;
+    },
+});
+
+let isFirstTimeNewExpensifyUser = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    callback: (value) => {
+        isFirstTimeNewExpensifyUser = value ?? false;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1151,30 +1171,23 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function findLastAccessedReport(
-    reports: OnyxCollection<Report>,
-    ignoreDomainRooms: boolean,
-    policies: OnyxCollection<Policy>,
-    isFirstTimeNewExpensifyUser: boolean,
-    openOnAdminRoom = false,
-    reportMetadata: OnyxCollection<ReportMetadata> = {},
-    policyID?: string,
-    policyMemberAccountIDs: number[] = [],
-    excludeReportID?: string,
-): OnyxEntry<Report> {
+function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
 
-    let reportsValues = Object.values(reports ?? {});
+    const policyMemberAccountIDs = PolicyUtils.getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
+
+    const allReports = ReportConnection.getAllReports();
+    let reportsValues = Object.values(allReports ?? {});
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
-    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
+    let sortedReports = sortReportsByLastRead(reportsValues, allReportMetadata);
 
     let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
@@ -1198,7 +1211,7 @@ function findLastAccessedReport(
             if (
                 ignoreDomainRooms &&
                 isDomainRoom(report) &&
-                getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE &&
+                getPolicyType(report, allPolicies) !== CONST.POLICY.TYPE.FREE &&
                 !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))
             ) {
                 return false;
@@ -5144,7 +5157,7 @@ function buildTransactionThread(
         participantAccountIDs,
         getTransactionReportName(reportAction),
         undefined,
-        moneyRequestReport?.policyID,
+        moneyRequestReport?.policyID ?? '-1',
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',

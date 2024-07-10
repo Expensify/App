@@ -41,8 +41,11 @@ type ThumbnailImageProps = {
     /** The size of the fallback icon */
     fallbackIconSize?: number;
 
-    /** The colod of the fallback icon */
+    /** The color of the fallback icon */
     fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
@@ -66,6 +69,7 @@ function ThumbnailImage({
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
+    fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
@@ -107,8 +111,10 @@ function ThumbnailImage({
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
     if (failedToLoad || previewSourceURL === '') {
+        const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
+
         return (
-            <View style={[style, styles.overflowHidden, StyleUtils.getBackgroundColorStyle(theme.border)]}>
+            <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
