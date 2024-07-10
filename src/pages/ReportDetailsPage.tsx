@@ -275,10 +275,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             return;
         }
 
-        if (!moneyRequestReport) {
-            return;
-        }
-
         IOU.cancelPayment(moneyRequestReport, chatReport);
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
