@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import {isEmpty, mapValues} from 'lodash';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -9,9 +9,10 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
-import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import MessagesRow from './MessagesRow';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
@@ -110,6 +111,11 @@ function SelectionScreen({
     const policy = PolicyUtils.getPolicy(policyID);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
+    const errorEntries = Object.entries(errors ?? {});
+    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
+    const errorMessages = mapValues(Object.fromEntries(filteredErrorEntries), (error) => error);
+    const hasErrorMessages = !isEmptyObject(errorMessages);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -128,9 +134,6 @@ function SelectionScreen({
                 {headerContent}
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
-                    errors={errors}
-                    errorRowStyles={[errorRowStyles]}
-                    onClose={onClose}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
                 >
@@ -143,7 +146,18 @@ function SelectionScreen({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                    />
+                        sectionListStyle={[styles.flexGrow0]}
+                    >
+                        {hasErrorMessages && (
+                            <MessagesRow
+                                messages={errorMessages}
+                                type="error"
+                                onClose={onClose}
+                                containerStyles={errorRowStyles}
+                                canDismiss
+                            />
+                        )}
+                    </SelectionList>
                 </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
