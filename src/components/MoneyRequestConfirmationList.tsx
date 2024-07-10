@@ -438,9 +438,6 @@ function MoneyRequestConfirmationList({
 
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
-        const maxSplitAmount = Math.max(
-            ...[payeeOption, ...selectedParticipants].map((participantOption: Participant) => transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount ?? -1),
-        );
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
@@ -464,7 +461,7 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
-                    contentWidth={CurrencyUtils.convertToDisplayStringWithoutCurrency(maxSplitAmount).length * 9}
+                    contentWidth={formattedTotalAmount.length * 8}
                 />
             ),
         }));
