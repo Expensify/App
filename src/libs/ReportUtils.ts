@@ -5459,6 +5459,10 @@ function shouldReportBeInOptionList({
         return false;
     }
 
+    if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
+        return false;
+    }
+
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.

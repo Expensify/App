@@ -840,6 +840,8 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+            PAYCHECK: 'paycheck',
+            BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
