@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilters, SearchColumnType, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilters, SearchColumnType, SortOrder, AllFieldKeys} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -313,6 +313,11 @@ function getQueryHashFromString(query: string): number {
 type JSONQuery = {
     input: string;
     hash: number;
+    type: string;
+    status: string;
+    sortBy: string;
+    sortOrder: string;
+    offset: number;
     filters: ASTNode;
 };
 
@@ -329,7 +334,7 @@ function buildJSONQuery(query: string) {
     }
 }
 
-function getFilters(query: string, fields: string[]) {
+function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
     let jsonQuery;
     try {
         jsonQuery = searchParser.parse(query) as JSONQuery;
@@ -341,14 +346,15 @@ function getFilters(query: string, fields: string[]) {
     const filters = {} as QueryFilters;
 
     // Include root properties if they are specified fields
-    fields.forEach((field) => {
-        if (jsonQuery[field] === undefined) {
+    fields.forEach(field => {
+        const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+        if (jsonQuery[rootFieldKey] === undefined) {
             return;
         }
 
         filters[field] = {
             operator: 'eq',
-            value: jsonQuery[field],
+            value: jsonQuery[rootFieldKey],
         };
     });
 
@@ -365,7 +371,7 @@ function getFilters(query: string, fields: string[]) {
             traverse(node.right);
         }
 
-        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FIELD_KEYS>;
+        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
         if (!fields.includes(nodeKey)) {
             return;
         }

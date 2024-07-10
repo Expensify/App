@@ -5216,12 +5216,14 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_FIELD_KEYS: {
+        SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             OFFSET: 'offset',
+        },
+        SYNTAX_FILTER_KEYS: {
             DATE: 'date',
             AMOUNT: 'amount',
         },

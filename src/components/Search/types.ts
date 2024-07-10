@@ -28,17 +28,19 @@ type SearchContext = {
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-    left: string | ASTNode;
+    left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
     right: string | ASTNode;
 };
 
 type QueryFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-    value: string;
+    value: string | number;
 };
+
+type AllFieldKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS | keyof typeof CONST.SEARCH.SYNTAX_ROOT_KEYS;
 
 type QueryFilters = {
-    [K in keyof typeof CONST.SEARCH.SYNTAX_FIELD_KEYS]: QueryFilter | QueryFilter[];
+    [K in AllFieldKeys]: QueryFilter | QueryFilter[];
 };
 
-export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilters};
+export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilters, AllFieldKeys};
