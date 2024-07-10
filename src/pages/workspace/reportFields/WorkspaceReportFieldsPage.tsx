@@ -97,14 +97,14 @@ function WorkspaceReportFieldsPage({
                     rightElement: (
                         <ListItemRightCaretWithLabel
                             shouldShowCaret={false}
-                            labelText={Str.recapitalize(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type))}
+                            labelText={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))}
                         />
                     ),
                 })),
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields]);
+    }, [filteredPolicyFieldList, policy, selectedReportFields, translate]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
