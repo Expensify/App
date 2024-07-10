@@ -87,18 +87,18 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat &&
-                    (policy?.description ? (
+                    (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
                                 if (!canEditPolicyDescription) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id));
+                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
                             }}
                             style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                         >
-                            <RenderHTML html={policy.description} />
+                            <RenderHTML html={welcomeMessage.messageHtml} />
                         </PressableWithoutFeedback>
                     ) : (
                         <Text>
@@ -110,19 +110,19 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         </Text>
                     ))}
                 {isChatRoom &&
-                    (report?.description ? (
+                    (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
                                 if (ReportUtils.canEditReportDescription(report, policy)) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1'));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
                             }}
                             style={styles.renderHTML}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                         >
-                            <RenderHTML html={report.description} />
+                            <RenderHTML html={welcomeMessage.messageHtml} />
                         </PressableWithoutFeedback>
                     ) : (
                         <Text>
