@@ -30,10 +30,8 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
 
-    const {importEmployees, autoSync, sync, pendingFields, errorFields, credentials} = policy?.connections?.intacct?.config ?? {};
+    const {importEmployees, autoSync, sync, pendingFields, errorFields, entity} = policy?.connections?.intacct?.config ?? {};
     const {data, config} = policy?.connections?.intacct ?? {};
-
-    const currentSageIntacctOrganizationName = credentials?.companyID;
 
     const toggleSections = useMemo(
         () => [
@@ -101,7 +99,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
-            headerSubtitle={currentSageIntacctOrganizationName}
+            headerSubtitle={entity}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

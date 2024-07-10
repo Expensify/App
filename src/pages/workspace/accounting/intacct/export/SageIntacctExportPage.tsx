@@ -15,7 +15,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
 
-    const {export: exportConfig, credentials} = policy?.connections?.intacct?.config ?? {};
+    const {export: exportConfig, entity} = policy?.connections?.intacct?.config ?? {};
 
     const sections = useMemo(
         () => [
@@ -59,7 +59,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctExportPage.displayName}
             headerTitle="workspace.accounting.export"
-            headerSubtitle={credentials?.companyID}
+            headerSubtitle={entity}
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
