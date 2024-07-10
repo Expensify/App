@@ -47,7 +47,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.pricing.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textWhite, styles.textBold]}>{translate(`workspace.upgrade.${feature.id}.pricing.amount`)}</Text>
+                        <Text style={[styles.themeTextColor, styles.textBold]}>{translate(`workspace.upgrade.${feature.id}.pricing.amount`)}</Text>
                         {translate(`workspace.upgrade.${feature.id}.pricing.perActiveMember`)}
                     </Text>
                 </View>

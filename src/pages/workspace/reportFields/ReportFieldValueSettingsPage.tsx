@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,44 +12,72 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ValueSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
+type ReportFieldValueSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
 
-function ValueSettingsPage({
+function ReportFieldValueSettingsPage({
+    policy,
     route: {
-        params: {policyID, valueIndex},
+        params: {policyID, valueIndex, reportFieldID},
     },
-}: ValueSettingsPageProps) {
+}: ReportFieldValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
-    const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
-    const currentValueDisabled = formDraft?.disabledListValues?.[valueIndex] ?? false;
+    const [currentValueName, currentValueDisabled] = useMemo(() => {
+        let reportFieldValue: string;
+        let reportFieldDisabledValue: boolean;
+
+        if (reportFieldID) {
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.[valueIndex] ?? '';
+            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.[valueIndex] ?? false;
+        } else {
+            reportFieldValue = formDraft?.listValues?.[valueIndex] ?? '';
+            reportFieldDisabledValue = formDraft?.disabledListValues?.[valueIndex] ?? false;
+        }
+
+        return [reportFieldValue, reportFieldDisabledValue];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     if (!currentValueName) {
         return <NotFoundPage />;
     }
 
     const deleteListValueAndHideModal = () => {
-        ReportFields.deleteReportFieldsListValue([valueIndex]);
+        if (reportFieldID) {
+            ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+        } else {
+            ReportField.deleteReportFieldsListValue([valueIndex]);
+        }
+
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateListValueEnabled = (value: boolean) => {
-        ReportFields.setReportFieldsListValueEnabled([valueIndex], value);
+        if (reportFieldID) {
+            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            return;
+        }
+
+        ReportField.setReportFieldsListValueEnabled([valueIndex], value);
     };
 
     const navigateToEditValue = () => {
@@ -65,7 +93,7 @@ function ValueSettingsPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={ValueSettingsPage.displayName}
+                testID={ReportFieldValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={currentValueName}
@@ -96,8 +124,9 @@ function ValueSettingsPage({
                     <MenuItemWithTopDescription
                         title={currentValueName}
                         description={translate('common.value')}
+                        shouldShowRightIcon={!reportFieldID}
+                        interactive={!reportFieldID}
                         onPress={navigateToEditValue}
-                        shouldShowRightIcon
                     />
                     <MenuItem
                         icon={Expensicons.Trashcan}
@@ -110,6 +139,6 @@ function ValueSettingsPage({
     );
 }
 
-ValueSettingsPage.displayName = 'ValueSettingsPage';
+ReportFieldValueSettingsPage.displayName = 'ReportFieldValueSettingsPage';
 
-export default ValueSettingsPage;
+export default withPolicyAndFullscreenLoading(ReportFieldValueSettingsPage);
