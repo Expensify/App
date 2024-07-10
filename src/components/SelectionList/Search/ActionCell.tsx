@@ -63,13 +63,11 @@ function ActionCell({
         }
     }, [action, currentSearchHash, transactionID]);
 
-    if (!isLargeScreenWidth) {
-        return null;
-    }
-
     const text = translate(actionTranslationsMap[action]);
 
-    if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAI && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
+    const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
+
+    if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
@@ -94,7 +92,22 @@ function ActionCell({
 
     const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
 
-    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
+    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
+        return isLargeScreenWidth ? (
+            <Button
+                text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
+                onPress={goToItem}
+                small
+                pressOnEnter
+                style={[styles.w100]}
+                innerStyles={buttonInnerStyles}
+                link={isChildListItem}
+                shouldUseDefaultHover={!isChildListItem}
+            />
+        ) : null;
+    }
+
+    if (action === CONST.SEARCH.ACTION_TYPES.REVIEW) {
         return (
             <Button
                 text={text}
@@ -106,7 +119,6 @@ function ActionCell({
             />
         );
     }
-
     return (
         <Button
             text={text}
@@ -115,8 +127,6 @@ function ActionCell({
             pressOnEnter
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
-            link={isChildListItem}
-            shouldUseDefaultHover={!isChildListItem}
         />
     );
 }
