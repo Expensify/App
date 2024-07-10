@@ -35,8 +35,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {TagListItem} from './types';
+import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
 type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
@@ -72,6 +73,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
+    const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
+        if (!policyTagList) {
+            return undefined;
+        }
+        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
+            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+            : undefined;
+    };
+
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.map((policyTagList) => ({
@@ -80,6 +90,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: PolicyUtils.getCleanedTagName(policyTagList.name),
                 keyForList: String(policyTagList.orderWeight),
                 isSelected: selectedTags[policyTagList.name],
+                pendingAction: getPendingAction(policyTagList),
                 enabled: true,
                 required: policyTagList.required,
                 rightElement: (
