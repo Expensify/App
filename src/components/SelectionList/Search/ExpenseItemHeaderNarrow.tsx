@@ -13,7 +13,7 @@ import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
 type ExpenseItemHeaderNarrowProps = {
-    id: string;
+    id?: string;
     text?: string;
     participantFrom: SearchAccountDetails;
     participantTo: SearchAccountDetails;
@@ -25,7 +25,7 @@ type ExpenseItemHeaderNarrowProps = {
     isSelected?: boolean;
     isDisabled?: boolean | null;
     isDisabledCheckbox?: boolean;
-    handleCheckboxPress?: (id: string) => void;
+    handleCheckboxPress?: (id?: string) => void;
 };
 
 function ExpenseItemHeaderNarrow({

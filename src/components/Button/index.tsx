@@ -120,7 +120,7 @@ type ButtonProps = Partial<ChildrenProps> & {
     isSplitButton?: boolean;
 
     /** Whether button's content should be centered */
-    centeredContent?: boolean;
+    isContentCentered?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -205,7 +205,7 @@ function Button(
         id = '',
         accessibilityLabel = '',
         isSplitButton = false,
-        centeredContent = false,
+        isContentCentered = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -243,7 +243,7 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[centeredContent ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
                             <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>

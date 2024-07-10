@@ -30,7 +30,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 style={[styles.w100, styles.ph5]}
                 text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
                 shouldShowRightIcon
-                centeredContent
+                isContentCentered
                 iconRight={Expensicons.DownArrow}
             />
 
