@@ -96,10 +96,9 @@ function IOURequestStartPage({
         if (transaction?.reportID === reportID) {
             return;
         }
-        // if transaction is from global create, the original behavior is that the user can change the recipient reportID
-        // without having to reset the whole transaction, hence we don't need to re-init the transaction in this case
+        // if transaction is from global create, reset the reportID & participant
         if (transaction?.isFromGlobalCreate && transaction.transactionID) {
-            IOU.resetMoneyRequestReportID(transaction.transactionID, reportID, isFromGlobalCreate);
+            IOU.resetMoneyRequest(transaction.transactionID, reportID, isFromGlobalCreate);
             return;
         }
         IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
