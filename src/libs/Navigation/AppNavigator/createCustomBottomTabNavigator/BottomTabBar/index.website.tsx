@@ -15,7 +15,9 @@ import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -53,7 +55,12 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             return;
         }
 
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
+        Welcome.isOnboardingFlowCompleted({
+            onNotCompleted: () => {
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
+                navigationRef.resetRoot(adaptedState);
+            },
+        });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 

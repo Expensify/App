@@ -223,6 +223,10 @@ type FilterOptionsConfig = Pick<
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
 > & {preferChatroomsOverThreads?: boolean};
 
+type HasText = {
+    text?: string;
+};
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -2561,6 +2565,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
+function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
+    return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2586,6 +2594,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortItemsAlphabetically,
     sortTags,
     getCategoryOptionTree,
     hasEnabledTags,
