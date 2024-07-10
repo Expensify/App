@@ -117,7 +117,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'expense(s) to',
                         },
                         {
-                            text: 'automatically submit later today!',
+                            text: 'automatically submit later today',
                             type: 'strong',
                         },
                     ];
@@ -148,7 +148,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'expense(s) to',
                         },
                         {
-                            text: 'automatically submit Sunday',
+                            text: 'automatically submit on Sunday',
                             type: 'strong',
                         },
                     ];
@@ -404,7 +404,7 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${currentUserEmail} `,
+                        text: `${currentUserEmail}`,
                         type: 'strong',
                     },
                     {
@@ -415,7 +415,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expenses.',
+                        text: ' %expense(s).',
                     },
                 ];
 
@@ -477,7 +477,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'approve',
                         type: 'strong',
                     },
                     {
