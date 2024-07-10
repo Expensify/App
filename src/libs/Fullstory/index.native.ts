@@ -17,7 +17,6 @@ const FS = {
     init: () => {
         Environment.getEnvironment().then((envName: string) => {
             // We only want to start fullstory if the app is running in production
-            // production
             if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
                 return;
             }
