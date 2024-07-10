@@ -1,4 +1,5 @@
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder, ASTNode, QueryFilters} from '@components/Search/types';
+import type {ValueOf} from 'type-fest';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -312,6 +313,7 @@ function getQueryHashFromString(query: string): number {
 type JSONQuery = {
     input: string;
     hash: number;
+    filters: ASTNode;
 };
 
 function buildJSONQuery(query: string) {
@@ -327,6 +329,64 @@ function buildJSONQuery(query: string) {
     }
 }
 
+function getFilters(query: string, fields: string[]) {
+    let jsonQuery;
+    try {
+       jsonQuery = searchParser.parse(query) as JSONQuery;
+    } catch (e) {
+       console.error(e);
+       return;
+    }
+  
+    const filters = {} as QueryFilters;
+  
+    // Include root properties if they are specified fields
+    fields.forEach(field => {
+        if (jsonQuery[field] === undefined) {
+            return;
+        }
+
+        filters[field] = {
+          operator: 'eq',
+          value: jsonQuery[field]
+        };
+    });
+  
+    function traverse(node: ASTNode) {
+        if (!node.operator) {
+            return;
+        }
+
+        if (node.left && typeof node.left === 'object') {
+          traverse(node.left);
+        }
+
+        if (node.right && typeof node.right === 'object') {
+          traverse(node.right);
+        }
+
+        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FIELD_KEYS>;
+        if (!fields.includes(nodeKey)) {
+            return;
+        }
+
+        if (!filters[nodeKey]) {
+            filters[nodeKey] = [];
+        }
+
+        filters[nodeKey].push({
+          operator: node.operator,
+          value: node.right
+        });
+    }
+  
+    if (jsonQuery.filters) {
+      traverse(jsonQuery.filters);
+    }
+  
+    return filters;
+}  
+
 export {
     buildJSONQuery,
     getListItem,
@@ -340,4 +400,5 @@ export {
     isReportListItemType,
     isTransactionListItemType,
     isSearchResultsEmpty,
+    getFilters,
 };

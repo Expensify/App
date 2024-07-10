@@ -26,4 +26,19 @@ type SearchContext = {
     setSelectedTransactionIds: (selectedTransactionIds: string[]) => void;
 };
 
-export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext};
+type ASTNode = {
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    left: string | ASTNode;
+    right: string | ASTNode;
+}
+
+type QueryFilter = {
+        operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+        value: string;
+}
+
+type QueryFilters = {
+    [K in keyof typeof CONST.SEARCH.SYNTAX_FIELD_KEYS]: QueryFilter | QueryFilter[];
+}
+
+export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilters};
