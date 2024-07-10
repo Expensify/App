@@ -198,12 +198,12 @@ function hasAuthToken(): boolean {
     return !!session.authToken;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
-        if (NativeModules.HybridAppModule) {
+        if (NativeModules.HybridAppModule && killHybridApp) {
             NativeModules.HybridAppModule.closeReactNativeApp();
             return;
         }
@@ -773,7 +773,7 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
             callback(null, response as ChannelAuthorizationData);
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
             callback(new Error('AuthenticatePusher request failed'), {auth: ''});
         });

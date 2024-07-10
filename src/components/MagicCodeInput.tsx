@@ -192,7 +192,7 @@ function MagicCodeInput(
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
@@ -298,7 +298,7 @@ function MagicCodeInput(
 
             // Fill the array with empty characters if there are no inputs.
             if (focusedIndex === 0 && !hasInputs) {
-                numbers = Array(maxLength).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
+                numbers = Array<string>(maxLength).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
 
                 // Deletes the value of the previous input and focuses on it.
             } else if (focusedIndex && focusedIndex !== 0) {
@@ -353,7 +353,7 @@ function MagicCodeInput(
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     return (
