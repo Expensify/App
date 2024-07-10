@@ -1,7 +1,8 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+// eslint-disable-next-line no-restricted-imports
+import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -80,6 +81,9 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
+
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
 
@@ -132,6 +136,9 @@ type ListItem = {
 
     /** Whether item pressable wrapper should be focusable */
     tabIndex?: 0 | -1;
+
+    /** The style to override the cursor appearance */
+    cursorStyle?: CursorStyles[keyof CursorStyles];
 };
 
 type TransactionListItemType = ListItem &
@@ -173,10 +180,19 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /** Key used internally by React */
+        keyForList: string;
     };
 
 type ReportListItemType = ListItem &
     SearchReport & {
+        /** The personal details of the user requesting money */
+        from: SearchAccountDetails;
+
+        /** The personal details of the user paying the request */
+        to: SearchAccountDetails;
+
         transactions: TransactionListItemType[];
     };
 
@@ -261,12 +277,18 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
+type SkeletonViewProps = {
+    shouldAnimate: boolean;
+};
+
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
+
+    shouldUseUserSkeletonView?: boolean;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -283,6 +305,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
+    /**
+     * Callback that should return height of the specific item
+     * Only use this if we're handling some non-standard items, most of the time the default value is correct
+     */
+    getItemHeight?: (item: TItem) => number;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -293,7 +321,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: MaybePhraseKey;
+    textInputHint?: string;
 
     /** Value for the text input */
     textInputValue?: string;
@@ -391,6 +419,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom header to show right above list */
     customListHeader?: ReactNode;
 
+    /** When customListHeader is provided, this should be its height needed for correct list scrolling */
+    customListHeaderHeight?: number;
+
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -477,6 +508,7 @@ export type {
     ReportListItemProps,
     ReportListItemType,
     Section,
+    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,

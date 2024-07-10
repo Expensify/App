@@ -77,15 +77,16 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         const value = form[fieldKey];
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
+            Navigation.goBack();
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            Navigation.dismissModal(report?.reportID);
         }
-
-        Navigation.dismissModal(report?.reportID);
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
+        setIsDeleteModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     };
 

@@ -74,7 +74,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
                 return;
             }
-            errors[key as keyof AmountValues] = 'common.error.invalidAmount';
+            errors[key as keyof AmountValues] = translate('common.error.invalidAmount');
         });
 
         return errors;

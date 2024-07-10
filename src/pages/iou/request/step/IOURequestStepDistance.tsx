@@ -168,7 +168,7 @@ function IOURequestStepDistance({
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', action === CONST.IOU.ACTION.CREATE);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -288,7 +288,7 @@ function IOURequestStepDistance({
                     0,
                     transaction?.currency ?? 'USD',
                     translate('iou.fieldPending'),
-                    false,
+                    !!policy?.defaultBillable,
                     TransactionUtils.getValidWaypoints(waypoints, true),
                 );
                 return;
@@ -326,7 +326,7 @@ function IOURequestStepDistance({
             return {duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage')} as Errors;
         }
         if (atLeastTwoDifferentWaypointsError) {
-            return {atLeastTwoDifferentWaypointsError: 'iou.error.atLeastTwoDifferentWaypoints'} as Errors;
+            return {atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints')} as Errors;
         }
         return {};
     };

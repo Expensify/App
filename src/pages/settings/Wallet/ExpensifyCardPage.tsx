@@ -122,7 +122,7 @@ function ExpensifyCardPage({
                     [revealedCardID]: '',
                 }));
             })
-            .catch((error) => {
+            .catch((error: string) => {
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
                     [revealedCardID]: error,
@@ -173,7 +173,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{error: 'cardPage.cardLocked'}}
+                                messages={{error: translate('cardPage.cardLocked')}}
                                 type="error"
                             />
                         )}

@@ -63,6 +63,7 @@ function ReportActionItemParentAction({
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
+    const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
     const {isOffline} = useNetwork();
 
@@ -73,7 +74,8 @@ function ReportActionItemParentAction({
             unsubscribeReports.push(
                 onyxSubscribe({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
-                    callback: () => {
+                    callback: (val) => {
+                        ancestorReports.current[ancestorReportID] = val;
                         setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
                     },
                 }),
@@ -92,7 +94,7 @@ function ReportActionItemParentAction({
             unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
             unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -109,11 +111,11 @@ function ReportActionItemParentAction({
                 >
                     <ThreadDivider
                         ancestor={ancestor}
-                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))}
+                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.parentReportID ?? '-1'])}
                     />
                     <ReportActionItem
                         onPress={
-                            ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))
+                            ReportUtils.canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.parentReportID ?? '-1'])
                                 ? () => {
                                       const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                                       // Pop the thread report screen before navigating to the chat report.
