@@ -120,6 +120,7 @@ function Composer(
             return;
         }
         setSelection(selectionProp);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
