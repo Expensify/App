@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -59,6 +60,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                     iconWidth={iconSize}
                     iconStyles={iconStyles}
                     shouldShowRightIcon
+                    displayInDefaultIconColor
                 />
             );
         });
@@ -75,13 +77,15 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 onBackButtonPress={() => Navigation.goBack()}
                 title={translate('workspace.expensifyCard.chooseBankAccount')}
             />
-            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-            {renderBankOptions()}
-            <MenuItem
-                icon={Expensicons.Plus}
-                title={translate('workspace.expensifyCard.addNewBankAccount')}
-                onPress={handleAddBankAccount}
-            />
+            <View style={styles.flex1}>
+                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                {renderBankOptions()}
+                <MenuItem
+                    icon={Expensicons.Plus}
+                    title={translate('workspace.expensifyCard.addNewBankAccount')}
+                    onPress={handleAddBankAccount}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
