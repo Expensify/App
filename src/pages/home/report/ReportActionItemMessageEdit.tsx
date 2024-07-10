@@ -30,8 +30,8 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -127,8 +127,8 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = parseHtmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), undefined, undefined, (videoSource, attrs) => {
-            draftMessageVideoAttributeCache.set(videoSource, attrs);
+        const originalMessage = Parser.htmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), {
+            cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
         });
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
@@ -200,7 +200,7 @@ function ReportActionItemMessageEdit(
                 setShouldShowComposeInputKeyboardAware(true);
             };
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
         [action.reportActionID],
     );
 
@@ -283,7 +283,7 @@ function ReportActionItemMessageEdit(
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
@@ -403,8 +403,7 @@ function ReportActionItemMessageEdit(
             }
             containerRef.current.measureInWindow(callback);
         },
-        // We added isFocused in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isFocused],
     );
 
@@ -427,8 +426,9 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     useFocusedInputHandler(
         {
