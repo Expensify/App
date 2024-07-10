@@ -585,34 +585,34 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.route,
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                             parse: {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.route,
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.route,
                             parse: {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.route,
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.route,
                             parse: {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.route,
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_VALUE.route,
                         },
-                        [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.route,
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.route,
                             parse: {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
-                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.route,
+                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                             parse: {
                                 reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },

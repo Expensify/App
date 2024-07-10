@@ -242,7 +242,7 @@ export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyReq
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
-export type {default as PolicyReportFieldsReplace} from './PolicyReportFieldsReplace';
+export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
