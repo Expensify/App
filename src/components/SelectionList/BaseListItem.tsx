@@ -43,7 +43,7 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();
     };
@@ -96,8 +96,7 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>
