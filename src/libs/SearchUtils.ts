@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -13,9 +13,6 @@ import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
-type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -317,4 +314,3 @@ export {
     isTransactionListItemType,
     isSearchResultsEmpty,
 };
-export type {SearchColumnType, SortOrder};

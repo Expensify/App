@@ -3,6 +3,7 @@ import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
+    CreateWorkspaceReportFieldListValueParams,
     CreateWorkspaceReportFieldParams,
     EnableWorkspaceReportFieldListValueParams,
     PolicyReportFieldsReplace,
@@ -390,7 +391,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
 }
 
 /**
- * Adds a new list value to the workspace report fields.
+ * Adds a new option to the list type report field on a workspace.
  */
 function addReportFieldListValue(policyID: string, reportFieldID: string, valueName: string) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
@@ -445,7 +446,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
         ],
     };
 
-    const parameters: EnableWorkspaceReportFieldListValueParams = {
+    const parameters: CreateWorkspaceReportFieldListValueParams = {
         policyID,
         reportFields: JSON.stringify([updatedReportField]),
     };

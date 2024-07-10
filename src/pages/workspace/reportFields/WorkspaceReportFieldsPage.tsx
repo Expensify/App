@@ -124,26 +124,27 @@ function WorkspaceReportFieldsPage({
     };
 
     const handleDeleteReportFields = () => {
-        setSelectedReportFields([]);
         const reportFieldKeys = selectedReportFields.map((selectedReportField) => ReportUtils.getReportFieldKey(selectedReportField.fieldID));
+        setSelectedReportFields([]);
         ReportField.deleteReportFields(policyID, reportFieldKeys);
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
     const isLoading = policy === undefined;
-    const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
+    const shouldShowEmptyState =
+        Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length <= 0 && !isLoading;
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.REPORT_FIELDS_BULK_ACTION_TYPES>>> = [];
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
         if (selectedReportFields.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
-                value: CONST.POLICY.REPORT_FIELDS_BULK_ACTION_TYPES.DELETE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteReportFieldsConfirmModalVisible(true),
             });
 
