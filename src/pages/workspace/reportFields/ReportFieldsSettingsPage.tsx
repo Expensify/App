@@ -23,14 +23,14 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS>;
+type ReportFieldsSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS>;
 
-function ReportFieldSettingsPage({
+function ReportFieldsSettingsPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldSettingsPageProps) {
+}: ReportFieldsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -60,7 +60,7 @@ function ReportFieldSettingsPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={ReportFieldSettingsPage.displayName}
+                testID={ReportFieldsSettingsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={reportField.name}
@@ -87,7 +87,7 @@ function ReportFieldSettingsPage({
                     description={translate('common.initialValue')}
                     shouldShowRightIcon={!isDateFieldType}
                     interactive={!isDateFieldType}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                 />
                 {isListFieldType && (
                     <MenuItemWithTopDescription
@@ -95,7 +95,7 @@ function ReportFieldSettingsPage({
                         titleStyle={styles.flex1}
                         description={translate('workspace.reportFields.listValues')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID, reportFieldID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID, reportFieldID))}
                     />
                 )}
                 <View style={styles.flexGrow1}>
@@ -121,6 +121,6 @@ function ReportFieldSettingsPage({
     );
 }
 
-ReportFieldSettingsPage.displayName = 'ReportFieldSettingsPage';
+ReportFieldsSettingsPage.displayName = 'ReportFieldsSettingsPage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldSettingsPage);
+export default withPolicyAndFullscreenLoading(ReportFieldsSettingsPage);

@@ -39,6 +39,13 @@ function isDevelopment(): boolean {
 }
 
 /**
+ * Are we running the app in staging?
+ */
+function isStaging(): boolean {
+    return (Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.STAGING;
+}
+
+/**
  * Are we running the app in production?
  */
 function isProduction(): Promise<boolean> {
@@ -76,4 +83,4 @@ function getSpotnanaEnvironmentTMCID(): Promise<string> {
     return getEnvironment().then((environment) => SPOTNANA_ENVIRONMENT_TMC_ID[environment]);
 }
 
-export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getTravelDotEnvironmentURL, getSpotnanaEnvironmentTMCID};
+export {getEnvironment, isInternalTestBuild, isDevelopment, isStaging, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getTravelDotEnvironmentURL, getSpotnanaEnvironmentTMCID};
