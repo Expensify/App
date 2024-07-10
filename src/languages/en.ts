@@ -4050,7 +4050,7 @@ export default {
         },
         paymentCard: {
             addPaymentCard: 'Add payment card',
-            enterPaymentCardDetails: 'Enter your payment card details.',
+            enterPaymentCardDetails: 'Enter your payment card details',
             security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
             learnMoreAboutSecurity: 'Learn more about our security.',
         },
