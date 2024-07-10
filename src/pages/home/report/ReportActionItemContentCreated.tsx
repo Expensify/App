@@ -152,7 +152,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                         <MoneyReportView
                             report={report}
                             policy={policy}
-                            isCombineReport
+                            isCombinedReport
                             shouldShowTotal={transactionCurrency !== report.currency}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />

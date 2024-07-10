@@ -30,7 +30,7 @@ type MoneyReportViewProps = {
     policy: OnyxEntry<Policy>;
 
     /** Indicates whether the iou report is a combine report */
-    isCombineReport?: boolean;
+    isCombinedReport?: boolean;
 
     /** Indicates whether the total should be shown */
     shouldShowTotal?: boolean;
@@ -39,7 +39,7 @@ type MoneyReportViewProps = {
     shouldHideThreadDividerLine: boolean;
 };
 
-function MoneyReportView({report, policy, isCombineReport = false, shouldShowTotal = true, shouldHideThreadDividerLine}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -68,8 +68,8 @@ function MoneyReportView({report, policy, isCombineReport = false, shouldShowTot
     }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
-    const isOnlyTitleFieldEnable = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
-    const shouldShowReportField = !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.reportFieldsEnabled(report) && (!isCombineReport || !isOnlyTitleFieldEnable);
+    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
+    const shouldShowReportField = !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.reportFieldsEnabled(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
 
     if (!shouldShowReportField && !shouldShowBreakdown && !shouldShowTotal) {
         return null;
@@ -82,7 +82,7 @@ function MoneyReportView({report, policy, isCombineReport = false, shouldShowTot
                 {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                     <>
                         {ReportUtils.reportFieldsEnabled(report) &&
-                            (!isCombineReport || !isOnlyTitleFieldEnable) &&
+                            (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
                                     return null;
