@@ -13,7 +13,6 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -24,10 +23,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
+import type {SearchColumnType, SortOrder} from './types';
 
 type SearchProps = {
     query: SearchQuery;
@@ -48,6 +48,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+    const {setCurrentSearchHash} = useSearchContext();
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -84,13 +85,14 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             return;
         }
 
+        setCurrentSearchHash(hash);
         SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
     const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
+    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (isLoadingItems) {
         return (
@@ -198,7 +200,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             getItemHeight={getItemHeight}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+            listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
