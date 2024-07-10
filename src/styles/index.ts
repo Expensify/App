@@ -5091,6 +5091,8 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: '100%',
+            paddingRight: 8,
+            paddingLeft: 8,
         },
 
         emptyStateScrollView: {

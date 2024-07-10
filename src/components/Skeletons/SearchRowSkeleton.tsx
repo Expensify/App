@@ -24,7 +24,7 @@ const gapWidth = 12;
 const rightSideElementWidth = 80;
 
 // 24 is the padding of the central pane summing two sides
-const centralPanePadding = 24;
+const centralPanePadding = 40;
 
 // 80 is the width of the button on the right side
 const rightButtonWidth = 80;
@@ -67,7 +67,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             height={4}
                         />
                         <Rect
-                            x={windowWidth - 120}
+                            x={windowWidth - 130}
                             y={12}
                             width={80}
                             height={28}
@@ -96,13 +96,13 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                             height={8}
                         />
                         <Rect
-                            x={windowWidth - 120}
+                            x={windowWidth - 130}
                             y={65}
                             width={80}
                             height={8}
                         />
                         <Rect
-                            x={windowWidth - 100}
+                            x={windowWidth - 110}
                             y={79}
                             width={60}
                             height={8}
