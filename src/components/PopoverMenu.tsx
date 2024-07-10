@@ -158,7 +158,7 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1)) 
+                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
                 }}
             />
         );
