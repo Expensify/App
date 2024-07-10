@@ -4373,7 +4373,7 @@ export default {
         hold: 'Bloqueado',
     },
     reportViolations: {
-        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} es obligatorio.`,
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} es obligatorio`,
     },
     violationDismissal: {
         rter: {

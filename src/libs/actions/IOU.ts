@@ -866,6 +866,7 @@ function buildOnyxDataForMoneyRequest(
         if (excludedFields.includes(field.fieldID)) {
             return;
         }
+        // in case of missing field violation the empty object is indicator.
         missingFields[field.fieldID] = {};
     });
 

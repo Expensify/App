@@ -29,6 +29,7 @@ function OptionRowLHNData({
     transactionViolations,
     reportViolations,
     canUseViolations,
+    isReportOwner = false,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -38,11 +39,7 @@ function OptionRowLHNData({
     const optionItemRef = useRef<OptionData>();
 
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
-    const shouldDisplayReportViolations =
-        policy?.role !== CONST.POLICY.ROLE.ADMIN &&
-        Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations)) &&
-        parentReportAction?.childMoneyRequestCount &&
-        parentReportAction?.childMoneyRequestCount > 1;
+    const shouldDisplayReportViolations = isReportOwner && Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!

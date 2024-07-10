@@ -69,7 +69,7 @@ import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -95,7 +95,6 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
-    ReportFieldsViolations,
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
@@ -2080,13 +2079,6 @@ function navigateToSystemChat() {
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
-    const policy = getPolicy(policyReport.policyID);
-
-    const missingFields: ReportFieldsViolations = {};
-
-    Object.values(policy?.fieldList ?? {}).forEach((field) => {
-        missingFields[field.fieldID] = {};
-    });
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -2111,13 +2103,6 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: true},
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${policyReport.reportID}`,
-            value: {
-                fieldRequired: missingFields,
-            },
         },
     ];
     const successData: OnyxUpdate[] = [

@@ -88,6 +88,9 @@ type OptionRowLHNDataProps = {
 
     /** Report level fields violations */
     reportViolations?: ReportViolations;
+
+    /** Indicates if user if report owner */
+    isReportOwner?: boolean;
 };
 
 type OptionRowLHNProps = {

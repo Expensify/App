@@ -40,6 +40,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportViolations] = useOnyx(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -157,24 +158,26 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
                     reportViolations={thisReportViolations}
+                    isReportOwner={itemFullReport?.ownerAccountID === session?.accountID}
                 />
             );
         },
         [
-            draftComments,
-            onSelectRow,
-            optionMode,
-            personalDetails,
-            policy,
-            preferredLocale,
-            reportActions,
             reports,
-            shouldDisableFocusOptions,
+            reportActions,
+            policy,
             transactions,
+            draftComments,
+            reportViolations,
+            personalDetails,
+            optionMode,
+            shouldDisableFocusOptions,
+            onSelectRow,
+            preferredLocale,
             transactionViolations,
             canUseViolations,
             onLayoutItem,
-            reportViolations,
+            session?.accountID,
         ],
     );
 
