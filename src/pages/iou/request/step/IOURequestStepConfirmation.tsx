@@ -189,8 +189,7 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction?.participantsAutoAssigned) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
