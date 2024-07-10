@@ -93,7 +93,7 @@ function IOURequestStartPage({
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
-        if(transaction?.reportID === reportID) {
+        if (transaction?.reportID === reportID) {
             return;
         }
         const shouldKeepExistingData = !!transaction?.isFromGlobalCreate && transaction?.iouRequestType === transactionRequestType.current;
@@ -110,7 +110,7 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
-            if(transaction?.iouRequestType === newIOUType) {
+            if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, false, newIOUType);
