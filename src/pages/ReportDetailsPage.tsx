@@ -230,7 +230,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
-        return;
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
