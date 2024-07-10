@@ -14,7 +14,7 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type WorkspaceReportFieldsForm = Form<
+type WorkspaceReportFieldForm = Form<
     InputID,
     {
         [INPUT_IDS.NAME]: string;
@@ -27,5 +27,5 @@ type WorkspaceReportFieldsForm = Form<
     }
 >;
 
-export type {WorkspaceReportFieldsForm, InputID};
+export type {WorkspaceReportFieldForm, InputID};
 export default INPUT_IDS;
