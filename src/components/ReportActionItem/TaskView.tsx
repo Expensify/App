@@ -22,6 +22,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -97,10 +98,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
                                                 // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                if (
-                                                    Navigation.isActiveRoute(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID)) ||
-                                                    Navigation.isActiveRoute(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))
-                                                ) {
+                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
                                                     return;
                                                 }
                                                 if (isCompleted) {
