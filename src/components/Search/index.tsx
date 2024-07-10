@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -101,7 +101,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     query={query}
                     hash={hash}
                 />
-                <TableListItemSkeleton shouldAnimate />
+                <SearchRowSkeleton shouldAnimate />
             </>
         );
     }
@@ -207,7 +207,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             onEndReached={fetchMoreResults}
             listFooterContent={
                 isLoadingMoreItems ? (
-                    <TableListItemSkeleton
+                    <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
                     />
