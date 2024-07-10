@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -32,7 +31,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 type NewChatPageProps = {
@@ -52,12 +50,12 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const options = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
             listOptions.reports ?? [],
             listOptions.personalDetails ?? [],
-            (betas ?? []) as OnyxEntry<Beta[]>,
-            debouncedSearchTerm,
+            betas ?? [],
+            '',
             selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
@@ -71,19 +69,33 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             true,
             undefined,
             undefined,
-            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            0,
             undefined,
             true,
         );
+        return filteredOptions;
+    }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
-        );
-        return {...filteredOptions, headerMessage};
-    }, [betas, debouncedSearchTerm, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    const options = useMemo(() => {
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+            selectedOptions,
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+
+        return filteredOptions;
+    }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
+
+    const headerMessage = useMemo(
+        () =>
+            OptionsListUtils.getHeaderMessage(
+                options.personalDetails.length + options.recentReports.length !== 0,
+                !!options.userToInvite,
+                debouncedSearchTerm.trim(),
+                selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
+            ),
+        [debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions],
+    );
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
@@ -120,7 +132,16 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         setSelectedOptions(newSelectedOptions);
     }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
 
-    return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
+    return {
+        ...options,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
+        selectedOptions,
+        setSelectedOptions,
+        headerMessage,
+    };
 }
 
 function NewChatPage({isGroupChat}: NewChatPageProps) {
