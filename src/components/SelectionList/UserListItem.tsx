@@ -132,7 +132,7 @@ function UserListItem<TItem extends ListItem>({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                emojiFontSize={variables.emojiSize}
+                                emojiFontSize={variables.emojiSizeSmall}
                                 text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
