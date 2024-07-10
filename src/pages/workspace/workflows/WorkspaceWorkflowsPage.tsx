@@ -105,11 +105,10 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
-                              const frequency =
-                                  policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
-                                      ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                                      : policy.autoReportingFrequency;
-                              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled, frequency);
+                              Policy.setWorkspaceAutoReportingFrequency(
+                                  route.params.policyID,
+                                  isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                              );
                           },
                           subMenuItems: (
                               <MenuItem
@@ -132,7 +131,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                           pendingAction: policy?.pendingFields?.autoReporting,
                           errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                       },
                   ]
                 : []),
@@ -160,7 +159,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
                 icon: Illustrations.WalletAlt,
@@ -178,7 +177,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserEmail ?? '');
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '-1', newReimbursementChoice, newReimburserEmail ?? '');
                 },
                 subMenuItems:
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
@@ -234,7 +233,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
     }, [
@@ -289,7 +288,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-                shouldSkipVBBACall
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

@@ -1,8 +1,13 @@
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {ReceiptScan} from '@components/Icon/Expensicons';
@@ -24,19 +29,25 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
@@ -59,12 +70,14 @@ function MoneyRequestPreviewContent({
     isHovered = false,
     isWhisper = false,
     transactionViolations,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const sessionAccountID = session?.accountID;
@@ -73,7 +86,8 @@ function MoneyRequestPreviewContent({
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const {canUseViolations} = usePermissions();
 
-    const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs =
+        ReportActionsUtils.isMoneyRequestAction(action) && isBillSplit ? ReportActionsUtils.getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
@@ -83,7 +97,13 @@ function MoneyRequestPreviewContent({
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(transaction) ?? {};
+    const {
+        amount: requestAmount,
+        currency: requestCurrency,
+        comment: requestComment,
+        merchant,
+    } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
+
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
@@ -91,9 +111,9 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations);
     const hasNoticeTypeViolations = !!(
-        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) &&
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations) &&
         ReportUtils.isPaidGroupPolicy(iouReport) &&
         canUseViolations
     );
@@ -103,10 +123,25 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
+    const duplicates = useMemo(
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
+    );
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -136,11 +171,14 @@ function MoneyRequestPreviewContent({
     };
 
     const showContextMenu = (event: GestureResponderEvent) => {
+        if (!shouldDisplayContextMenu) {
+            return;
+        }
         showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
     const getPreviewHeaderText = (): string => {
-        let message = translate('iou.cash');
+        let message = showCashOrCard;
 
         if (isDistanceRequest) {
             message = translate('common.distance');
@@ -163,11 +201,7 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                message += ` ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
-                if (shouldShowHoldMessage) {
-                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
-                }
-                return message;
+                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
@@ -179,7 +213,7 @@ function MoneyRequestPreviewContent({
             } else if (isMerchantMissing) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
             } else if (shouldShowHoldMessage) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
         } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('violations.reviewRequired')}`;
@@ -188,7 +222,7 @@ function MoneyRequestPreviewContent({
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (shouldShowHoldMessage) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
         }
         return message;
     };
@@ -200,7 +234,7 @@ function MoneyRequestPreviewContent({
         if (TransactionUtils.isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
@@ -221,10 +255,8 @@ function MoneyRequestPreviewContent({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: IOUMessage | EmptyObject = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : {};
-        const {amount = 0, currency = CONST.CURRENCY.USD} = iouOriginalMessage;
-
-        return CurrencyUtils.convertToDisplayString(amount, currency);
+        const iouOriginalMessage: OnyxEntry<OriginalMessageIOU> = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) ?? undefined : undefined;
+        return CurrencyUtils.convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
@@ -239,6 +271,29 @@ function MoneyRequestPreviewContent({
                 IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
+
+    const navigateToReviewFields = () => {
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
+        const allTransactionIDsDuplicates = [reviewingTransactionID, ...duplicates].filter((id) => id !== transaction?.transactionID);
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates: allTransactionIDsDuplicates, transactionID: transaction?.transactionID ?? ''});
+        if ('merchant' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('category' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('tag' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('description' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('taxCode' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('billable' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('reimbursable' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID));
+        } else {
+            // Navigation to confirm screen will be done in seperate PR
+        }
+    };
 
     const childContainer = (
         <View>
@@ -367,7 +422,7 @@ function MoneyRequestPreviewContent({
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             shouldUseHapticsOnLongPress
-            accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
+            accessibilityLabel={isBillSplit ? translate('iou.split') : showCashOrCard}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
@@ -377,6 +432,15 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
+            {isReviewDuplicateTransactionPage && (
+                <Button
+                    text={translate('violations.keepThisOne')}
+                    success
+                    medium
+                    style={styles.p4}
+                    onPress={navigateToReviewFields}
+                />
+            )}
         </PressableWithoutFeedback>
     );
 }

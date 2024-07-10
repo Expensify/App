@@ -2,6 +2,7 @@ import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
@@ -22,6 +23,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
+    const currentReportIDValue = useCurrentReportID();
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -29,13 +31,13 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                 <VideoPlayerPreview
                     key={key}
                     videoUrl={sourceURL}
-                    reportID={report?.reportID ?? ''}
+                    reportID={currentReportIDValue?.currentReportID ?? '-1'}
                     fileName={fileName}
                     thumbnailUrl={thumbnailUrl}
                     videoDimensions={{width, height}}
                     videoDuration={duration}
                     onShowModalPress={() => {
-                        const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
+                        const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
                         Navigation.navigate(route);
                     }}
                 />

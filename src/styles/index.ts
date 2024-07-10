@@ -7,6 +7,7 @@ import {StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
@@ -43,8 +44,8 @@ import wordBreak from './utils/wordBreak';
 import writingDirection from './utils/writingDirection';
 import variables from './variables';
 
-type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
-type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
+type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
+type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;
 
 type AnchorDimensions = {
     width: number;
@@ -66,6 +67,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
@@ -265,10 +267,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             justifyContent: 'center',
+            overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
-            position: 'absolute',
-            left: 0,
-            right: 0,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
 
@@ -362,7 +362,9 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
-
+        lineHeightLarge: {
+            lineHeight: variables.lineHeightLarge,
+        },
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -372,6 +374,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
+        },
+
+        themeTextColor: {
+            color: theme.text,
         },
 
         mutedTextLabel: {
@@ -445,11 +451,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
-        textNewKansasNormal: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            fontSize: variables.fontSizeNormal,
-        },
-
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -491,6 +492,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
+        textBold: {
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         textVersion: {
             color: theme.iconColorfulBackground,
             fontSize: variables.fontSizeNormal,
@@ -501,6 +506,10 @@ const styles = (theme: ThemeColors) =>
 
         textNoWrap: {
             ...whiteSpace.noWrap,
+        },
+
+        textLineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
         },
 
         colorReversed: {
@@ -781,7 +790,7 @@ const styles = (theme: ThemeColors) =>
             height: 140,
         },
 
-        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1280,7 +1289,7 @@ const styles = (theme: ThemeColors) =>
             zIndex: 1,
         },
 
-        picker: (disabled = false, backgroundColor = theme.appBG) =>
+        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
             ({
                 iconContainer: {
                     top: Math.round(variables.inputHeight * 0.5) - 11,
@@ -1504,6 +1513,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        canvasContainer: {
+            // Adding border to prevent a bug with the appearance of lines during gesture events for MultiGestureCanvas
+            borderWidth: 1,
+            borderColor: theme.appBG,
+        },
+
         sidebarHeaderContainer: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -1543,7 +1558,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.success,
         },
 
-        statusIndicator: (backgroundColor = theme.danger) =>
+        statusIndicator: (backgroundColor: string = theme.danger) =>
             ({
                 borderColor: theme.sidebar,
                 backgroundColor,
@@ -1557,7 +1572,7 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        bottomTabStatusIndicator: (backgroundColor = theme.danger) => ({
+        bottomTabStatusIndicator: (backgroundColor: string = theme.danger) => ({
             borderColor: theme.sidebar,
             backgroundColor,
             borderRadius: 8,
@@ -1699,7 +1714,7 @@ const styles = (theme: ThemeColors) =>
 
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
-            paddingVertical: 12,
+            paddingVertical: variables.componentBorderRadiusLarge,
         },
 
         createMenuHeaderText: {
@@ -1791,7 +1806,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.activeComponentBG,
             textDecorationLine: 'none',
         },
 
@@ -2347,11 +2362,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarLarge: {
-            width: variables.avatarSizeLarge,
-            height: variables.avatarSizeLarge,
-        },
-
         avatarXLarge: {
             width: variables.avatarSizeXLarge,
             height: variables.avatarSizeXLarge,
@@ -2577,7 +2587,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
             paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         reportDetailsRoomInfo: {
@@ -2704,6 +2713,28 @@ const styles = (theme: ThemeColors) =>
             width: 110,
         },
 
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+            let paddingHorizontal = spacing.ph5;
+            let paddingVertical = spacing.pv5;
+
+            if (isSmallScreenWidth) {
+                paddingHorizontal = spacing.ph4;
+                paddingVertical = spacing.pv4;
+            }
+
+            if (isExtraSmallScreenWidth) {
+                paddingHorizontal = spacing.ph2;
+                paddingVertical = spacing.pv2;
+            }
+
+            return {
+                backgroundColor: theme.highlightBG,
+                borderRadius: 16,
+                ...paddingVertical,
+                ...paddingHorizontal,
+            } satisfies ViewStyle;
+        },
+
         roomHeaderAvatarSize: {
             height: variables.componentSizeLarge,
             width: variables.componentSizeLarge,
@@ -2819,7 +2850,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionSelectCircle: {
-            backgroundColor: colors.productDark200,
+            backgroundColor: theme.cardBG,
         },
 
         qrShareSection: {
@@ -2846,6 +2877,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             height: variables.iconSizeExtraLarge,
             width: variables.iconSizeExtraLarge,
+        },
+
+        trialBannerBackgroundColor: {
+            backgroundColor: theme.trialBannerBackgroundColor,
         },
 
         selectCircle: {
@@ -2904,6 +2939,14 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             marginLeft: 8,
             marginRight: 20,
+        },
+
+        dividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            flexGrow: 1,
+            ...spacing.mh5,
+            ...spacing.mv3,
         },
 
         unreadIndicatorText: {
@@ -3345,13 +3388,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 84,
-        },
-
-        workspaceListBadge: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 6,
+            justifyContent: 'flex-end',
+            width: 124,
         },
 
         workspaceListRBR: {
@@ -3823,6 +3861,22 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        quickActionTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+        },
+
+        quickActionTooltipTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeLabel,
+            color: theme.tooltipHighlightText,
+        },
+
+        quickActionTooltipSubtitle: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textDark,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
@@ -4013,6 +4067,11 @@ const styles = (theme: ThemeColors) =>
         formSpaceVertical: {
             height: 20,
             width: 1,
+        },
+
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
         },
 
         taskCheckbox: {
@@ -4396,6 +4455,15 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
+            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(Browser.getBrowser() &&
+                Browser.isSafari() &&
+                !Browser.isMobile() && {
+                    transform: 'scale(0.7)',
+                    fontSize: 13,
+                    lineHeight: 15,
+                    overflow: 'visible',
+                }),
         },
 
         onboardingVideoPlayer: {
@@ -4423,7 +4491,13 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
             borderColor: theme.highlightBG,
             borderWidth: 2,
+            overflow: 'hidden',
         },
+
+        justSignedInModalAnimation: (is2FARequired: boolean) => ({
+            height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
+        }),
+
         moneyRequestViewImage: {
             ...spacing.mh5,
             ...spacing.mv3,
@@ -4969,6 +5043,16 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
+        },
+
+        expensifyCardIllustrationContainer: {
+            width: 680,
+            height: 220,
+        },
+
+        computerIllustrationContainer: {
+            width: 272,
+            height: 188,
         },
 
         tripReservationIconContainer: {

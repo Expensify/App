@@ -25,7 +25,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
     const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -70,7 +70,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
-            title: translate('workspace.qbo.advancedConfig.autoSync'),
+            title: translate('workspace.accounting.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: !!autoSync?.enabled,
@@ -106,7 +106,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             wrapperStyle: styles.mv3,
         },
         {
-            title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
+            title: translate('workspace.accounting.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
@@ -136,7 +136,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksAdvancedPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.advanced')} />
 
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
                     {qboToggleSettingItems.map((item) => (

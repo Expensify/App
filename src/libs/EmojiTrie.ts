@@ -1,3 +1,4 @@
+import type {TupleToUnion} from 'type-fest';
 import emojis, {localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
@@ -17,7 +18,7 @@ Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
 
-type SupportedLanguage = (typeof supportedLanguages)[number];
+type SupportedLanguage = TupleToUnion<typeof supportedLanguages>;
 
 type EmojiTrie = {
     [key in SupportedLanguage]?: Trie<EmojiMetaData>;
