@@ -198,12 +198,12 @@ function hasAuthToken(): boolean {
     return !!session.authToken;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
-        if (NativeModules.HybridAppModule) {
+        if (NativeModules.HybridAppModule && killHybridApp) {
             NativeModules.HybridAppModule.closeReactNativeApp();
             return;
         }
