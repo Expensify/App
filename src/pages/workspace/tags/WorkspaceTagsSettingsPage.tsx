@@ -36,9 +36,8 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0];
+    const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0] || Object.keys(policyTags ?? {})[0] === 'undefined';
     const {isOffline} = useNetwork();
-
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
