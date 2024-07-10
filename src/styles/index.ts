@@ -888,7 +888,6 @@ const styles = (theme: ThemeColors) =>
             top: 20,
             left: 16,
             marginLeft: 0,
-            paddingVertical: 4,
             paddingHorizontal: 8,
             minHeight: 20,
             borderColor: colors.productDark500,
@@ -962,7 +961,6 @@ const styles = (theme: ThemeColors) =>
         cardBadgeText: {
             color: colors.white,
             fontSize: variables.fontSizeExtraSmall,
-            lineHeight: 12,
         },
 
         activeItemBadge: {
