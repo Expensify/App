@@ -33,7 +33,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             return;
         }
         Policy.setPolicyIDForReimburseView(props.policy?.id ?? '-1');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const updateUnit = (unit: UnitItemType) => {
