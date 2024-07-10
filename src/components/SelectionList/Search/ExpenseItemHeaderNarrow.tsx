@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
@@ -18,8 +18,9 @@ type ExpenseItemHeaderNarrowProps = {
     participantTo: SearchAccountDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
+    action?: SearchTransactionAction;
+    transactionID?: string;
     onButtonPress: () => void;
-    action?: string;
     canSelectMultiple?: boolean;
     isSelected?: boolean;
     isDisabled?: boolean | null;
@@ -40,6 +41,7 @@ function ExpenseItemHeaderNarrow({
     isDisabled,
     handleCheckboxPress,
     text,
+    transactionID,
 }: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -89,9 +91,9 @@ function ExpenseItemHeaderNarrow({
             </View>
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
-                    onButtonPress={onButtonPress}
                     action={action}
-                    isLargeScreenWidth={false}
+                    transactionID={transactionID}
+                    goToItem={onButtonPress}
                 />
             </View>
         </View>

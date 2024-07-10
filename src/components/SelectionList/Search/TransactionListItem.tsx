@@ -23,7 +23,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth} = useWindowDimensions();
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, styles.ph3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const listItemWrapperStyle = [
         styles.flex1,

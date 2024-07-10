@@ -74,13 +74,15 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
+
     return (
         <View
             style={[
                 StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
-                StyleUtils.getBackgroundColorStyle(theme.border),
                 styles.overflowHidden,
+                backgroundStyles,
             ]}
         >
             <ReceiptImage
@@ -92,6 +94,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 fallbackIcon={Expensicons.ReceiptPlus}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
+                fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
             />
         </View>
@@ -263,6 +266,7 @@ function TransactionListItemRow({
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
+                        transactionID={item.transactionID}
                     />
                 )}
 
@@ -344,7 +348,7 @@ function TransactionListItemRow({
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                 />
             )}
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.pl4]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
@@ -423,9 +427,10 @@ function TransactionListItemRow({
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
-                        onButtonPress={onButtonPress}
                         action={item.action}
+                        transactionID={item.transactionID}
                         isSelected={isButtonSelected}
+                        goToItem={onButtonPress}
                     />
                 </View>
             </View>
