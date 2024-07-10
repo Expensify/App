@@ -321,15 +321,29 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * @param reportID to attach the transaction to
  * @param policy
  * @param isFromGlobalCreate
+ * @param shouldKeepExistingData
  * @param iouRequestType one of manual/scan/distance
- * @param skipConfirmation if true, skip confirmation step
  */
-function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, shouldKeepExistingData: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
+
+    // In case we should keep existing transaction data, we only need to update the reportID, isFromGlobalCreate, created and currency
+    if(shouldKeepExistingData) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+            reportID,
+            isFromGlobalCreate,
+            created,
+            currency,
+            transactionID: newTransactionID,
+        })
+        return;
+    }
+
     const comment: Comment = {};
 
     // Add initial empty waypoints when starting a distance expense
@@ -350,7 +364,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         amount: 0,
         comment,
         created,
-        currency: policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+        currency,
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
