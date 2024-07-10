@@ -284,10 +284,12 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-            value: {
-                cancellationReason,
-                errors: null,
-            },
+            value: [
+                {
+                    cancellationReason,
+                    errors: undefined,
+                },
+            ],
         },
     ];
 
@@ -295,9 +297,11 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-            value: {
-                errors: null,
-            },
+            value: [
+                {
+                    errors: undefined,
+                },
+            ],
         },
     ];
 
@@ -305,9 +309,11 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-            value: {
-                cancellationType: null,
-            },
+            value: [
+                {
+                    cancellationType: undefined,
+                },
+            ],
         },
     ];
 

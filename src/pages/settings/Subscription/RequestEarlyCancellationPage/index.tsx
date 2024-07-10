@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
@@ -9,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCancellationType from '@hooks/useCancellationType';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,14 +16,13 @@ import * as Report from '@userActions/Report';
 import * as Subscription from '@userActions/Subscription';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
+    const cancellationType = useCancellationType();
 
     const handleSubmit = (cancellationReason: FeedbackSurveyOptionID, cancellationNote = '') => {
         Subscription.cancelBillingSubscription(cancellationReason, cancellationNote);
@@ -107,7 +106,7 @@ function RequestEarlyCancellationPage() {
 
     let screenContent: React.ReactNode;
 
-    switch (cancellationDetails?.cancellationType) {
+    switch (cancellationType) {
         case CONST.CANCELLATION_TYPE.MANUAL:
             screenContent = manualCancellationContent;
             break;

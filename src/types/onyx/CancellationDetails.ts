@@ -5,22 +5,22 @@ import type PrivateSubscription from './PrivateSubscription';
 /** Cancellation details model */
 type CancellationDetails = {
     /** Cancellation date */
-    cancellationDate: string;
+    cancellationDate?: string;
 
     /** Cancellation reason */
-    cancellationReason: FeedbackSurveyOptionID;
+    cancellationReason?: FeedbackSurveyOptionID;
 
     /** Cancellation type (manual/automatic/none) */
-    cancellationType: CancellationType;
+    cancellationType?: CancellationType;
 
     /** Additional note */
-    note: string;
+    note?: string;
 
     /** Cancellation request date */
-    requestDate: string;
+    requestDate?: string;
 
     /** Canceled subscription object */
-    subscription: PrivateSubscription;
+    subscription?: PrivateSubscription;
 
     /** Cancellation errors */
     errors?: OnyxCommon.Errors;
