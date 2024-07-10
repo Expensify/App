@@ -4,6 +4,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+import type OldDotAction from './OldDotAction';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
 import type {Decision} from './OriginalMessage';
@@ -138,9 +139,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
     sequenceNumber?: number;
 
-    /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
-    previousReportActionID?: string;
-
     /** The name (or type) of the action */
     actionName: ReportActionName;
 
@@ -268,6 +266,11 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /**
  *
  */
+type OldDotReportAction = ReportActionBase & OldDotAction;
+
+/**
+ *
+ */
 type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
     /** @deprecated Used in old report actions before migration. Replaced by using getOriginalMessage function. */
     originalMessage?: OriginalMessage<T>;
@@ -289,4 +292,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog, OldDotReportAction};

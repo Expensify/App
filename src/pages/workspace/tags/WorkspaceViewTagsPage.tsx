@@ -137,7 +137,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return null;
         }
 
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
@@ -145,7 +145,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
             });
         }
@@ -174,7 +174,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             options.push({
                 icon: Expensicons.DocumentSlash,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
                     Tag.setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
@@ -186,7 +186,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             options.push({
                 icon: Expensicons.Document,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
                     Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
@@ -245,14 +245,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() => Tag.clearPolicyTagListError(policyID, route.params.orderWeight, 'required')}
+                            onCloseError={() => Tag.clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                         />
                     </View>
                 )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
+                    onClose={() => Tag.clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
                     pendingAction={currentPolicyTag.pendingAction}
+                    errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
                         title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}

@@ -124,7 +124,7 @@ function IOURequestStepAmount({
             }
             TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -289,7 +289,7 @@ function IOURequestStepAmount({
         const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
         const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});

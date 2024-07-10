@@ -74,6 +74,10 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    RECENT_WAYPOINTS_NUMBER: 20,
+    DEFAULT_DB_NAME: 'OnyxDB',
+    DEFAULT_TABLE_NAME: 'keyvaluepairs',
+    DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -364,6 +368,8 @@ const CONST = {
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
+        NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -603,6 +609,7 @@ const CONST = {
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
 
@@ -674,12 +681,12 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
-                DONATION: 'DONATION', // OldDot Action
+                DONATION: 'DONATION', // Deprecated OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
-                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -699,9 +706,9 @@ const CONST = {
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
-                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
-                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
-                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // OldDot Action
+                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
+                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
+                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -714,7 +721,7 @@ const CONST = {
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
                 TRIPPREVIEW: 'TRIPPREVIEW',
-                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
@@ -785,6 +792,7 @@ const CONST = {
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                 },
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1287,6 +1295,7 @@ const CONST = {
         REPORT_FIELD: 'REPORT_FIELD',
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
@@ -1337,8 +1346,45 @@ const CONST = {
         },
     },
 
-    NETSUITE_CONFIG: {
-        SUBSIDIARY: 'subsidiary',
+    SAGE_INTACCT_MAPPING_VALUE: {
+        NONE: 'NONE',
+        DEFAULT: 'DEFAULT',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+    },
+
+    SAGE_INTACCT_CONFIG: {
+        MAPPINGS: {
+            DEPARTMENTS: 'departments',
+            CLASSES: 'classes',
+            LOCATIONS: 'locations',
+            CUSTOMERS: 'customers',
+            PROJECTS: 'projects',
+        },
+        SYNC_ITEMS: 'syncItems',
+        TAX: 'tax',
+        EXPORT: 'export',
+        EXPORT_DATE: 'exportDate',
+        NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
+        NON_REIMBURSABLE_VENDOR: 'nonReimbursableVendor',
+        REIMBURSABLE_VENDOR: 'reimbursableExpenseReportDefaultVendor',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        EXPORTER: 'exporter',
+        REIMBURSABLE: 'reimbursable',
+        AUTO_SYNC: 'autoSync',
+        AUTO_SYNC_ENABLED: 'enabled',
+        IMPORT_EMPLOYEES: 'importEmployees',
+        APPROVAL_MODE: 'approvalMode',
+        SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+    },
+
+    SAGE_INTACCT: {
+        APPROVAL_MODE: {
+            APPROVAL_MANUAL: 'APPROVAL_MANUAL',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -1347,11 +1393,262 @@ const CONST = {
         JOURNAL_ENTRY: 'journal_entry',
     },
 
+    SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
     XERO_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_EXPORTED: 'REPORT_EXPORTED',
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
+
+    SAGE_INTACCT_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
+        DEFAULT_VENDOR: 'defaultVendor',
+        REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
+        PAYABLE_ACCT: 'payableAcct',
+        JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
+        INVOICE_ITEM_PREFERENCE: 'invoiceItemPreference',
+        INVOICE_ITEM: 'invoiceItem',
+        TAX_POSTING_ACCOUNT: 'taxPostingAccount',
+        PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
+        ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        IMPORT_FIELDS: ['departments', 'classes', 'locations'],
+        AUTO_SYNC: 'autoSync',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT: 'collectionAccount',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
+        APPROVAL_ACCOUNT: 'approvalAccount',
+        CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
+        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_KEYS: {
+            0: 'installBundle',
+            1: 'enableTokenAuthentication',
+            2: 'enableSoapServices',
+            3: 'createAccessToken',
+            4: 'enterCredentials',
+        },
+        IMPORT_CUSTOM_FIELDS: {
+            CUSTOM_SEGMENTS: 'customSegments',
+            CUSTOM_LISTS: 'customLists',
+        },
+        CUSTOM_SEGMENT_FIELDS: ['segmentName', 'internalID', 'scriptID', 'mapping'],
+        CUSTOM_LIST_FIELDS: ['listName', 'internalID', 'transactionFieldID', 'mapping'],
+        CUSTOM_FORM_ID_TYPE: {
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'nonReimbursable',
+        },
+        SYNC_OPTIONS: {
+            SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+            SYNC_PEOPLE: 'syncPeople',
+            ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+            EXPORT_REPORTS_TO: 'exportReportsTo',
+            EXPORT_VENDOR_BILLS_TO: 'exportVendorBillsTo',
+            EXPORT_JOURNALS_TO: 'exportJournalsTo',
+            SYNC_TAX: 'syncTax',
+            CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
+            CUSTOMER_MAPPINGS: {
+                CUSTOMERS: 'customers',
+                JOBS: 'jobs',
+            },
+        },
+        NETSUITE_CUSTOM_LIST_LIMIT: 8,
+        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
+    },
+
+    NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
+        CUSTOM_LISTS: {
+            CUSTOM_LIST_PICKER: 0,
+            TRANSACTION_FIELD_ID: 1,
+            MAPPING: 2,
+            CONFIRM: 3,
+        },
+        CUSTOM_SEGMENTS: {
+            SEGMENT_TYPE: 0,
+            SEGMENT_NAME: 1,
+            INTERNAL_ID: 2,
+            SCRIPT_ID: 3,
+            MAPPING: 4,
+            CONFIRM: 5,
+        },
+    },
+
+    NETSUITE_CUSTOM_RECORD_TYPES: {
+        CUSTOM_SEGMENT: 'customSegment',
+        CUSTOM_RECORD: 'customRecord',
+    },
+
+    NETSUITE_FORM_STEPS_HEADER_HEIGHT: 40,
+
+    NETSUITE_IMPORT: {
+        HELP_LINKS: {
+            CUSTOM_SEGMENTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments',
+            CUSTOM_LISTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists',
+        },
+    },
+
+    NETSUITE_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NETSUITE_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+    },
+
+    NETSUITE_MAP_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'expenseReport',
+        VENDOR_BILL: 'vendorBill',
+        JOURNAL_ENTRY: 'journalEntry',
+    },
+
+    NETSUITE_INVOICE_ITEM_PREFERENCE: {
+        CREATE: 'create',
+        SELECT: 'select',
+    },
+
+    NETSUITE_JOURNAL_POSTING_PREFERENCE: {
+        JOURNALS_POSTING_INDIVIDUAL_LINE: 'JOURNALS_POSTING_INDIVIDUAL_LINE',
+        JOURNALS_POSTING_TOTAL_LINE: 'JOURNALS_POSTING_TOTAL_LINE',
+    },
+
+    NETSUITE_EXPENSE_TYPE: {
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonreimbursable',
+    },
+
+    NETSUITE_REPORTS_APPROVAL_LEVEL: {
+        REPORTS_APPROVED_NONE: 'REPORTS_APPROVED_NONE',
+        REPORTS_SUPERVISOR_APPROVED: 'REPORTS_SUPERVISOR_APPROVED',
+        REPORTS_ACCOUNTING_APPROVED: 'REPORTS_ACCOUNTING_APPROVED',
+        REPORTS_APPROVED_BOTH: 'REPORTS_APPROVED_BOTH',
+    },
+
+    NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL: {
+        VENDOR_BILLS_APPROVED_NONE: 'VENDOR_BILLS_APPROVED_NONE',
+        VENDOR_BILLS_APPROVAL_PENDING: 'VENDOR_BILLS_APPROVAL_PENDING',
+        VENDOR_BILLS_APPROVED: 'VENDOR_BILLS_APPROVED',
+    },
+
+    NETSUITE_JOURNALS_APPROVAL_LEVEL: {
+        JOURNALS_APPROVED_NONE: 'JOURNALS_APPROVED_NONE',
+        JOURNALS_APPROVAL_PENDING: 'JOURNALS_APPROVAL_PENDING',
+        JOURNALS_APPROVED: 'JOURNALS_APPROVED',
+    },
+
+    NETSUITE_ACCOUNT_TYPE: {
+        ACCOUNTS_PAYABLE: '_accountsPayable',
+        ACCOUNTS_RECEIVABLE: '_accountsReceivable',
+        OTHER_CURRENT_LIABILITY: '_otherCurrentLiability',
+        CREDIT_CARD: '_creditCard',
+        BANK: '_bank',
+        OTHER_CURRENT_ASSET: '_otherCurrentAsset',
+        LONG_TERM_LIABILITY: '_longTermLiability',
+        EXPENSE: '_expense',
+    },
+
+    NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
+
+    /**
+     * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
+     *
+     * Should mirror the list on the OldDot.
+     */
+    NETSUITE_TAX_COUNTRIES: [
+        '_canada',
+        '_unitedKingdomGB',
+        '_unitedKingdom',
+        '_australia',
+        '_southAfrica',
+        '_india',
+        '_france',
+        '_netherlands',
+        '_germany',
+        '_singapore',
+        '_spain',
+        '_ireland',
+        '_denmark',
+        '_brazil',
+        '_japan',
+        '_philippines',
+        '_china',
+        '_argentina',
+        '_newZealand',
+        '_switzerland',
+        '_sweden',
+        '_portugal',
+        '_mexico',
+        '_israel',
+        '_thailand',
+        '_czechRepublic',
+        '_egypt',
+        '_ghana',
+        '_indonesia',
+        '_iranIslamicRepublicOf',
+        '_jordan',
+        '_kenya',
+        '_kuwait',
+        '_lebanon',
+        '_malaysia',
+        '_morocco',
+        '_myanmar',
+        '_nigeria',
+        '_pakistan',
+        '_saudiArabia',
+        '_sriLanka',
+        '_unitedArabEmirates',
+        '_vietnam',
+        '_austria',
+        '_bulgaria',
+        '_greece',
+        '_cyprus',
+        '_norway',
+        '_romania',
+        '_poland',
+        '_hongKong',
+        '_luxembourg',
+        '_lithuania',
+        '_malta',
+        '_finland',
+        '_koreaRepublicOf',
+        '_italy',
+        '_georgia',
+        '_hungary',
+        '_latvia',
+        '_estonia',
+        '_slovenia',
+        '_serbia',
+        '_croatiaHrvatska',
+        '_belgium',
+        '_turkey',
+        '_taiwan',
+        '_azerbaijan',
+        '_slovakRepublic',
+        '_costaRica',
+    ] as string[],
 
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
@@ -1721,6 +2018,11 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
             ARE_TAGS_ENABLED: 'areTagsEnabled',
@@ -1728,22 +2030,8 @@ const CONST = {
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
-        },
-        CATEGORIES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        TAGS_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        DISTANCE_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -1774,11 +2062,6 @@ const CONST = {
             SUBSCRIPTION: 'subscription',
             DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
             FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
-        },
-        TAX_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
@@ -1863,6 +2146,9 @@ const CONST = {
             PAID: 'paid',
             ADMIN: 'admin',
         },
+        DEFAULT_MAX_EXPENSE_AGE: 90,
+        DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
+        DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
     },
 
     CUSTOM_UNITS: {
@@ -1940,6 +2226,10 @@ const CONST = {
             LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
+        },
+        CARD_TYPE: {
+            PHYSICAL: 'physical',
+            VIRTUAL: 'virtual',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -2058,6 +2348,7 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
@@ -2126,6 +2417,7 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
     TAG_NAME_LIMIT: 256,
+    WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
@@ -2160,6 +2452,8 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        CANCEL_PAYMENT: 'cancelPayment',
+        UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3604,6 +3898,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -3755,6 +4050,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
     },
+    REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -3948,13 +4244,13 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Categories*.\n' +
                         '4. Enable and disable default categories.\n' +
                         '5. Click *Add categories* to make your own.\n' +
@@ -3965,13 +4261,13 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *More features*.\n' +
                         '4. Enable *Workflows*.\n' +
                         '5. In *Workflows*, enable *Add approvals*.\n' +
@@ -3982,13 +4278,13 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Members* > *Invite member*.\n' +
                         '4. Enter emails or phone numbers. \n' +
                         '5. Add an invite message if you want.\n' +
@@ -4869,6 +5165,9 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
             VIEW: 'view',
+            REVIEW: 'review',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -4899,6 +5198,14 @@ const CONST = {
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
     },
 
     REFERRER: {
@@ -4907,18 +5214,16 @@ const CONST = {
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
 
+    PAGINATION_START_ID: '-1',
+    PAGINATION_END_ID: '-2',
+
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',
-        GBP: 'GBP',
         NZD: 'NZD',
     },
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
-    SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
-        COLLECT_PLAN: 10,
-        CONTROL_PLAN: 18,
-    },
     FEEDBACK_SURVEY_OPTIONS: {
         TOO_LIMITED: {
             ID: 'tooLimited',
@@ -4938,7 +5243,40 @@ const CONST = {
         },
     },
 
+    WORKSPACE_CARDS_LIST_LABEL_TYPE: {
+        CURRENT_BALANCE: 'currentBalance',
+        REMAINING_LIMIT: 'remainingLimit',
+        CASH_BACK: 'cashBack',
+    },
+
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+
+    EMPTY_STATE_MEDIA: {
+        ANIMATION: 'animation',
+        ILLUSTRATION: 'illustration',
+        VIDEO: 'video',
+    },
+
+    UPGRADE_FEATURE_INTRO_MAPPING: [
+        {
+            id: 'reportFields',
+            alias: 'report-fields',
+            name: 'Report Fields',
+            title: 'workspace.upgrade.reportFields.title',
+            description: 'workspace.upgrade.reportFields.description',
+            icon: 'Pencil',
+        },
+    ],
+
+    REPORT_FIELD_TYPES: {
+        TEXT: 'text',
+        DATE: 'date',
+        LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
