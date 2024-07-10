@@ -76,7 +76,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                 />
             </View>
             <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
-                <View style={[styles.emptyStateContent(isSmallScreenWidth)]}>
+                <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>

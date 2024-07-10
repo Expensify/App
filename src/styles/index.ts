@@ -5104,13 +5104,14 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             height: '100%',
             padding: isSmallScreenWidth ? 24 : 0,
+            width: '100%',
         }),
 
-        emptyStateContent: (isSmallScreenWidth: boolean) => ({
-            width: isSmallScreenWidth ? '100%' : 400,
+        emptyStateContent: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-        }),
+            maxWidth: 400,
+        },
 
         emptyStateHeader: (isIllustration: boolean) => ({
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
