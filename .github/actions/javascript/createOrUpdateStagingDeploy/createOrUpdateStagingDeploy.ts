@@ -8,13 +8,13 @@ import GitUtils from '@github/libs/GitUtils';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
-type PackageJSON = {
+type PackageJson = {
     version: string;
 };
 
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
-    const packageJson: PackageJSON = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
     const newVersionTag = packageJson.version;
 
     try {

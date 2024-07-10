@@ -88,8 +88,8 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    const participantFrom = reportItem.transactions[0].from;
-    const participantTo = reportItem.transactions[0].to;
+    const participantFrom = reportItem.from;
+    const participantTo = reportItem.to;
 
     // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
@@ -145,7 +145,7 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, isLargeScreenWidth && styles.mr4]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
@@ -177,9 +177,8 @@ function ReportListItem<TItem extends ListItem>({
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)} />
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
-                                    isLargeScreenWidth={isLargeScreenWidth}
-                                    onButtonPress={handleOnButtonPress}
                                     action={reportItem.action}
+                                    goToItem={handleOnButtonPress}
                                     isSelected={item.isSelected}
                                 />
                             </View>
