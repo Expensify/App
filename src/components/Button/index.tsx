@@ -118,6 +118,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    /** Whether button's content should be centered */
+    isContentCentered?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -147,7 +150,7 @@ function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPre
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [shouldDisableEnterShortcut, isFocused],
     );
 
@@ -202,6 +205,7 @@ function Button(
         id = '',
         accessibilityLabel = '',
         isSplitButton = false,
+        isContentCentered = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -239,7 +243,7 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
                             <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>

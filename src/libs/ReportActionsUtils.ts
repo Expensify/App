@@ -20,7 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import {parseHtmlToText} from './OnyxAwareParser';
+import Parser from './Parser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
@@ -258,6 +258,18 @@ function isRenamedAction(reportAction: OnyxEntry<ReportAction>): reportAction is
 
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
     return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
+}
+
+function isInviteOrRemovedAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
+    return isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
+    );
 }
 
 /**
@@ -1080,11 +1092,11 @@ function getReportActionText(reportAction: PartialReportAction): string {
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = (message?.html || message?.text) ?? '';
-    return text ? parseHtmlToText(text) : '';
+    return text ? Parser.htmlToText(text) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    return html ? parseHtmlToText(html) : '';
+    return html ? Parser.htmlToText(html) : '';
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
@@ -1393,6 +1405,14 @@ function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: s
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
+/**
+ * Checks if a given report action corresponds to a add payment card action.
+ * @param reportAction
+ */
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1471,6 +1491,7 @@ export {
     isClosedAction,
     isRenamedAction,
     isRoomChangeLogAction,
+    isInviteOrRemovedAction,
     isChronosOOOListAction,
     isAddCommentAction,
     isPolicyChangeLogAction,
@@ -1478,6 +1499,7 @@ export {
     isTripPreview,
     getIOUActionForReportID,
     getFilteredForOneTransactionView,
+    isActionableAddPaymentCard,
 };
 
 export type {LastVisibleMessage};

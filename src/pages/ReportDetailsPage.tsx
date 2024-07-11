@@ -24,11 +24,11 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import PaginationUtils from '@libs/PaginationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -86,18 +86,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID || '-1'}`, {
-        canEvict: false,
-        selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
-    });
-    const [reportActionPages = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${report.reportID || '-1'}`);
-
-    const reportActions = useMemo(() => {
-        if (!sortedAllReportActions.length) {
-            return [];
-        }
-        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages, (reportAction) => reportAction.reportActionID);
-    }, [sortedAllReportActions, reportActionPages]);
+    const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -109,6 +98,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
@@ -136,7 +126,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
@@ -200,9 +190,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
-        ReportUtils.isMoneyRequestReport(moneyRequestReport) &&
-        (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
-        (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
+        ReportUtils.isExpenseReport(report) &&
+        (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
+        (ReportUtils.isReportApproved(report) || ReportUtils.isReportManuallyReimbursed(report));
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -262,6 +252,21 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
+
+    const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
+
+    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
+
+    const cancelPayment = useCallback(() => {
+        if (!chatReport) {
+            return;
+        }
+
+        IOU.cancelPayment(moneyRequestReport, chatReport);
+        setIsConfirmModalVisible(false);
+    }, [moneyRequestReport, chatReport]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
@@ -356,6 +361,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             }
         }
 
+        if (shouldShowCancelPaymentButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.CANCEL_PAYMENT,
+                icon: Expensicons.Trashcan,
+                translationKey: 'iou.cancelPayment',
+                isAnonymousAction: false,
+                action: () => setIsConfirmModalVisible(true),
+            });
+        }
+
         if (shouldShowLeaveButton) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -403,6 +418,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
+        shouldShowCancelPaymentButton,
         isPolicyAdmin,
         session,
         leaveChat,
@@ -709,6 +725,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     prompt={translate('groupChat.lastMemberWarning')}
                     confirmText={translate('common.leave')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('iou.cancelPayment')}
+                    isVisible={isConfirmModalVisible}
+                    onConfirm={cancelPayment}
+                    onCancel={() => setIsConfirmModalVisible(false)}
+                    prompt={translate('iou.cancelPaymentConfirmation')}
+                    confirmText={translate('iou.cancelPayment')}
+                    cancelText={translate('common.dismiss')}
+                    danger
+                    shouldEnableNewFocusManagement
                 />
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense')}
