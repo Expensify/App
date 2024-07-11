@@ -704,6 +704,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/:categoryName/edit',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/edit` as const,
     },
+    WORKSPACE_CATEGORY_GL_CODE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/gl-code',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/gl-code` as const,
+    },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
