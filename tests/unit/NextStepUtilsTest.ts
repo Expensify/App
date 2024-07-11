@@ -35,7 +35,7 @@ describe('libs/NextStepUtils', () => {
         };
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',
-            title: '',
+            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],
         };
         const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
@@ -64,7 +64,7 @@ describe('libs/NextStepUtils', () => {
         beforeEach(() => {
             report.ownerAccountID = currentUserAccountID;
             report.managerID = currentUserAccountID;
-            optimisticNextStep.title = '';
+            optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
             optimisticNextStep.message = [];
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
@@ -72,7 +72,7 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
             test('self review', () => {
-                optimisticNextStep.title = 'Next Steps:';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -100,7 +100,7 @@ describe('libs/NextStepUtils', () => {
 
             describe('scheduled submit enabled', () => {
                 beforeEach(() => {
-                    optimisticNextStep.title = 'Next Steps:';
+                    optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 });
 
                 test('daily', () => {
@@ -359,7 +359,7 @@ describe('libs/NextStepUtils', () => {
             });
 
             test('prevented self submitting', () => {
-                optimisticNextStep.title = 'Next Steps:';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
@@ -397,7 +397,7 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been submitted', () => {
             test('self review', () => {
-                optimisticNextStep.title = 'Next Steps:';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 // Waiting for userAdmin to pay expense(s)
                 optimisticNextStep.message = [
                     {
@@ -426,7 +426,7 @@ describe('libs/NextStepUtils', () => {
 
             test('another reviewer', () => {
                 report.managerID = strangeAccountID;
-                optimisticNextStep.title = 'Next Steps:';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 // Waiting for userApprover to approve expense(s)
                 optimisticNextStep.message = [
                     {
@@ -463,7 +463,7 @@ describe('libs/NextStepUtils', () => {
 
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
-                optimisticNextStep.title = 'Next Steps:';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 // Waiting for userApprover to approve expense(s)
                 optimisticNextStep.message = [
                     {
@@ -500,10 +500,10 @@ describe('libs/NextStepUtils', () => {
             test('submit and close approval mode', () => {
                 report.ownerAccountID = strangeAccountID;
                 // Finished! No further action required.
-                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required.',
+                        text: 'Finished! No further action required.',
                     },
                 ];
 
@@ -521,10 +521,10 @@ describe('libs/NextStepUtils', () => {
             test('non-payer', () => {
                 report.managerID = strangeAccountID;
                 // Finished! No further action required.
-                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required.',
+                        text: 'Finished! No further action required.',
                     },
                 ];
 
@@ -534,7 +534,7 @@ describe('libs/NextStepUtils', () => {
             });
 
             test('payer', () => {
-                optimisticNextStep.title = 'Next Steps:';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -572,10 +572,10 @@ describe('libs/NextStepUtils', () => {
         describe('it generates an optimistic nextStep once a report has been paid', () => {
             test('paid with wallet / outside of Expensify', () => {
                 // Finished! No further action required.
-                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required.',
+                        text: 'Finished! No further action required.',
                     },
                 ];
 

@@ -90,7 +90,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Self review
             optimisticNextStep = {
                 type,
-                title: 'Next Steps:',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [
                     {
                         text: 'Waiting for ',
@@ -197,7 +197,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Another owner
             optimisticNextStep = {
                 type,
-                title: 'Next Steps:',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [
                     {
                         text: 'Waiting for ',
@@ -225,11 +225,11 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
         case CONST.REPORT.STATUS_NUM.CLOSED:
             optimisticNextStep = {
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                 type,
-                title: 'Finished!',
                 message: [
                     {
-                        text: 'No further action required.',
+                        text: 'Finished! No further action required.',
                     },
                 ],
             };
@@ -250,10 +250,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             ) {
                 optimisticNextStep = {
                     type,
-                    title: 'Finished!',
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     message: [
                         {
-                            text: 'No further action required.',
+                            text: 'Finished! No further action required.',
                         },
                     ],
                 };
@@ -262,7 +262,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Self review
             optimisticNextStep = {
                 type,
-                title: 'Next Steps:',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 message: [
                     {
                         text: 'Waiting for ',
@@ -290,10 +290,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             // Paid with wallet
             optimisticNextStep = {
                 type,
-                title: 'Finished!',
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                 message: [
                     {
-                        text: 'No further action required.',
+                        text: 'Finished! No further action required.',
                     },
                 ],
             };
