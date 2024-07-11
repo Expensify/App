@@ -24,11 +24,12 @@ type SearchHeaderProps = {
     clearSelectedItems?: () => void;
     hash: number;
     isMobileSelectionModeActive?: boolean;
+    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, isMobileSelectionModeActive}: SearchHeaderProps) {
+function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -59,6 +60,9 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
                     clearSelectedItems?.();
+                    if (isMobileSelectionModeActive) {
+                        setIsMobileSelectionModeActive?.(false);
+                    }
                     SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
                 },
             });
@@ -73,6 +77,9 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 onSelected: () => {
                     clearSelectedItems?.();
+                    if (isMobileSelectionModeActive) {
+                        setIsMobileSelectionModeActive?.(false);
+                    }
                     SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
                 },
             });
@@ -87,6 +94,9 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 onSelected: () => {
                     clearSelectedItems?.();
+                    if (isMobileSelectionModeActive) {
+                        setIsMobileSelectionModeActive?.(false);
+                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
                 },
             });

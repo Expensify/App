@@ -152,6 +152,7 @@ function SearchListWithHeader(
                 query={query}
                 hash={hash}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
+                setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
