@@ -1472,10 +1472,10 @@ function isOneTransactionReport(reportID: string): boolean {
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
-function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
+function isOneTransactionThread(reportID: string, parentReportID: string, threadParentReportAction: OnyxEntry<ReportAction>): boolean {
     const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportID, parentReportActions);
-    return reportID === transactionThreadReportID;
+    return reportID === transactionThreadReportID && !ReportActionsUtils.isSentMoneyReportAction(threadParentReportAction);
 }
 
 /**
@@ -5426,6 +5426,8 @@ function shouldReportBeInOptionList({
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
     // Optionally exclude reports that do not belong to currently active workspace
 
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+
     if (
         !report?.reportID ||
         !report?.type ||
@@ -5456,7 +5458,7 @@ function shouldReportBeInOptionList({
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1')) {
+    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1', parentReportAction)) {
         return false;
     }
 
@@ -5528,8 +5530,6 @@ function shouldReportBeInOptionList({
     if (Str.isDomainEmail(login ?? '') && !includeDomainEmail) {
         return false;
     }
-
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     // Hide chat threads where the parent message is pending removal
     if (

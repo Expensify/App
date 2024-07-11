@@ -162,6 +162,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** The action to take */
     action?: IOUAction;
+
+    /** Should play sound on confirmation */
+    shouldPlaySound?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
@@ -204,6 +207,7 @@ function MoneyRequestConfirmationList({
     action = CONST.IOU.ACTION.CREATE,
     currencyList,
     shouldDisplayReceipt = false,
+    shouldPlaySound = true,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -689,7 +693,9 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                playSound(SOUNDS.DONE);
+                if (shouldPlaySound) {
+                    playSound(SOUNDS.DONE);
+                }
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
             } else {
@@ -723,6 +729,7 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
+            shouldPlaySound,
         ],
     );
 
