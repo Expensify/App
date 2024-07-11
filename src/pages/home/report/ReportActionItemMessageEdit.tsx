@@ -196,7 +196,7 @@ function ReportActionItemMessageEdit(
                 }
 
                 // Show the main composer when the focused message is deleted from another client
-                // to prevent the main composer stays hidden until we swtich to another chat.
+                // to prevent the main composer stays hidden until we switch to another chat.
                 setShouldShowComposeInputKeyboardAware(true);
             };
         },
@@ -403,8 +403,7 @@ function ReportActionItemMessageEdit(
             }
             containerRef.current.measureInWindow(callback);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isFocused],
+        [],
     );
 
     const measureParentContainerAndReportCursor = useCallback(
@@ -428,10 +427,8 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
 
-        // eslint-disable-next-line react-compiler/react-compiler
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [tag]);
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
