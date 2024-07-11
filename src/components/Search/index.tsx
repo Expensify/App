@@ -51,7 +51,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {setCurrentSearchHash} = useSearchContext();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
-    const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -117,7 +117,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const shouldShowEmptyState = searchResults && SearchUtils.isSearchResultsEmpty(searchResults);
 
-    if (shouldShowEmptyState || !searchResults) {
+    if (shouldShowEmptyState ?? !searchResults) {
         return (
             <>
                 <SearchPageHeader
