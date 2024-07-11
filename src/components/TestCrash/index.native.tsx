@@ -1,29 +1,29 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
 import useLocalize from '@hooks/useLocalize';
 import testCrash from '@libs/testCrash';
+import firebase from '../../../firebase.json';
 
-const config = require('../../../firebase.json');
-
+/**
+ * Adds a button in native dev builds to test the crashlytics integration with user info.
+ */
 function TestCrash() {
     const {translate} = useLocalize();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const isCrashlyticsDebugEnabled = config['react-native'].crashlytics_debug_enabled;
+    const isCrashlyticsDebugEnabled = firebase?.['react-native']?.crashlytics_debug_enabled ?? false;
+
+    const toolRowTitle = translate('initialSettingsPage.troubleshoot.testCrash');
 
     return (
         <View>
             {isCrashlyticsDebugEnabled ? (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.testCrash')}>
+                <TestToolRow title={toolRowTitle}>
                     <Button
                         small
-                        text={translate('initialSettingsPage.troubleshoot.testCrash')}
-                        onPress={() => {
-                            testCrash();
-                        }}
+                        text={toolRowTitle}
+                        onPress={testCrash}
                     />
                 </TestToolRow>
             ) : null}

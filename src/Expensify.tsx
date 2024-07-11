@@ -218,7 +218,10 @@ function Expensify({
     }, []);
 
     useEffect(() => {
-        setCrashlyticsUserId({isAuthenticated, accountID: session?.accountID});
+        if (!isAuthenticated) {
+            return;
+        }
+        setCrashlyticsUserId(session?.accountID ?? -1);
     }, [isAuthenticated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
