@@ -38,7 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyOption = ListItem & {
