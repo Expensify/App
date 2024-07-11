@@ -321,7 +321,6 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * @param reportID to attach the transaction to
  * @param policy
  * @param isFromGlobalCreate
- * @param shouldKeepExistingData
  * @param iouRequestType one of manual/scan/distance
  */
 function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
