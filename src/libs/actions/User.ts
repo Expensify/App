@@ -859,32 +859,52 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
     ];
 
     Object.values(policies ?? {}).forEach((policy) => {
-        if (policy?.ownerAccountID !== currentUserAccountID) {
+        if (!policy) {
             return;
         }
-        const currentEmployee = policy.employeeList?.[oldDefaultContactMethod] ?? {role: 'admin'};
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
-                owner: newDefaultContactMethod,
+
+        let optimisticPolicyDataValue;
+        let failurePolicyDataValue;
+
+        if (policy.employeeList) {
+            const currentEmployee = policy.employeeList[oldDefaultContactMethod];
+            optimisticPolicyDataValue = {
                 employeeList: {
                     [oldDefaultContactMethod]: null,
                     [newDefaultContactMethod]: currentEmployee,
                 },
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
-                owner: policy.owner,
+            };
+            failurePolicyDataValue = {
                 employeeList: {
                     [oldDefaultContactMethod]: currentEmployee,
                     [newDefaultContactMethod]: null,
                 },
-            },
-        });
+            };
+        }
+
+        if (policy.ownerAccountID === currentUserAccountID) {
+            optimisticPolicyDataValue = {
+                ...optimisticPolicyDataValue,
+                owner: newDefaultContactMethod,
+            };
+            failurePolicyDataValue = {
+                ...failurePolicyDataValue,
+                owner: policy.owner,
+            };
+        }
+
+        if (optimisticPolicyDataValue && failurePolicyDataValue) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: optimisticPolicyDataValue,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: failurePolicyDataValue,
+            });
+        }
     });
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
