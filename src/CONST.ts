@@ -5273,10 +5273,6 @@ const CONST = {
         DATE: 'date',
         LIST: 'dropdown',
     },
-
-    NAVIGATION_ACTIONS: {
-        RESET: 'RESET',
-    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
