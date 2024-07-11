@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SortOrder, AllFieldKeys} from '@components/Search/types';
+import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -345,7 +345,7 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
 
     const filters = {} as QueryFilters;
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
         const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
         if (jsonQuery[rootFieldKey] === undefined) {
             return;
