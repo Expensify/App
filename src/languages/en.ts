@@ -2172,7 +2172,7 @@ export default {
             exportDescription: 'Configure how Expensify data exports to Xero.',
             exportCompanyCard: 'Export company card expenses as',
             purchaseBill: 'Purchase bill',
-            exportDeepDiveCompanyCard: 'Each exported expense posts as a bank transaction to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
+            exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
