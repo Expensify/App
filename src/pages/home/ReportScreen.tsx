@@ -394,7 +394,7 @@ function ReportScreen({
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, report.reportID]);
 
     if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
