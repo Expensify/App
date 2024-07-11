@@ -173,7 +173,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {
@@ -267,7 +267,6 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoFocus
                     inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formError}
                     hasError={shouldShowServerError}

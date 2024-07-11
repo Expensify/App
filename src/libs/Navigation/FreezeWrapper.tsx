@@ -20,7 +20,7 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
     useEffect(() => {
         const index = navigation.getState()?.routes.findIndex((route) => route.key === currentRoute.key) ?? 0;
         screenIndexRef.current = index;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

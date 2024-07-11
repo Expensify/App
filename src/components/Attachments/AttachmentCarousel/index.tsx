@@ -1,10 +1,12 @@
 import isEqual from 'lodash/isEqual';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {MutableRefObject} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
-import Animated, {scrollTo, useAnimatedRef} from 'react-native-reanimated';
+import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -22,8 +24,10 @@ import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachments from './extractAttachments';
+import AttachmentCarouselPagerContext from './Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
+import useCarouselContextEvents from './useCarouselContextEvents';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -33,13 +37,15 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
+    const nope = useSharedValue(false);
+    const pagerRef = useRef<GestureType>(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -52,6 +58,14 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+    const {handleTap, handleScaleChange, scale} = useCarouselContextEvents(setShouldShowArrows);
+
+    useEffect(() => {
+        if (!canUseTouchScreen) {
+            return;
+        }
+        setShouldShowArrows(true);
+    }, [canUseTouchScreen, page, setShouldShowArrows]);
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
@@ -101,7 +115,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
         scrollRef.current.scrollToIndex({index: page, animated: false});
         // The hook is not supposed to run on page change, so we keep the page out of the dependencies
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [cellWidth]);
 
     /** Updates the page state when the user navigates between attachments */
@@ -121,7 +135,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 return;
             }
 
-            const item: Attachment = entry.item;
+            const item = entry.item as Attachment;
             if (entry.index !== null) {
                 setPage(entry.index);
                 setActiveSource(item.source);
@@ -169,6 +183,20 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [cellWidth],
     );
 
+    const context = useMemo(
+        () => ({
+            pagerItems: [{source, index: 0, isActive: true}],
+            activePage: 0,
+            pagerRef,
+            isPagerScrolling: nope,
+            isScrollEnabled: nope,
+            onTap: handleTap,
+            onScaleChanged: handleScaleChange,
+            onSwipeDown: onClose,
+        }),
+        [source, nope, handleTap, handleScaleChange, onClose],
+    );
+
     /** Defines how a single attachment should be rendered */
     const renderItem = useCallback(
         ({item}: ListRenderItemInfo<Attachment>) => (
@@ -176,20 +204,30 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 <CarouselItem
                     item={item}
                     isFocused={activeSource === item.source}
-                    onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
+                    onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, cellWidth, handleTap, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
         () =>
             Gesture.Pan()
                 .enabled(canUseTouchScreen)
-                .onUpdate(({translationX}) => scrollTo(scrollRef, page * cellWidth - translationX, 0, false))
+                .onUpdate(({translationX}) => {
+                    if (scale.current !== 1) {
+                        return;
+                    }
+
+                    scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
+                })
                 .onEnd(({translationX, velocityX}) => {
+                    if (scale.current !== 1) {
+                        return;
+                    }
+
                     let newIndex;
                     if (velocityX > MIN_FLING_VELOCITY) {
                         // User flung to the right
@@ -204,8 +242,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                     }
 
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
-                }),
-        [attachments.length, canUseTouchScreen, cellWidth, page, scrollRef],
+                })
+                .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
+        [attachments.length, canUseTouchScreen, cellWidth, page, scale, scrollRef],
     );
 
     return (
@@ -233,27 +272,28 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         autoHideArrow={autoHideArrows}
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
-
-                    <GestureDetector gesture={pan}>
-                        <Animated.FlatList
-                            keyboardShouldPersistTaps="handled"
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            // scrolling is controlled by the pan gesture
-                            scrollEnabled={false}
-                            ref={scrollRef}
-                            initialScrollIndex={page}
-                            initialNumToRender={3}
-                            windowSize={5}
-                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
-                            data={attachments}
-                            renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            keyExtractor={extractItemKey}
-                            viewabilityConfig={viewabilityConfig}
-                            onViewableItemsChanged={updatePage}
-                        />
-                    </GestureDetector>
+                    <AttachmentCarouselPagerContext.Provider value={context}>
+                        <GestureDetector gesture={pan}>
+                            <Animated.FlatList
+                                keyboardShouldPersistTaps="handled"
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                // scrolling is controlled by the pan gesture
+                                scrollEnabled={false}
+                                ref={scrollRef}
+                                initialScrollIndex={page}
+                                initialNumToRender={3}
+                                windowSize={5}
+                                maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
+                                data={attachments}
+                                renderItem={renderItem}
+                                getItemLayout={getItemLayout}
+                                keyExtractor={extractItemKey}
+                                viewabilityConfig={viewabilityConfig}
+                                onViewableItemsChanged={updatePage}
+                            />
+                        </GestureDetector>
+                    </AttachmentCarouselPagerContext.Provider>
 
                     <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
                 </>
