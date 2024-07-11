@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,17 @@ function Confirmation() {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
+    const contextValue = useMemo(
+        () => ({
+            transactionThreadReport: report,
+            action: reportAction,
+            report,
+            checkIfContextMenuActive: () => {},
+            anchor: null,
+        }),
+        [report, reportAction],
+    );
+
     return (
         <ScreenWrapper
             testID={Confirmation.displayName}
@@ -58,12 +70,14 @@ function Confirmation() {
                     </Text>
                     <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                 </View>
-                <MoneyRequestView
-                    report={report}
-                    shouldShowAnimatedBackground={false}
-                    readonly
-                    updatedTransaction={transaction}
-                />
+                <ShowContextMenuContext.Provider value={contextValue}>
+                    <MoneyRequestView
+                        report={report}
+                        shouldShowAnimatedBackground={false}
+                        readonly
+                        updatedTransaction={transaction}
+                    />
+                </ShowContextMenuContext.Provider>
                 <Button
                     text={translate('common.confirm')}
                     success
