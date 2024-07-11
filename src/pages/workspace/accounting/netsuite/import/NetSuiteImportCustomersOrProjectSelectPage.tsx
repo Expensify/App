@@ -51,7 +51,7 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
                     },
                 );
             }
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
         },
         [importCustomer, importJobs, importMappings?.customers, importMappings?.jobs, importedValue, policyID],
     );
