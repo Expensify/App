@@ -840,6 +840,8 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+            PAYCHECK: 'paycheck',
+            BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -1122,8 +1124,6 @@ const CONST = {
     // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
     // around each header.
     EMOJI_NUM_PER_ROW: 8,
-
-    EMOJI_FREQUENT_ROW_COUNT: 3,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
 
