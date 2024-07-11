@@ -14,7 +14,7 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
 
     // The payload is string encoded on Android
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as string;
     }
 
     const data = payload as PushNotificationData;
