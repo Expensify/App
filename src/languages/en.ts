@@ -2631,6 +2631,7 @@ export default {
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            cardLimit: 'Card limit',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
@@ -2640,6 +2641,7 @@ export default {
             cardDetails: 'Card details',
             virtual: 'Virtual',
             physical: 'Physical',
+            deactivate: 'Deactivate card',
         },
         categories: {
             deleteCategories: 'Delete categories',
