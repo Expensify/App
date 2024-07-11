@@ -37,10 +37,10 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AllFieldKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS | keyof typeof CONST.SEARCH.SYNTAX_ROOT_KEYS;
+type AllFieldKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
 type QueryFilters = {
     [K in AllFieldKeys]: QueryFilter | QueryFilter[];
 };
 
-export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilters, AllFieldKeys};
+export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilter, QueryFilters, AllFieldKeys};

@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilters, SearchColumnType, SortOrder, AllFieldKeys} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SortOrder, AllFieldKeys} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -345,7 +345,6 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
 
     const filters = {} as QueryFilters;
 
-    // Include root properties if they are specified fields
     fields.forEach(field => {
         const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
         if (jsonQuery[rootFieldKey] === undefined) {
@@ -363,11 +362,11 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
             return;
         }
 
-        if (node.left && typeof node.left === 'object') {
+        if (typeof node?.left === 'object') {
             traverse(node.left);
         }
 
-        if (node.right && typeof node.right === 'object') {
+        if (typeof node?.right === 'object') {
             traverse(node.right);
         }
 
@@ -380,9 +379,10 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
             filters[nodeKey] = [];
         }
 
-        filters[nodeKey].push({
+        const filterArray = filters[nodeKey] as QueryFilter[];
+        filterArray.push({
             operator: node.operator,
-            value: node.right,
+            value: node.right as string | number,
         });
     }
 
