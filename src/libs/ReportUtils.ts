@@ -7092,7 +7092,7 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
     // onboarding can be an array for old accounts and accounts created from olddot
-    if (!Array.isArray(onboarding) && onboarding?.chatReportID === report?.reportID) {
+    if (!Array.isArray(onboarding) && onboarding?.chatReportID === optionOrReport?.reportID) {
         return true;
     }
 
