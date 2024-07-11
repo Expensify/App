@@ -124,9 +124,9 @@ function Suggestions(
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
     }, []);
-    const checkIfSuggestionVisible = useCallback((): boolean => {
-        const isEmojiVisible = suggestionEmojiRef.current?.checkIfSuggestionVisible() ?? false;
-        const isSuggestionVisible = suggestionMentionRef.current?.checkIfSuggestionVisible() ?? false;
+    const getIsSuggestionsMenuVisible = useCallback((): boolean => {
+        const isEmojiVisible = suggestionEmojiRef.current?.getIsSuggestionsMenuVisible() ?? false;
+        const isSuggestionVisible = suggestionMentionRef.current?.getIsSuggestionsMenuVisible() ?? false;
         return isEmojiVisible || isSuggestionVisible;
     }, []);
 
@@ -139,9 +139,9 @@ function Suggestions(
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
             getSuggestions,
-            checkIfSuggestionVisible,
+            getIsSuggestionsMenuVisible,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, checkIfSuggestionVisible],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     useEffect(() => {
