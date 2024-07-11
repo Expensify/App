@@ -1,4 +1,4 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -11,11 +11,9 @@ import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
-type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -304,7 +302,29 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
+function getQueryHashFromString(query: string): number {
+    return UserUtils.hashText(query, 2 ** 32);
+}
+
+type JSONQuery = {
+    input: string;
+    hash: number;
+};
+
+function buildJSONQuery(query: string) {
+    try {
+        // Add the full input and hash to the results
+        const result = searchParser.parse(query) as JSONQuery;
+        result.input = query;
+        result.hash = getQueryHashFromString(query);
+        return result;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 export {
+    buildJSONQuery,
     getListItem,
     getQueryHash,
     getSections,
@@ -317,4 +337,3 @@ export {
     isTransactionListItemType,
     isSearchResultsEmpty,
 };
-export type {SearchColumnType, SortOrder};
