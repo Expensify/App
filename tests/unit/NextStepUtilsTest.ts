@@ -114,7 +114,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: '%expense to',
+                            text: '%expenses to',
                         },
                         {
                             text: 'automatically submit later today',
@@ -415,7 +415,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense.',
+                        text: ' %expenses.',
                     },
                 ];
 
@@ -444,7 +444,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense.',
+                        text: ' %expenses.',
                     },
                 ];
 
@@ -481,7 +481,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense.',
+                        text: ' %expenses.',
                     },
                 ];
 
@@ -551,7 +551,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense.',
+                        text: ' %expenses.',
                     },
                 ];
                 // mock the report as approved

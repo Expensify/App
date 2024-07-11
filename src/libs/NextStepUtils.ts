@@ -123,7 +123,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: '%expense to',
+                        text: '%expenses to',
                     },
                 ];
                 let harvestingSuffix = '';
@@ -214,7 +214,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: ' %expense.',
+                        text: ' %expenses.',
                     },
                 ],
             };
@@ -279,7 +279,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: ' %expense.',
+                        text: ' %expenses.',
                     },
                 ],
             };
