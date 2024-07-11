@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -29,6 +30,7 @@ function SearchPageBottomTab() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const activeRoute = useActiveRoute();
     const styles = useThemeStyles();
+    const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
     const {
         query: rawQuery,
@@ -59,18 +61,29 @@ function SearchPageBottomTab() {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <TopBar
-                    activeWorkspaceID={policyIDs}
-                    breadcrumbLabel={translate('common.search')}
-                    shouldDisplaySearch={false}
-                />
-                <SearchFilters query={query} />
+                {!isMobileSelectionModeActive ? (
+                    <>
+                        <TopBar
+                            activeWorkspaceID={policyIDs}
+                            breadcrumbLabel={translate('common.search')}
+                            shouldDisplaySearch={false}
+                        />
+                        <SearchFilters query={query} />
+                    </>
+                ) : (
+                    <HeaderWithBackButton
+                        title={translate('search.selectMultiple')}
+                        onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
+                    />
+                )}
                 {isSmallScreenWidth && (
                     <Search
                         policyIDs={policyIDs}
                         query={query}
                         sortBy={sortBy}
                         sortOrder={sortOrder}
+                        isMobileSelectionModeActive={isMobileSelectionModeActive}
+                        setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                     />
                 )}
             </FullPageNotFoundView>
