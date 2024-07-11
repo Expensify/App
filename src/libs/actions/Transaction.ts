@@ -9,7 +9,11 @@ import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@li
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
+import {
+    buildOptimisticDismissedViolationReportAction,
+    buildOptimisticUnHoldReportAction,
+    isCurrentUserSubmitter
+} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -292,9 +296,14 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
-    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() =>
-        buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}),
-    );
+    const isSubmitter = currentTransactions.every((transaction) => isCurrentUserSubmitter(transaction.reportID ?? ''));
+    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
+        if (isSubmitter) {
+            return buildOptimisticUnHoldReportAction();
+        }
+        return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
+    });
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -371,6 +380,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
+        reportActionIDList: optimisticDissmidedViolationReportActions.map((action) => action.reportActionID).join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
