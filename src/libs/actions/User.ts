@@ -765,7 +765,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'>>) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -862,11 +862,16 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
         if (policy?.ownerAccountID !== currentUserAccountID) {
             return;
         }
+        const currentEmployee = policy.employeeList?.[oldDefaultContactMethod] ?? {role: 'admin'};
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 owner: newDefaultContactMethod,
+                employeeList: {
+                    [oldDefaultContactMethod]: null,
+                    [newDefaultContactMethod]: currentEmployee,
+                },
             },
         });
         failureData.push({
@@ -874,6 +879,10 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 owner: policy.owner,
+                employeeList: {
+                    [oldDefaultContactMethod]: currentEmployee,
+                    [newDefaultContactMethod]: null,
+                },
             },
         });
     });
