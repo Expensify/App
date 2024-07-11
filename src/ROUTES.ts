@@ -948,10 +948,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
-    POLICY_ACCOUNTING_XERO_CARD_RECONCILIATION: {
-        route: 'settings/workspaces/:policyID/accounting/xero/card-reconciliation',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/card-reconciliation` as const,
-    },
     POLICY_ACCOUNTING_XERO_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
@@ -1063,10 +1059,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_CARD_RECONCILIATION: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/card-reconciliation',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/card-reconciliation` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
@@ -1225,10 +1217,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_CARD_RECONCILIATION: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/card-reconciliation',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/card-reconciliation` as const,
     },
 } as const;
 
