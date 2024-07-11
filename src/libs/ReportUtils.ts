@@ -7403,4 +7403,4 @@ export type {
     TransactionDetails,
     PartialReportAction,
     ParsingDetails,
-}
+};
