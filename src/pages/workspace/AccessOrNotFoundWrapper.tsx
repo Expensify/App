@@ -6,6 +6,7 @@ import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPage
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -20,7 +21,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useNetwork from '@hooks/useNetwork';
 
 const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy),
