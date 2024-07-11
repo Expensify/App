@@ -2,26 +2,41 @@ import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
-type TableListItemSkeletonProps = {
+type SearchRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
+    gradientOpacityEnabled?: boolean;
 };
 
-const barHeight = '10';
-const shortBarWidth = '40';
-const longBarWidth = '120';
+const barHeight = 8;
+const longBarWidth = 120;
+const leftPaneWidth = variables.sideBarWidth;
 
-function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListItemSkeletonProps) {
+// 12 is the gap between the element and the right button
+const gapWidth = 12;
+
+// 80 is the width of the element itself
+const rightSideElementWidth = 80;
+
+// 24 is the padding of the central pane summing two sides
+const centralPanePadding = 40;
+
+// 80 is the width of the button on the right side
+const rightButtonWidth = 80;
+
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
     if (isSmallScreenWidth) {
         return (
             <ItemListSkeletonView
                 itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
                 itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
+                gradientOpacityEnabled={gradientOpacityEnabled}
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 renderSkeletonItem={() => (
@@ -51,7 +66,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                             height={4}
                         />
                         <Rect
-                            x={windowWidth - 120}
+                            x={windowWidth - 130}
                             y={12}
                             width={80}
                             height={28}
@@ -80,13 +95,13 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                             height={8}
                         />
                         <Rect
-                            x={windowWidth - 120}
+                            x={windowWidth - 130}
                             y={65}
                             width={80}
                             height={8}
                         />
                         <Rect
-                            x={windowWidth - 100}
+                            x={windowWidth - 110}
                             y={79}
                             width={60}
                             height={8}
@@ -96,49 +111,69 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
             />
         );
     }
+
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
+            gradientOpacityEnabled={gradientOpacityEnabled}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
             renderSkeletonItem={() => (
                 <>
                     <Rect
-                        x="20"
-                        y="10"
-                        rx="5"
-                        ry="5"
-                        width="40"
-                        height="40"
+                        x={12}
+                        y={12}
+                        rx={5}
+                        ry={5}
+                        width={36}
+                        height={40}
                     />
                     <Rect
-                        x="80"
-                        y="25"
-                        width={shortBarWidth}
+                        x={60}
+                        y={28}
+                        width={30}
                         height={barHeight}
                     />
                     <Rect
-                        x="150"
-                        y="25"
+                        x={102}
+                        y={28}
                         width={longBarWidth}
                         height={barHeight}
                     />
+                    {isLargeScreenWidth && (
+                        <>
+                            <Rect
+                                x={234}
+                                y={28}
+                                width={longBarWidth}
+                                height={barHeight}
+                            />
+
+                            <Rect
+                                x={366}
+                                y={28}
+                                width={60}
+                                height={barHeight}
+                            />
+                        </>
+                    )}
+
                     <Rect
-                        x="320"
-                        y="25"
-                        width={longBarWidth}
+                        // We have to calculate this value to make sure the element is aligned to the button on the right side.
+                        x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
+                        y={28}
+                        width={80}
                         height={barHeight}
                     />
+
                     <Rect
-                        x="480"
-                        y="25"
-                        width={longBarWidth}
-                        height={barHeight}
-                    />
-                    <Rect
-                        x="660"
-                        y="25"
-                        width="100%"
-                        height={barHeight}
+                        // We have to calculate this value to make sure the element is aligned to the right border.
+                        x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
+                        y={18}
+                        rx={15}
+                        ry={15}
+                        width={80}
+                        height={28}
                     />
                 </>
             )}
@@ -146,6 +181,6 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
     );
 }
 
-TableListItemSkeleton.displayName = 'TableListItemSkeleton';
+SearchRowSkeleton.displayName = 'SearchRowSkeleton';
 
-export default TableListItemSkeleton;
+export default SearchRowSkeleton;

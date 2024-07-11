@@ -4002,11 +4002,19 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
-function getIOUSubmittedMessage(reportID: string) {
+function getFormattedAmount(reportID: string) {
     const report = getReportOrDraftReport(reportID);
     const linkedReport = isChatThread(report) ? getParentReport(report) : report;
     const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
-    return Localize.translateLocal('iou.submittedAmount', {formattedAmount});
+    return formattedAmount;
+}
+
+function getIOUSubmittedMessage(reportID: string) {
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportID)});
+}
+
+function getIOUApprovedMessage(reportID: string) {
+    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
 }
 
 /**
@@ -7167,6 +7175,7 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getIOUApprovedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
