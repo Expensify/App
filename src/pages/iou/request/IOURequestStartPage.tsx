@@ -96,8 +96,7 @@ function IOURequestStartPage({
         if (transaction?.reportID === reportID) {
             return;
         }
-        const shouldKeepExistingData = !!transaction?.isFromGlobalCreate && transaction?.iouRequestType === transactionRequestType.current;
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, shouldKeepExistingData, transactionRequestType.current);
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -113,7 +112,7 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, false, newIOUType);
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction],
     );

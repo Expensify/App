@@ -324,13 +324,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * @param shouldKeepExistingData
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest(
-    reportID: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    isFromGlobalCreate: boolean,
-    shouldKeepExistingData: boolean,
-    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-) {
+function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -338,8 +332,12 @@ function initMoneyRequest(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
 
-    // In case we should keep existing transaction data, we only need to update the reportID, isFromGlobalCreate, created and currency
-    if (shouldKeepExistingData) {
+    const currentTransaction = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`];
+
+    // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
+    // we should keep most of the existing data by using the ONYX MERGE operation
+    if (currentTransaction?.iouRequestType === iouRequestType) {
+        // so, we just need to update the reportID, isFromGlobalCreate, created, currency
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
