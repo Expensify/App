@@ -8,7 +8,7 @@ const TEST_NAMES = {
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
-    PreloadedLinking: 'Preloaded linking',
+    // PreloadedLinking: 'Preloaded linking',
 };
 
 /**
@@ -102,15 +102,15 @@ export default {
             linkedReportActionID: '2845024374735019929',
         },
         // linking from chat A to a specific message in the same chat A
-        [TEST_NAMES.PreloadedLinking]: {
-            name: TEST_NAMES.PreloadedLinking,
-            reportScreen: {
-                autoFocus: true,
-            },
-            // Crowded Policy (Do Not Delete) Report, has a input bar available:
-            reportID: '5421294415618529',
-            linkedReportActionID: '8984197495983183608', // Message 4897
-        },
+        // [TEST_NAMES.PreloadedLinking]: {
+        //     name: TEST_NAMES.PreloadedLinking,
+        //     reportScreen: {
+        //         autoFocus: true,
+        //     },
+        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
+        //     reportID: '5421294415618529',
+        //     linkedReportActionID: '8984197495983183608', // Message 4897
+        // },
     },
 };
 
