@@ -5226,6 +5226,18 @@ const CONST = {
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
             AMOUNT: 'amount',
+            EXPENSE_TYPE: 'expenseType',
+            CURRENCY: 'currency',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TAX_RATE: 'taxRate',
+            CARD_ID: 'cardID',
+            REPORT_ID: 'reportID',
+            KEYWORD: 'keyword', 
         },
     },
 
