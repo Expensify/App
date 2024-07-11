@@ -2454,7 +2454,7 @@ export default {
             },
             import: {
                 expenseCategories: 'Expense categories',
-                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                expenseCategoriesDescription: 'Your NetSuite expense categories will import into Expensify as categories.',
                 crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
                 importFields: {
                     departments: {
@@ -2590,7 +2590,7 @@ export default {
             toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
             toggleImportTitleSecondPart: ' in Expensify.',
             expenseTypes: 'Expense types',
-            expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
+            expenseTypesDescription: 'Your Sage Intacct expense types will import into Expensify as categories.',
             importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
             userDefinedDimensions: 'User-defined dimensions',
             addUserDefinedDimension: 'Add user-defined dimension',
