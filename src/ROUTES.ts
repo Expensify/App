@@ -540,10 +540,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CARD_RECONCILIATION: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/card-reconciliation',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/card-reconciliation` as const,
-    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const,
