@@ -1345,6 +1345,8 @@ function handleReportChanged(report: OnyxEntry<Report>) {
                 preexistingReportID: report.preexistingReportID,
                 callback,
             });
+
+            return;
         }
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
