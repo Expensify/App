@@ -25,14 +25,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldValueSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
+type ReportFieldsValueSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
 
-function ReportFieldValueSettingsPage({
+function ReportFieldsValueSettingsPage({
     policy,
     route: {
         params: {policyID, valueIndex, reportFieldID},
     },
-}: ReportFieldValueSettingsPageProps) {
+}: ReportFieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
@@ -81,7 +81,7 @@ function ReportFieldValueSettingsPage({
     };
 
     const navigateToEditValue = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.getRoute(policyID, valueIndex));
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_EDIT_VALUE.getRoute(policyID, valueIndex));
     };
 
     return (
@@ -93,7 +93,7 @@ function ReportFieldValueSettingsPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={ReportFieldValueSettingsPage.displayName}
+                testID={ReportFieldsValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={currentValueName}
@@ -139,6 +139,6 @@ function ReportFieldValueSettingsPage({
     );
 }
 
-ReportFieldValueSettingsPage.displayName = 'ReportFieldValueSettingsPage';
+ReportFieldsValueSettingsPage.displayName = 'ReportFieldsValueSettingsPage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldValueSettingsPage);
+export default withPolicyAndFullscreenLoading(ReportFieldsValueSettingsPage);
