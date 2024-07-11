@@ -1,11 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {View, TextInput} from 'react-native';
+import type {TextInput, View} from 'react-native';
 import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
-type FocusRef = View | TextInput | null
+type FocusRef = View | TextInput | null;
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: FocusRef) => void;
 };
