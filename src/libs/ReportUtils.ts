@@ -610,6 +610,13 @@ function isDraftReport(reportID: string | undefined): boolean {
 }
 
 /**
+ * Returns the report
+ */
+function getReport(reportID: string): OnyxEntry<Report> {
+    return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+/**
  * Returns the parentReport if the given report is a thread
  */
 function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
@@ -7380,6 +7387,7 @@ export {
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
     getMostRecentlyVisitedReport,
+    getReport,
 };
 
 export type {
