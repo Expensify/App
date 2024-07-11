@@ -3493,6 +3493,7 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
+        selectMultiple: 'Seleccionar múltiples',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         searchResults: {
             emptyResults: {
