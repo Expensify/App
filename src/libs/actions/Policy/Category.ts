@@ -2,7 +2,7 @@ import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams} from '@libs/API/parameters';
+import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams, UpdatePolicyCategoryGLCodeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -399,6 +399,74 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE, parameters, onyxData);
 }
 
+function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': glCode,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': null,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': glCode,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateGLCodeFailureMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyCategoryGLCodeParams = {
+        policyID,
+        categoryName,
+        glCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -687,6 +755,7 @@ export {
     setPolicyCategoryPayrollCode,
     createPolicyCategory,
     renamePolicyCategory,
+    setPolicyCategoryGLCode,
     clearCategoryErrors,
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,

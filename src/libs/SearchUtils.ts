@@ -11,6 +11,7 @@ import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -301,7 +302,29 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
+function getQueryHashFromString(query: string): number {
+    return UserUtils.hashText(query, 2 ** 32);
+}
+
+type JSONQuery = {
+    input: string;
+    hash: number;
+};
+
+function buildJSONQuery(query: string) {
+    try {
+        // Add the full input and hash to the results
+        const result = searchParser.parse(query) as JSONQuery;
+        result.input = query;
+        result.hash = getQueryHashFromString(query);
+        return result;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 export {
+    buildJSONQuery,
     getListItem,
     getQueryHash,
     getSections,

@@ -170,6 +170,7 @@ export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspace
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
+export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
@@ -211,6 +212,7 @@ export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
 export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
+export type {default as UpdatePolicyTagGLCodeParams} from './UpdatePolicyTagGLCodeParams';
 export type {default as AddSubscriptionPaymentCardParams} from './AddSubscriptionPaymentCardParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
