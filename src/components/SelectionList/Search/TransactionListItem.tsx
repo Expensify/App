@@ -15,6 +15,7 @@ function TransactionListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError,
     onFocus,
+    onLongPressRow,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -22,7 +23,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth} = useWindowDimensions();
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, styles.ph3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const listItemWrapperStyle = [
         styles.flex1,
@@ -46,6 +47,7 @@ function TransactionListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
@@ -59,6 +61,7 @@ function TransactionListItem<TItem extends ListItem>({
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
+                shouldShowTransactionCheckbox={false}
             />
         </BaseListItem>
     );
