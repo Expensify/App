@@ -79,6 +79,12 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
 
+type SearchNavigatorParamList = {
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: undefined;
+    [SCREENS.SEARCH.REPORT_RHP]: undefined;
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
@@ -1110,6 +1116,8 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
+type BottomTabScreensParamList = {[SCREENS.HOME]: undefined; [SCREENS.REPORT]: undefined} & SearchNavigatorParamList & SettingsNavigatorParamList;
+
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: {
@@ -1208,6 +1216,8 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
+type BottomTabScreenName = keyof BottomTabScreensParamList;
+
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
@@ -1225,6 +1235,8 @@ export type {
     CentralPaneName,
     BackToParams,
     BottomTabName,
+    BottomTabScreenName,
+    BottomTabScreensParamList,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
@@ -1255,6 +1267,7 @@ export type {
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
+    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     FeatureTrainingNavigatorParamList,
