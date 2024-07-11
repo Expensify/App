@@ -70,7 +70,7 @@ function ReportListItem<TItem extends ListItem>({
         return;
     }
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, styles.ph3];
 
     const handleOnButtonPress = () => {
         onSelectRow(item);
