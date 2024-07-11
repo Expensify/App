@@ -23,7 +23,7 @@ type SearchHeaderProps = {
     selectedItems?: SelectedTransactions;
     clearSelectedItems?: () => void;
     hash: number;
-    onSelectDeleteOption: (itemsToDelete: string[]) => void;
+    onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
@@ -60,7 +60,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => onSelectDeleteOption(itemsToDelete),
+                onSelected: () => onSelectDeleteOption?.(itemsToDelete),
             });
         }
 
