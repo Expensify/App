@@ -47,25 +47,18 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-
-    const getTranslationForCta = useCallback(() => {
-        switch (reimbursementAccountStatus) {
-            case CONST.BANK_ACCOUNT.STATE.VERIFYING:
-            case CONST.BANK_ACCOUNT.STATE.SETUP:
-            case CONST.BANK_ACCOUNT.STATE.VALIDATING:
-                return 'workspace.expensifyCard.finishSetup';
-            default:
-                return 'workspace.expensifyCard.issueNewCard';
-        }
-    }, [reimbursementAccountStatus]);
+    const isSetupUnfinished =
+        reimbursementAccountStatus === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
+        reimbursementAccountStatus === CONST.BANK_ACCOUNT.STATE.SETUP ||
+        reimbursementAccountStatus === CONST.BANK_ACCOUNT.STATE.VALIDATING;
 
     const startFlow = useCallback(() => {
-        if (isEmptyObject(bankAccountList)) {
+        if (isEmptyObject(bankAccountList) || isSetupUnfinished) {
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policy?.id, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1')));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id ?? '-1'));
         }
-    }, [bankAccountList, policy?.id]);
+    }, [isSetupUnfinished, bankAccountList, policy?.id]);
 
     return (
         <WorkspacePageWithSections
@@ -81,7 +74,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     menuItems={expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={translate(getTranslationForCta())}
+                    ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={startFlow}
                     illustrationBackgroundColor={theme.fallbackIconColor}
