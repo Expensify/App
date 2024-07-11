@@ -7,11 +7,13 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,6 +37,7 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -75,7 +78,20 @@ function WorkspaceCreateTaxPage({
             >
                 <FullPageNotFoundView shouldShow={PolicyUtils.hasAccountingConnections(policy)}>
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
-                        <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
+                        <HeaderWithBackButton
+                            title={translate('workspace.taxes.addRate')}
+                            shouldShowThreeDotsButton
+                            threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                            threeDotsMenuItems={[
+                                {
+                                    icon: Expensicons.Trashcan,
+                                    text: translate('distance.deleteWaypoint'),
+                                    onSelected: () => {
+                                        console.log('test');
+                                    },
+                                },
+                            ]}
+                        />
                         <FormProvider
                             style={[styles.flexGrow1, styles.mh5]}
                             formID={ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM}
@@ -98,8 +114,8 @@ function WorkspaceCreateTaxPage({
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                 />
-                                <InputWrapper
-                                    InputComponent={AmountPicker}
+
+                                <AmountPicker
                                     inputID={INPUT_IDS.VALUE}
                                     title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                                     description={translate('workspace.taxes.value')}

@@ -11,12 +11,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import Checkbox from './Checkbox';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import Switch from './Switch';
 import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
@@ -89,7 +91,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
-    headerText,
+    headerText = 'test',
     fromSidebarMediumScreen,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -213,7 +215,25 @@ function PopoverMenu({
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
+                    {/* <View style={[styles.flex0, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
+                        <Text
+                            style={[
+                                {
+                                    fontSize: 15,
+                                    fontWeight: 400,
+                                    lineHeight: 20,
+                                },
+                            ]}
+                        >
+                            Approval limits
+                        </Text>
+                        <Switch isOn />
+                    </View> */}
+
+                    {/* {!!headerText && enteredSubMenuIndexes.length === 0 && (
+                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>Require additional approval when expense reports exceed one or multiple spend thresholds.</Text>
+                    )} */}
+
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem

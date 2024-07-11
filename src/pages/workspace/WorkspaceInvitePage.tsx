@@ -207,7 +207,6 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => OptionsListUtils.formatMemberForList(item));
 
         sectionsArr.push({
-            title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !isEmptyObject(personalDetailsFormatted),
         });

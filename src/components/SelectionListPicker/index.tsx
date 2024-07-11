@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import AmountSelectorModal from './AmountSelectorModal';
+import AmountSelectorModal from './SelectionListSelectorModal';
 import type {AmountPickerProps} from './types';
 <AmountPicker/>
 function AmountPicker({value, description, title, errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: AmountPickerProps, forwardedRef: ForwardedRef<View>) {
