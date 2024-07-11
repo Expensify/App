@@ -607,7 +607,7 @@ export default {
         saveTheWorld: 'Save the world',
     },
     allSettingsScreen: {
-        subscriptions: 'Subscriptions',
+        subscription: 'Subscription',
         cardsAndDomains: 'Cards & Domains',
     },
     tabSelector: {
@@ -1469,7 +1469,6 @@ export default {
             title: 'What do you want to do today?',
             errorSelection: 'Please make a selection to continue.',
             errorContinue: 'Please press continue to get set up.',
-            errorBackButton: 'Please finish the setup questions to start using the app.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -3983,6 +3982,10 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
+            },
+            trialEnded: {
+                title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },

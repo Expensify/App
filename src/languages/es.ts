@@ -600,7 +600,7 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     allSettingsScreen: {
-        subscriptions: 'Suscripciones',
+        subscription: 'Suscripcion',
         cardsAndDomains: 'Tarjetas y Dominios',
     },
     tabSelector: {
@@ -1479,7 +1479,6 @@ export default {
             title: '¿Qué quieres hacer hoy?',
             errorSelection: 'Por favor selecciona una opción para continuar.',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
-            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -4500,6 +4499,10 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            trialEnded: {
+                title: 'Tu prueba gratuita ha terminado',
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
         },

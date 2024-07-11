@@ -439,6 +439,7 @@ type OptionData = {
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
+    isConciergeChat?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -2837,7 +2838,9 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning && !!transaction?.reimbursable;
-    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus))) && !!transaction?.reimbursable;
+    const canUnholdRequest =
+        !!(canHoldOrUnholdRequest && isOnHold && !TransactionUtils.isDuplicate(transaction.transactionID, true) && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus))) &&
+        !!transaction?.reimbursable;
 
     return {canHoldRequest, canUnholdRequest};
 }
@@ -7087,13 +7090,15 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * Whether the report is a system chat or concierge chat, depending on the onboarding report ID or fallbacking
  * to the user's account ID (used for A/B testing purposes).
  */
-function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
+function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
     // onboarding can be an array for old accounts and accounts created from olddot
     if (!Array.isArray(onboarding) && onboarding?.chatReportID === report?.reportID) {
         return true;
     }
 
-    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1) ? isSystemChat(report) : isConciergeChatReport(report);
+    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
+        ? isSystemChat(optionOrReport)
+        : (optionOrReport as OptionData).isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
