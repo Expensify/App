@@ -7081,7 +7081,9 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * Whether the report is a system chat or concierge chat, depending on the user's account ID (used for A/B testing purposes).
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
-    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1) ? isSystemChat(optionOrReport) : ((optionOrReport as OptionData).isConciergeChat ?? isConciergeChatReport(optionOrReport));
+    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
+        ? isSystemChat(optionOrReport)
+        : (optionOrReport as OptionData).isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
