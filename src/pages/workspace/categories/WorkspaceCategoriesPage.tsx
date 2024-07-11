@@ -38,6 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyOption = ListItem & {
@@ -60,6 +61,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const sortedPolicyCategories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
@@ -81,10 +83,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         setSelectedCategories({});
     }, [isFocused]);
-    const a = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare)
+
     const categoryList = useMemo<PolicyOption[]>(
         () =>
-            lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare).map((value) => {
+            sortedPolicyCategories.map((value) => {
                 const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 return {
                     text: value.name,
@@ -96,7 +98,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 };
             }),
-        [policyCategories, selectedCategories, translate],
+        [sortedPolicyCategories, selectedCategories, translate],
     );
 
     const toggleCategory = (category: PolicyOption) => {

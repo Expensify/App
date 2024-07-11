@@ -992,7 +992,7 @@ function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
 function sortCategories(categories: Record<string, Category>): Category[] {
     const categoriesList = Object.values(categories);
     // Sorts categories alphabetically by name.
-    const sortedCategories = lodashSortBy(categoriesList, 'name', localeCompare);
+    const sortedCategories = lodashSortBy(categoriesList, 'name', localeCompare) as Category[];
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};
