@@ -454,8 +454,8 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
 
     if (ReportUtils.isPolicyExpenseChat(report)) {
         if (policy?.description) {
-            welcomeMessage.messageText = Parser.htmlToText(policy.description);
             welcomeMessage.messageHtml = policy.description;
+            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
