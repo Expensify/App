@@ -307,7 +307,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]
                 : []),
-            ...(!isEmptyObject(policy?.connections) || shouldShowSynchronizationError
+            ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
                       {
