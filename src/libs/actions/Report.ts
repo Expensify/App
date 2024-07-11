@@ -211,13 +211,6 @@ Onyx.connect({
     },
 });
 
-let reports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (reports = value),
-});
-
 const draftNoteMap: OnyxCollection<string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
@@ -1400,8 +1393,8 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             lastActorAccountID,
         };
     }
-    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(ReportActionsUtils.getReportActionMessage(reportAction)?.html ?? '');
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
         const latestMentioneReportAction = Object.values(reportActionsForReport ?? {}).find(
