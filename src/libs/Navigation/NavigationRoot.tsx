@@ -87,6 +87,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
+        // if (!hasCompletedGuidedSetupFlow && authenticated) {
         if (!hasCompletedGuidedSetupFlow) {
             const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
             return adaptedState;
