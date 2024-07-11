@@ -359,7 +359,8 @@ function ReportActionsList({
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [clearLinkedReportActionID, reportScrollManager],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
