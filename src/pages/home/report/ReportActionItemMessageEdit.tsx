@@ -41,7 +41,6 @@ import * as ComposerActions from '@userActions/Composer';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -118,7 +117,6 @@ function ReportActionItemMessageEdit(
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
-    const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
@@ -230,19 +228,6 @@ function ReportActionItemMessageEdit(
     );
 
     /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
-        () =>
-            lodashDebounce(() => {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
-                insertedEmojis.current = [];
-            }, 1000),
-        [],
-    );
-
-    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} newDraftInput
@@ -251,13 +236,6 @@ function ReportActionItemMessageEdit(
         (newDraftInput: string) => {
             const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
-            if (emojis?.length > 0) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis?.length > 0) {
-                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-            }
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
@@ -278,7 +256,7 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {

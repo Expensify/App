@@ -7,8 +7,20 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteAccount, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {
+    ConnectionLastSync,
+    Connections,
+    CustomUnit,
+    NetSuiteAccount,
+    NetSuiteConnection,
+    NetSuiteCustomList,
+    NetSuiteCustomSegment,
+    PolicyFeatureName,
+    Rate,
+    Tenant,
+} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Localize from './Localize';
@@ -608,6 +620,20 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
+function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
+    return 'segmentName' in customField;
+}
+
+function getNameFromNetSuiteCustomField(customField: NetSuiteCustomList | NetSuiteCustomSegment): string {
+    return 'segmentName' in customField ? customField.segmentName : customField.listName;
+}
+
+function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
+    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
+    const fieldKey = fieldName as keyof typeof customField;
+    return fieldsAllowedToEdit.includes(fieldKey);
+}
+
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
     if (!connection) {
         return undefined;
@@ -780,6 +806,9 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    isNetSuiteCustomSegmentRecord,
+    getNameFromNetSuiteCustomField,
+    isNetSuiteCustomFieldPropertyEditable,
 };
 
 export type {MemberEmailsToAccountIDs};

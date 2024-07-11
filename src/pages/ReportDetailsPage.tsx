@@ -109,6 +109,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
@@ -263,6 +264,21 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
+    const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
+
+    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
+
+    const cancelPayment = useCallback(() => {
+        if (!chatReport) {
+            return;
+        }
+
+        IOU.cancelPayment(moneyRequestReport, chatReport);
+        setIsConfirmModalVisible(false);
+    }, [moneyRequestReport, chatReport]);
+
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
 
@@ -356,6 +372,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             }
         }
 
+        if (shouldShowCancelPaymentButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.CANCEL_PAYMENT,
+                icon: Expensicons.Trashcan,
+                translationKey: 'iou.cancelPayment',
+                isAnonymousAction: false,
+                action: () => setIsConfirmModalVisible(true),
+            });
+        }
+
         if (shouldShowLeaveButton) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -403,6 +429,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
+        shouldShowCancelPaymentButton,
         isPolicyAdmin,
         session,
         leaveChat,
@@ -709,6 +736,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     prompt={translate('groupChat.lastMemberWarning')}
                     confirmText={translate('common.leave')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('iou.cancelPayment')}
+                    isVisible={isConfirmModalVisible}
+                    onConfirm={cancelPayment}
+                    onCancel={() => setIsConfirmModalVisible(false)}
+                    prompt={translate('iou.cancelPaymentConfirmation')}
+                    confirmText={translate('iou.cancelPayment')}
+                    cancelText={translate('common.dismiss')}
+                    danger
+                    shouldEnableNewFocusManagement
                 />
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense')}
