@@ -257,11 +257,11 @@ function MoneyRequestConfirmationList({
 
     const distance = useMemo(() => {
         const value = TransactionUtils.getDistance(transaction);
-        if (isMovingTransactionFromTrackExpense && unit) {
+        if (canUseP2PDistanceRequests && isMovingTransactionFromTrackExpense && unit && !TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
             return DistanceRequestUtils.convertToDistanceInMeters(value, unit);
         }
         return value;
-    }, [isMovingTransactionFromTrackExpense, unit, transaction]);
+    }, [isMovingTransactionFromTrackExpense, unit, transaction, canUseP2PDistanceRequests]);
     const prevDistance = usePrevious(distance);
 
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
