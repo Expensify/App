@@ -343,23 +343,23 @@ function ReportActionsList({
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const handleNewCurrenUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
             // If a new action is added and it's from the current user clear the yellow highlight
             // and scroll to the bottom otherwise leave the user positioned where they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
+            if (!isFromCurrentUser) {
                 return;
             }
-            InteractionManager.runAfterInteractions(() => {
-                clearLinkedReportActionID();
-                reportScrollManager.scrollToBottom();
-            });
+            clearLinkedReportActionID();
+            if (!hasNewestReportActionRef.current) {
+                return;
+            }
+            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportScrollManager],
+        [clearLinkedReportActionID, reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
