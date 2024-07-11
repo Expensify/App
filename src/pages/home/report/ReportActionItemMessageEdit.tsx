@@ -374,13 +374,13 @@ function ReportActionItemMessageEdit(
                 return;
             }
             const keyEvent = e as KeyboardEvent;
-            const isSuggestionActive = suggestionsRef.current?.checkIfSuggestionVisible();
+            const isSuggestionsMenuVisible = suggestionsRef.current?.getIsSuggestionsMenuVisible();
 
-            if (isSuggestionActive && keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+            if (isSuggestionsMenuVisible && keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                 suggestionsRef.current?.triggerHotkeyActions(keyEvent);
                 return;
             }
-            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && isSuggestionActive) {
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && isSuggestionsMenuVisible) {
                 e.preventDefault();
                 hideSuggestionMenu();
                 return;
@@ -426,6 +426,8 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(() => {
+        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+
         // eslint-disable-next-line react-compiler/react-compiler
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -558,7 +560,6 @@ function ReportActionItemMessageEdit(
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                         isGroupPolicyReport={false}
-                        // Input
                         value={draft}
                         setValue={setDraft}
                         selection={selection}

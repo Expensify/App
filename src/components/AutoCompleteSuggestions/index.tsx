@@ -22,15 +22,15 @@ const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean): numb
     }
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
-function isSuggestionRenderedAbove(isEnoughSpaceAboveForBig: boolean, isEnoughSpaceAboveForSmall: boolean): boolean {
-    return isEnoughSpaceAboveForBig || isEnoughSpaceAboveForSmall;
+function isSuggestionMenuRenderedAbove(isEnoughSpaceAboveForBigMenu: boolean, isEnoughSpaceAboveForSmallMenu: boolean): boolean {
+    return isEnoughSpaceAboveForBigMenu || isEnoughSpaceAboveForSmallMenu;
 }
 
-type IsEnoughSpaceAbove = Pick<MeasureParentContainerAndCursor, 'y' | 'cursorCoordinates' | 'scrollValue'> & {
+type IsEnoughSpaceToRenderMenuAboveCursor = Pick<MeasureParentContainerAndCursor, 'y' | 'cursorCoordinates' | 'scrollValue'> & {
     contentHeight: number;
     topInset: number;
 };
-function isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceAbove): boolean {
+function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
     return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
 }
 
@@ -50,7 +50,7 @@ const initialContainerState = {
 function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCursor = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const isInitialRender = React.useRef<boolean>(true);
-    const isSuggestionAboveRef = React.useRef<boolean>(false);
+    const isSuggestionMenuAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
     const prevLeftValue = React.useRef<number>(0);
     const {windowHeight, windowWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -89,7 +89,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
         measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates}: MeasureParentContainerAndCursor) => {
             const xCoordinatesOfCursor = x + cursorCoordinates.x;
-            const leftValueForBigScreen =
+            const bigScreenLeftOffset =
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
                     : xCoordinatesOfCursor;
@@ -98,24 +98,24 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
-            const isEnoughSpaceAboveForBig = isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
-            const isEnoughSpaceAboveForSmall = isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
+            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
+            const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
 
-            const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
+            const newLeftOffset = isSmallScreenWidth ? x : bigScreenLeftOffset;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
-            const isAdjustmentNeeded = Math.abs(prevLeftValue.current - leftValueForBigScreen) > 150;
+            const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
             if (isInitialRender.current || isAdjustmentNeeded) {
-                isSuggestionAboveRef.current = isSuggestionRenderedAbove(isEnoughSpaceAboveForBig, isEnoughSpaceAboveForSmall);
-                leftValue.current = newLeftValue;
+                isSuggestionMenuAboveRef.current = isSuggestionMenuRenderedAbove(isEnoughSpaceToRenderMenuAboveForBig, isEnoughSpaceToRenderMenuAboveForSmall);
+                leftValue.current = newLeftOffset;
                 isInitialRender.current = false;
-                prevLeftValue.current = newLeftValue;
+                prevLeftValue.current = newLeftOffset;
             }
 
             let measuredHeight = 0;
-            if (isSuggestionAboveRef.current && isEnoughSpaceAboveForBig) {
+            if (isSuggestionMenuAboveRef.current && isEnoughSpaceToRenderMenuAboveForBig) {
                 // calculation for big suggestion box above the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-            } else if (isSuggestionAboveRef.current && isEnoughSpaceAboveForSmall) {
+            } else if (isSuggestionMenuAboveRef.current && isEnoughSpaceToRenderMenuAboveForSmall) {
                 // calculation for small suggestion box above the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
             } else {

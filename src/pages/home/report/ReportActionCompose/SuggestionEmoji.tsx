@@ -194,7 +194,7 @@ function SuggestionEmoji(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
-    const checkIfSuggestionVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
+    const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
 
     useImperativeHandle(
         ref,
@@ -204,9 +204,9 @@ function SuggestionEmoji(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
-            checkIfSuggestionVisible,
+            getIsSuggestionsMenuVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, checkIfSuggestionVisible],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
