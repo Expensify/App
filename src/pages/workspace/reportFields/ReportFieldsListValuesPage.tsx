@@ -44,14 +44,14 @@ type ValueListItem = ListItem & {
     orderWeight?: number;
 };
 
-type ReportFieldListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
+type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
-function ReportFieldListValuesPage({
+function ReportFieldsListValuesPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldListValuesPageProps) {
+}: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -140,7 +140,7 @@ function ReportFieldListValuesPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
 
         setSelectedValues({});
     };
@@ -248,7 +248,7 @@ function ReportFieldListValuesPage({
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID, reportFieldID))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
             />
         );
     };
@@ -262,7 +262,7 @@ function ReportFieldListValuesPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={ReportFieldListValuesPage.displayName}
+                testID={ReportFieldsListValuesPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -313,6 +313,6 @@ function ReportFieldListValuesPage({
     );
 }
 
-ReportFieldListValuesPage.displayName = 'ReportFieldListValuesPage';
+ReportFieldsListValuesPage.displayName = 'ReportFieldsListValuesPage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldListValuesPage);
+export default withPolicyAndFullscreenLoading(ReportFieldsListValuesPage);
