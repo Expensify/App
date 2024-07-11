@@ -30,6 +30,7 @@ const SCREENS = {
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
+        TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
     SETTINGS: {
@@ -329,6 +330,7 @@ const SCREENS = {
             SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
+            RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
@@ -352,7 +354,7 @@ const SCREENS = {
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
-        REPORT_FIELD_SETTINGS: 'Workspace_ReportField_Settings',
+        REPORT_FIELDS_SETTINGS: 'Workspace_ReportFields_Settings',
         REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
         REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
         REPORT_FIELDS_ADD_VALUE: 'Workspace_ReportFields_AddValue',
