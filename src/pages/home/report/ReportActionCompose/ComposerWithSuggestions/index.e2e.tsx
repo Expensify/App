@@ -18,7 +18,7 @@ function IncrementRenderCount() {
 }
 
 function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef>) {
-    "use no memo";
+    'use no memo';
 
     // we rely on waterfall rendering in react, so we intentionally disable compiler
     // for this component. This file is only used for e2e tests, so it's okay to
