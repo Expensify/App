@@ -196,7 +196,7 @@ function peg$parse(input, options) {
   var peg$c18 = "taxRate";
   var peg$c19 = "card";
   var peg$c20 = "reportID";
-  var peg$c21 = "freeText";
+  var peg$c21 = "keyword";
   var peg$c22 = "sortBy";
   var peg$c23 = "sortOrder";
   var peg$c24 = "offset";
@@ -229,7 +229,7 @@ function peg$parse(input, options) {
   var peg$e19 = peg$literalExpectation("taxRate", false);
   var peg$e20 = peg$literalExpectation("card", false);
   var peg$e21 = peg$literalExpectation("reportID", false);
-  var peg$e22 = peg$literalExpectation("freeText", false);
+  var peg$e22 = peg$literalExpectation("keyword", false);
   var peg$e23 = peg$literalExpectation("sortBy", false);
   var peg$e24 = peg$literalExpectation("sortOrder", false);
   var peg$e25 = peg$literalExpectation("offset", false);
@@ -241,15 +241,26 @@ function peg$parse(input, options) {
 
   var peg$f0 = function(filters) { return applyDefaults(filters); };
   var peg$f1 = function(head, tail) {
-      return tail.reduce((result, [right, op]) => buildFilter(op, result, right), head);
+      const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null);
+      if (!allFilters.length) {
+      	return null;
+      }
+      return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     };
   var peg$f2 = function(field, op, value) {
-      if (!field && !op) {
-        return buildFilter('eq', 'freeText', value.trim());
-      } else {
-        const values = value.split(',');
-        return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter('eq', field, val.trim())), buildFilter('eq', field, values[0]));
+      if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
       }
+
+      if (!field && !op) {
+        return buildFilter('eq', 'keyword', value.trim());
+      }
+
+      const values = value.split(',');
+      const operatorValue = op ?? 'eq';
+
+      return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter(operatorValue, field, val.trim())), buildFilter(operatorValue, field, values[0]));
     };
   var peg$f3 = function() { return "eq"; };
   var peg$f4 = function() { return "neq"; };
@@ -273,7 +284,7 @@ function peg$parse(input, options) {
   var peg$f22 = function() { return "taxRate"; };
   var peg$f23 = function() { return "card"; };
   var peg$f24 = function() { return "reportID"; };
-  var peg$f25 = function() { return "freeText"; };
+  var peg$f25 = function() { return "keyword"; };
   var peg$f26 = function() { return "sortBy"; };
   var peg$f27 = function() { return "sortOrder"; };
   var peg$f28 = function() { return "offset"; };
@@ -444,18 +455,17 @@ function peg$parse(input, options) {
   }
 
   function peg$parsequery() {
-    var s0, s1, s2;
+    var s0, s1, s2, s3;
 
     s0 = peg$currPos;
     s1 = peg$parse_();
     s2 = peg$parsefilterList();
-    if (s2 !== peg$FAILED) {
-      peg$savedPos = s0;
-      s0 = peg$f0(s2);
-    } else {
-      peg$currPos = s0;
-      s0 = peg$FAILED;
+    if (s2 === peg$FAILED) {
+      s2 = null;
     }
+    s3 = peg$parse_();
+    peg$savedPos = s0;
+    s0 = peg$f0(s2);
 
     return s0;
   }
@@ -468,9 +478,9 @@ function peg$parse(input, options) {
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$currPos;
-      s4 = peg$parsefilter();
-      if (s4 !== peg$FAILED) {
-        s5 = peg$parselogicalAnd();
+      s4 = peg$parselogicalAnd();
+      s5 = peg$parsefilter();
+      if (s5 !== peg$FAILED) {
         s4 = [s4, s5];
         s3 = s4;
       } else {
@@ -480,9 +490,9 @@ function peg$parse(input, options) {
       while (s3 !== peg$FAILED) {
         s2.push(s3);
         s3 = peg$currPos;
-        s4 = peg$parsefilter();
-        if (s4 !== peg$FAILED) {
-          s5 = peg$parselogicalAnd();
+        s4 = peg$parselogicalAnd();
+        s5 = peg$parsefilter();
+        if (s5 !== peg$FAILED) {
           s4 = [s4, s5];
           s3 = s4;
         } else {
@@ -850,9 +860,9 @@ function peg$parse(input, options) {
                                   s0 = s1;
                                   if (s0 === peg$FAILED) {
                                     s0 = peg$currPos;
-                                    if (input.substr(peg$currPos, 8) === peg$c21) {
+                                    if (input.substr(peg$currPos, 7) === peg$c21) {
                                       s1 = peg$c21;
-                                      peg$currPos += 8;
+                                      peg$currPos += 7;
                                     } else {
                                       s1 = peg$FAILED;
                                       if (peg$silentFails === 0) { peg$fail(peg$e22); }
@@ -1102,6 +1112,14 @@ function peg$parse(input, options) {
       ...defaultValues,
       filters
     };
+  }
+  
+  function updateDefaultValues(field, value) {
+    defaultValues[field] = value;
+  }
+
+  function isDefaultField(field) {
+    return defaultValues.hasOwnProperty(field);
   }
 
   peg$result = peg$startRuleFunction();
