@@ -140,7 +140,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
         App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
         // We only care when the component renders the first time
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
