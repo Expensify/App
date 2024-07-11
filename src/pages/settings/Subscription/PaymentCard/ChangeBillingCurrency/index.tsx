@@ -22,6 +22,7 @@ function ChangeBillingCurrency() {
     const changeBillingCurrency = useCallback((currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
         if (values?.securityCode) {
             PaymentMethods.updateBillingCurrency(currency ?? CONST.PAYMENT_CARD_CURRENCY.USD, values.securityCode);
+            return;
         }
         Navigation.goBack();
     }, []);

@@ -75,6 +75,16 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         [changeBillingCurrency],
     );
 
+    const [formData] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+    const formDataComplete = formData?.isLoading === false && !formData.errors;
+    const prevFormDataComplete = usePrevious(formDataComplete);
+
+    useEffect(() => {
+        if (isSecurityCodeRequired && formDataComplete && !prevFormDataComplete) {
+            Navigation.goBack();
+        }
+    }, [formDataComplete, prevFormDataComplete, isSecurityCodeRequired]);
+
     if (isSecurityCodeRequired) {
         return (
             <FormProvider
