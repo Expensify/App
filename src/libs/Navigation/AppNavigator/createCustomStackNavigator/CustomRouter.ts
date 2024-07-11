@@ -102,6 +102,12 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 }
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
+    const isAuthenticated = Session.hasAuthToken();
+
+    if (!isAuthenticated) {
+        return false;
+    }
+
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
     }
@@ -120,7 +126,6 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const isAuthenticated = Session.hasAuthToken();
 
     return {
         ...stackRouter,
@@ -130,7 +135,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             return state;
         },
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
-            if (shouldPreventReset(state, action) && isAuthenticated) {
+            if (shouldPreventReset(state, action)) {
                 return state;
             }
             return stackRouter.getStateForAction(state, action, configOptions);
