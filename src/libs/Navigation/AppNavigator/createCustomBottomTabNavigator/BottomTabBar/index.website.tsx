@@ -54,7 +54,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && !isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
             return;
         }
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(getPathFromURL(initUrl ?? '')))});
+        const backTo = getPathFromURL(initUrl ?? '');
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo))});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
