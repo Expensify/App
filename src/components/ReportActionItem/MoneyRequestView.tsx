@@ -406,12 +406,13 @@ function MoneyRequestView({
                                 return;
                             }
                             if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
-                                    deleteTransaction(parentReport, parentReportAction);
-                                }
                                 const chatReportID = parentReport?.parentReportID ?? '';
                                 if (ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReportID)) {
                                     Report.navigateToConciergeChatAndDeleteReport(chatReportID, true);
+                                    return;
+                                }
+                                if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
+                                    deleteTransaction(parentReport, parentReportAction);
                                 }
                             }
                             Transaction.clearError(transaction.transactionID);
