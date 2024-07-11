@@ -139,7 +139,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             <OfflineWithFeedback
                 pendingAction={config?.pendingFields?.nonReimbursable}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
-                errorRowStyles={[styles.ph5]}
+                errorRowStyles={[styles.ph5, styles.pv3]}
                 onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
@@ -153,7 +153,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1]}
                 />
             </OfflineWithFeedback>
-            <View style={[styles.flexGrow1, styles.flexShrink1, styles.mt3]}>
+            <View style={[styles.flexGrow1, styles.flexShrink1]}>
                 {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && defaultVendor}
                 {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && (
                     <View>

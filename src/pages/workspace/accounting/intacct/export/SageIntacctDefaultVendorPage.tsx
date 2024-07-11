@@ -109,7 +109,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={config?.pendingFields?.[settingName]}
             errors={ErrorUtils.getLatestErrorField(config, settingName)}
-            errorRowStyles={[styles.ph5, styles.mv2]}
+            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, settingName)}
         />
     );

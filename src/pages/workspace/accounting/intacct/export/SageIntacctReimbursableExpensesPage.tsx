@@ -105,7 +105,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             <OfflineWithFeedback
                 pendingAction={config?.pendingFields?.reimbursable}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
-                errorRowStyles={[styles.ph5]}
+                errorRowStyles={[styles.ph5, styles.pv3]}
                 onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
