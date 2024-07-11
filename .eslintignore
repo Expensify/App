@@ -10,4 +10,4 @@ docs/vendor/**
 docs/assets/**
 web/gtm.js
 **/.expo/**
-src/libs/Search/searchParser.js
+src/libs/SearchParser/searchParser.js
