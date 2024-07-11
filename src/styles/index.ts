@@ -25,7 +25,6 @@ import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
-import highResolutionInfoPadding from './utils/highResolutionInfoPadding';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -261,7 +260,6 @@ const styles = (theme: ThemeColors) =>
         ...textDecorationLine,
         editedLabelStyles,
         emojiDefaultStyles,
-        highResolutionInfoPadding,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
