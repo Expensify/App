@@ -582,7 +582,7 @@ function getAllReportTransactions(reportID?: string, transactions?: OnyxCollecti
     // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
     // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
     const nonNullableTransactions = Object.values(transactions ?? allTransactions ?? {}).filter((transaction) => !!transaction);
-    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    return nonNullableTransactions.filter((transaction) => `${transaction?.reportID}` === `${reportID}`);
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
