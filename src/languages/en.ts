@@ -171,6 +171,7 @@ export default {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
+        review: 'Review',
         not: 'Not',
         signIn: 'Sign in',
         signInWithGoogle: 'Sign in with Google',
@@ -520,6 +521,7 @@ export default {
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
+        copyOnyxData: 'Copy Onyx data',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -1462,6 +1464,7 @@ export default {
             title: 'What do you want to do today?',
             errorSelection: 'Please make a selection to continue.',
             errorContinue: 'Please press continue to get set up.',
+            errorBackButton: 'Please finish the setup questions to start using the app.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -3055,6 +3058,8 @@ export default {
                             return 'Updating people list';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Updating report fields';
+                        case 'jobDone':
+                            return 'Waiting for imported data to load';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Syncing chart of accounts';
                         case 'xeroSyncImportCategories':
@@ -3121,6 +3126,13 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            reconciliationAccount: 'Reconciliation account',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
+                accountMatches: 'Make sure this account matches your ',
+                settlementAccount: 'Expensify Card settlement account ',
+                reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -4046,7 +4058,7 @@ export default {
         },
         paymentCard: {
             addPaymentCard: 'Add payment card',
-            enterPaymentCardDetails: 'Enter your payment card details.',
+            enterPaymentCardDetails: 'Enter your payment card details',
             security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
             learnMoreAboutSecurity: 'Learn more about our security.',
         },

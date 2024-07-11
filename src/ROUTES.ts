@@ -54,6 +54,11 @@ const ROUTES = {
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
+    TRANSACTION_HOLD_REASON_RHP: {
+        route: '/search/:query/hold/:transactionID',
+        getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
@@ -671,6 +676,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
@@ -792,30 +801,30 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
     },
-    WORKSPACE_REPORT_FIELD_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportField/:reportFieldID/edit',
-        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldID)}/edit` as const,
+    WORKSPACE_REPORT_FIELDS_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit` as const,
     },
-    WORKSPACE_REPORT_FIELD_LIST_VALUES: {
-        route: 'settings/workspaces/:policyID/reportField/listValues/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportField/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
+        route: 'settings/workspaces/:policyID/reportFields/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
-    WORKSPACE_REPORT_FIELD_ADD_VALUE: {
-        route: 'settings/workspaces/:policyID/reportField/addValue/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportField/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
-    WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportField/:valueIndex/:reportFieldID?',
+    WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
         getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
-            `settings/workspaces/${policyID}/reportField/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
+            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
-    WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
-        route: 'settings/workspaces/:policyID/reportField/new/:valueIndex/edit',
-        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportField/new/${valueIndex}/edit` as const,
+    WORKSPACE_REPORT_FIELDS_EDIT_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
     },
-    WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE: {
-        route: 'settings/workspaces/:policyID/reportField/:reportFieldID/edit/initialValue',
-        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+    WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
