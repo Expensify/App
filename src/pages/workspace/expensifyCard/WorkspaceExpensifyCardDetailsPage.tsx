@@ -16,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -58,7 +57,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card.availableSpend);
     const formattedLimit = CurrencyUtils.convertToDisplayString(card.nameValuePairs?.limit);
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
-    const translationForLimitType = getTranslationKeyForLimitType(card.nameValuePairs?.limitType);
+    const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card.nameValuePairs?.limitType);
 
     return (
         <AccessOrNotFoundWrapper
@@ -115,19 +114,19 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <MenuItemWithTopDescription
                                 description={translate('workspace.expensifyCard.cardLimit')}
                                 title={formattedLimit}
-                                shouldShowRightIcon={true}
+                                shouldShowRightIcon
                                 onPress={() => {}} // TODO: navigate to Edit card limit page https://github.com/Expensify/App/issues/44326
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.card.issueNewCard.limitType')}
                                 title={translationForLimitType ? translate(translationForLimitType) : ''}
-                                shouldShowRightIcon={true}
+                                shouldShowRightIcon
                                 onPress={() => {}} // TODO: navigate to Edit limit type page https://github.com/Expensify/App/issues/44328
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.card.issueNewCard.cardName')}
                                 title={card.nameValuePairs?.cardTitle}
-                                shouldShowRightIcon={true}
+                                shouldShowRightIcon
                                 onPress={() => {}} // TODO: navigate to Edit card name page https://github.com/Expensify/App/issues/44327
                             />
                             <MenuItem
