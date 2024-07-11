@@ -92,8 +92,6 @@ type MenuData = {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
-    subtitle?: string;
-    style?: StyleProp<ViewStyle>;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -211,8 +209,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 icon: Expensicons.CreditCard,
                 routeName: ROUTES.SETTINGS_SUBSCRIPTION,
                 brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                subtitle: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrialLabel') : undefined,
-                style: SubscriptionUtils.isUserOnFreeTrial() ? (styles.lhnSuccessText as StyleProp<ViewStyle>) : undefined,
+                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
+                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
             });
         }
 
@@ -335,8 +333,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
-                                subtitle={item.subtitle}
-                                style={item.style}
                             />
                         );
                     })}
