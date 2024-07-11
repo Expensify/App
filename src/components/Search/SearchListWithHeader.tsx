@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -7,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
@@ -71,7 +73,7 @@ function SearchListWithHeader(
 
         clearSelectedItems();
         setDeleteExpensesConfirmModalVisible(false);
-        // SearchActions.deleteMoneyRequestOnSearch(hash, selectedItemsToDelete);
+        SearchActions.deleteMoneyRequestOnSearch(hash, selectedItemsToDelete);
     };
 
     useEffect(() => {
@@ -189,7 +191,16 @@ function SearchListWithHeader(
                 onSelectAll={toggleAllTransactions}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
             />
-
+            <ConfirmModal
+                isVisible={deleteExpensesConfirmModalVisible}
+                onConfirm={handleDeleteExpenses}
+                onCancel={handleOnCancelConfirmModal}
+                title={translate('iou.deleteExpense')}
+                prompt={translate('iou.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}

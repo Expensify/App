@@ -59,13 +59,8 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 icon: Expensicons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {
-                    clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
-                    }
-                    SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
-                },
+                shouldCloseModalOnSelect: true,
+                onSelected: () => onSelectDeleteOption(itemsToDelete),
             });
         }
 
@@ -122,7 +117,19 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
         }
 
         return options;
-    }, [clearSelectedItems, hash, selectedItems, selectedItemsKeys, styles, theme, translate, isMobileSelectionModeActive, setIsMobileSelectionModeActive]);
+    }, [
+        selectedItemsKeys,
+        selectedItems,
+        translate,
+        onSelectDeleteOption,
+        clearSelectedItems,
+        isMobileSelectionModeActive,
+        hash,
+        setIsMobileSelectionModeActive,
+        theme.icon,
+        styles.colorMuted,
+        styles.fontWeightNormal,
+    ]);
 
     if (isSmallScreenWidth) {
         if (isMobileSelectionModeActive) {

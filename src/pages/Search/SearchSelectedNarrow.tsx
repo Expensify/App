@@ -43,7 +43,12 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                     <MenuItem
                         title={option.text}
                         icon={option.icon}
-                        onPress={option.onSelected}
+                        onPress={() => {
+                            if (option?.shouldCloseModalOnSelect) {
+                                closeMenu();
+                            }
+                            option?.onSelected?.();
+                        }}
                         key={option.value}
                     />
                 ))}
