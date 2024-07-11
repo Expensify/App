@@ -90,7 +90,7 @@ function IOURequestStepDistance({
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
-    const isEmptyCoordinates = !transaction?.routes?.route0?.geometry?.coordinates?.length
+    const isEmptyCoordinates = !transaction?.routes?.route0?.geometry?.coordinates?.length;
     const shouldFetchRoute = (isEmptyCoordinates || isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => !isEmpty(waypoints[key])).length, [waypoints]);
