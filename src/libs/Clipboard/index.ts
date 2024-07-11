@@ -115,7 +115,8 @@ const setHtml: SetHtml = (html: string, text: string) => {
         // See https://webkit.org/blog/10855/async-clipboard-api/ for more details.
         setHTMLSync(html, text);
     } else {
-        const htmlNonClosingTags = html.replace(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
+        const htmlNonClosingTags = html
+            .replace(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
             .replace(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
 
         navigator.clipboard.write([
