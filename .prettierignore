@@ -20,5 +20,5 @@ src/libs/E2E/reactNativeLaunchingTest.ts
 # Temporary while we keep react-compiler in our repo
 lib/**
 
-# Automatically generated file
-src/libs/Search/searchParser.js
+# Automatically generated files
+src/libs/SearchParser/searchParser.js
