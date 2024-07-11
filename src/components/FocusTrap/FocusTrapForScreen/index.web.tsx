@@ -43,17 +43,12 @@ function FocusTrapForScreen({children, testID}: FocusTrapProps) {
                 fallbackFocus: document.body,
                 delayInitialFocus: CONST.ANIMATED_TRANSITION + CONST.ANIMATION_IN_TIMING,
                 initialFocus: (focusTrapContainers) => {
-                    console.log(`*********** InitialFocus: ${testID} ***********`, focusTrapContainers, document.activeElement);
                     const hasFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
                     if (hasFocusedElementInsideContainer) {
                         return false;
                     }
                 },
-                onPostDeactivate: () => {
-                    console.log(`*********** OnPostDeactivate: ${testID} ***********`, document.activeElement);
-                },
-                setReturnFocus: (node, containers) => {
-                    console.log(`*********** SetReturnFocus: ${testID} ***********`, { node, containers }, document.activeElement);
+                setReturnFocus: (node) => {
                     if (document.activeElement !== document.body) {
                         return false;
                     }
