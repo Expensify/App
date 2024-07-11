@@ -1065,7 +1065,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
-    const participantAccountIDs = Object.keys(report?.participants ?? {});
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).filter((accountID) => Number(accountID) !== currentUserAccountID);
     return participantAccountIDs.length === 1 && Number(participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
@@ -4002,11 +4002,19 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
-function getIOUSubmittedMessage(reportID: string) {
+function getFormattedAmount(reportID: string) {
     const report = getReportOrDraftReport(reportID);
     const linkedReport = isChatThread(report) ? getParentReport(report) : report;
     const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
-    return Localize.translateLocal('iou.submittedAmount', {formattedAmount});
+    return formattedAmount;
+}
+
+function getIOUSubmittedMessage(reportID: string) {
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportID)});
+}
+
+function getIOUApprovedMessage(reportID: string) {
+    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
 }
 
 /**
@@ -5448,6 +5456,10 @@ function shouldReportBeInOptionList({
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
     if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1')) {
+        return false;
+    }
+
+    if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
         return false;
     }
 
@@ -7167,6 +7179,7 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getIOUApprovedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
