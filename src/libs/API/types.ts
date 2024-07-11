@@ -619,7 +619,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_CUSTOMERS_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_PROJECTS_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION]: Parameters.UpdateSageIntacctGenericTypeParams<'dimensions', SageIntacctDimension[]>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION]: Parameters.UpdateSageIntacctGenericTypeParams<'dimensions', string>;
 };
 
 const READ_COMMANDS = {
