@@ -40,40 +40,48 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
-        const errors: Errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
+            const errors: Errors = {};
 
-        if (typeof values.legalFirstName === 'string') {
-            if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.legalFirstName) {
-                errors.legalFirstName = 'common.error.fieldRequired';
-            } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                ErrorUtils.addErrorMessage(errors, 'legalFirstName', [
-                    'common.error.characterLimitExceedCounter',
-                    {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH},
-                ]);
+            if (typeof values.legalFirstName === 'string') {
+                if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+                } else if (!values.legalFirstName) {
+                    errors.legalFirstName = translate('common.error.fieldRequired');
+                } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                    ErrorUtils.addErrorMessage(
+                        errors,
+                        'legalFirstName',
+                        translate('common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
+                    );
+                }
+                if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('personalDetails.error.containsReservedWord'));
+                }
             }
-            if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
-            }
-        }
 
-        if (typeof values.legalLastName === 'string') {
-            if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.legalLastName) {
-                errors.legalLastName = 'common.error.fieldRequired';
-            } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
+            if (typeof values.legalLastName === 'string') {
+                if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+                } else if (!values.legalLastName) {
+                    errors.legalLastName = translate('common.error.fieldRequired');
+                } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                    ErrorUtils.addErrorMessage(
+                        errors,
+                        'legalLastName',
+                        translate('common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
+                    );
+                }
+                if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('personalDetails.error.containsReservedWord'));
+                }
             }
-            if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
-            }
-        }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper

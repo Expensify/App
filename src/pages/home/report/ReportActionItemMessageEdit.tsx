@@ -1,8 +1,8 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
@@ -26,9 +26,10 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
@@ -36,7 +37,6 @@ import * as ComposerActions from '@userActions/Composer';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -58,6 +58,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
+
+    /** Whether report is from group policy */
+    isGroupPolicyReport?: boolean;
 };
 
 // native ids
@@ -66,8 +69,11 @@ const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
+// video source -> video attributes
+const draftMessageVideoAttributeCache = new Map<string, string>();
+
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
@@ -98,14 +104,17 @@ function ReportActionItemMessageEdit(
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
-    const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '');
+        draftMessageVideoAttributeCache.clear();
+
+        const originalMessage = Parser.htmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), {
+            cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
+        });
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
@@ -174,7 +183,7 @@ function ReportActionItemMessageEdit(
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
         [action.reportActionID],
     );
 
@@ -204,19 +213,6 @@ function ReportActionItemMessageEdit(
     );
 
     /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
-        () =>
-            lodashDebounce(() => {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
-                insertedEmojis.current = [];
-            }, 1000),
-        [],
-    );
-
-    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} newDraftInput
@@ -225,13 +221,6 @@ function ReportActionItemMessageEdit(
         (newDraftInput: string) => {
             const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
-            if (emojis?.length > 0) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis?.length > 0) {
-                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-            }
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
@@ -250,12 +239,12 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     /**
@@ -296,7 +285,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -425,8 +414,10 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
+                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                            isGroupPolicyReport={isGroupPolicyReport}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>

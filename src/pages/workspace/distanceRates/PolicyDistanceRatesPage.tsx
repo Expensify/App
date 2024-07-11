@@ -100,19 +100,26 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
-            Object.values(customUnitRates).map((value) => ({
-                value: value.customUnitRateID ?? '',
-                text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
-                    `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
-                )}`,
-                keyForList: value.customUnitRateID ?? '',
-                isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
-                errors: value.errors ?? undefined,
-                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-            })),
-        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate],
+            Object.values(customUnitRates)
+                .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
+                .map((value) => ({
+                    value: value.customUnitRateID ?? '',
+                    text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+                        `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
+                    )}`,
+                    keyForList: value.customUnitRateID ?? '',
+                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
+                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction:
+                        value.pendingAction ??
+                        value.pendingFields?.rate ??
+                        value.pendingFields?.enabled ??
+                        value.pendingFields?.currency ??
+                        (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
+                    errors: value.errors ?? undefined,
+                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                })),
+        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction],
     );
 
     const addRate = () => {
@@ -194,7 +201,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
-                value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DELETE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: Expensicons.Trashcan,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? setIsDeleteModalVisible(true) : setIsWarningModalVisible(true)),
             },
@@ -204,7 +211,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         if (enabledRates.length > 0) {
             options.push({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
-                value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DISABLE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 icon: Expensicons.DocumentSlash,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : setIsWarningModalVisible(true)),
             });
@@ -214,7 +221,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         if (disabledRates.length > 0) {
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
-                value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.ENABLE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 icon: Expensicons.Document,
                 onSelected: enableRates,
             });

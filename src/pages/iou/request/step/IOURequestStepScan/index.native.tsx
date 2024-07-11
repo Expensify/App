@@ -59,7 +59,7 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
-    const hasFlash = device != null && device.hasFlash;
+    const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
@@ -124,6 +124,7 @@ function IOURequestStepScan({
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
+            // eslint-disable-next-line react-compiler/react-compiler
             focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
             focusIndicatorScale.value = 2;
             focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});

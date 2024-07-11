@@ -153,7 +153,7 @@ function AddPlaidBankAccount({
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -172,6 +172,7 @@ function AddPlaidBankAccount({
     }));
     const {icon, iconSize, iconStyles} = getBankIcon({styles});
     const plaidErrors = plaidData?.errors;
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors)[0] as string) : '';
     const bankName = plaidData?.bankName;
 
