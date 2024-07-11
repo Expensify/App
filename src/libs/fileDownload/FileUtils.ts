@@ -282,7 +282,7 @@ function getFileResolution(targetFile: FileObject | undefined): Promise<{width: 
 }
 
 function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
-    return resolution !== null && resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
+    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
 export {
