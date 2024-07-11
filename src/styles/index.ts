@@ -25,6 +25,7 @@ import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
+import highResolutionInfoPadding from './utils/highResolutionInfoPadding';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -43,7 +44,6 @@ import whiteSpace from './utils/whiteSpace';
 import wordBreak from './utils/wordBreak';
 import writingDirection from './utils/writingDirection';
 import variables from './variables';
-import highResolutionInfoPadding from './utils/highResolutionInfoPadding';
 
 type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
 type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;
