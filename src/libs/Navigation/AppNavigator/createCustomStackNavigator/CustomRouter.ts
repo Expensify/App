@@ -9,6 +9,7 @@ import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
+import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -119,6 +120,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
+    const isAuthenticated = Session.hasAuthToken();
 
     return {
         ...stackRouter,
@@ -128,7 +130,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             return state;
         },
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
-            if (shouldPreventReset(state, action)) {
+            if (shouldPreventReset(state, action) && isAuthenticated) {
                 return state;
             }
             return stackRouter.getStateForAction(state, action, configOptions);
