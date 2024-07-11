@@ -5237,7 +5237,7 @@ const CONST = {
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
-            KEYWORD: 'keyword', 
+            KEYWORD: 'keyword',
         },
     },
 
