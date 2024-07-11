@@ -219,7 +219,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription, styles, translate]);
+    }, [policies, privateSubscription, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, translate]);
 
     /**
      * Retuns a list of menu items data for general section
