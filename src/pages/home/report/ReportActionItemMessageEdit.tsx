@@ -396,15 +396,12 @@ function ReportActionItemMessageEdit(
         [deleteDraft, hideSuggestionMenu, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
-    const measureContainer = useCallback(
-        (callback: MeasureInWindowOnSuccessCallback) => {
-            if (!containerRef.current) {
-                return;
-            }
-            containerRef.current.measureInWindow(callback);
-        },
-        [],
-    );
+    const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
+        if (!containerRef.current) {
+            return;
+        }
+        containerRef.current.measureInWindow(callback);
+    }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
