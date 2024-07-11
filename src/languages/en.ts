@@ -3919,7 +3919,6 @@ export default {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         badge: {
             freeTrial: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
-            freeTrialLabel: 'Free trial',
         },
         billingBanner: {
             policyOwnerAmountOwed: {
