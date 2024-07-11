@@ -1,11 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import {useCallback, useEffect, useRef} from 'react';
+import lodashMemoize from 'lodash/memoize';
+import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -49,6 +50,9 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
 
+    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
+    const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
             if (SearchUtils.isTransactionListItemType(item)) {
@@ -69,8 +73,15 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         [isLargeScreenWidth],
     );
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const getItemHeightMemoized = lodashMemoize(
+        (item: TransactionListItemType | ReportListItemType) => getItemHeight(item),
+        (item) => {
+            // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
+            // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
+            const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
+            return `${hash}-${item.keyForList}-${screenSizeHash}`;
+        },
+    );
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
@@ -100,7 +111,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     query={query}
                     hash={hash}
                 />
-                <TableListItemSkeleton shouldAnimate />
+                <SearchRowSkeleton shouldAnimate />
             </>
         );
     }
@@ -196,7 +207,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             onSelectRow={openReport}
-            getItemHeight={getItemHeight}
+            getItemHeight={getItemHeightMemoized}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
@@ -206,7 +217,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             onEndReached={fetchMoreResults}
             listFooterContent={
                 isLoadingMoreItems ? (
-                    <TableListItemSkeleton
+                    <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
                     />

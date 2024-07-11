@@ -28,16 +28,16 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
-type CreateReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
-function CreateReportFieldPage({
+function CreateReportFieldsPage({
     policy,
     route: {
         params: {policyID},
     },
-}: CreateReportFieldPageProps) {
+}: CreateReportFieldsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
@@ -101,7 +101,7 @@ function CreateReportFieldPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={CreateReportFieldPage.displayName}
+                testID={CreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -179,7 +179,7 @@ function CreateReportFieldPage({
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reportFields.listValues')}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
                                 />
                             )}
                         </View>
@@ -190,6 +190,6 @@ function CreateReportFieldPage({
     );
 }
 
-CreateReportFieldPage.displayName = 'CreateReportFieldPage';
+CreateReportFieldsPage.displayName = 'CreateReportFieldsPage';
 
-export default withPolicyAndFullscreenLoading(CreateReportFieldPage);
+export default withPolicyAndFullscreenLoading(CreateReportFieldsPage);
