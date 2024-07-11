@@ -116,7 +116,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                     ListItem={RadioListItem}
                     showScrollIndicator
                     shouldShowTooltips={false}
-                    containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1]}
+                    containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}
                 />
             </OfflineWithFeedback>
             {reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT && (
