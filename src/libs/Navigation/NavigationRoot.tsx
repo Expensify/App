@@ -1,7 +1,6 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -9,14 +8,11 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {FSPage} from '@libs/Fullstory';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import linkingConfig from './linkingConfig';
@@ -81,37 +77,25 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {isSmallScreenWidth} = useWindowDimensions();
     const {setActiveWorkspaceID} = useActiveWorkspace();
 
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
-    });
+    const initialState = useMemo(
+        () => {
+            if (!lastVisitedPath) {
+                return undefined;
+            }
 
-    const initialState = useMemo(() => {
-        // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        if (!hasCompletedGuidedSetupFlow) {
-            const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
+            const path = initialUrl ? getPathFromURL(initialUrl) : null;
+
+            // For non-nullable paths we don't want to set initial state
+            if (path) {
+                return;
+            }
+
+            const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
             return adaptedState;
-        }
-
-        // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
-        if (!lastVisitedPath) {
-            return undefined;
-        }
-
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
-
-        // If the user opens the root of app "/" it will be parsed to empty string "".
-        // If the path is defined and different that empty string we don't want to modify the default behavior.
-        if (path) {
-            return;
-        }
-
-        // Otherwise we want to redirect the user to the last visited path.
-        const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
-        return adaptedState;
-
-        // The initialState value is relevant only on the first render.
+        },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+        [],
+    );
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(
