@@ -64,7 +64,6 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
-export type {default as UpdateFrequentlyUsedEmojisParams} from './UpdateFrequentlyUsedEmojisParams';
 export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
@@ -244,7 +243,7 @@ export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyReq
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
-export type {default as PolicyReportFieldsReplace} from './PolicyReportFieldsReplace';
+export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';

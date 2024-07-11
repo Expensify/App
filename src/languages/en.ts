@@ -522,6 +522,7 @@ export default {
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
+        copyOnyxData: 'Copy Onyx data',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -3128,6 +3129,13 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            reconciliationAccount: 'Reconciliation account',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
+                accountMatches: 'Make sure this account matches your ',
+                settlementAccount: 'Expensify Card settlement account ',
+                reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
         },
         export: {
             notReadyHeading: 'Not ready to export',
@@ -4064,7 +4072,7 @@ export default {
         },
         paymentCard: {
             addPaymentCard: 'Add payment card',
-            enterPaymentCardDetails: 'Enter your payment card details.',
+            enterPaymentCardDetails: 'Enter your payment card details',
             security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
             learnMoreAboutSecurity: 'Learn more about our security.',
         },
