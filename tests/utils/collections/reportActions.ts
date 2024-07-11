@@ -40,7 +40,6 @@ export default function createRandomReportAction(index: number): ReportAction {
             flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType)),
         ) as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportActionID: index.toString(),
-        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         actorAccountID: index,
         person: [
             {
