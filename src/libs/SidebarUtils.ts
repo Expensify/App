@@ -260,6 +260,7 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
+        isConciergeChat: false,
     };
 
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
@@ -305,6 +306,7 @@ function getOptionData({
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
+    result.isConciergeChat = ReportUtils.isConciergeChatReport(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
