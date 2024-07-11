@@ -1222,8 +1222,6 @@ type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
 
-type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
-
 type SwitchPolicyIDParams = {
     policyID?: string;
     route?: Routes;
@@ -1256,7 +1254,6 @@ export type {
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingModalNavigatorParamList,
-    OnboardingFlowName,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
