@@ -4614,7 +4614,7 @@ const styles = (theme: ThemeColors) =>
         selectionListPressableItemWrapper: {
             alignItems: 'center',
             flexDirection: 'row',
-            paddingHorizontal: 12,
+            paddingHorizontal: 16,
             paddingVertical: 16,
             marginHorizontal: 20,
             backgroundColor: theme.highlightBG,
