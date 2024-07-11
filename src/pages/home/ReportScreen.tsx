@@ -294,7 +294,7 @@ function ReportScreen({
         if (!sortedAllReportActions.length) {
             return [];
         }
-    
+
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionIDFromRoute);
     }, [reportActionIDFromRoute, sortedAllReportActions, reportActionPages]);
     const linkedAction = useMemo(
