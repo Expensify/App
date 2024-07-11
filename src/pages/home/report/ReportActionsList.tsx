@@ -329,7 +329,7 @@ function ReportActionsList({
         };
     }, [report.reportID]);
 
-    const clearHighLight = () => {
+    const clearLinkedReportActionID = () => {
         if (!linkedReportActionID || linkedReportActionID === '-1') {
             return;
         }
@@ -343,7 +343,7 @@ function ReportActionsList({
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleNewCurrenUserAction = useCallback(
@@ -354,7 +354,7 @@ function ReportActionsList({
                 return;
             }
             InteractionManager.runAfterInteractions(() => {
-                clearHighLight();
+                clearLinkedReportActionID();
                 reportScrollManager.scrollToBottom();
             });
         },
