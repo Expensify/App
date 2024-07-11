@@ -97,11 +97,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string 
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = getCurrencyDecimals(currency);
+    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
     return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
 }
 
@@ -125,9 +125,11 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         style: 'currency',
         currency: currencyWithFallback,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
     });
 }
 
@@ -175,9 +177,11 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         style: 'currency',
         currency,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
     })
         .filter((x) => x.type !== 'currency')
         .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)

@@ -5,6 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
@@ -550,6 +551,26 @@ Onyx.connect({
     },
 });
 
+let allReportMetadata: OnyxCollection<ReportMetadata>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportMetadata = value;
+    },
+});
+
+let isFirstTimeNewExpensifyUser = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    callback: (value) => {
+        isFirstTimeNewExpensifyUser = value ?? false;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1044,7 +1065,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
-    const participantAccountIDs = Object.keys(report?.participants ?? {});
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).filter((accountID) => Number(accountID) !== currentUserAccountID);
     return participantAccountIDs.length === 1 && Number(participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
@@ -1074,20 +1095,6 @@ function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAcco
  */
 function filterReportsByPolicyIDAndMemberAccountIDs(reports: Array<OnyxEntry<Report>>, policyMemberAccountIDs: number[] = [], policyID?: string) {
     return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID));
-}
-
-/**
- * Given an array of reports, return them sorted by the last read timestamp.
- */
-function sortReportsByLastRead(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
-    return reports
-        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
-        .sort((a, b) => {
-            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
-            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
-
-            return aTime.valueOf() - bTime.valueOf();
-        });
 }
 
 /**
@@ -1150,34 +1157,32 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function findLastAccessedReport(
-    reports: OnyxCollection<Report>,
-    ignoreDomainRooms: boolean,
-    policies: OnyxCollection<Policy>,
-    isFirstTimeNewExpensifyUser: boolean,
-    openOnAdminRoom = false,
-    reportMetadata: OnyxCollection<ReportMetadata> = {},
-    policyID?: string,
-    policyMemberAccountIDs: number[] = [],
-    excludeReportID?: string,
-): OnyxEntry<Report> {
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
+    const filteredReports = reports.filter(
+        (report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime),
+    );
+    return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
+}
+
+function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
 
-    let reportsValues = Object.values(reports ?? {});
+    const policyMemberAccountIDs = PolicyUtils.getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
+
+    const allReports = ReportConnection.getAllReports();
+    let reportsValues = Object.values(allReports ?? {});
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
-    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
-
     let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
-        adminReport = sortedReports.find((report) => {
+        adminReport = reportsValues.find((report) => {
             const chatType = getChatType(report);
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
@@ -1186,7 +1191,7 @@ function findLastAccessedReport(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
     if (shouldFilter) {
-        sortedReports = sortedReports.filter((report) => {
+        reportsValues = reportsValues.filter((report) => {
             if (excludeReportID && report?.reportID === excludeReportID) {
                 return false;
             }
@@ -1197,7 +1202,7 @@ function findLastAccessedReport(
             if (
                 ignoreDomainRooms &&
                 isDomainRoom(report) &&
-                getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE &&
+                getPolicyType(report, allPolicies) !== CONST.POLICY.TYPE.FREE &&
                 !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))
             ) {
                 return false;
@@ -1209,22 +1214,25 @@ function findLastAccessedReport(
 
     if (isFirstTimeNewExpensifyUser) {
         // Filter out the systemChat report from the reports list, as we don't want to drop the user into that report over Concierge when they first log in
-        sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
-        if (sortedReports.length === 1) {
-            return sortedReports[0];
+        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
+        if (reportsValues.length === 1) {
+            return reportsValues[0];
         }
 
-        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report));
+        return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
     }
 
     // If we only have two reports and one of them is the system chat, filter it out so we don't
     // overwrite showing the concierge chat
-    const hasSystemChat = sortedReports.find((report) => isSystemChat(report)) ?? false;
-    if (sortedReports.length === 2 && hasSystemChat) {
-        sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
+    const hasSystemChat = reportsValues.find((report) => isSystemChat(report)) ?? false;
+    if (reportsValues.length === 2 && hasSystemChat) {
+        reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
     }
 
-    return adminReport ?? sortedReports.at(-1);
+    // We are getting the last read report from the metadata of the report.
+    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+
+    return adminReport ?? lastRead;
 }
 
 /**
@@ -3994,11 +4002,19 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
-function getIOUSubmittedMessage(reportID: string) {
+function getFormattedAmount(reportID: string) {
     const report = getReportOrDraftReport(reportID);
     const linkedReport = isChatThread(report) ? getParentReport(report) : report;
     const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
-    return Localize.translateLocal('iou.submittedAmount', {formattedAmount});
+    return formattedAmount;
+}
+
+function getIOUSubmittedMessage(reportID: string) {
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportID)});
+}
+
+function getIOUApprovedMessage(reportID: string) {
+    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
 }
 
 /**
@@ -5143,7 +5159,7 @@ function buildTransactionThread(
         participantAccountIDs,
         getTransactionReportName(reportAction),
         undefined,
-        moneyRequestReport?.policyID,
+        moneyRequestReport?.policyID ?? '-1',
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -5440,6 +5456,10 @@ function shouldReportBeInOptionList({
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
     if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1')) {
+        return false;
+    }
+
+    if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
         return false;
     }
 
@@ -7189,6 +7209,7 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getIOUApprovedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
@@ -7361,7 +7382,6 @@ export {
     shouldShowFlagComment,
     shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
-    sortReportsByLastRead,
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
@@ -7380,6 +7400,7 @@ export {
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
     calcReportLastMessage,
+    getMostRecentlyVisitedReport,
 };
 
 export type {
