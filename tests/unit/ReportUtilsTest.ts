@@ -767,8 +767,8 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('sortReportsByLastRead', () => {
-        it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
+    describe('getMostRecentlyVisitedReport', () => {
+        it('should filter out report without reportID & lastReadTime and return the most recently visited report', () => {
             const reports: Array<OnyxEntry<Report>> = [
                 {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
                 {reportID: '2', lastReadTime: undefined},
@@ -778,12 +778,8 @@ describe('ReportUtils', () => {
                 {reportID: '6'},
                 undefined,
             ];
-            const sortedReports: Array<OnyxEntry<Report>> = [
-                {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
-                {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
-                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
-            ];
-            expect(ReportUtils.sortReportsByLastRead(reports, undefined)).toEqual(sortedReports);
+            const latestReport: OnyxEntry<Report> = {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'};
+            expect(ReportUtils.getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
         });
     });
 
