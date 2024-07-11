@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-index 96bba7d..6e0b439 100644
+index d34259d..a7f3639 100644
 --- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
 +++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-@@ -155,6 +155,11 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props oldProps:(cons
+@@ -141,6 +141,11 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props oldProps:(cons
    [self viewDidUpdateProps];
  }
  

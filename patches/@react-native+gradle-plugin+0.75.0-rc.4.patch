@@ -1,7 +1,7 @@
-diff --git a/node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt b/node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt
-index 6b07391..1ecdda7 100644
---- a/node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt
-+++ b/node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt
+diff --git a/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt b/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt
+index f30392d..ed87f85 100644
+--- a/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt
++++ b/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/tasks/internal/PreparePrefabHeadersTask.kt
 @@ -45,15 +45,9 @@ abstract class PreparePrefabHeadersTask : DefaultTask() {
          fs.copy {
            it.from(headerPath)

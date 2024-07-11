@@ -292,8 +292,8 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activesupport (>= 6.1.7.5, < 7.1.0)
-  cocoapods (= 1.15.2)
+  activesupport (>= 6.1.7.5, != 7.1.0)
+  cocoapods (>= 1.13, != 1.15.1, != 1.15.0)
   fastlane (~> 2)
   fastlane-plugin-aws_s3
   xcpretty (~> 0)
@@ -302,4 +302,4 @@ RUBY VERSION
    ruby 2.6.10p210
 
 BUNDLED WITH
-   2.4.14
+   2.4.19

@@ -59,7 +59,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         }
 
         // Force the app to LTR mode.
-        val sharedI18nUtilInstance = I18nUtil.getInstance()
+        val sharedI18nUtilInstance = I18nUtil.instance
         sharedI18nUtilInstance.allowRTL(applicationContext, false)
 
         // Start the "js_load" custom performance tracing metric. This timer is stopped by a native

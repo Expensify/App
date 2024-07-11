@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-index d03521c..83cacdf 100644
+index 43296c6..0d91033 100644
 --- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
 +++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-@@ -148,16 +148,18 @@ class ReactNativeModules {
+@@ -149,16 +149,18 @@ class ReactNativeModules {
    private ProviderFactory providers
    private String packageName
    private File root
@@ -22,20 +22,20 @@ index d03521c..83cacdf 100644
  
      def (nativeModules, reactNativeModulesBuildVariants, androidProject, reactNativeVersion) = this.getReactNativeConfig()
      this.reactNativeModules = nativeModules
-@@ -430,10 +432,10 @@ class ReactNativeModules {
+@@ -440,10 +442,10 @@ class ReactNativeModules {
       */
      def cliResolveScript = "try {console.log(require('@react-native-community/cli').bin);} catch (e) {console.log(require('react-native/cli').bin);}"
      String[] nodeCommand = ["node", "-e", cliResolveScript]
 -    def cliPath = this.getCommandOutput(nodeCommand, this.root)
 +    def cliPath = this.getCommandOutput(nodeCommand, this.rnRoot)
  
-     String[] reactNativeConfigCommand = ["node", cliPath, "config"]
+     String[] reactNativeConfigCommand = ["node", cliPath, "config", "--platform", "android"]
 -    def reactNativeConfigOutput = this.getCommandOutput(reactNativeConfigCommand, this.root)
 +    def reactNativeConfigOutput = this.getCommandOutput(reactNativeConfigCommand, this.rnRoot)
  
      def json
      try {
-@@ -503,7 +505,13 @@ class ReactNativeModules {
+@@ -513,7 +515,13 @@ class ReactNativeModules {
   */
  def projectRoot = rootProject.projectDir
  
