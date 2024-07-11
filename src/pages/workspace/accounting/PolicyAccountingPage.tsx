@@ -23,19 +23,23 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getSynchronizationErrorMessage, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isAuthenticationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -137,11 +141,25 @@ function accountingIntegrationData(
     }
 }
 
+function reconnectPolicyAccountingIntegration(policyID: string, environmentURL: string, integration: PolicyConnectionName) {
+    switch (integration) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            Link.openLink(getXeroSetupLink(policyID), environmentURL);
+            break;
+        default:
+            break;
+    }
+}
+
 function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
+    const {environmentURL} = useEnvironment();
     const {canUseNetSuiteIntegration, canUseSageIntacctIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -162,6 +180,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     );
 
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
+    const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+    const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
     const policyID = policy?.id ?? '-1';
     const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
 
@@ -177,19 +197,32 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            {
-                icon: Expensicons.Sync,
-                text: translate('workspace.accounting.syncNow'),
-                onSelected: () => syncConnection(policyID, connectedIntegration),
-                disabled: isOffline,
-            },
+            ...(!shouldShowEnterCredentials
+                ? [
+                      {
+                          icon: Expensicons.Sync,
+                          text: translate('workspace.accounting.syncNow'),
+                          onSelected: () => syncConnection(policyID, connectedIntegration),
+                          disabled: isOffline,
+                      },
+                  ]
+                : [
+                      {
+                          icon: Expensicons.Key,
+                          text: translate('workspace.accounting.enterCredentials'),
+                          onSelected: () => reconnectPolicyAccountingIntegration(policyID, environmentURL, connectedIntegration),
+                          disabled: isOffline,
+                          iconRight: Expensicons.NewWindow,
+                          shouldShowRightIcon: true,
+                      },
+                  ]),
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate, policyID, isOffline, connectedIntegration],
+        [isAuthenticationError, translate, isOffline, policyID, connectedIntegration, environmentURL],
     );
 
     useEffect(() => {
@@ -219,7 +252,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const synchronizationError = getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
         const shouldShowSynchronizationError = !!synchronizationError;
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
@@ -334,6 +366,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         policy,
         isSyncInProgress,
         connectedIntegration,
+        synchronizationError,
         policyID,
         translate,
         styles.sectionMenuItemTopDescription,

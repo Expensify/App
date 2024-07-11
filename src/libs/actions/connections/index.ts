@@ -273,4 +273,12 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
     }
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, getSynchronizationErrorMessage, syncConnection};
+function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return false;
+    }
+    const connection = policy?.connections?.[connectionName];
+    return connection?.lastSync?.isAuthenticationError === true;
+}
+
+export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, getSynchronizationErrorMessage, syncConnection, isAuthenticationError};
