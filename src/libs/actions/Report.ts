@@ -1,5 +1,6 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import {ExpensiMark, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -55,14 +56,16 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -92,7 +95,6 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
-    ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
@@ -220,13 +222,6 @@ Onyx.connect({
         const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
         draftNoteMap[reportID] = value;
     },
-});
-
-let reportMetadata: OnyxCollection<ReportMetadata> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-    waitForCollectionCallback: true,
-    callback: (value) => (reportMetadata = value),
 });
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
@@ -1498,21 +1493,19 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
-    const parser = new ExpensiMark();
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
 
-    const htmlForNewComment = parser.replace(newCommentText, {
+    const htmlForNewComment = Parser.replace(newCommentText, {
         extras: {videoAttributeCache},
     });
-    const removedLinks = parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
+    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
-    const parser = new ExpensiMark();
     const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
     if (!originalReportID || !originalReportAction) {
@@ -1523,7 +1516,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
-    const originalCommentMarkdown = parseHtmlToMarkdown(originalCommentHTML ?? '').trim();
+    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === textForNewComment) {
@@ -1531,14 +1524,14 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     }
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
 
-    const reportComment = parseHtmlToText(htmlForNewComment);
+    const reportComment = Parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
-        const autolinkFilter = {filterRules: parser.rules.map((rule) => rule.name).filter((name) => name !== 'autolink')};
-        parsedOriginalCommentHTML = parser.replace(originalCommentMarkdown, autolinkFilter);
+        const autolinkFilter = {filterRules: Parser.rules.map((rule) => rule.name).filter((name) => name !== 'autolink')};
+        parsedOriginalCommentHTML = Parser.replace(originalCommentMarkdown, autolinkFilter);
     }
 
     //  Delete the comment if it's empty
@@ -2551,28 +2544,47 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
-                    Session.signOutAndRedirectToSignIn(true);
-                    return;
-                }
+            Onyx.connect({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (onboarding) => {
+                    Navigation.waitForProtectedRoutes().then(() => {
+                        if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
+                            Session.signOutAndRedirectToSignIn(true);
+                            return;
+                        }
 
-                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                // which is already called when AuthScreens mounts.
-                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
-                    return;
-                }
+                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                        // which is already called when AuthScreens mounts.
+                        if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            return;
+                        }
 
-                if (shouldSkipDeepLinkNavigation(route)) {
-                    return;
-                }
+                        if (shouldSkipDeepLinkNavigation(route)) {
+                            return;
+                        }
 
-                if (isAuthenticated) {
-                    return;
-                }
+                        const state = navigationRef.getRootState();
+                        const currentFocusedRoute = findFocusedRoute(state);
+                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
 
-                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
+                        if (!hasCompletedGuidedSetupFlow) {
+                            return;
+                        }
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                            return;
+                        }
+
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    });
+                },
             });
         });
     });
@@ -2583,17 +2595,7 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(
-        ReportConnection.getAllReports(),
-        false,
-        undefined,
-        false,
-        false,
-        reportMetadata,
-        undefined,
-        [],
-        currentReport?.reportID,
-    )?.reportID;
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');

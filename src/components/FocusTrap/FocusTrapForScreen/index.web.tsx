@@ -39,6 +39,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
 
     useFocusEffect(
         useCallback(() => {
+            // eslint-disable-next-line react-compiler/react-compiler
             activeRouteName = route.name;
         }, [route]),
     );
