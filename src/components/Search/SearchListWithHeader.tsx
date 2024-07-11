@@ -39,20 +39,29 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
 function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const {translate} = useLocalize();
     const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
+    const [selectedItemsToDelete, setSelectedItemsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
+
+    const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
+        setSelectedItemsToDelete(itemsToDelete);
+        setDeleteExpensesConfirmModalVisible(true);
+    };
+
+    const handleOnCancelConfirmModal = () => {
+        setSelectedItemsToDelete([]);
+        setDeleteExpensesConfirmModalVisible(false);
+    };
 
     const clearSelectedItems = () => setSelectedItems({});
 
     const handleDeleteExpenses = () => {
-        const itemsToDelete = Object.keys(selectedItems).filter((id) => selectedItems[id].canDelete);
-
-        if (itemsToDelete.length === 0) {
+        if (selectedItemsToDelete.length === 0) {
             return;
         }
 
         clearSelectedItems();
         setDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
+        SearchActions.deleteMoneyRequestOnSearch(hash, selectedItemsToDelete);
     };
 
     useEffect(() => {
@@ -121,7 +130,7 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
                 clearSelectedItems={clearSelectedItems}
                 query={query}
                 hash={hash}
-                setDeleteModalVisible={setDeleteExpensesConfirmModalVisible}
+                onSelectDeleteOption={handleOnSelectDeleteOption}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -136,7 +145,7 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
             <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
-                onCancel={() => setDeleteExpensesConfirmModalVisible(false)}
+                onCancel={handleOnCancelConfirmModal}
                 title={translate('iou.deleteExpense')}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}

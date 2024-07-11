@@ -22,12 +22,12 @@ type SearchHeaderProps = {
     selectedItems?: SelectedTransactions;
     clearSelectedItems?: () => void;
     hash: number;
-    setDeleteModalVisible: (isVisible: boolean) => void;
+    onSelectDeleteOption: (itemsToDelete: string[]) => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, setDeleteModalVisible}: SearchHeaderProps) {
+function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -48,12 +48,14 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
             return null;
         }
 
-        if (selectedItemsKeys.some((id) => selectedItems[id].canDelete)) {
+        const itemsToDelete = Object.keys(selectedItems ?? {}).filter((id) => selectedItems[id].canDelete);
+
+        if (itemsToDelete.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteModalVisible(true),
+                onSelected: () => onSelectDeleteOption(itemsToDelete),
             });
         }
 
@@ -115,7 +117,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 isDisabled={isOffline}
             />
         );
-    }, [clearSelectedItems, hash, isOffline, selectedItems, setDeleteModalVisible, styles.colorMuted, styles.fontWeightNormal, theme.icon, translate]);
+    }, [clearSelectedItems, hash, isOffline, onSelectDeleteOption, selectedItems, styles.colorMuted, styles.fontWeightNormal, theme.icon, translate]);
 
     if (isSmallScreenWidth) {
         return null;
