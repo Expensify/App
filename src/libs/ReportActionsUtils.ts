@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -16,6 +16,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
+import getBase62ReportID from './getBase62ReportID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
@@ -1413,6 +1414,77 @@ function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): repo
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
 }
 
+function getExportIntegrationLastMessageText(reportAction: OnyxEntry<ReportAction>): string {
+    const fragments = getExportIntegrationActionFragments(reportAction);
+    return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
+}
+
+function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportAction>): Array<{text: string; url: string}> {
+    if (reportAction?.actionName !== 'EXPORTINTEGRATION') {
+        throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
+    }
+
+    const isPending = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const {label, markedManually, reimbursableUrls, nonReimbursableUrls} = (getOriginalMessage(reportAction) ?? {}) as OriginalMessageExportIntegration;
+    const reportID = reportAction?.reportID ?? '';
+    const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
+    const base62ReportID = getBase62ReportID(Number(reportID));
+
+    const result: Array<{text: string; url: string}> = [];
+
+    if (isPending) {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.pending', {label}),
+            url: '',
+        });
+    } else if (markedManually) {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
+            url: '',
+        });
+    } else {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            url: '',
+        });
+    }
+
+    if (reimbursableUrls.length === 1) {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            url: reimbursableUrls[0],
+        });
+    }
+
+    if (nonReimbursableUrls.length) {
+        const text = Localize.translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
+        let url = '';
+
+        if (nonReimbursableUrls.length === 1) {
+            url = nonReimbursableUrls[0];
+        } else {
+            switch (label) {
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
+                    url = 'https://go.xero.com/Bank/BankAccounts.aspx';
+                    break;
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite:
+                    url = 'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
+                    url += wasExportedAfterBase62 ? base62ReportID : reportID;
+                    break;
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
+                    url = '';
+                    break;
+                default:
+                    url = 'https://qbo.intuit.com/app/expenses';
+            }
+        }
+
+        result.push({text, url});
+    }
+
+    return result;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1500,6 +1572,8 @@ export {
     getIOUActionForReportID,
     getFilteredForOneTransactionView,
     isActionableAddPaymentCard,
+    getExportIntegrationActionFragments,
+    getExportIntegrationLastMessageText,
 };
 
 export type {LastVisibleMessage};
