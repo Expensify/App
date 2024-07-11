@@ -62,14 +62,14 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             Session.setAccountError(error);
         }
 
-        if (exitTo) {
+        // For HybridApp we have separate logic to handle transitions.
+        if (!NativeModules.HybridAppModule && exitTo) {
             Navigation.isNavigationReady().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
-                Navigation.navigate(url);
+                Navigation.navigate(exitTo as Route);
             });
         }
         // The only dependencies of the effect are based on props.route
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route]);
 
     if (account?.isLoading) {

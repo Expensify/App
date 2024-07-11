@@ -81,7 +81,7 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const [receiptFile, setReceiptFile] = useState<Receipt>();
+    const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
     const requestType = TransactionUtils.getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 
@@ -140,12 +140,10 @@ function IOURequestStepConfirmation({
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
-                const participantAccountID = participant.accountID ?? -1;
-
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
@@ -182,7 +180,7 @@ function IOURequestStepConfirmation({
         }
         IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
 
     const navigateBack = useCallback(() => {
@@ -257,7 +255,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: OnyxEntry<Receipt>, gpsPoints?: IOU.GpsPoint) => {
             if (!report || !transaction) {
                 return;
             }

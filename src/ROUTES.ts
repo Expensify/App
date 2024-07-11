@@ -1,8 +1,9 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {AuthScreensParamList} from './libs/Navigation/types';
+import type {SageIntacctMappingName} from './types/onyx/Policy';
 import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -53,6 +54,11 @@ const ROUTES = {
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
+    TRANSACTION_HOLD_REASON_RHP: {
+        route: '/search/:query/hold/:transactionID',
+        getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
@@ -95,6 +101,7 @@ const ROUTES = {
     WORKSPACE_SWITCHER: 'workspace-switcher',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
@@ -107,6 +114,8 @@ const ROUTES = {
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize}` as const,
     },
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
+    SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
+    SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
@@ -667,6 +676,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
@@ -674,6 +687,10 @@ const ROUTES = {
     WORKSPACE_CATEGORY_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/:categoryName',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}` as const,
+    },
+    WORKSPACE_UPGRADE: {
+        route: 'settings/workspaces/:policyID/upgrade/:featureName',
+        getRoute: (policyID: string, featureName: string) => `settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const,
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
@@ -780,6 +797,43 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    WORKSPACE_CREATE_REPORT_FIELD: {
+        route: 'settings/workspaces/:policyID/reportFields/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
+        route: 'settings/workspaces/:policyID/reportFields/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
+        getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
+            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_EDIT_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
+    },
+    WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD: {
+        route: 'settings/workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
+        route: 'settings/workspaces/:policyID/expensify-card/issue-new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -822,6 +876,7 @@ const ROUTES = {
     ONBOARDING_WORK: 'onboarding/work',
     ONBOARDING_PURPOSE: 'onboarding/purpose',
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
+    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
@@ -830,6 +885,34 @@ const ROUTES = {
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/merchant',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/merchant` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/category',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/category` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tag',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tax-code',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
+        route: 'r/:threadReportID/duplicates/confirm',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/reimbursable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/billable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
     },
 
     POLICY_ACCOUNTING_XERO_IMPORT: {
@@ -917,13 +1000,219 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
-    POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/net-suite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary-selector` as const,
-    },
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
+        getRoute: (policyID: string, importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${valueIndex}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/edit/${valueIndex}/${fieldName}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom-list/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom-segment/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/custom-segment/new` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/preferred-exporter/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/date/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/date/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/destination/select',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/destination/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/vendor/select',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/vendor/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/payable-account/select',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/payable-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/journal-posting-preference/select',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/journal-posting-preference/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/receivable-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/receivable-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/invoice-item-preference/invoice-item/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/invoice-item/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/tax-posting-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/export/provincial-tax-posting-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/provincial-tax-posting-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/reimbursement-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/collection-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/collection-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/expense-report-approval-level/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/expense-report-approval-level/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/vendor-bill-approval-level/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/vendor-bill-approval-level/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/journal-entry-approval-level/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/journal-entry-approval-level/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
+        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
+            `settings/workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/toggle-mapping/:mapping',
+        getRoute: (policyID: string, mapping: SageIntacctMappingName) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
+        getRoute: (policyID: string, mapping: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/add-user-dimension',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/add-user-dimension` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/edit-user-dimension/:dimensionName',
+        getRoute: (policyID: string, dimensionName: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/edit-user-dimension/${dimensionName}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/date',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/date` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
+        getRoute: (policyID: string, reimbursable: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/credit-card-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/credit-card-account` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
 } as const;
 
