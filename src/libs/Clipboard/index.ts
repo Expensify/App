@@ -123,7 +123,7 @@ const setHtml: SetHtml = (html: string, text: string) => {
             new ClipboardItem({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
-                'text/plain': new Blob([htmlNonClosingTags], {type: 'text/plain'}),
+                'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);
     }
