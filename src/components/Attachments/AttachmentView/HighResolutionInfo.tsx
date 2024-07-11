@@ -14,7 +14,7 @@ function HighResolutionInfo({isUploaded}: {isUploaded: boolean}) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, !isUploaded ? styles.mbn1 : {}]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.highResolutionInfoPadding, !isUploaded ? styles.mbn1 : {}]}>
             <Icon
                 src={Expensicons.Info}
                 height={variables.iconSizeExtraSmall}

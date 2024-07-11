@@ -43,6 +43,7 @@ import whiteSpace from './utils/whiteSpace';
 import wordBreak from './utils/wordBreak';
 import writingDirection from './utils/writingDirection';
 import variables from './variables';
+import highResolutionInfoPadding from './utils/highResolutionInfoPadding';
 
 type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
 type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;
@@ -260,6 +261,7 @@ const styles = (theme: ThemeColors) =>
         ...textDecorationLine,
         editedLabelStyles,
         emojiDefaultStyles,
+        highResolutionInfoPadding,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
