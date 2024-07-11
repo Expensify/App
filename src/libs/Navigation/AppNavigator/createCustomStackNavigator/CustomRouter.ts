@@ -9,7 +9,6 @@ import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
-import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -102,12 +101,6 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 }
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
-    const isAuthenticated = Session.hasAuthToken();
-
-    if (!isAuthenticated) {
-        return false;
-    }
-
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
     }
