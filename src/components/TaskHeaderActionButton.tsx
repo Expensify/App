@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +37,17 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
                 isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1)}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                    if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                        return;
+                    }
+                    if (ReportUtils.isCompletedTaskReport(report)) {
+                        Task.reopenTask(report);
+                    } else {
+                        Task.completeTask(report);
+                    }
+                })}
                 style={styles.flex1}
             />
         </View>
