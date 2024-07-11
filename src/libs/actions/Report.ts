@@ -3158,6 +3158,7 @@ function completeOnboarding(
     },
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
+    paymentSelected?: string,
 ) {
     const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
@@ -3504,6 +3505,7 @@ function completeOnboarding(
         lastName,
         actorAccountID,
         guidedSetupData: JSON.stringify(guidedSetupData),
+        paymentSelected,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});

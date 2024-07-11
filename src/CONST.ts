@@ -1840,6 +1840,11 @@ const CONST = {
         BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
+    PAYMENT_SELECTED: {
+        BBA: 'BBA',
+        PBA: 'PBA',
+    },
+
     PAYMENT_METHOD_ID_KEYS: {
         DEBIT_CARD: 'fundID',
         BANK_ACCOUNT: 'bankAccountID',

@@ -6,6 +6,7 @@ type CompleteGuidedSetupParams = {
     actorAccountID: number;
     guidedSetupData: string;
     engagementChoice: OnboardingPurposeType;
+    paymentSelected?: string;
 };
 
 export default CompleteGuidedSetupParams;

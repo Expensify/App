@@ -1,18 +1,22 @@
 import type {RefObject} from 'react';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
-import type {Report, Session} from '@src/types/onyx';
+import type {PersonalDetails, Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
+import {usePersonalDetails} from './OnyxProvider';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuOnyxProps = {
@@ -70,6 +74,32 @@ function AddPaymentMethodMenu({
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
 
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetailsList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetails)) as PersonalDetails[];
+    const personalDetail = personalDetailsList[0] ?? {};
+
+    const completeEngagement = useCallback(
+        (paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) => {
+            if (isInviteOnboardingComplete || !introSelected?.choice) {
+                return;
+            }
+
+            ReportUserActions.completeOnboarding(
+                introSelected?.choice,
+                CONST.ONBOARDING_MESSAGES[introSelected?.choice],
+                {
+                    firstName: personalDetail.firstName ?? '',
+                    lastName: personalDetail.lastName ?? '',
+                },
+                paymentSelected,
+            );
+        },
+        [isInviteOnboardingComplete, introSelected?.choice, personalDetail.firstName, personalDetail.lastName],
+    );
+
     return (
         <PopoverMenu
             isVisible={isVisible}
@@ -85,6 +115,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
+                                  completeEngagement(CONST.PAYMENT_SELECTED.PBA);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
@@ -95,7 +126,10 @@ function AddPaymentMethodMenu({
                           {
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
-                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
+                              onSelected: () => {
+                                  completeEngagement(CONST.PAYMENT_SELECTED.BBA);
+                                  onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                              },
                           },
                       ]
                     : []),
@@ -103,7 +137,10 @@ function AddPaymentMethodMenu({
                     {
                         text: translate('common.debitCard'),
                         icon: Expensicons.CreditCard,
-                        onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                        onSelected: () => {
+                            completeEngagement(CONST.PAYMENT_SELECTED.PBA);
+                            onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD);
+                        },
                     },
                 ],
             ]}
