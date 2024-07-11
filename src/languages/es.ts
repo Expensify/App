@@ -22,6 +22,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -695,8 +696,9 @@ export default {
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
             }`,
-        deleteExpense: 'Eliminar gasto',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
+
+        deleteExpense: ({count}: DeleteExpenseParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',

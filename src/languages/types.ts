@@ -341,6 +341,10 @@ type RemoveMembersWarningPrompt = {
     ownerName: string;
 };
 
+type DeleteExpenseParams = {
+    count: number;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -460,4 +464,5 @@ export type {
     StripePaidParams,
     UnapprovedParams,
     RemoveMembersWarningPrompt,
+    DeleteExpenseParams,
 };
