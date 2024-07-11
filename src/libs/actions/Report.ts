@@ -1398,8 +1398,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
         const latestMentioneReportAction = Object.values(reportActionsForReport ?? {}).find(
-            (action) =>
-                action.reportActionID !== reportAction.reportActionID && ReportActionsUtils.didMessageMentionCurrentUser(ReportActionsUtils.getReportActionMessage(action)?.html ?? ''),
+            (action) => action.reportActionID !== reportAction.reportActionID && ReportActionsUtils.didMessageMentionCurrentUser(action),
         );
         optimisticReport.lastMentionedTime = latestMentioneReportAction?.created ?? null;
     }
