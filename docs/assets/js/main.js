@@ -327,5 +327,4 @@ window.addEventListener('DOMContentLoaded', () => {
         // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
-    
 });
