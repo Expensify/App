@@ -52,8 +52,8 @@ function parseMessage(messages: Message[] | undefined) {
     });
 
     const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'these expenses')
-        .replace(/%Expenses/g, 'These expenses')
+        .replace(/%expenses/g, 'expense(s)')
+        .replace(/%Expenses/g, 'Expense(s)')
         .replace(/%tobe/g, 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
@@ -123,7 +123,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: 'expense(s) to',
+                        text: '%expense to',
                     },
                 ];
                 let harvestingSuffix = '';
@@ -214,7 +214,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: ' %expense(s).',
+                        text: ' %expense.',
                     },
                 ],
             };
@@ -279,7 +279,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: ' %expense(s).',
+                        text: ' %expense.',
                     },
                 ],
             };

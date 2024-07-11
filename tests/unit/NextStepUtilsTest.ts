@@ -114,7 +114,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expense to',
                         },
                         {
                             text: 'automatically submit later today',
@@ -145,7 +145,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expenses to',
                         },
                         {
                             text: 'automatically submit on Sunday',
@@ -176,7 +176,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expenses to',
                         },
                         {
                             text: 'automatically submit on the 1st and 16th of each month',
@@ -207,7 +207,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expenses to',
                         },
                         {
                             text: 'automatically submit on the 2nd of each month',
@@ -239,7 +239,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expenses to',
                         },
                         {
                             text: `automatically submit on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
@@ -272,7 +272,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expenses to',
                         },
                         {
                             text: `automatically submit on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
@@ -304,7 +304,7 @@ describe('libs/NextStepUtils', () => {
                             type: 'strong',
                         },
                         {
-                            text: 'expense(s) to',
+                            text: '%expenses to',
                         },
                         {
                             text: `automatically submit at the end of their trip`,
@@ -415,7 +415,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense(s).',
+                        text: ' %expense.',
                     },
                 ];
 
@@ -444,7 +444,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense(s).',
+                        text: ' %expense.',
                     },
                 ];
 
@@ -481,7 +481,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense(s).',
+                        text: ' %expense.',
                     },
                 ];
 
@@ -551,7 +551,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' %expense(s).',
+                        text: ' %expense.',
                     },
                 ];
                 // mock the report as approved
