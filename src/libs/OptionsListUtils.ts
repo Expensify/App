@@ -987,8 +987,9 @@ function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
 function sortCategories(categories: Record<string, Category>): Category[] {
+    const categoriesList = Object.values(categories);
     // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedCategories = lodashSortBy(categoriesList, 'name', localeCompare);
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};

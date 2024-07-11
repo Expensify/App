@@ -1,5 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -79,23 +80,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         setSelectedCategories({});
     }, [isFocused]);
-
+    const a = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare)
     const categoryList = useMemo<PolicyOption[]>(
         () =>
-            Object.values(policyCategories ?? {})
-                .sort((a, b) => localeCompare(a.name, b.name))
-                .map((value) => {
-                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                    return {
-                        text: value.name,
-                        keyForList: value.name,
-                        isSelected: !!selectedCategories[value.name],
-                        isDisabled,
-                        pendingAction: value.pendingAction,
-                        errors: value.errors ?? undefined,
-                        rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                    };
-                }),
+            lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare).map((value) => {
+                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                return {
+                    text: value.name,
+                    keyForList: value.name,
+                    isSelected: !!selectedCategories[value.name],
+                    isDisabled,
+                    pendingAction: value.pendingAction,
+                    errors: value.errors ?? undefined,
+                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                };
+            }),
         [policyCategories, selectedCategories, translate],
     );
 
