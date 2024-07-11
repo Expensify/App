@@ -121,7 +121,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
         }
 
         return options;
-    }, [clearSelectedItems, hash, selectedItems, selectedItemsKeys, styles, theme, translate]);
+    }, [clearSelectedItems, hash, selectedItems, selectedItemsKeys, styles, theme, translate, isMobileSelectionModeActive, setIsMobileSelectionModeActive]);
 
     if (isSmallScreenWidth) {
         if (isMobileSelectionModeActive) {
