@@ -62,7 +62,7 @@
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
     "e2e-test-runner-build": "ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/",
     "react-compiler-healthcheck": "react-compiler-healthcheck --verbose",
-    "generate-search-parser": "peggy --format es -o src/libs/Search/searchParser.js src/libs/Search/searchParser.peggy "
+    "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy "
   },
   "dependencies": {
     "@babel/plugin-proposal-private-methods": "^7.18.6",
