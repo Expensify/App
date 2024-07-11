@@ -18,7 +18,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SelectedTransactions} from './types';
 
-type SearchHeaderProps = {
+type SearchPageHeaderProps = {
     query: SearchQuery;
     selectedItems?: SelectedTransactions;
     clearSelectedItems?: () => void;
@@ -30,7 +30,7 @@ type SearchHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchHeaderProps) {
+function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
