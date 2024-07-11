@@ -3,8 +3,7 @@ import spacing from '@styles/utils/spacing';
 import type HighResolutionInfoPadding from './types';
 
 const highResolutionInfoPadding: HighResolutionInfoPadding = {
-    ...spacing.pt5,
-    ...spacing.pb8,
+    ...spacing.pv5,
     ...spacing.ph8,
 };
 
