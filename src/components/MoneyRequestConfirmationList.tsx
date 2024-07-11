@@ -802,6 +802,7 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         debouncedFormError,
         translate,
+        inputCallbackRef,
     ]);
 
     const listFooterContent = (

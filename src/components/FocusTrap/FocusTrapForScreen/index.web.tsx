@@ -46,6 +46,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                     if (hasFocusedElementInsideContainer) {
                         return false;
                     }
+                    return undefined;
                 },
                 setReturnFocus: (element) => {
                     if (document.activeElement && document.activeElement !== document.body) {
