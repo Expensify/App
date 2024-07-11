@@ -294,7 +294,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         valueIndex: number;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+    [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
         policyID: string;
         reportFieldID: string;
     };
@@ -599,6 +599,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
