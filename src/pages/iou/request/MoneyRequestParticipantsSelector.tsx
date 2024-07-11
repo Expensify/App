@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -39,6 +39,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
 
+    /** Callback to fire when list emptiness changes */
+    onEmptyListChange?: (isEmpty: boolean) => void;
+
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
@@ -52,7 +55,15 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    onFinish,
+    onParticipantsAdded,
+    onEmptyListChange: onEmptyListChangeProp,
+    iouType,
+    iouRequestType,
+    action,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -68,13 +79,14 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [isEmptyList, setIsEmptyList] = useState(false);
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
-    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
+    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !isEmptyList;
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -400,6 +412,14 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
+    const onEmptyListChange = useCallback(
+        (isEmpty: boolean) => {
+            setIsEmptyList(isEmpty);
+            onEmptyListChangeProp?.(isEmpty);
+        },
+        [onEmptyListChangeProp],
+    );
+
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
@@ -413,7 +433,12 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             onSelectRow={onSelectRow}
             shouldDebounceRowSelect
             footerContent={footerContent}
-            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            listEmptyContent={
+                <EmptySelectionListContent
+                    onEmptyChange={onEmptyListChange}
+                    contentType={iouType}
+                />
+            }
             headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}

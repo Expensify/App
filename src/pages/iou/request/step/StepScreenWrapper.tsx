@@ -31,6 +31,12 @@ type StepScreenWrapperProps = {
     /** Whether or not to include safe area padding */
     includeSafeAreaPaddingBottom?: boolean;
 
+    /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
+    shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight?: boolean;
+
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 };
@@ -44,6 +50,8 @@ function StepScreenWrapper({
     shouldShowWrapper,
     shouldShowNotFoundPage,
     includeSafeAreaPaddingBottom,
+    shouldEnableKeyboardAvoidingView,
+    shouldEnableMaxHeight,
 }: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
@@ -56,7 +64,9 @@ function StepScreenWrapper({
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            shouldEnableMaxHeight={shouldEnableMaxHeight || DeviceCapabilities.canUseTouchScreen()}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
