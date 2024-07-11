@@ -61,8 +61,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         }
         const backTo = getPathFromURL(initUrl ?? '');
         Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo))});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingApp]);
+    }, [initUrl, isLoadingApp, navigation]);
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
