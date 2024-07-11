@@ -52,6 +52,7 @@ import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
+import * as SessionUtils from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -1065,7 +1066,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
-    const participantAccountIDs = Object.keys(report?.participants ?? {});
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).filter((accountID) => Number(accountID) !== currentUserAccountID);
     return participantAccountIDs.length === 1 && Number(participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
@@ -5459,6 +5460,10 @@ function shouldReportBeInOptionList({
         return false;
     }
 
+    if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
+        return false;
+    }
+
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
@@ -6930,6 +6935,10 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (isPublicRoom(report) && SessionUtils.isAnonymousUser()) {
+        return false;
+    }
+
     if (report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         return false;
     }

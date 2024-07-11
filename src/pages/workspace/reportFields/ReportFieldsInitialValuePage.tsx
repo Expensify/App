@@ -26,13 +26,13 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import ReportFieldsInitialListValuePicker from './InitialListValueSelector/ReportFieldsInitialListValuePicker';
 
-type ReportFieldInitialValuePagePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
-function ReportFieldInitialValuePage({
+type ReportFieldsInitialValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
+function ReportFieldsInitialValuePage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldInitialValuePagePageProps) {
+}: ReportFieldsInitialValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -98,7 +98,7 @@ function ReportFieldInitialValuePage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={ReportFieldInitialValuePage.displayName}
+                testID={ReportFieldsInitialValuePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -144,6 +144,6 @@ function ReportFieldInitialValuePage({
     );
 }
 
-ReportFieldInitialValuePage.displayName = 'ReportFieldInitialValuePage';
+ReportFieldsInitialValuePage.displayName = 'ReportFieldsInitialValuePage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldInitialValuePage);
+export default withPolicyAndFullscreenLoading(ReportFieldsInitialValuePage);
