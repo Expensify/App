@@ -102,7 +102,6 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isLoadingItems = !isOffline && searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (isLoadingItems) {
         return (
@@ -116,7 +115,9 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         );
     }
 
-    if (shouldShowEmptyState) {
+    const shouldShowEmptyState = searchResults && SearchUtils.isSearchResultsEmpty(searchResults);
+
+    if (shouldShowEmptyState || !searchResults) {
         return (
             <>
                 <SearchPageHeader
