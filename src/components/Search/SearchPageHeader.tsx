@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useMemo} from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
@@ -23,11 +24,13 @@ type SearchHeaderProps = {
     clearSelectedItems?: () => void;
     hash: number;
     onSelectDeleteOption: (itemsToDelete: string[]) => void;
+    isMobileSelectionModeActive?: boolean;
+    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption}: SearchHeaderProps) {
+function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -40,12 +43,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
         finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
     };
 
-    const getHeaderButtons = useCallback(() => {
+    const selectedItemsKeys = Object.keys(selectedItems ?? []);
+
+    const headerButtonsOptions = useMemo(() => {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-        const selectedItemsKeys = Object.keys(selectedItems ?? []);
 
         if (selectedItemsKeys.length === 0) {
-            return null;
+            return options;
         }
 
         const itemsToDelete = Object.keys(selectedItems ?? {}).filter((id) => selectedItems[id].canDelete);
@@ -55,7 +59,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 icon: Expensicons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => onSelectDeleteOption(itemsToDelete),
+                onSelected: () => {
+                    clearSelectedItems?.();
+                    if (isMobileSelectionModeActive) {
+                        setIsMobileSelectionModeActive?.(false);
+                    }
+                    SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
+                },
             });
         }
 
@@ -68,6 +78,9 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 onSelected: () => {
                     clearSelectedItems?.();
+                    if (isMobileSelectionModeActive) {
+                        setIsMobileSelectionModeActive?.(false);
+                    }
                     SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
                 },
             });
@@ -82,6 +95,9 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 onSelected: () => {
                     clearSelectedItems?.();
+                    if (isMobileSelectionModeActive) {
+                        setIsMobileSelectionModeActive?.(false);
+                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
                 },
             });
@@ -105,21 +121,18 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
             });
         }
 
-        return (
-            <ButtonWithDropdownMenu
-                onPress={() => null}
-                shouldAlwaysShowDropdownMenu
-                pressOnEnter
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
-                options={options}
-                isSplitButton={false}
-                isDisabled={isOffline}
-            />
-        );
-    }, [clearSelectedItems, hash, isOffline, onSelectDeleteOption, selectedItems, styles.colorMuted, styles.fontWeightNormal, theme.icon, translate]);
+        return options;
+    }, [clearSelectedItems, hash, selectedItems, selectedItemsKeys, styles, theme, translate, isMobileSelectionModeActive, setIsMobileSelectionModeActive]);
 
     if (isSmallScreenWidth) {
+        if (isMobileSelectionModeActive) {
+            return (
+                <SearchSelectedNarrow
+                    options={headerButtonsOptions}
+                    itemsLength={selectedItemsKeys.length}
+                />
+            );
+        }
         return null;
     }
 
@@ -129,11 +142,23 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
             icon={headerContent[query]?.icon}
             shouldShowBackButton={false}
         >
-            {getHeaderButtons()}
+            {headerButtonsOptions.length > 0 && (
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
+                    options={headerButtonsOptions}
+                    isSplitButton={false}
+                    isDisabled={isOffline}
+                />
+            )}
         </HeaderWithBackButton>
     );
 }
 
 SearchPageHeader.displayName = 'SearchPageHeader';
 
+export type {SearchHeaderOptionValue};
 export default SearchPageHeader;
