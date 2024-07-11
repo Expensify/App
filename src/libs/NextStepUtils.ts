@@ -123,7 +123,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         type: 'strong',
                     },
                     {
-                        text: '%expenses to',
+                        text: '%expenses to ',
                     },
                 ];
                 let harvestingSuffix = '';
