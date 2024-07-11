@@ -494,12 +494,12 @@ function ReportScreen({
             return;
         }
 
-        if (!shouldFetchReport(report)) {
+        if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
             return;
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
+    }, [report, fetchReport, reportIDFromRoute, isLoadingApp, isInitialPageReady, isLinkedMessagePageReady]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -544,7 +544,7 @@ function ReportScreen({
 
     useEffect(() => {
         // Call OpenReport only if we are not linking to a message or the report is not available yet
-        if (isLoadingReportOnyx || (reportActionIDFromRoute && report.reportID)) {
+        if (isLoadingReportOnyx || (reportActionIDFromRoute && report.reportID && isLinkedMessagePageReady)) {
             return;
         }
 
