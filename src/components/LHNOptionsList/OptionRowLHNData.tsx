@@ -51,6 +51,7 @@ function OptionRowLHNData({
             policy,
             parentReportAction,
             hasViolations: !!shouldDisplayViolations || !!shouldDisplayReportViolations,
+            transactionViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;

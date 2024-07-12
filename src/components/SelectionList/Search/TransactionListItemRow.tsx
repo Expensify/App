@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithFeedback} from '@components/Pressable';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -52,6 +53,7 @@ type TransactionListItemRowProps = {
     isDisabled: boolean;
     canSelectMultiple: boolean;
     isButtonSelected?: boolean;
+    shouldShowTransactionCheckbox?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -240,27 +242,55 @@ function TransactionListItemRow({
     containerStyle,
     isChildListItem = false,
     isButtonSelected = false,
+    shouldShowTransactionCheckbox,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
                 {showItemHeaderOnNarrowLayout && (
                     <ExpenseItemHeaderNarrow
+                        text={item.text}
                         participantFrom={item.from}
                         participantFromDisplayName={item.formattedFrom}
                         participantTo={item.to}
                         participantToDisplayName={item.formattedTo}
-                        action={item.action}
-                        transactionID={item.transactionID}
                         onButtonPress={onButtonPress}
+                        canSelectMultiple={canSelectMultiple}
+                        action={item.action}
+                        isSelected={item.isSelected}
+                        isDisabled={item.isDisabled}
+                        isDisabledCheckbox={item.isDisabledCheckbox}
+                        handleCheckboxPress={onCheckboxPress}
+                        transactionID={item.transactionID}
                     />
                 )}
 
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                    {canSelectMultiple && shouldShowTransactionCheckbox && (
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text ?? ''}
+                            role={CONST.ROLE.BUTTON}
+                            disabled={isDisabled}
+                            onPress={onCheckboxPress}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        >
+                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
+                                {item.isSelected && (
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.textLight}
+                                        height={14}
+                                        width={14}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    )}
                     <ReceiptCell
                         transactionItem={item}
                         isLargeScreenWidth={false}
