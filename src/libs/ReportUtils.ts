@@ -40,6 +40,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -81,8 +82,6 @@ import type {AvatarSource} from './UserUtils';
 import * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
-
-type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
 
 type SpendBreakdown = {
     nonReimbursableSpend: number;
@@ -438,6 +437,7 @@ type OptionData = {
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
+    isConciergeChat?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -572,6 +572,12 @@ Onyx.connect({
     },
 });
 
+let onboarding: OnyxEntry<Onboarding | []>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => (onboarding = value),
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -606,6 +612,13 @@ function isDraftReport(reportID: string | undefined): boolean {
     const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 
     return !!draftReport;
+}
+
+/**
+ * Returns the report
+ */
+function getReport(reportID: string): OnyxEntry<Report> {
+    return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 /**
@@ -1615,37 +1628,6 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
 
     return isActionOwner || isAdmin;
-}
-
-/**
- * Get welcome message based on room type
- */
-function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
-    const welcomeMessage: WelcomeMessage = {showReportName: true};
-    const workspaceName = getPolicyName(report);
-
-    if (isArchivedRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
-    } else if (isDomainRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
-    } else if (isAdminRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
-    } else if (isAnnounceRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
-    } else if (isInvoiceRoom(report)) {
-        welcomeMessage.showReportName = false;
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom');
-    } else {
-        // Message for user created rooms or other room types.
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
-    }
-
-    return welcomeMessage;
 }
 
 /**
@@ -2830,7 +2812,9 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning && !!transaction?.reimbursable;
-    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus))) && !!transaction?.reimbursable;
+    const canUnholdRequest =
+        !!(canHoldOrUnholdRequest && isOnHold && !TransactionUtils.isDuplicate(transaction.transactionID, true) && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus))) &&
+        !!transaction?.reimbursable;
 
     return {canHoldRequest, canUnholdRequest};
 }
@@ -5101,7 +5085,7 @@ function buildOptimisticTaskReport(
     title?: string,
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
-    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -7077,10 +7061,18 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
 }
 
 /**
- * Whether the report is a system chat or concierge chat, depending on the user's account ID (used for A/B testing purposes).
+ * Whether the report is a system chat or concierge chat, depending on the onboarding report ID or fallbacking
+ * to the user's account ID (used for A/B testing purposes).
  */
-function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
-    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1) ? isSystemChat(report) : isConciergeChatReport(report);
+function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
+    // onboarding can be an array for old accounts and accounts created from olddot
+    if (!Array.isArray(onboarding) && onboarding?.chatReportID === optionOrReport?.reportID) {
+        return true;
+    }
+
+    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
+        ? isSystemChat(optionOrReport)
+        : (optionOrReport as OptionData).isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
@@ -7220,7 +7212,6 @@ export {
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getRoom,
-    getRoomWelcomeMessage,
     getRootParentReport,
     getRouteFromLink,
     getSystemChat,
@@ -7293,6 +7284,7 @@ export {
     isIOUReport,
     isIOUReportUsingReport,
     isJoinRequestInAdminRoom,
+    isDomainRoom,
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
@@ -7375,6 +7367,7 @@ export {
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
     getMostRecentlyVisitedReport,
+    getReport,
 };
 
 export type {
