@@ -241,8 +241,8 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
-    }, [amount, currency, formatAmountOnBlur, shouldKeepUserInput, onFormatAmount, shouldResetAmount, onResetAmount, currentAmount]);
-
+    }, [amount, shouldKeepUserInput]);
+    
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
