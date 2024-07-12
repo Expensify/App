@@ -40,7 +40,7 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
-    shouldMaskOnyxState?: boolean;
+    shouldMaskOnyxState: OnyxEntry<boolean>;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
