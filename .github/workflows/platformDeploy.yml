@@ -64,14 +64,8 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
-          ruby-version: '3.3'
-          bundler-cache: false
-
-      - name: Setup fastlane
-        run: |
-          gem install bundler -v 2.4.22
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
+          ruby-version: '2.7'
+          bundler-cache: true
 
       - name: Decrypt keystore
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
