@@ -188,9 +188,9 @@ function IOURequestStepDistance({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     /**
      * Takes the user to the page for editing a specific waypoint
@@ -394,7 +394,7 @@ function IOURequestStepDistance({
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const hasRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);
             if (isEqual(oldAddresses, addresses)) {
-                Navigation.dismissModal();
+                navigateBack();
                 return;
             }
             IOU.updateMoneyRequestDistance({
@@ -404,12 +404,13 @@ function IOURequestStepDistance({
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,
             });
-            Navigation.dismissModal();
+            navigateBack();
             return;
         }
 
         navigateToNextStep();
     }, [
+        navigateBack,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
