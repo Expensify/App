@@ -135,6 +135,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
+        notNow: 'Not now',
         learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
@@ -521,6 +522,7 @@ export default {
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
         leaveThread: 'Leave thread',
+        copyOnyxData: 'Copy Onyx data',
         flagAsOffensive: 'Flag as offensive',
         menu: 'Menu',
     },
@@ -605,7 +607,7 @@ export default {
         saveTheWorld: 'Save the world',
     },
     allSettingsScreen: {
-        subscriptions: 'Subscriptions',
+        subscription: 'Subscription',
         cardsAndDomains: 'Cards & Domains',
     },
     tabSelector: {
@@ -625,6 +627,10 @@ export default {
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
+        locationAccessTitle: 'Allow location access',
+        locationAccessMessage: 'We’ll use your location to accurately determine your default currency and timezone. You can edit access in your device’s settings anytime.',
+        locationErrorTitle: 'Enable location in settings',
+        locationErrorMessage: 'Allowing location access is required to help accurately determine your default currency and timezone. Tap Settings to update permissions.',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
@@ -1153,9 +1159,9 @@ export default {
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure you want to delete this account?',
         error: {
-            notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
+            notOwnerOfBankAccount: 'An error occurred while setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
-            notOwnerOfFund: 'There was an error setting this card as your default payment method.',
+            notOwnerOfFund: 'An error occurred while setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
@@ -1463,7 +1469,6 @@ export default {
             title: 'What do you want to do today?',
             errorSelection: 'Please make a selection to continue.',
             errorContinue: 'Please press continue to get set up.',
-            errorBackButton: 'Please finish the setup questions to start using the app.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -1619,7 +1624,7 @@ export default {
             phrase4: 'verify your account here',
         },
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
-        hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
+        hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
         error: {
             youNeedToSelectAnOption: 'You need to select an option to proceed.',
@@ -1685,7 +1690,7 @@ export default {
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity.",
         butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
-        genericError: 'There was an error while processing this step. Please try again.',
+        genericError: 'An error occurred while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Enable camera access',
         cameraRequestMessage: 'We need access to your camera to complete bank account verification. Please enable via Settings > New Expensify.',
         microphonePermissionsNotGranted: 'Enable microphone access',
@@ -2665,6 +2670,8 @@ export default {
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
             importedFromAccountingSoftware: 'The categories below are imported from your',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         moreFeatures: {
             spendSection: {
@@ -2802,6 +2809,8 @@ export default {
             existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
             importedFromAccountingSoftware: 'The tags below are imported from your',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -3125,6 +3134,13 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            reconciliationAccount: 'Reconciliation account',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
+                accountMatches: 'Make sure this account matches your ',
+                settlementAccount: 'Expensify Card settlement account ',
+                reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -3167,7 +3183,7 @@ export default {
             member: 'Invite member',
             members: 'Invite members',
             invitePeople: 'Invite new members',
-            genericFailureMessage: 'An error occurred inviting the member to the workspace. Please try again.',
+            genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
             user: 'user',
             users: 'users',
@@ -3181,7 +3197,7 @@ export default {
             inviteMessageTitle: 'Add message',
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below',
             personalMessagePrompt: 'Message',
-            genericFailureMessage: 'An error occurred inviting the member to the workspace. Please try again.',
+            genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite.',
         },
         distanceRates: {
@@ -3215,7 +3231,7 @@ export default {
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
             save: 'Save',
-            genericFailureMessage: 'An error occurred updating the workspace. Please try again.',
+            genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar. Please try again.',
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
@@ -3410,7 +3426,7 @@ export default {
         },
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
-        assigneeError: 'There was an error assigning this task. Please try another assignee.',
+        assigneeError: 'An error occurred while assigning this task. Please try another assignee.',
         genericCreateTaskFailureMessage: 'There was an error creating this task. Please try again later.',
         deleteTask: 'Delete task',
         deleteConfirmation: 'Are you sure you want to delete this task?',
@@ -3436,6 +3452,7 @@ export default {
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
     search: {
+        selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
         searchResults: {
             emptyResults: {
@@ -3901,7 +3918,7 @@ export default {
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
     listBoundary: {
-        errorMessage: 'There was an error loading more messages.',
+        errorMessage: 'An error occurred while loading more messages.',
         tryAgain: 'Try again',
     },
     systemMessage: {
@@ -3969,6 +3986,10 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
+            },
+            trialEnded: {
+                title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },
@@ -4050,7 +4071,7 @@ export default {
         },
         paymentCard: {
             addPaymentCard: 'Add payment card',
-            enterPaymentCardDetails: 'Enter your payment card details.',
+            enterPaymentCardDetails: 'Enter your payment card details',
             security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
             learnMoreAboutSecurity: 'Learn more about our security.',
         },
