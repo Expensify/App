@@ -1,14 +1,17 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {StackCardInterpolationProps, StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isSafari} from '@libs/Browser';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import createModalCardStyleInterpolator from '@navigation/AppNavigator/createModalCardStyleInterpolator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
-import type NAVIGATORS from '@src/NAVIGATORS';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -18,9 +21,19 @@ const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
 function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
+    const styleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
     const isExecutingRef = useRef<boolean>(false);
+    const screenOptions = useMemo(() => {
+        const options = ModalNavigatorScreenOptions(styles);
+        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
+        if (isSafari()) {
+            const customInterpolator = createModalCardStyleInterpolator(styleUtils);
+            options.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+        }
+
+        return options;
+    }, [isSmallScreenWidth, styleUtils, styles]);
 
     return (
         <NoDropZone>
@@ -36,7 +49,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                 />
             )}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={screenOptions}>
+                <Stack.Navigator
+                    screenOptions={screenOptions}
+                    id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                >
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}
                         component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -44,10 +60,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.DETAILS}
-                        component={ModalStackNavigators.DetailsModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PROFILE}
@@ -64,6 +76,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                         component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
+                        component={ModalStackNavigators.CategoriesModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
@@ -84,10 +100,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT}
-                        component={ModalStackNavigators.OnboardEngagementModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
@@ -136,6 +148,22 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name="ProcessMoneyRequestHold"
                         component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
+                        component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TRAVEL}
+                        component={ModalStackNavigators.TravelModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                        component={ModalStackNavigators.SearchReportModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
+                        component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

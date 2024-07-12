@@ -17,13 +17,14 @@ type InitialURLContextProviderProps = {
 function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
     const [initialURL, setInitialURL] = useState(url);
     useEffect(() => {
-        if (initialURL) {
+        if (url) {
+            setInitialURL(url);
             return;
         }
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [initialURL]);
+    }, [url]);
     return <InitialURLContext.Provider value={initialURL}>{children}</InitialURLContext.Provider>;
 }
 

@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
-import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
+import type {Message} from '@src/types/onyx/ReportAction';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -42,7 +42,13 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const fragments = (action.previousMessage ?? action.message ?? []).filter((item) => !!item);
+    const actionMessage = action.previousMessage ?? action.message;
+    let fragments: Message[] = [];
+    if (Array.isArray(actionMessage)) {
+        fragments = actionMessage.filter((item): item is Message => !!item);
+    } else {
+        fragments = actionMessage ? [actionMessage] : [];
+    }
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
 
     if (ReportActionsUtils.isMemberChangeAction(action)) {
@@ -63,10 +69,10 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
     let iouMessage: string | undefined;
     if (isIOUReport) {
-        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
+        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction, true);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction);
         }
     }
 
@@ -89,8 +95,8 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
                 pendingAction={action.pendingAction}
                 actionName={action.actionName}
-                source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
-                accountID={action.actorAccountID ?? 0}
+                source={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.source : ''}
+                accountID={action.actorAccountID ?? -1}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
@@ -100,7 +106,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
                 // formatting.
                 isFragmentContainingDisplayName={index === 0}
-                moderationDecision={action.message?.[0]?.moderationDecision?.decision}
+                moderationDecision={ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision}
             />
         ));
 
@@ -125,6 +131,6 @@ ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
     transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`,
     },
 })(ReportActionItemMessage);

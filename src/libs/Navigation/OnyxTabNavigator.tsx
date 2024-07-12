@@ -5,6 +5,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
+import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
@@ -24,7 +25,7 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
         selectedTab?: SelectedTabRequest;
 
         /** A function triggered when a tab has been selected */
-        onTabSelected?: (newIouType: string) => void;
+        onTabSelected?: (newIouType: IOURequestType) => void;
 
         tabBar: (props: TabSelectorProps) => React.ReactNode;
 
@@ -52,7 +53,7 @@ function OnyxTabNavigator({id, selectedTab, children, onTabSelected = () => {}, 
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index] as SelectedTabRequest);
-                    onTabSelected(routeNames[index]);
+                    onTabSelected(routeNames[index] as IOURequestType);
                 },
                 ...(screenListeners ?? {}),
             }}

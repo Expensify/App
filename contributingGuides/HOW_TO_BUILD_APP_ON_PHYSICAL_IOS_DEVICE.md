@@ -11,7 +11,7 @@
 > [!Important]
 > You must have a Apple Developer account to run your app on a physical device. If you don't have one, you can register here: [Apple Developer Program](https://developer.apple.com/).
 
-   2.1. Go to `Signing and Capabilities` then in the section called `Signing (Debug/Development and Release/Development)`
+   2.1. Go to `Signing and Capabilities`, then in the section called `Signing (Debug/Development and Release/Development)`
    
    ![Step 2.1 Screenshot](https://github.com/Expensify/App/assets/104348397/4c668612-ab29-4a91-8e2d-a146e2940017)
    
@@ -24,7 +24,7 @@
    ![Step 2.4 Screenshot](https://github.com/Expensify/App/assets/104348397/4ce3f250-4b7c-4e7c-9f1d-09df7bdfc5e0)
 
 > [!Note]
->Please be aware that the app built with your own bundle id doesn't support authenticated services like push notification, apple signin, deeplinking etc. which should be only available in Expensify developer account.
+>Please be aware that the app built with your own bundle id doesn't support authenticated services like push notification, Apple signin, deeplinking etc. which should be only available in Expensify developer account.
    
    2.5. Scroll down and Remove Associated Domains, Communication Notifications, Push Notifications, and Sign In With Apple capabilities
 

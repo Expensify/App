@@ -12,6 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
@@ -94,7 +95,7 @@ function AmountForm(
         if (!textInput.current) {
             return;
         }
-        if (!textInput.current.isFocused()) {
+        if (!isTextInputFocused(textInput)) {
             textInput.current.focus();
         }
     };
@@ -117,10 +118,10 @@ function AmountForm(
 
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+            setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
             onInputChange?.(strippedAmount);
         },
-        [amountMaxLength, currentAmount, decimals, onInputChange],
+        [amountMaxLength, currentAmount, decimals, onInputChange, selection],
     );
 
     // Modifies the amount to match the decimals for changed currency.
@@ -134,7 +135,7 @@ function AmountForm(
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**
@@ -143,7 +144,7 @@ function AmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !textInput.current?.isFocused()) {
+            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             // Backspace button is pressed
@@ -168,7 +169,7 @@ function AmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !textInput.current?.isFocused()) {
+        if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
     }, []);
@@ -225,6 +226,8 @@ function AmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
+                    style={[styles.iouAmountTextInput]}
+                    containerStyle={[styles.iouAmountTextInputContainer]}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />

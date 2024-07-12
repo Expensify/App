@@ -63,8 +63,9 @@ function assertAndroidJobExecuted(workflowResult: Step[], didExecute = true, isP
     }
     steps.push(
         createStepAssertion('Archive Android sourcemaps', true, null, 'ANDROID', 'Archiving Android sourcemaps', [
-            {key: 'name', value: 'android-sourcemap'},
-            {key: 'path', value: 'android/app/build/generated/sourcemaps/react/release/*.map'},
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'android-sourcemap-1.2.3'},
+            {key: 'path', value: 'android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map'},
         ]),
     );
     if (!isProduction) {
@@ -187,7 +188,8 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
     }
     steps.push(
         createStepAssertion('Archive iOS sourcemaps', true, null, 'IOS', 'Archiving sourcemaps', [
-            {key: 'name', value: 'ios-sourcemap'},
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'ios-sourcemap-1.2.3'},
             {key: 'path', value: 'main.jsbundle.map'},
         ]),
     );
@@ -360,10 +362,10 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
             {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'},
             {key: 'DEPLOY_VERSION', value: '1.2.3'},
             {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'ANDROID', value: didDeploy ? 'success' : ''},
-            {key: 'DESKTOP', value: didDeploy ? 'success' : ''},
-            {key: 'IOS', value: didDeploy ? 'success' : ''},
-            {key: 'WEB', value: didDeploy ? 'success' : ''},
+            {key: 'ANDROID', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'DESKTOP', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'IOS', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'WEB', value: didDeploy ? 'success' : 'skipped'},
         ]),
     ] as const;
 

@@ -1,4 +1,7 @@
+import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
+import ImageSize from 'react-native-image-size';
+import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -12,7 +15,9 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 function showSuccessAlert(successMessage?: string) {
     Alert.alert(
         Localize.translateLocal('fileDownload.success.title'),
-        successMessage ?? Localize.translateLocal('fileDownload.success.message'),
+        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        successMessage || Localize.translateLocal('fileDownload.success.message'),
         [
             {
                 text: Localize.translateLocal('common.ok'),
@@ -238,6 +243,24 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
+function validateImageForCorruption(file: FileObject): Promise<void> {
+    if (!Str.isImage(file.name ?? '') || !file.uri) {
+        return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+        ImageSize.getSize(file.uri ?? '')
+            .then(() => resolve())
+            .catch(() => reject(new Error('Error reading file: The file is corrupted')));
+    });
+}
+
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -250,4 +273,6 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
+    validateImageForCorruption,
 };

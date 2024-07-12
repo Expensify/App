@@ -4,7 +4,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
-    OpenSearchPage: 'Open search page TTI',
+    OpenChatFinderPage: 'Open chat finder page TTI',
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
@@ -25,6 +25,9 @@ export default {
 
     MAIN_APP_PATH: './app-e2eRelease.apk',
     DELTA_APP_PATH: './app-e2edeltaRelease.apk',
+
+    BRANCH_MAIN: 'main',
+    BRANCH_DELTA: 'delta',
 
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
@@ -68,37 +71,34 @@ export default {
     TESTS_CONFIG: {
         [TEST_NAMES.AppStartTime]: {
             name: TEST_NAMES.AppStartTime,
-
             // ... any additional config you might need
         },
-        [TEST_NAMES.OpenSearchPage]: {
-            name: TEST_NAMES.OpenSearchPage,
+        [TEST_NAMES.OpenChatFinderPage]: {
+            name: TEST_NAMES.OpenChatFinderPage,
         },
-        // TODO: Fix text and enable again
-        // [TEST_NAMES.ReportTyping]: {
-        //     name: TEST_NAMES.ReportTyping,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        // },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+        },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages
             reportID: '5421294415618529',
         },
-        // TODO: fix and enable again
-        // [TEST_NAMES.Linking]: {
-        //     name: TEST_NAMES.Linking,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        //     linkedReportID: '5421294415618529',
-        //     linkedReportActionID: '2845024374735019929',
-        // },
+        [TEST_NAMES.Linking]: {
+            name: TEST_NAMES.Linking,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+            linkedReportID: '5421294415618529',
+            linkedReportActionID: '2845024374735019929',
+        },
     },
 };
 

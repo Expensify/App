@@ -17,7 +17,7 @@ function WorkspaceCardCreateAWorkspace() {
             cardLayout={CARD_LAYOUT.ICON_ON_TOP}
             subtitle={translate('workspace.emptyWorkspace.subtitle')}
             subtitleMuted
-            containerStyles={[styles.highlightBG]}
+            containerStyles={[styles.highlightBG, styles.mv2]}
         >
             <Button
                 onPress={() => {

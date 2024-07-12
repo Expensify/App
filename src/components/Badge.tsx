@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -61,15 +60,21 @@ function Badge({
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const textColorStyles = success || error ? styles.textWhite : undefined;
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
+    const iconColor = StyleUtils.getIconColorStyle(success, error);
+
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
-        [styles.badge, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
+        ({pressed}) => [
+            styles.defaultBadge,
+            styles.alignSelfCenter,
+            styles.ml2,
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
+            badgeStyles,
+        ],
+        [styles.defaultBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
     );
 
     return (
@@ -87,12 +92,12 @@ function Badge({
                         width={variables.iconSizeExtraSmall}
                         height={variables.iconSizeExtraSmall}
                         src={icon}
-                        fill={theme.icon}
+                        fill={iconColor}
                     />
                 </View>
             )}
             <Text
-                style={[styles.badgeText, textColorStyles, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
                 numberOfLines={1}
             >
                 {text}

@@ -6,6 +6,9 @@ import type {ViewStyle} from 'react-native';
  * https://getbootstrap.com/docs/5.0/utilities/sizing/
  */
 export default {
+    h0: {
+        height: 0,
+    },
     h100: {
         height: '100%',
     },
@@ -36,6 +39,17 @@ export default {
 
     mnh100: {
         minHeight: '100%',
+    },
+
+    mnh20: {
+        minHeight: 80,
+    },
+    mnh40: {
+        minHeight: 40,
+    },
+
+    mnh0: {
+        minHeight: 0,
     },
 
     mnw2: {
@@ -80,6 +94,10 @@ export default {
 
     mwn: {
         maxWidth: 'auto',
+    },
+
+    mw50: {
+        maxWidth: '50%',
     },
 
     mw75: {

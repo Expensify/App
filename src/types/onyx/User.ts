@@ -1,3 +1,4 @@
+/** Model of user data */
 type User = {
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter: boolean;

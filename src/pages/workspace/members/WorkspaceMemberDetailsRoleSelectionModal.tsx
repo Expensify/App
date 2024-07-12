@@ -43,7 +43,10 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <ScreenWrapper testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}>
+            <ScreenWrapper
+                testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}
+                includePaddingTop={false}
+            >
                 <HeaderWithBackButton
                     title={translate('common.role')}
                     onBackButtonPress={onClose}
@@ -53,6 +56,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                         sections={[{data: items}]}
                         ListItem={RadioListItem}
                         onSelectRow={onRoleChange}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
                     />
                 </View>

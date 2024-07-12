@@ -16,7 +16,8 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
-import type {TestConfig} from '@libs/E2E/types';
+import type {TestResult} from '@libs/E2E/client';
+import type {TestConfig, Unit} from '@libs/E2E/types';
 import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
@@ -25,10 +26,15 @@ import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
 import * as Logger from './utils/logger';
+import * as MeasureUtils from './utils/measure';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
 type Result = Record<string, number[]>;
+
+type CustomConfig = {
+    default: unknown;
+};
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -46,7 +52,7 @@ const setConfigPath = (configPathParam: string | undefined) => {
     if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath).default;
+    const customConfig = require<CustomConfig>(configPath).default;
     config = Object.assign(defaultConfig, customConfig);
 };
 
@@ -90,6 +96,32 @@ const runTests = async (): Promise<void> => {
 
     // Create a dict in which we will store the run durations for all tests
     const results: Record<string, Result> = {};
+    const metricForTest: Record<string, Unit> = {};
+
+    const attachTestResult = (testResult: TestResult) => {
+        let result = 0;
+
+        if (testResult?.metric !== undefined) {
+            if (testResult.metric < 0) {
+                return;
+            }
+            result = testResult.metric;
+        }
+
+        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}${testResult.unit}`);
+
+        if (testResult?.branch && !results[testResult.branch]) {
+            results[testResult.branch] = {};
+        }
+
+        if (testResult?.branch && testResult?.name) {
+            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
+        }
+
+        if (!metricForTest[testResult.name] && testResult.unit) {
+            metricForTest[testResult.name] = testResult.unit;
+        }
+    };
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
@@ -99,33 +131,16 @@ const runTests = async (): Promise<void> => {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         if (testResult?.error != null && !isCritical) {
+            // force test completion, since we don't want to have timeout error for non being execute test
+            server.forceTestCompletion();
             Logger.warn(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        let result = 0;
 
-        if (testResult?.duration !== undefined) {
-            if (testResult.duration < 0) {
-                return;
-            }
-            result = testResult.duration;
-        }
-        if (testResult?.renderCount !== undefined) {
-            result = testResult.renderCount;
-        }
-
-        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}`);
-
-        if (testResult?.branch && !results[testResult.branch]) {
-            results[testResult.branch] = {};
-        }
-
-        if (testResult?.branch && testResult?.name) {
-            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
-        }
+        attachTestResult(testResult);
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
+    async function runTestIteration(appPackage: string, iterationText: string, branch: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -135,10 +150,48 @@ const runTests = async (): Promise<void> => {
         Logger.log('Launching', appPackage);
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
+        MeasureUtils.start(appPackage);
         await withFailTimeout(
             new Promise<void>((resolve) => {
-                server.addTestDoneListener(() => {
+                const removeListener = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
+
+                    const metrics = MeasureUtils.stop();
+                    const test = server.getTestConfig();
+
+                    if (server.isReadyToAcceptTestResults) {
+                        attachTestResult({
+                            name: `${test.name} (CPU)`,
+                            branch,
+                            metric: metrics.cpu,
+                            unit: '%',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (FPS)`,
+                            branch,
+                            metric: metrics.fps,
+                            unit: 'FPS',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (RAM)`,
+                            branch,
+                            metric: metrics.ram,
+                            unit: 'MB',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (CPU/JS)`,
+                            branch,
+                            metric: metrics.jsThread,
+                            unit: '%',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (CPU/UI)`,
+                            branch,
+                            metric: metrics.uiThread,
+                            unit: '%',
+                        });
+                    }
+                    removeListener();
                     resolve();
                 });
             }),
@@ -153,6 +206,10 @@ const runTests = async (): Promise<void> => {
     const tests = Object.keys(config.TESTS_CONFIG);
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
         const test = Object.values(config.TESTS_CONFIG)[testIndex];
+
+        // re-instal app for each new test suite
+        await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
+        await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
@@ -172,14 +229,23 @@ const runTests = async (): Promise<void> => {
         await sleep(config.BOOT_COOL_DOWN);
 
         server.setTestConfig(test as TestConfig);
+        server.setReadyToAcceptTestResults(false);
 
         const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
-        // Warmup the main app:
-        await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}`);
+        // by default we do 2 warmups:
+        // - first warmup to pass a login flow
+        // - second warmup to pass an actual flow and cache network requests
+        const iterations = 2;
+        for (let i = 0; i < iterations; i++) {
+            // Warmup the main app:
+            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_MAIN);
 
-        // Warmup the delta app:
-        await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}`);
+            // Warmup the delta app:
+            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_DELTA);
+        }
+
+        server.setReadyToAcceptTestResults(true);
 
         // For each test case we allow the test to fail three times before we stop the test run:
         const errorCountRef = {
@@ -211,10 +277,10 @@ const runTests = async (): Promise<void> => {
             const deltaIterationText = `[DELTA] ${iterationText}`;
             try {
                 // Run the test on the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, launchArgs);
+                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, config.BRANCH_MAIN, launchArgs);
 
                 // Run the test on the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
+                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
             } catch (e) {
                 onError(e as Error);
             }
@@ -223,7 +289,7 @@ const runTests = async (): Promise<void> => {
 
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
-    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
+    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`, 'all', metricForTest);
 
     await server.stop();
 };

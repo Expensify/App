@@ -42,8 +42,10 @@ describe('ReportUtils', () => {
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+    });
 
-        Onyx.multiSet({
+    beforeEach(async () => {
+        await Onyx.multiSet({
             ...mockedPoliciesMap,
             ...mockedReportsMap,
         });
@@ -55,18 +57,22 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] findLastAccessedReport on 2k reports and policies', async () => {
         const ignoreDomainRooms = true;
-        const isFirstTimeNewExpensifyUser = true;
         const reports = getMockedReports(2000);
         const policies = getMockedPolicies(2000);
         const openOnAdminRoom = true;
 
+        await Onyx.multiSet({
+            [ONYXKEYS.COLLECTION.REPORT]: reports,
+            [ONYXKEYS.COLLECTION.POLICY]: policies,
+        });
+
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom));
+        await measureFunction(() => ReportUtils.findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT} as unknown as ReportAction;
+        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
         await measureFunction(() => ReportUtils.canDeleteReportAction(reportAction, reportID));
@@ -136,13 +142,13 @@ describe('ReportUtils', () => {
     test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
         const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
-        const isInGSDMode = true;
+        const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
         const policies = getMockedPolicies();
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInGSDMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
         );
     });
 
@@ -160,7 +166,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.getMoneyRequestOptions(report, policy, reportParticipants));
+        await measureFunction(() => ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipants));
     });
 
     test('[ReportUtils] getWorkspaceAvatar on 1k policies', async () => {

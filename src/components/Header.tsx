@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,22 +25,12 @@ type HeaderProps = {
 
 function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
     const styles = useThemeStyles();
-    return (
-        <View style={[styles.flex1, styles.flexRow, containerStyles]}>
-            <View style={styles.mw100}>
-                {typeof title === 'string'
-                    ? Boolean(title) && (
-                          <Text
-                              numberOfLines={2}
-                              style={[styles.headerText, styles.textLarge, textStyles]}
-                          >
-                              {title}
-                          </Text>
-                      )
-                    : title}
+    const renderedSubtitle = useMemo(
+        () => (
+            <>
                 {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
                 {typeof subtitle === 'string'
-                    ? Boolean(subtitle) && (
+                    ? !!subtitle && (
                           <Text
                               style={[styles.mutedTextLabel, styles.pre]}
                               numberOfLines={1}
@@ -49,6 +39,24 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                           </Text>
                       )
                     : subtitle}
+            </>
+        ),
+        [subtitle, styles],
+    );
+    return (
+        <View style={[styles.flex1, styles.flexRow, containerStyles]}>
+            <View style={styles.mw100}>
+                {typeof title === 'string'
+                    ? !!title && (
+                          <Text
+                              numberOfLines={2}
+                              style={[styles.headerText, styles.textLarge, textStyles]}
+                          >
+                              {title}
+                          </Text>
+                      )
+                    : title}
+                {renderedSubtitle}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

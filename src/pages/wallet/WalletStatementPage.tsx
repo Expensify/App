@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,7 +42,7 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
         if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want this effect to run only on mount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want this effect to run only on mount
     }, []);
 
     useEffect(() => {

@@ -127,7 +127,7 @@ function maskCard(lastFour = ''): string {
  * @returns a physical card object (or undefined if none is found)
  */
 function findPhysicalCard(cards: Card[]) {
-    return cards.find((card) => !card.isVirtual);
+    return cards.find((card) => !card?.nameValuePairs?.isVirtual);
 }
 
 /**
@@ -137,6 +137,10 @@ function findPhysicalCard(cards: Card[]) {
  */
 function hasDetectedFraud(cardList: Record<string, Card>): boolean {
     return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
+}
+
+function getMCardNumberString(cardNumber: string): string {
+    return cardNumber.replace(/\s/g, '');
 }
 
 export {
@@ -150,4 +154,5 @@ export {
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,
+    getMCardNumberString,
 };

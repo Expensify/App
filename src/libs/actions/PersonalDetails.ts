@@ -25,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
-import * as Session from './Session';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -37,7 +36,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
@@ -62,6 +61,23 @@ function updatePronouns(pronouns: string) {
                 },
             },
         ],
+    });
+}
+
+function setDisplayName(firstName: string, lastName: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [currentUserAccountID]: {
+            firstName,
+            lastName,
+            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                firstName,
+                lastName,
+            }),
+        },
     });
 }
 
@@ -174,10 +190,6 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
-    if (Session.isAnonymousUser()) {
-        return;
-    }
-
     if (!currentUserAccountID) {
         return;
     }
@@ -380,7 +392,7 @@ function deleteAvatar() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {optimisticData, failureData});
 }
 
 /**
@@ -411,6 +423,7 @@ export {
     updateAutomaticTimezone,
     updateAvatar,
     updateDateOfBirth,
+    setDisplayName,
     updateDisplayName,
     updateLegalName,
     updatePronouns,

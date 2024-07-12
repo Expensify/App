@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,7 +9,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -32,27 +32,30 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY.CITY, COMPANY_BUSINESS_INFO_KEY.STATE, COMPANY_BUSINESS_INFO_KEY.ZIP_CODE];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-        errors.addressStreet = 'bankAccount.error.addressStreet';
-    }
-
-    if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
-        errors.addressCity = 'bankAccount.error.addressCity';
-    }
-
-    if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-        errors.addressZipCode = 'bankAccount.error.zipCode';
-    }
-
-    return errors;
-};
-
 function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+                errors.addressStreet = translate('bankAccount.error.addressStreet');
+            }
+
+            if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
+                errors.addressCity = translate('bankAccount.error.addressCity');
+            }
+
+            if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+                errors.addressZipCode = translate('bankAccount.error.zipCode');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const defaultValues = {
         street: reimbursementAccount?.achData?.addressStreet ?? '',
@@ -78,7 +81,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
             <Text>{translate('common.noPO')}</Text>
-            <AddressForm
+            <AddressFormFields
                 inputKeys={INPUT_KEYS}
                 shouldSaveDraft={!isEditing}
                 defaultValues={defaultValues}

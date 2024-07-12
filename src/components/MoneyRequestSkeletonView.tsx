@@ -13,8 +13,8 @@ function MoneyRequestSkeletonView() {
             animate
             width={styles.w100.width}
             height={variables.moneyRequestSkeletonHeight}
-            backgroundColor={theme.borderLighter}
-            foregroundColor={theme.border}
+            backgroundColor={theme.skeletonLHNIn}
+            foregroundColor={theme.skeletonLHNOut}
         >
             <Rect
                 x="16"

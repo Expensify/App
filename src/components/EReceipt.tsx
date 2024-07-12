@@ -36,13 +36,13 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
 
     const {
         amount: transactionAmount,
-        currency: transactionCurrency = '',
+        currency: transactionCurrency,
         merchant: transactionMerchant,
         created: transactionDate,
         cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
+    const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
     const cardDescription = transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '';
 

@@ -5,6 +5,7 @@ import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {getPolicy} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -26,7 +27,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         sessionEmail = value?.email ?? '';
-        sessionAccountID = value?.accountID ?? 0;
+        sessionAccountID = value?.accountID ?? -1;
     },
 });
 
@@ -95,18 +96,14 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
-                outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: {
-                [sessionAccountID]: {
-                    role: CONST.POLICY.ROLE.USER,
-                    errors: {},
+                outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                employeeList: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
                 },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
         {
@@ -155,9 +152,11 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: null,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                [sessionEmail]: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,

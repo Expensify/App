@@ -42,6 +42,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-text-label': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-text-label',
+                mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
                 mixedUAStyles: {whiteSpace: 'pre'},
@@ -58,6 +63,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.textual,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
+            'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
@@ -76,8 +82,13 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
                 contentModel: HTMLContentModel.textual,
             }),
+            'uploading-attachment': HTMLElementModel.fromCustomModel({
+                tagName: 'uploading-attachment',
+                mixedUAStyles: {...styles.mt4},
+                contentModel: HTMLContentModel.block,
+            }),
         }),
-        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough],
+        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough, styles.mt4, styles.mutedNormalTextLabel],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -91,6 +102,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={Object.values(FontUtils.fontFamily.single)}
+            htmlParserOptions={{
+                recognizeSelfClosing: true,
+            }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

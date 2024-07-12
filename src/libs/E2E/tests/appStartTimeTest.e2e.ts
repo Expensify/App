@@ -20,13 +20,14 @@ const test = () => {
         // collect performance metrics and submit
         const metrics: PerformanceEntry[] = Performance.getPerformanceMetrics();
 
-        // underscore promises in sequence without for-loop
+        // promises in sequence without for-loop
         Promise.all(
             metrics.map((metric) =>
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `App start ${metric.name}`,
-                    duration: metric.duration,
+                    metric: metric.duration,
+                    unit: 'ms',
                 }),
             ),
         )

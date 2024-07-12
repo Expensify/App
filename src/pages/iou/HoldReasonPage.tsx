@@ -1,16 +1,8 @@
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
+import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -21,6 +13,7 @@ import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+import HoldReasonFormView from './HoldReasonFormView';
 
 type HoldReasonPageRouteParams = {
     /** ID of the transaction the page was opened for */
@@ -39,26 +32,27 @@ type HoldReasonPageProps = {
 };
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const report = ReportUtils.getReport(reportID);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
 
-    const navigateBack = () => {
-        Navigation.navigate(backTo);
-    };
+    // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
+    // For personal requests, we need to allow both users to put the request on hold
+    const isWorkspaceRequest = ReportUtils.isReportInGroupPolicy(report);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        if (!ReportUtils.canEditMoneyRequest(parentReportAction)) {
+        // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+        // as we do not allow requestee to edit fields like description and amount.
+        // But, we still want the requestee to be able to put the request on hold
+        if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
             return;
         }
 
         IOU.putOnHold(transactionID, values.comment, reportID);
-        navigateBack();
+        Navigation.navigate(backTo);
     };
 
     const validate = useCallback(
@@ -66,17 +60,20 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
             if (!values.comment) {
-                errors.comment = 'common.error.fieldRequired';
+                errors.comment = translate('common.error.fieldRequired');
             }
-            if (!ReportUtils.canEditMoneyRequest(parentReportAction)) {
+            // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+            // as we do not allow requestee to edit fields like description and amount.
+            // But, we still want the requestee to be able to put the request on hold
+            if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
-                ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
+                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
             }
 
             return errors;
         },
-        [parentReportAction],
+        [parentReportAction, isWorkspaceRequest, translate],
     );
 
     useEffect(() => {
@@ -85,38 +82,11 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     }, []);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={HoldReasonPage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('iou.holdRequest')}
-                onBackButtonPress={navigateBack}
-            />
-            <FormProvider
-                formID="moneyHoldReasonForm"
-                submitButtonText={translate('iou.holdRequest')}
-                style={[styles.flexGrow1, styles.ph5]}
-                onSubmit={onSubmit}
-                validate={validate}
-                enabledWhenOffline
-            >
-                <Text style={styles.mb6}>{translate('iou.explainHold')}</Text>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMMENT}
-                        valueType="string"
-                        name="comment"
-                        defaultValue={undefined}
-                        label={translate('iou.reason')}
-                        accessibilityLabel={translate('iou.reason')}
-                        ref={inputCallbackRef}
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+        <HoldReasonFormView
+            onSubmit={onSubmit}
+            validate={validate}
+            backTo={backTo}
+        />
     );
 }
 

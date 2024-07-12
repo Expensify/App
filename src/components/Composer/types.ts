@@ -3,6 +3,12 @@ import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelection
 type TextSelection = {
     start: number;
     end?: number;
+    positionX?: number;
+    positionY?: number;
+};
+type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
+    positionX?: number;
+    positionY?: number;
 };
 
 type ComposerProps = TextInputProps & {
@@ -21,14 +27,8 @@ type ComposerProps = TextInputProps & {
     /** The value of the comment box */
     value?: string;
 
-    /** Number of lines for the comment */
-    numberOfLines?: number;
-
     /** Callback method handle when the input is changed  */
     onChangeText?: (numberOfLines: string) => void;
-
-    /** Callback method to update number of lines for the comment */
-    onNumberOfLinesChange?: (numberOfLines: number) => void;
 
     /** Callback method to handle pasting a file */
     onPasteFile?: (file: File) => void;
@@ -51,7 +51,7 @@ type ComposerProps = TextInputProps & {
     autoFocus?: boolean;
 
     /** Update selection position on change */
-    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
     /** Selection Object */
     selection?: TextSelection;
@@ -76,6 +76,9 @@ type ComposerProps = TextInputProps & {
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
+
+    /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
+    isGroupPolicyReport?: boolean;
 };
 
-export type {TextSelection, ComposerProps};
+export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

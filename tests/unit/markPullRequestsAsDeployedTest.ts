@@ -35,7 +35,7 @@ type CommitData = {
     };
 };
 
-let run;
+let run: () => Promise<void>;
 
 const mockGetInput = jest.fn();
 const mockGetPullRequest = jest.fn();
@@ -138,7 +138,7 @@ beforeAll(() => {
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
             try {
-                const input: string = mockGetInput(name);
+                const input = mockGetInput(name) as string;
                 return JSON.parse(input) as unknown;
             } catch (err) {
                 return defaultValue;
@@ -171,10 +171,12 @@ afterAll(() => {
     jest.clearAllMocks();
 });
 
+type MockedActionRun = () => Promise<void>;
+
 describe('markPullRequestsAsDeployed', () => {
     it('comments on pull requests correctly for a standard staging deploy', async () => {
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
@@ -196,7 +198,7 @@ platform | result
     });
 
     it('comments on pull requests correctly for a standard production deploy', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'IS_PRODUCTION_DEPLOY') {
                 return true;
             }
@@ -204,7 +206,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
@@ -226,7 +228,7 @@ platform | result
     });
 
     it('comments on pull requests correctly for a cherry pick', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'PR_LIST') {
                 return JSON.stringify([3]);
             }
@@ -260,7 +262,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith({
@@ -281,7 +283,7 @@ platform | result
     });
 
     it('comments on pull requests correctly when one platform fails', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'ANDROID') {
                 return 'skipped';
             }
@@ -295,7 +297,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {

@@ -1,11 +1,11 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
@@ -32,13 +32,18 @@ Onyx.connect({
     },
 });
 
+const hiddenTranslation = Localize.translateLocal('common.hidden');
+const youTranslation = Localize.translateLocal('common.you').toLowerCase();
+
+const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
+
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     // If the displayName starts with the merged account prefix, remove it.
-    if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
+    if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
-        displayName = displayName.substring(CONST.MERGED_ACCOUNT_PREFIX.length);
+        displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
     // If the displayName is not set by the user, the backend sets the diplayName same as the login so
@@ -48,13 +53,17 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+        displayName = `${displayName} (${youTranslation})`;
+    }
+
+    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        displayName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
     if (displayName) {
         return displayName;
     }
-    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
+    return defaultValue || (shouldFallbackToHidden ? hiddenTranslation : '');
 }
 
 /**
@@ -123,33 +132,44 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
 }
 
 /**
- * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
- *
- * @param logins Array of user logins
- * @param accountIDs Array of user accountIDs
- * @returns Object with optimisticData, successData and failureData (object of personal details objects)
+ * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
  */
-function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
+    const newAccountIDs: number[] = [];
+    const newLogins: string[] = [];
+    logins.forEach((login, index) => {
+        const accountID = accountIDs[index];
+        if (isEmptyObject(allPersonalDetails?.[accountID])) {
+            newAccountIDs.push(accountID);
+            newLogins.push(login);
+        }
+    });
+
+    return {newAccountIDs, newLogins};
+}
+
+/**
+ * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
+ * They will have an "optimistic" accountID that must be cleaned up later.
+ */
+function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAccountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
-    logins.forEach((login, index) => {
-        const accountID = accountIDs[index];
+    newLogins.forEach((login, index) => {
+        const accountID = newAccountIDs[index];
+        personalDetailsNew[accountID] = {
+            login,
+            accountID,
+            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            isOptimisticPersonalDetail: true,
+        };
 
-        if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
-            personalDetailsNew[accountID] = {
-                login,
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            };
-
-            /**
-             * Cleanup the optimistic user to ensure it does not permanently persist.
-             * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
-             */
-            personalDetailsCleanup[accountID] = null;
-        }
+        /**
+         * Cleanup the optimistic user to ensure it does not permanently persist.
+         * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
+         */
+        personalDetailsCleanup[accountID] = null;
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -235,7 +255,7 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
+function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
@@ -257,7 +277,7 @@ function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDe
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
  */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: CurrentUserPersonalDetails): FirstAndLastName {
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
@@ -297,11 +317,12 @@ export {
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
-    getNewPersonalDetailsOnyxData,
+    getPersonalDetailsOnyxDataForOptimisticUsers,
     getFormattedAddress,
     getFormattedStreet,
     getStreetLines,
     getEffectiveDisplayName,
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
+    getNewAccountIDsAndLogins,
 };

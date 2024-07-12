@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -8,14 +8,15 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import type {CurrentMoney} from '@pages/iou/steps/MoneyRequestAmountForm';
-import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
+import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -27,6 +28,9 @@ type IOURequestStepTaxAmountPageOnyxProps = {
 
     /** Collection of tag list on a policy */
     policyTags: OnyxEntry<PolicyTagList>;
+
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: OnyxEntry<Transaction>;
 };
 
 type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
@@ -34,56 +38,42 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, isEditing: boolean): number | undefined {
-    if (!transaction?.amount) {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, isEditing: boolean): number | undefined {
+    if (!transaction?.amount && !transaction?.modifiedAmount) {
         return;
     }
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
     const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxValue = taxRates?.defaultValue;
-    const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
-    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : moneyRequestTaxPercentage) ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
+    const defaultTaxValue = getTaxValue(defaultTaxCode);
+    const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : defaultTaxValue) ?? '';
+    const editingTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount));
+    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount, currency ?? CONST.CURRENCY.USD));
 }
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
     },
     transaction,
     report,
     policy,
     policyTags,
     policyCategories,
+    splitDraftTransaction,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
 
     const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
-    const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef<string>();
-
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const taxRates = policy?.taxRates;
-
-    useEffect(() => {
-        if (transaction?.originalCurrency) {
-            originalCurrency.current = transaction.originalCurrency;
-        } else if (transaction?.currency) {
-            originalCurrency.current = transaction.currency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, transaction?.currency);
-        }
-        return () => {
-            if (isSaveButtonPressed.current || !originalCurrency.current) {
-                return;
-            }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const transactionDetails = ReportUtils.getTransactionDetails(currentTransaction);
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
 
     useFocusEffect(
         useCallback(() => {
@@ -102,32 +92,45 @@ function IOURequestStepTaxAmountPage({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
+        // If the expense being created is a distance expense, don't allow the user to choose the currency.
+        // Only USD is allowed for distance expenses.
         // Remove query from the route and encode it.
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()),
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                iouType,
+                transactionID,
+                reportID,
+                backTo ? 'confirm' : '',
+                currency,
+                Navigation.getActiveRouteWithoutParams(),
+            ),
         );
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
-        isSaveButtonPressed.current = true;
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
+        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
-        if (isEditing) {
-            if (amountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(transaction, false)) {
-                navigateBack();
-                return;
-            }
-            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', amountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+        if (isEditingSplitBill) {
+            IOU.setDraftSplitTransaction(transactionID, {taxAmount: taxAmountInSmallestCurrencyUnits});
             navigateBack();
             return;
         }
 
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
+        if (isEditing) {
+            if (taxAmountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(currentTransaction, false)) {
+                navigateBack();
+                return;
+            }
+            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            navigateBack();
+            return;
+        }
+
+        IOU.setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction?.currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -154,17 +157,18 @@ function IOURequestStepTaxAmountPage({
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
-            shouldShowWrapper={Boolean(backTo || isEditing)}
+            shouldShowWrapper={!!(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo || isEditing)}
-                currency={transaction?.currency}
-                amount={transactionDetails?.taxAmount}
-                taxAmount={getTaxAmount(transaction, taxRates, Boolean(backTo || isEditing))}
+                isEditing={!!(backTo || isEditing)}
+                currency={currency}
+                amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
+                isCurrencyPressable={false}
             />
         </StepScreenWrapper>
     );
@@ -173,14 +177,20 @@ function IOURequestStepTaxAmountPage({
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 
 const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPageProps, IOURequestStepTaxAmountPageOnyxProps>({
+    splitDraftTransaction: {
+        key: ({route}) => {
+            const transactionID = route?.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
     },
 })(IOURequestStepTaxAmountPage);
 

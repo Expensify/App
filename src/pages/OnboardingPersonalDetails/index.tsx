@@ -1,14 +1,23 @@
 import React from 'react';
-import type {BaseOnboardingPersonalDetailsProps} from './BaseOnboardingPersonalDetails';
+import {View} from 'react-native';
+import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import useThemeStyles from '@hooks/useThemeStyles';
 import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
+import type {OnboardingPersonalDetailsProps} from './types';
 
-function OnboardingPersonalDetails({...rest}: Omit<BaseOnboardingPersonalDetailsProps, 'shouldUseNativeStyles'>) {
+function OnboardingPersonalDetails({...rest}: Omit<OnboardingPersonalDetailsProps, 'shouldUseNativeStyles'>) {
+    const styles = useThemeStyles();
+
     return (
-        <BaseOnboardingPersonalDetails
-            shouldUseNativeStyles={false}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
-        />
+        <FocusTrapForScreens>
+            <View style={styles.h100}>
+                <BaseOnboardingPersonalDetails
+                    shouldUseNativeStyles={false}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
+                />
+            </View>
+        </FocusTrapForScreens>
     );
 }
 

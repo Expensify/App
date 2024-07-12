@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,7 +8,7 @@ import type {Transaction} from '@src/types/onyx';
  * This migration moves all the transaction backups stored in the transaction collection, ONYXKEYS.COLLECTION.TRANSACTION, to a reserved collection that only
  * stores draft transactions, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT. The purpose of the migration is that there is a possibility that transaction backups are
  * not filtered by most functions, e.g, getAllReportTransactions (src/libs/TransactionUtils.ts). One problem that arose from storing transaction backups with
- * the other transactions is that for every distance request which have their waypoints updated offline, we expect the ReportPreview component to display the
+ * the other transactions is that for every distance expense which have their waypoints updated offline, we expect the ReportPreview component to display the
  * default image of a pending map. However, due to the presence of the transaction backup, the previous map image will be displayed alongside the pending map.
  * The problem was further discussed in this PR. https://github.com/Expensify/App/pull/30232#issuecomment-178110172
  */
@@ -26,11 +26,11 @@ export default function (): Promise<void> {
                     return resolve();
                 }
 
-                const onyxData: OnyxCollection<Transaction> = {};
+                const onyxData: OnyxCollectionInputValue<Transaction> = {};
 
                 // Find all the transaction backups available
                 Object.keys(transactions).forEach((transactionOnyxKey: string) => {
-                    const transaction: Transaction | null = transactions[transactionOnyxKey];
+                    const transaction: OnyxEntry<Transaction> = transactions[transactionOnyxKey];
 
                     // Determine whether or not the transaction is a backup
                     if (transactionOnyxKey.endsWith('-backup') && transaction) {
