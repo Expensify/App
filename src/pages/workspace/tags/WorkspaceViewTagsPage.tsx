@@ -245,14 +245,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() => Tag.clearPolicyTagListError(policyID, route.params.orderWeight, 'required')}
+                            onCloseError={() => Tag.clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                         />
                     </View>
                 )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
+                    onClose={() => Tag.clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
                     pendingAction={currentPolicyTag.pendingAction}
+                    errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
                         title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}

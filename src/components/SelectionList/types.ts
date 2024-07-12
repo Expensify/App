@@ -60,6 +60,12 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -80,6 +86,9 @@ type ListItem = {
 
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
 
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
@@ -462,6 +471,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
