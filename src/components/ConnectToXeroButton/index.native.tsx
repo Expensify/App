@@ -1,16 +1,13 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
 import getUAForWebView from '@libs/getUAForWebView';
@@ -25,32 +22,27 @@ type ConnectToXeroButtonOnyxProps = {
 };
 
 function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
 
     const authToken = session?.authToken ?? null;
-    const {isOffline} = useNetwork();
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
+    useEffect(() => {
+        if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+            setIsDisconnectModalOpen(true);
+            return;
+        }
+        setWebViewOpen(true);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <>
-            <Button
-                onPress={() => {
-                    if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
-                        setIsDisconnectModalOpen(true);
-                        return;
-                    }
-                    setWebViewOpen(true);
-                }}
-                text={translate('workspace.accounting.setup')}
-                style={styles.justifyContentCenter}
-                small
-                isDisabled={isOffline}
-            />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {

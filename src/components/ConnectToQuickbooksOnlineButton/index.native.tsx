@@ -1,10 +1,9 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -42,23 +41,19 @@ function ConnectToQuickbooksOnlineButton({
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
+    useEffect(() => {
+        if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+            setIsDisconnectModalOpen(true);
+            return;
+        }
+        // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+        PolicyAction.enablePolicyTaxes(policyID, false);
+        setWebViewOpen(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <>
-            <Button
-                onPress={() => {
-                    if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
-                        setIsDisconnectModalOpen(true);
-                        return;
-                    }
-                    // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-                    PolicyAction.enablePolicyTaxes(policyID, false);
-                    setWebViewOpen(true);
-                }}
-                text={translate('workspace.accounting.setup')}
-                style={styles.justifyContentCenter}
-                small
-                isDisabled={isOffline}
-            />
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {

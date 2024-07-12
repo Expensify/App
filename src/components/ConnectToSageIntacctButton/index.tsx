@@ -1,12 +1,9 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
-import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
@@ -23,9 +20,7 @@ type ConnectToSageIntacctButtonProps = {
 };
 
 function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToSageIntacctButtonProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -53,34 +48,30 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         },
     ];
 
+    useEffect(() => {
+        if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+            setIsDisconnectModalOpen(true);
+            return;
+        }
+        if (!hasPoliciesConnectedToSageIntacct) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
+            return;
+        }
+        if (!isSmallScreenWidth) {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                setReuseConnectionPopoverPosition({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        }
+        setIsReuseConnectionsPopoverOpen(true);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <>
-            <Button
-                onPress={() => {
-                    if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
-                        setIsDisconnectModalOpen(true);
-                        return;
-                    }
-                    if (!hasPoliciesConnectedToSageIntacct) {
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
-                        return;
-                    }
-                    if (!isSmallScreenWidth) {
-                        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                            setReuseConnectionPopoverPosition({
-                                horizontal: x + width,
-                                vertical: y + height,
-                            });
-                        });
-                    }
-                    setIsReuseConnectionsPopoverOpen(true);
-                }}
-                text={translate('workspace.accounting.setup')}
-                style={styles.justifyContentCenter}
-                small
-                isDisabled={isOffline}
-                ref={threeDotsMenuContainerRef}
-            />
             <PopoverMenu
                 isVisible={isReuseConnectionsPopoverOpen}
                 onClose={() => {
