@@ -57,8 +57,7 @@ const backgroundImages = {
 function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {tripIcon, tripBGColor} = TripReservationUtils.getTripEReceiptData(transaction);
-    const colorCode = tripBGColor ?? (isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction));
+    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 
@@ -68,6 +67,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
+    const tripIcon = TripReservationUtils.getTripEReceiptIcon(transaction);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
@@ -143,7 +143,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                             fill={primaryColor}
                         />
                     ) : null}
-                    {tripIcon ? (
+                    {!MCCIcon && tripIcon ? (
                         <Icon
                             src={tripIcon}
                             height={receiptMCCSize}
