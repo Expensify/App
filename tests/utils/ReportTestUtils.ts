@@ -42,10 +42,9 @@ const getFakeReportAction = (index: number, actionName?: ReportActionName): Repo
             },
         ],
         reportActionID: index.toString(),
-        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         sequenceNumber: 0,
         shouldShow: true,
-    }) as ReportAction;
+    } as ReportAction);
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
@@ -63,7 +62,6 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
             originalMessage: {
                 linkedReportID: reportID.toString(),
             },
-            previousReportActionID: index.toString(),
         } as ReportAction;
 
         return {[reportID]: reportAction};

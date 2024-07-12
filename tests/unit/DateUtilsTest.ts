@@ -94,7 +94,7 @@ describe('DateUtils', () => {
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
-                }) as Intl.DateTimeFormat,
+                } as Intl.DateTimeFormat),
         );
         Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
@@ -110,7 +110,7 @@ describe('DateUtils', () => {
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: UTC}),
-                }) as Intl.DateTimeFormat,
+                } as Intl.DateTimeFormat),
         );
         Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
@@ -263,6 +263,20 @@ describe('DateUtils', () => {
             const lastBusinessDay = DateUtils.getLastBusinessDayOfMonth(inputDate);
 
             expect(lastBusinessDay).toEqual(expectedResult);
+        });
+    });
+
+    describe('isCardExpired', () => {
+        it('should return true when the card is expired', () => {
+            const cardMonth = 1;
+            const cardYear = new Date().getFullYear() - 1;
+            expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(true);
+        });
+
+        it('should return false when the card is not expired', () => {
+            const cardMonth = 1;
+            const cardYear = new Date().getFullYear() + 1;
+            expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(false);
         });
     });
 });

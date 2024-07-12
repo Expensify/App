@@ -67,6 +67,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
@@ -108,14 +109,14 @@ const picker = (theme: ThemeColors) =>
         height: variables.inputHeight,
         borderWidth: 0,
         textAlign: 'left',
-    }) satisfies TextStyle;
+    } satisfies TextStyle);
 
 const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-    }) satisfies ViewStyle & MixedStyleDeclaration;
+    } satisfies ViewStyle & MixedStyleDeclaration);
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
@@ -123,7 +124,7 @@ const baseCodeTagStyles = (theme: ThemeColors) =>
         borderRadius: 5,
         borderColor: theme.border,
         backgroundColor: theme.textBackground,
-    }) satisfies ViewStyle & MixedStyleDeclaration;
+    } satisfies ViewStyle & MixedStyleDeclaration);
 
 const headlineFont = {
     fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
@@ -135,7 +136,7 @@ const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
         position: 'absolute',
         width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
         height: '100%',
-    }) satisfies ViewStyle;
+    } satisfies ViewStyle);
 
 const webViewStyles = (theme: ThemeColors) =>
     ({
@@ -237,7 +238,7 @@ const webViewStyles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
         },
-    }) satisfies WebViewStyle;
+    } satisfies WebViewStyle);
 
 const styles = (theme: ThemeColors) =>
     ({
@@ -338,6 +339,9 @@ const styles = (theme: ThemeColors) =>
 
         appBG: {
             backgroundColor: theme.appBG,
+        },
+        fontSizeLabel: {
+            fontSize: variables.fontSizeLabel,
         },
 
         h4: {
@@ -789,7 +793,7 @@ const styles = (theme: ThemeColors) =>
             height: 140,
         },
 
-        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -859,7 +863,7 @@ const styles = (theme: ThemeColors) =>
                     pointerEvents: 'none',
                     opacity: 0,
                 },
-            }) satisfies CustomPickerStyle,
+            } satisfies CustomPickerStyle),
 
         badge: {
             backgroundColor: theme.border,
@@ -995,7 +999,7 @@ const styles = (theme: ThemeColors) =>
                 paddingVertical: 40,
                 gap: 4,
                 flex: 1,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         receiptViewTextContainer: {
             paddingHorizontal: 40,
@@ -1136,14 +1140,14 @@ const styles = (theme: ThemeColors) =>
             ({
                 height: lodashClamp(textInputHeight, minHeight, maxHeight),
                 minHeight,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         autoGrowHeightHiddenInput: (maxWidth: number, maxHeight?: number) =>
             ({
                 maxWidth,
                 maxHeight: maxHeight && maxHeight + 1,
                 overflow: 'hidden',
-            }) satisfies TextStyle,
+            } satisfies TextStyle),
 
         textInputContainer: {
             flex: 1,
@@ -1185,7 +1189,7 @@ const styles = (theme: ThemeColors) =>
         textInputLabelTransformation: (translateY: AnimatableNumericValue, translateX: AnimatableNumericValue, scale: AnimatableNumericValue) =>
             ({
                 transform: [{translateY}, {translateX}, {scale}],
-            }) satisfies TextStyle,
+            } satisfies TextStyle),
 
         baseTextInput: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1288,7 +1292,7 @@ const styles = (theme: ThemeColors) =>
             zIndex: 1,
         },
 
-        picker: (disabled = false, backgroundColor = theme.appBG) =>
+        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
             ({
                 iconContainer: {
                     top: Math.round(variables.inputHeight * 0.5) - 11,
@@ -1324,7 +1328,7 @@ const styles = (theme: ThemeColors) =>
                 inputAndroid: {
                     ...picker(theme),
                 },
-            }) satisfies CustomPickerStyle,
+            } satisfies CustomPickerStyle),
 
         disabledText: {
             color: theme.icon,
@@ -1433,6 +1437,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        lhnSuccessText: {
+            color: theme.success,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         signInPageHeroCenter: {
             position: 'absolute',
             top: 0,
@@ -1512,6 +1521,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        canvasContainer: {
+            // Adding border to prevent a bug with the appearance of lines during gesture events for MultiGestureCanvas
+            borderWidth: 1,
+            borderColor: theme.appBG,
+        },
+
         sidebarHeaderContainer: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -1551,7 +1566,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.success,
         },
 
-        statusIndicator: (backgroundColor = theme.danger) =>
+        statusIndicator: (backgroundColor: string = theme.danger) =>
             ({
                 borderColor: theme.sidebar,
                 backgroundColor,
@@ -1563,9 +1578,9 @@ const styles = (theme: ThemeColors) =>
                 height: 12,
                 width: 12,
                 zIndex: 10,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
-        bottomTabStatusIndicator: (backgroundColor = theme.danger) => ({
+        bottomTabStatusIndicator: (backgroundColor: string = theme.danger) => ({
             borderColor: theme.sidebar,
             backgroundColor,
             borderRadius: 8,
@@ -1643,13 +1658,13 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
                 left: 0,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
                 right: 0,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         onboardingNavigatorOuterView: {
             flex: 1,
@@ -1664,7 +1679,7 @@ const styles = (theme: ThemeColors) =>
                 maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
                 overflow: 'hidden',
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         welcomeVideoNarrowLayout: {
             width: variables.onboardingModalWidth,
@@ -1685,20 +1700,20 @@ const styles = (theme: ThemeColors) =>
                 // Menu should be displayed 12px above the floating action button.
                 // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         createAccountMenuPositionProfile: () =>
             ({
                 horizontal: 18,
                 ...getPopOverVerticalOffset(202 + 40),
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
                 // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
                 horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
             right: 18,
@@ -1908,7 +1923,7 @@ const styles = (theme: ThemeColors) =>
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
                 }),
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         nativeOverlayStyles: (current: OverlayStylesParams) =>
             ({
@@ -1921,7 +1936,7 @@ const styles = (theme: ThemeColors) =>
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
                 }),
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         appContent: {
             backgroundColor: theme.appBG,
@@ -2508,13 +2523,13 @@ const styles = (theme: ThemeColors) =>
                 flexBasis: isSmallScreenWidth ? '100%' : 350,
                 flexGrow: 0,
                 alignSelf: 'flex-start',
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
             ({
                 borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
                 marginHorizontal: isSmallScreenWidth ? 0 : 20,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         imageModalImageCenterContainer: {
             alignItems: 'center',
@@ -2678,7 +2693,7 @@ const styles = (theme: ThemeColors) =>
                 backgroundColor: theme.cardBG,
                 borderRadius: variables.componentBorderRadiusLarge,
                 overflow: 'hidden',
-            }) satisfies ViewStyle & TextStyle,
+            } satisfies ViewStyle & TextStyle),
         anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout: boolean) =>
             ({
                 flexDirection: 'row',
@@ -2687,7 +2702,7 @@ const styles = (theme: ThemeColors) =>
                     justifyContent: 'space-between',
                     marginTop: 16,
                 }),
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
         anonymousRoomFooterLogo: {
             width: 88,
             marginLeft: 0,
@@ -2704,6 +2719,28 @@ const styles = (theme: ThemeColors) =>
 
         anonymousRoomFooterSignInButton: {
             width: 110,
+        },
+
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+            let paddingHorizontal = spacing.ph5;
+            let paddingVertical = spacing.pv5;
+
+            if (isSmallScreenWidth) {
+                paddingHorizontal = spacing.ph4;
+                paddingVertical = spacing.pv4;
+            }
+
+            if (isExtraSmallScreenWidth) {
+                paddingHorizontal = spacing.ph2;
+                paddingVertical = spacing.pv2;
+            }
+
+            return {
+                backgroundColor: theme.highlightBG,
+                borderRadius: 16,
+                ...paddingVertical,
+                ...paddingHorizontal,
+            } satisfies ViewStyle;
         },
 
         roomHeaderAvatarSize: {
@@ -2729,8 +2766,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
             color: theme.text,
@@ -2844,7 +2881,7 @@ const styles = (theme: ThemeColors) =>
 
         subscriptionAddedCardIcon: {
             padding: 10,
-            backgroundColor: theme.icon,
+            backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.componentBorderRadius,
             height: variables.iconSizeExtraLarge,
             width: variables.iconSizeExtraLarge,
@@ -2910,6 +2947,14 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             marginLeft: 8,
             marginRight: 20,
+        },
+
+        dividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            flexGrow: 1,
+            ...spacing.mh5,
+            ...spacing.mv3,
         },
 
         unreadIndicatorText: {
@@ -3012,7 +3057,7 @@ const styles = (theme: ThemeColors) =>
         switchThumbTransformation: (translateX: AnimatableNumericValue) =>
             ({
                 transform: [{translateX}],
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
@@ -3239,7 +3284,7 @@ const styles = (theme: ThemeColors) =>
         growlNotificationTranslateY: (translateY: AnimatableNumericValue) =>
             ({
                 transform: [{translateY}],
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         makeSlideInTranslation: (translationType: Translation, fromValue: number) =>
             ({
@@ -3249,7 +3294,7 @@ const styles = (theme: ThemeColors) =>
                 to: {
                     [translationType]: 0,
                 },
-            }) satisfies CustomAnimation,
+            } satisfies CustomAnimation),
 
         growlNotificationBox: {
             backgroundColor: theme.inverse,
@@ -3351,13 +3396,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 84,
-        },
-
-        workspaceListBadge: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 6,
+            justifyContent: 'flex-end',
+            width: 124,
         },
 
         workspaceListRBR: {
@@ -3558,25 +3598,25 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...getPopOverVerticalOffset(60),
                 horizontal: windowWidth - 60,
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         threeDotsPopoverOffsetNoCloseButton: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),
                 horizontal: windowWidth - 10,
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         threeDotsPopoverOffsetAttachmentModal: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(80),
                 horizontal: windowWidth - 140,
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         popoverMenuOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(180),
                 horizontal: windowWidth - 355,
-            }) satisfies AnchorPosition,
+            } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
             backgroundColor: theme.inverse,
@@ -3680,7 +3720,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 position: 'absolute',
                 top: receiptImageTopPosition,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
@@ -3807,7 +3847,7 @@ const styles = (theme: ThemeColors) =>
                 position: 'absolute',
                 width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
                 ...spacing.mh4,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         reactionCounterText: {
             fontSize: 13,
@@ -4209,7 +4249,7 @@ const styles = (theme: ThemeColors) =>
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightNormal,
                 fontSize: variables.fontSizeNormal,
-            }) satisfies TextStyle,
+            } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
@@ -4233,7 +4273,7 @@ const styles = (theme: ThemeColors) =>
                 top: -height,
                 left: 0,
                 right: 0,
-            }) satisfies ViewStyle,
+            } satisfies ViewStyle),
 
         dualColorOverscrollSpacer: {
             position: 'absolute',
@@ -5013,6 +5053,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        expensifyCardIllustrationContainer: {
+            width: 680,
+            height: 220,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
@@ -5036,17 +5081,64 @@ const styles = (theme: ThemeColors) =>
             height: 172,
         },
 
-        reportListItemSeparator: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.activeComponentBG,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontWeight: FontUtils.fontWeight.bold,
         },
-    }) satisfies Styles;
+
+        skeletonBackground: {
+            flex: 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            paddingRight: 8,
+            paddingLeft: 8,
+        },
+
+        emptyStateScrollView: {
+            minHeight: 400,
+            height: '100%',
+            flex: 1,
+        },
+
+        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            padding: isSmallScreenWidth ? 32 : 0,
+            width: '100%',
+        }),
+
+        emptyStateContent: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 400,
+        },
+
+        emptyStateHeader: (isIllustration: boolean) => ({
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            minHeight: 200,
+            alignItems: isIllustration ? 'center' : undefined,
+            justifyContent: isIllustration ? 'center' : undefined,
+        }),
+
+        emptyFolderBG: {
+            backgroundColor: theme.emptyFolderBG,
+        },
+
+        emptyStateVideo: {
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        emptyStateFolderIconSize: {
+            width: 184,
+            height: 112,
+        },
+    } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
 

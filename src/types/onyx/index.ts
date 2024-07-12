@@ -4,9 +4,10 @@ import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
+import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
-import type {CardList, IssueNewCard} from './Card';
+import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -14,6 +15,7 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
@@ -32,6 +34,7 @@ import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
+import type Pages from './Pages';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -72,6 +75,7 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type StripeCustomerID from './StripeCustomerID';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -106,6 +110,8 @@ export type {
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,
+    WorkspaceCardsList,
+    ExpensifyCardSettings,
     FrequentlyUsedEmoji,
     Fund,
     FundList,
@@ -121,6 +127,7 @@ export type {
     OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
+    Pages,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
@@ -195,4 +202,6 @@ export type {
     ReviewDuplicates,
     PrivateSubscription,
     BillingGraceEndPeriod,
+    StripeCustomerID,
+    BillingStatus,
 };
