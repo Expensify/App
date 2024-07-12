@@ -7095,7 +7095,7 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param actionsToMerge
  * @returns containing the calculated message preview data of the report
  */
-function calcReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
+function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
     let result: Partial<Report> = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
@@ -7399,7 +7399,7 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     hasOnlyNonReimbursableTransactions,
-    calcReportLastMessage,
+    getReportLastMessage,
     getMostRecentlyVisitedReport,
 };
 
