@@ -1,5 +1,5 @@
 diff --git a/node_modules/focus-trap/dist/focus-trap.esm.js b/node_modules/focus-trap/dist/focus-trap.esm.js
-index 10d56db..7873392 100644
+index 10d56db..60fccbe 100644
 --- a/node_modules/focus-trap/dist/focus-trap.esm.js
 +++ b/node_modules/focus-trap/dist/focus-trap.esm.js
 @@ -100,8 +100,8 @@ var isKeyForward = function isKeyForward(e) {
@@ -9,7 +9,7 @@ index 10d56db..7873392 100644
 -var delay = function delay(fn) {
 -  return setTimeout(fn, 0);
 +var delay = function delay(fn, delayTime = 0) {
-+  return setTimeout(fn, delayTime);
++  return setTimeout(() => setTimeout(fn, delayTime), 0);
  };
  
  // Array.find/findIndex() are not supported on IE; this replicates enough
@@ -91,7 +91,7 @@ index 400db1b..b49618c 100644
  
    type ActivateOptions = Pick<Options, 'onActivate' | 'onPostActivate' | 'checkCanFocusTrap'>;
 diff --git a/node_modules/focus-trap/index.js b/node_modules/focus-trap/index.js
-index de8e46a..287b03c 100644
+index de8e46a..bfc8b63 100644
 --- a/node_modules/focus-trap/index.js
 +++ b/node_modules/focus-trap/index.js
 @@ -63,8 +63,8 @@ const isKeyBackward = function (e) {
@@ -101,7 +101,7 @@ index de8e46a..287b03c 100644
 -const delay = function (fn) {
 -  return setTimeout(fn, 0);
 +const delay = function (fn, delayTime = 0) {
-+  return setTimeout(fn, delayTime);
++  return setTimeout(() => setTimeout(fn, delayTime), 0);
  };
  
  // Array.find/findIndex() are not supported on IE; this replicates enough
