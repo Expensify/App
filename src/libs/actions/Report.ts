@@ -3766,7 +3766,6 @@ function resolveActionableReportMentionWhisper(
 }
 
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
-    console.log('dismissTrackExpenseActionableWhisper', reportID, reportAction);
     const isArrayMessage = Array.isArray(reportAction?.message);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
     if (!message || !reportAction) {
