@@ -1,3 +1,8 @@
+import {format} from 'date-fns';
+import {fastMerge, Str} from 'expensify-common';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -22,14 +27,14 @@ import type {
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
-import { WRITE_COMMANDS } from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
-import { toLocaleDigit } from '@libs/LocaleDigitUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,29 +44,24 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
-import type { OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails } from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type { IOUAction, IOUType } from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Participant, Split } from '@src/types/onyx/IOU';
-import type { ErrorFields, Errors } from '@src/types/onyx/OnyxCommon';
-import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
+import type {Participant, Split} from '@src/types/onyx/IOU';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type { OnyxData } from '@src/types/onyx/Request';
-import type { Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection } from '@src/types/onyx/Transaction';
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import { format } from 'date-fns';
-import { fastMerge, Str } from 'expensify-common';
-import type { NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate } from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
@@ -322,14 +322,31 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * @param policy
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
- * @param skipConfirmation if true, skip confirmation step
  */
 function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
+
+    const currentTransaction = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`];
+
+    // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
+    // we should keep most of the existing data by using the ONYX MERGE operation
+    if (currentTransaction?.iouRequestType === iouRequestType) {
+        // so, we just need to update the reportID, isFromGlobalCreate, created, currency
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+            reportID,
+            isFromGlobalCreate,
+            created,
+            currency,
+            transactionID: newTransactionID,
+        });
+        return;
+    }
+
     const comment: Comment = {};
 
     // Add initial empty waypoints when starting a distance expense
@@ -350,7 +367,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         amount: 0,
         comment,
         created,
-        currency: policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+        currency,
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -6794,7 +6811,11 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Report) {
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report) {
+    if (isEmptyObject(expenseReport)) {
+        return;
+    }
+
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
     const policy = PolicyUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
@@ -7321,7 +7342,8 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
 
 export {
     adjustRemainingSplitShares,
-    approveMoneyRequest, canApproveIOU,
+    approveMoneyRequest,
+    canApproveIOU,
     cancelPayment,
     canIOUBePaid,
     cleanUpMoneyRequest,
@@ -7371,7 +7393,9 @@ export {
     startMoneyRequest,
     startSplitBill,
     submitReport,
-    trackExpense, unapproveExpenseReport, unholdRequest,
+    trackExpense,
+    unapproveExpenseReport,
+    unholdRequest,
     updateDistanceRequestRate,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
@@ -7382,7 +7406,6 @@ export {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
-    updateMoneyRequestTaxRate
+    updateMoneyRequestTaxRate,
 };
-export type { GPSPoint as GpsPoint, IOURequestType };
-
+export type {GPSPoint as GpsPoint, IOURequestType};

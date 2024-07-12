@@ -64,7 +64,6 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
-export type {default as UpdateFrequentlyUsedEmojisParams} from './UpdateFrequentlyUsedEmojisParams';
 export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
@@ -170,6 +169,7 @@ export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspace
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
+export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
@@ -211,6 +211,7 @@ export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
 export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
+export type {default as UpdatePolicyTagGLCodeParams} from './UpdatePolicyTagGLCodeParams';
 export type {default as AddSubscriptionPaymentCardParams} from './AddSubscriptionPaymentCardParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
@@ -242,10 +243,15 @@ export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyReq
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
-export type {default as PolicyReportFieldsReplace} from './PolicyReportFieldsReplace';
+export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
+export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
+export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
+export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
+export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
+export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
