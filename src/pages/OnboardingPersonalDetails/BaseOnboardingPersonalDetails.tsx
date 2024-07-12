@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,9 +47,7 @@ function BaseOnboardingPersonalDetails({
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {accountID} = useSession();
 
-    useEffect(() => {
-        Welcome.setOnboardingErrorMessage('');
-    }, []);
+    useDisableModalDismissOnEscape();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
