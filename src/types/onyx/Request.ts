@@ -55,6 +55,10 @@ type RequestData = {
     shouldSkipWebProxy?: boolean;
 };
 
+/**
+ * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * whether the new request should be sent in the event of the new conflict, and what to do with the conflicting requests.
+ */
 type RequestConflictResolver = {
     /**
      * A callback that's provided with all the currently serialized functions in the sequential queue.
