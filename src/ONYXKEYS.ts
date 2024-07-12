@@ -553,6 +553,7 @@ const ONYXKEYS = {
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
         WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
         WORKSPACE_TAX_CODE_FORM: 'workspaceTaxCodeForm',
+        WORKSPACE_TAX_CODE_FORM_DRAFT: 'workspaceTaxCodeFormDraft',
         WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
         WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
