@@ -49,14 +49,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onLongPress={(event) =>
-                            showContextMenuForReport(
-                                event,
-                                anchor,
-                                report?.reportID ?? '-1',
-                                action,
-                                checkIfContextMenuActive,
-                                ReportUtils.isArchivedRoom(report, reportNameValuePairs),
-                            )
+                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
                         }
                         shouldUseHapticsOnLongPress
                     >
