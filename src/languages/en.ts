@@ -135,6 +135,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
+        notNow: 'Not now',
         learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
@@ -606,7 +607,7 @@ export default {
         saveTheWorld: 'Save the world',
     },
     allSettingsScreen: {
-        subscriptions: 'Subscriptions',
+        subscription: 'Subscription',
         cardsAndDomains: 'Cards & Domains',
     },
     tabSelector: {
@@ -626,6 +627,10 @@ export default {
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
+        locationAccessTitle: 'Allow location access',
+        locationAccessMessage: 'We’ll use your location to accurately determine your default currency and timezone. You can edit access in your device’s settings anytime.',
+        locationErrorTitle: 'Enable location in settings',
+        locationErrorMessage: 'Allowing location access is required to help accurately determine your default currency and timezone. Tap Settings to update permissions.',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
@@ -1464,7 +1469,6 @@ export default {
             title: 'What do you want to do today?',
             errorSelection: 'Please make a selection to continue.',
             errorContinue: 'Please press continue to get set up.',
-            errorBackButton: 'Please finish the setup questions to start using the app.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -2666,6 +2670,8 @@ export default {
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
             importedFromAccountingSoftware: 'The categories below are imported from your',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         moreFeatures: {
             spendSection: {
@@ -2803,6 +2809,8 @@ export default {
             existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
             importedFromAccountingSoftware: 'The tags below are imported from your',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -3978,6 +3986,10 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
+            },
+            trialEnded: {
+                title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },
