@@ -194,7 +194,15 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
+            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations)?.sort((a, b) => {
+                if (a.type === CONST.VIOLATION_TYPES.VIOLATION && b.type !== CONST.VIOLATION_TYPES.VIOLATION) {
+                    return -1;
+                }
+                if (a.type !== CONST.VIOLATION_TYPES.VIOLATION && b.type === CONST.VIOLATION_TYPES.VIOLATION) {
+                    return 1;
+                }
+                return 0;
+            });
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const violationsCount = violations.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length;
