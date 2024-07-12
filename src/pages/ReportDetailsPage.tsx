@@ -192,7 +192,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const canUnapproveRequest =
         ReportUtils.isExpenseReport(report) &&
         (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
-        ReportUtils.isReportApproved(report);
+        ReportUtils.isReportApproved(report) &&
+        !PolicyUtils.isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
