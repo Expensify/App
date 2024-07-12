@@ -1,12 +1,12 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ReportNextStep from '@src/types/onyx/ReportNextStep';
-import type { ValueOf } from 'type-fest';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
