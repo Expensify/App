@@ -3130,6 +3130,7 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
+            cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',

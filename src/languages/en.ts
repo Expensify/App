@@ -3142,6 +3142,7 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
