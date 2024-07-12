@@ -216,7 +216,7 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
-    }, [amount, shouldKeepUserInput]); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [amount, shouldKeepUserInput]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
