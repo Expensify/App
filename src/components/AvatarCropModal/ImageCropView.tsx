@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {PanGesture} from 'react-native-gesture-handler';
-import Animated, {interpolate, runOnJS, useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -54,8 +54,6 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     const translateX = props.translateX;
     const translateY = props.translateY;
     const scale = props.scale;
-
-    runOnJS()
 
     // A reanimated memoized style, which updates when the image's size or scale changes.
     const imageStyle = useAnimatedStyle(() => {
