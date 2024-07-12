@@ -90,15 +90,8 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
-          ruby-version: '3.3'
-          bundler-cache: false
-
-      - name: Setup fastlane
-        id: set_up_fastlane
-        run: |
-          gem install bundler -v 2.4.22
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
+          ruby-version: '2.7'
+          bundler-cache: true
 
       - name: Decrypt keystore
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
@@ -124,6 +117,7 @@ jobs:
         id: runFastlaneBetaTest
         run: bundle exec fastlane android build_internal
         env:
+          RUBYOPT: '-rostruct' # TODO: Temporary fix until https://github.com/fastlane/fastlane/pull/21950 gets released
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
