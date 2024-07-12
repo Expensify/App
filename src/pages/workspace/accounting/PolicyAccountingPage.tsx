@@ -30,7 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
+import {findCurrentXeroOrganization, getCurrentSageIntacctEntityName, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -238,7 +238,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 return {
                     description: translate('workspace.intacct.entity'),
                     iconRight: Expensicons.ArrowRight,
-                    title: policy?.connections?.intacct?.config?.entity ?? '',
+                    title: getCurrentSageIntacctEntityName(policy),
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     titleStyle: styles.fontWeightNormal,
                     shouldShowRightIcon: !!sageIntacctEntityListLength,

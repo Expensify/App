@@ -20,8 +20,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const policiesConnectedToSageIntacct = getAdminPoliciesConnectedToSageIntacct();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const policyID: string = route.params.policyID; // I'll need this to reuse existing connection
+    const policyID: string = route.params.policyID;
 
     const menuItems = policiesConnectedToSageIntacct.map((policy) => {
         const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;

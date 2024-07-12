@@ -25,12 +25,12 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             isSelected: entity.id === entityID,
         })) ?? [];
 
-    const saveSelection = ({text, keyForList}: ListItem) => {
+    const saveSelection = ({keyForList}: ListItem) => {
         if (!keyForList) {
             return;
         }
 
-        updateSageIntacctEntity(policyID, text ?? '');
+        updateSageIntacctEntity(policyID, keyForList ?? '');
         Navigation.goBack();
     };
 

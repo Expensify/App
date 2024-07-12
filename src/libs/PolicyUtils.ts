@@ -644,6 +644,12 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
+function getCurrentSageIntacctEntityName(policy: Policy): string | undefined {
+    const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    const entities = policy?.connections?.intacct?.data?.entities;
+    return entities?.find((entity) => entity.id === currentEntityID)?.name;
+}
+
 function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
     const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
     return (bankAccounts ?? []).map(({id, name}) => ({
@@ -809,6 +815,7 @@ export {
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
+    getCurrentSageIntacctEntityName,
 };
 
 export type {MemberEmailsToAccountIDs};
