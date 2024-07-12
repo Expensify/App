@@ -39,7 +39,7 @@ function WorkspaceEditTaxPage({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, taxID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const canEditTaxCode = PolicyUtils.isControlPolicy(policy);
+    const canEditTaxCode = !PolicyUtils.isControlPolicy(policy);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections;
 
