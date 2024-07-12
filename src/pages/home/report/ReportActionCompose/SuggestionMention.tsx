@@ -14,6 +14,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
+import localeCompare from '@libs/LocaleCompare';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -270,9 +271,29 @@ function SuggestionMention(
                 }
 
                 return true;
+            }) as Array<PersonalDetails & {weight: number}>; // at this point we are sure that the details are not null
+
+            const sortedPersonalDetails = filteredPersonalDetails.sort((first, second) => {
+                // first, we should sort by weight
+                if (first.weight !== second.weight) {
+                    return first.weight - second.weight;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const firstDisplayName = ReportUtils.getDisplayNameForParticipant(first.accountID) || first?.login || '';
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const secondDisplayName = ReportUtils.getDisplayNameForParticipant(second.accountID) || second?.login || '';
+
+                const displayNameLoginOrder = localeCompare(firstDisplayName, secondDisplayName);
+                if (displayNameLoginOrder !== 0) {
+                    return displayNameLoginOrder;
+                }
+
+                // Then fallback on accountID as the final sorting criteria.
+                return first.accountID - second.accountID;
             });
 
-            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, ['weight', 'displayName', 'login']);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
