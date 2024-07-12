@@ -579,7 +579,9 @@ function IOURequestStepConfirmation({
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={
-                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SPLIT) && !isMovingTransactionFromTrackExpense
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+                            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SPLIT) &&
+                            !isMovingTransactionFromTrackExpense
                         }
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
