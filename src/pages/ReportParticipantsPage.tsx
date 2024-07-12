@@ -58,6 +58,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isIOUReport = ReportUtils.isIOUReport(report);
     const isFocused = useIsFocused();
 
     useEffect(() => {
@@ -69,7 +70,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const shouldExcludeHiddenParticipants = !isGroupChat;
+        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
         const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
@@ -112,7 +113,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
