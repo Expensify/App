@@ -105,6 +105,8 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    onPaymentOptionsShow = () => {},
+    onPaymentOptionsHide = () => {},
     userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
@@ -411,6 +413,8 @@ function ReportPreview({
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
                                         onPress={confirmPayment}
+                                        onPaymentOptionsShow={onPaymentOptionsShow}
+                                        onPaymentOptionsHide={onPaymentOptionsHide}
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}

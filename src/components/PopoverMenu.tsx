@@ -89,6 +89,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onModalShow,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -204,6 +205,7 @@ function PopoverMenu({
             }}
             isVisible={isVisible}
             onModalHide={onModalHide}
+            onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}

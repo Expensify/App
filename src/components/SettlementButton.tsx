@@ -140,6 +140,8 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -273,6 +275,8 @@ function SettlementButton({
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
                     success
+                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu={isInvoiceReport}
                     customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
