@@ -244,10 +244,7 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
-    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const prevDistance = usePrevious(distance);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
@@ -261,6 +258,18 @@ function MoneyRequestConfirmationList({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
+
+    const distance = useMemo(() => {
+        const value = TransactionUtils.getDistance(transaction);
+        if (canUseP2PDistanceRequests && isMovingTransactionFromTrackExpense && unit && !TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
+            return DistanceRequestUtils.convertToDistanceInMeters(value, unit);
+        }
+        return value;
+    }, [isMovingTransactionFromTrackExpense, unit, transaction, canUseP2PDistanceRequests]);
+    const prevDistance = usePrevious(distance);
+
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
+
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
     const formattedAmount = isDistanceRequestWithPendingRoute

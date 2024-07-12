@@ -600,7 +600,7 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     allSettingsScreen: {
-        subscriptions: 'Suscripciones',
+        subscription: 'Suscripcion',
         cardsAndDomains: 'Tarjetas y Dominios',
     },
     tabSelector: {
@@ -2719,6 +2719,8 @@ export default {
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
             importedFromAccountingSoftware: 'Categorías importadas desde',
+            glCode: 'Código GL',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código GL. Inténtelo nuevamente.',
         },
         moreFeatures: {
             spendSection: {
@@ -2856,6 +2858,8 @@ export default {
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
+            glCode: 'Código GL',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código GL. Por favor, inténtelo nuevamente.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -4500,6 +4504,10 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            trialEnded: {
+                title: 'Tu prueba gratuita ha terminado',
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
         },
