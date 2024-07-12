@@ -639,7 +639,6 @@ function getReport(reportID: string): OnyxEntry<Report> {
  * Returns the report
  */
 function getReportNameValuePair(reportID?: string): OnyxEntry<ReportNameValuePairs> {
-    // ?? ([] as ReportNameValuePairs[])
     return allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID ?? -1}`];
 }
 
