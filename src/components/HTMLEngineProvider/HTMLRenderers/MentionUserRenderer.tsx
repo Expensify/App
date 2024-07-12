@@ -86,7 +86,16 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <Text
                     suppressHighlighting
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) =>
+                        showContextMenuForReport(
+                            event,
+                            anchor,
+                            report?.reportID ?? '-1',
+                            action,
+                            checkIfContextMenuActive,
+                            ReportUtils.isArchivedRoom(report, ReportUtils.getReportNameValuePair(report?.reportID)),
+                        )
+                    }
                     onPress={(event) => {
                         event.preventDefault();
                         Navigation.navigate(navigationRoute);
