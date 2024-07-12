@@ -1,8 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import type {OnboardingPurposeType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type { OnyxEntry } from 'react-native-onyx';
-import type { OnboardingPurposeType } from '@src/CONST';
 
 type OnboardingPurposeProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PURPOSE>;
 
