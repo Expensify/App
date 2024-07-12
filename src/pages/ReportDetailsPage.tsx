@@ -87,6 +87,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID ?? -1}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
 
     const transactionThreadReportID = useMemo(
@@ -506,7 +507,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowHoldAction =
         caseID !== CASES.MONEY_REPORT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedRoom(parentReport, ReportUtils.getReportNameValuePair(parentReport?.reportID));
+        !ReportUtils.isArchivedRoom(parentReport, parentReportNameValuePairs);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
