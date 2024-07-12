@@ -149,8 +149,8 @@ function SuggestionEmoji(
      * Calculates and cares about the content of an Emoji Suggester
      */
     const calculateEmojiSuggestion = useCallback(
-        (selectionEnd?: number) => {
-            if (!selectionEnd || shouldBlockCalc.current || !value) {
+        (selectionStart?: number, selectionEnd?: number) => {
+            if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !value || (selectionStart === 0 && selectionEnd === 0)) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -181,7 +181,8 @@ function SuggestionEmoji(
         if (!isComposerFocused) {
             return;
         }
-        calculateEmojiSuggestion(selection.end);
+
+        calculateEmojiSuggestion(selection.start, selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
@@ -193,6 +194,8 @@ function SuggestionEmoji(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -201,8 +204,9 @@ function SuggestionEmoji(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            getIsSuggestionsMenuVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {

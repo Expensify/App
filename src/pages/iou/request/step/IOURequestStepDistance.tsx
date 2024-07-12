@@ -90,7 +90,8 @@ function IOURequestStepDistance({
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
-    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
+    const isEmptyCoordinates = !transaction?.routes?.route0?.geometry?.coordinates?.length;
+    const shouldFetchRoute = (isEmptyCoordinates || isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => !isEmpty(waypoints[key])).length, [waypoints]);
     const duplicateWaypointsError = useMemo(
@@ -168,7 +169,7 @@ function IOURequestStepDistance({
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', action === CONST.IOU.ACTION.CREATE);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -181,9 +182,7 @@ function IOURequestStepDistance({
      */
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID, index.toString(), Navigation.getActiveRouteWithoutParams()),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID, index.toString(), Navigation.getActiveRoute()));
         },
         [action, transactionID, report?.reportID],
     );
@@ -288,7 +287,7 @@ function IOURequestStepDistance({
                     0,
                     transaction?.currency ?? 'USD',
                     translate('iou.fieldPending'),
-                    false,
+                    !!policy?.defaultBillable,
                     TransactionUtils.getValidWaypoints(waypoints, true),
                 );
                 return;

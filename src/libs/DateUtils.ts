@@ -83,6 +83,10 @@ Onyx.connect({
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
+function isDate(arg: unknown): arg is Date {
+    return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
 /**
  * Get the day of the week that the week starts on
  */
@@ -133,7 +137,15 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
         }
         return res;
     }
-    const parsedDatetime = new Date(`${datetime}Z`);
+    let parsedDatetime;
+    try {
+        // in some cases we cannot add 'Z' to the date string
+        parsedDatetime = new Date(`${datetime}Z`);
+        parsedDatetime.toISOString(); // we need to call toISOString because it throws RangeError in case of an invalid date
+    } catch (e) {
+        parsedDatetime = new Date(datetime);
+    }
+
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
@@ -234,7 +246,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  */
 function datetimeToRelative(locale: Locale, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
-    return formatDistanceToNow(date, {addSuffix: true});
+    return formatDistanceToNow(date, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
 }
 
 /**
@@ -794,7 +806,21 @@ function doesDateBelongToAPastYear(date: string): boolean {
     return transactionYear !== new Date().getFullYear();
 }
 
+/**
+ * Returns a boolean value indicating whether the card has expired.
+ * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
+ * @param expiryYear year when card expires
+ */
+
+function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
+}
+
 const DateUtils = {
+    isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
@@ -837,6 +863,7 @@ const DateUtils = {
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
     doesDateBelongToAPastYear,
+    isCardExpired,
 };
 
 export default DateUtils;

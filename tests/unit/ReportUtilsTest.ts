@@ -6,7 +6,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {ModifiedExpenseAction} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -768,8 +767,8 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('sortReportsByLastRead', () => {
-        it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
+    describe('getMostRecentlyVisitedReport', () => {
+        it('should filter out report without reportID & lastReadTime and return the most recently visited report', () => {
             const reports: Array<OnyxEntry<Report>> = [
                 {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
                 {reportID: '2', lastReadTime: undefined},
@@ -779,12 +778,8 @@ describe('ReportUtils', () => {
                 {reportID: '6'},
                 undefined,
             ];
-            const sortedReports: Array<OnyxEntry<Report>> = [
-                {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
-                {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
-                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
-            ];
-            expect(ReportUtils.sortReportsByLastRead(reports, undefined)).toEqual(sortedReports);
+            const latestReport: OnyxEntry<Report> = {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'};
+            expect(ReportUtils.getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
         });
     });
 
@@ -850,7 +845,7 @@ describe('ReportUtils', () => {
                 originalMessage: {
                     whisperedTo: [123456],
                 },
-            } as ModifiedExpenseAction;
+            } as ReportAction;
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
 
@@ -953,6 +948,26 @@ describe('ReportUtils', () => {
             };
 
             expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
+        });
+
+        it("should use the report id from the onboarding NVP if it's set", async () => {
+            const reportID = '8010';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: {chatReportID: reportID, hasCompletedGuidedSetupFlow: true},
+            });
+
+            const report1: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID,
+            };
+            expect(ReportUtils.isChatUsedForOnboarding(report1)).toBeTruthy();
+
+            const report2: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '8011',
+            };
+            expect(ReportUtils.isChatUsedForOnboarding(report2)).toBeFalsy();
         });
     });
 });
