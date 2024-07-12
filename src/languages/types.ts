@@ -341,7 +341,7 @@ type RemoveMembersWarningPrompt = {
     ownerName: string;
 };
 
-type DeleteExpenseParams = {
+type DeleteExpenseTranslationParams = {
     count: number;
 };
 
@@ -464,5 +464,5 @@ export type {
     StripePaidParams,
     UnapprovedParams,
     RemoveMembersWarningPrompt,
-    DeleteExpenseParams,
+    DeleteExpenseTranslationParams,
 };
