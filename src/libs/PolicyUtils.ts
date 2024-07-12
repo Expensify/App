@@ -318,6 +318,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
@@ -815,6 +819,7 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getReimburserAccountID,
+    isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,

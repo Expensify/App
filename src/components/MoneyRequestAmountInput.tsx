@@ -88,6 +88,18 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
+
+    /**
+     * Determines whether the amount should be reset.
+     */
+    shouldResetAmount?: boolean;
+
+    /**
+     * Callback function triggered when the amount is reset.
+     *
+     * @param resetValue - A boolean indicating whether the amount should be reset.
+     */
+    onResetAmount?: (resetValue: boolean) => void;
 };
 
 type Selection = {
@@ -123,6 +135,8 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
+        shouldResetAmount,
+        onResetAmount,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -202,10 +216,21 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
+        const frontendAmount = onFormatAmount(amount, currency);
+        setCurrentAmount(frontendAmount);
+        if (shouldResetAmount) {
+            setSelection({
+                start: frontendAmount.length,
+                end: frontendAmount.length,
+            });
+            onResetAmount?.(false);
+            return;
+        }
+
         if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
-        const frontendAmount = onFormatAmount(amount, currency);
+
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
@@ -216,10 +241,7 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
-
-        // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [amount, shouldKeepUserInput]);
+    }, [amount, currency, formatAmountOnBlur, shouldKeepUserInput, onFormatAmount, shouldResetAmount, onResetAmount, currentAmount]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
