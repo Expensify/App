@@ -362,7 +362,7 @@ function IOURequestStepDistance({
             data.forEach((waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
                 // Find waypoint that BECOMES empty after dragging
-                if (!isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
+                if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
                 }
             });
