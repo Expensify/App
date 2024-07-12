@@ -527,11 +527,11 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
-function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
 }
 
-function isRceiptStateOpen(transaction: OnyxEntry<Transaction>): boolean {
+function isReceiptStateOpen(transaction: OnyxEntry<Transaction>): boolean {
     return CONST.IOU.RECEIPT_STATE.OPEN === transaction?.receipt?.state;
 }
 
@@ -954,8 +954,8 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
-    didRceiptScanSucceed,
-    isRceiptStateOpen,
+    didReceiptScanSucceed,
+    isReceiptStateOpen,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,

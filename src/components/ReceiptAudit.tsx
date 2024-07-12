@@ -10,17 +10,20 @@ import Text from './Text';
 type ReceiptAuditProps = {
     /** List of audit notes */
     notes: string[];
+
+    /** Whether to show audit result or not (e.g.`Verified`, `Issue Found`) */
+    shouldShowAuditResult: boolean;
 };
 
-function ReceiptAudit({notes}: ReceiptAuditProps) {
+function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     let auditText = '';
-    if (notes.length > 0) {
+    if (notes.length > 0 && shouldShowAuditResult) {
         auditText = translate('iou.receiptIssuesFound', notes.length);
-    } else if (!notes.length) {
+    } else if (!notes.length && shouldShowAuditResult) {
         auditText = translate('common.verified');
     }
 

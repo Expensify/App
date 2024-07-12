@@ -163,8 +163,8 @@ function MoneyRequestView({
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
-    const isRceiptStateOpen = hasReceipt && TransactionUtils.isRceiptStateOpen(transaction);
+    const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
+    const isReceiptStateOpen = hasReceipt && TransactionUtils.isReceiptStateOpen(transaction);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
@@ -385,7 +385,7 @@ function MoneyRequestView({
         );
     });
 
-    if (!shouldShowAuditMessage || !hasReceipt || (!didRceiptScanSucceed && !isRceiptStateOpen)) {
+    if (!shouldShowAuditMessage || !hasReceipt || (!didReceiptScanSucceed && !isReceiptStateOpen)) {
         receiptViolations = [];
     }
 
@@ -393,7 +393,12 @@ function MoneyRequestView({
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {shouldShowReceiptAudit && <ReceiptAudit notes={receiptViolations} />}
+                {shouldShowReceiptAudit && (
+                    <ReceiptAudit
+                        notes={receiptViolations}
+                        shouldShowAuditResult={!!isReceiptBeingScanned}
+                    />
+                )}
                 {(hasReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
