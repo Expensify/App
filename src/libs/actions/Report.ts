@@ -1467,8 +1467,8 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
                     isDeletedParentAction ? [WRITE_COMMANDS.UPDATE_COMMENT] : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT]
                 ) as string[];
                 const conflictingRequests = persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
-                shouldrequestHappen = conflictingRequests.some((request) => request.command !== WRITE_COMMANDS.UPDATE_COMMENT);
-                return conflictinRequests;
+                shouldRequestHappen = conflictingRequests.some((request) => request.command !== WRITE_COMMANDS.UPDATE_COMMENT);
+                return conflictingRequests;
             },
             handleConflictingRequest: () => Onyx.update(successData),
             shouldSkipThisRequestOnConflict: () => !shouldRequestHappen,
