@@ -4961,6 +4961,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         tag: transactionTag,
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
     } = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
 
     const parameters: CompleteSplitBillParams = {
@@ -4975,6 +4976,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         splits: JSON.stringify(splits),
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
