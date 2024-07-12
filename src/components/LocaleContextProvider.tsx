@@ -2,7 +2,6 @@ import React, {createContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -73,7 +72,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
-function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
+function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, children}: LocaleContextProviderProps) {
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
@@ -125,18 +124,17 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 
-const Provider = compose(
+const Provider = withCurrentUserPersonalDetails(
     withOnyx<LocaleContextProviderProps, LocaleContextProviderOnyxProps>({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             selector: (preferredLocale) => preferredLocale,
         },
-    }),
-    withCurrentUserPersonalDetails,
-)(LocaleContextProvider);
+    })(LocaleContextProvider),
+);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
 
-export {Provider as LocaleContextProvider, LocaleContext};
+export {LocaleContext, Provider as LocaleContextProvider};
 
-export type {LocaleContextProps, Locale};
+export type {Locale, LocaleContextProps};

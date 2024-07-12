@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
+import usePrevious from './usePrevious';
 
 type Config = {
     maxIndex: number;
@@ -51,6 +52,7 @@ export default function useArrowKeyFocusManager({
     isFocused = true,
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    const prevIsFocusedIndex = usePrevious(focusedIndex);
     const arrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
@@ -67,8 +69,13 @@ export default function useArrowKeyFocusManager({
         [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys],
     );
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex]);
+    useEffect(() => {
+        if (prevIsFocusedIndex === focusedIndex) {
+            return;
+        }
+        onFocusedIndexChange(focusedIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [focusedIndex, prevIsFocusedIndex]);
 
     const arrowUpCallback = useCallback(() => {
         if (maxIndex < 0 || !isFocused) {

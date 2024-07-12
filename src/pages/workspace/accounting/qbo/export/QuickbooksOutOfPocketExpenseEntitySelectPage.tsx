@@ -46,9 +46,9 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const styles = useThemeStyles();
     const {reimbursableExpensesExportDestination, reimbursableExpensesAccount, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = Boolean(syncTax);
-    const policyID = policy?.id ?? '';
+    const isLocationsEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isTaxesEnabled = !!syncTax;
+    const policyID = policy?.id ?? '-1';
 
     const data: CardListItem[] = useMemo(
         () => [
@@ -113,11 +113,10 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 includeSafeAreaPaddingBottom={false}
                 testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.exportAs')} />
                 <View style={styles.flex1}>
                     <SelectionList
                         containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportEntity}

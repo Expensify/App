@@ -1,3 +1,4 @@
+/** Model of recent endpoint used in distance expense */
 type RecentWaypoint = {
     /** The name associated with the address of the waypoint */
     name?: string;

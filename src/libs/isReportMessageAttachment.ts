@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 

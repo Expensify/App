@@ -42,9 +42,13 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const currentRateValue = (rate?.rate ?? 0).toString();
+    const currentRateValue = (parseFloat((rate?.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3);
 
     const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
+        if (currentRateValue === values.rate) {
+            Navigation.goBack();
+            return;
+        }
         DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
         Keyboard.dismiss();
         Navigation.goBack();
@@ -92,7 +96,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.RATE}
                         extraDecimals={1}
-                        defaultValue={(parseFloat(currentRateValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3)}
+                        defaultValue={currentRateValue}
                         isCurrencyPressable={false}
                         currency={currency}
                         ref={inputCallbackRef}

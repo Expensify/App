@@ -109,9 +109,12 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
+            if (transaction?.iouRequestType === newIOUType) {
+                return;
+            }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
-        [policy, reportID, isFromGlobalCreate],
+        [policy, reportID, isFromGlobalCreate, transaction],
     );
 
     if (!transaction?.transactionID) {
@@ -186,7 +189,7 @@ export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>(
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? -1}`,
     },
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,

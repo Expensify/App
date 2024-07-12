@@ -51,14 +51,14 @@ function IOURequestStepSplitPayer({
         const participants = transaction?.participants ?? [];
         const participantOptions =
             [currentUserOption, ...participants]
-                ?.filter((participant) => Boolean(participant.accountID))
+                ?.filter((participant) => !!participant.accountID)
                 ?.map((participant) => OptionsListUtils.getParticipantsOption(participant, personalDetails)) ?? [];
         return [
             {
                 title: '',
                 data: participantOptions.map((participantOption) => ({
                     ...participantOption,
-                    isSelected: !!transaction?.splitPayerAccountIDs && transaction?.splitPayerAccountIDs?.includes(participantOption.accountID ?? 0),
+                    isSelected: !!transaction?.splitPayerAccountIDs && transaction?.splitPayerAccountIDs?.includes(participantOption.accountID ?? -1),
                 })),
             },
         ];
@@ -69,7 +69,7 @@ function IOURequestStepSplitPayer({
     };
 
     const setSplitPayer = (item: Participant | OptionData) => {
-        IOU.setSplitPayer(transactionID, item.accountID ?? 0);
+        IOU.setSplitPayer(transactionID, item.accountID ?? -1);
         navigateBack();
     };
 

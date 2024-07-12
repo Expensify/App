@@ -18,7 +18,6 @@ function BaseListItem<TItem extends ListItem>({
     wrapperStyle,
     containerStyle,
     isDisabled = false,
-    shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
@@ -33,6 +32,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldSyncFocus = true,
     onFocus = () => {},
     hoverStyle,
+    onLongPressRow,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -42,8 +42,8 @@ function BaseListItem<TItem extends ListItem>({
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
-    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();
     };
@@ -72,6 +72,9 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
+                onLongPress={() => {
+                    onLongPressRow?.(item);
+                }}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
@@ -83,17 +86,17 @@ function BaseListItem<TItem extends ListItem>({
                     onSelectRow(item);
                 }}
                 disabled={isDisabled && !item.isSelected}
+                interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>

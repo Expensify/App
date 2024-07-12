@@ -1,10 +1,11 @@
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, StyleSheet, View} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import Text from '@components/Text';
@@ -46,6 +47,9 @@ const getNextChars = (inputString: string, cursorPosition: number): string => {
     return subString.substring(0, spaceIndex);
 };
 
+const excludeNoStyles: Array<keyof MarkdownStyle> = [];
+const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
+
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer(
@@ -70,7 +74,8 @@ function Composer(
         },
         isReportActionCompose = false,
         isComposerFullSize = false,
-        shouldContainScroll = false,
+        shouldContainScroll = true,
+        isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
@@ -78,7 +83,7 @@ function Composer(
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(value);
+    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -86,6 +91,8 @@ function Composer(
         | {
               start: number;
               end?: number;
+              positionX?: number;
+              positionY?: number;
           }
         | undefined
     >({
@@ -98,6 +105,7 @@ function Composer(
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
         if (!shouldClear) {
@@ -108,12 +116,11 @@ function Composer(
     }, [shouldClear, onClear]);
 
     useEffect(() => {
-        setSelection((prevSelection) => {
-            if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
-                return;
-            }
-            return selectionProp;
-        });
+        if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
+            return;
+        }
+        setSelection(selectionProp);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
@@ -164,7 +171,6 @@ function Composer(
 
             if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
-
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
@@ -244,11 +250,35 @@ function Composer(
     }, []);
 
     useEffect(() => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
+            isReportFlatListScrolling.current = scrolling;
+        });
+
+        return () => scrollingListener.remove();
+    }, []);
+
+    useEffect(() => {
+        const handleWheel = (e: MouseEvent) => {
+            if (isReportFlatListScrolling.current) {
+                e.preventDefault();
+                return;
+            }
+            e.stopPropagation();
+        };
+        textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
+
+        return () => {
+            textInput.current?.removeEventListener('wheel', handleWheel);
+        };
+    }, []);
+
+    useEffect(() => {
         if (!textInput.current || prevScroll === undefined) {
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current.scrollTop = prevScroll;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     useHtmlPaste(textInput, handlePaste, true);
@@ -265,7 +295,7 @@ function Composer(
             }
             ReportActionComposeFocusManager.clear();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const handleKeyPress = useCallback(

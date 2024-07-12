@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -24,7 +24,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
@@ -56,7 +55,6 @@ function InviteMemberListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}

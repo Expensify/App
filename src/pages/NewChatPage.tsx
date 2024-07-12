@@ -50,12 +50,12 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const options = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
             listOptions.reports ?? [],
             listOptions.personalDetails ?? [],
             betas ?? [],
-            debouncedSearchTerm,
+            '',
             selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
@@ -69,18 +69,33 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             true,
             undefined,
             undefined,
+            0,
             undefined,
             true,
         );
+        return filteredOptions;
+    }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
-            Boolean(filteredOptions.userToInvite),
-            debouncedSearchTerm.trim(),
-            selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
-        );
-        return {...filteredOptions, headerMessage};
-    }, [betas, debouncedSearchTerm, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    const options = useMemo(() => {
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+            selectedOptions,
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+
+        return filteredOptions;
+    }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
+
+    const headerMessage = useMemo(
+        () =>
+            OptionsListUtils.getHeaderMessage(
+                options.personalDetails.length + options.recentReports.length !== 0,
+                !!options.userToInvite,
+                debouncedSearchTerm.trim(),
+                selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
+            ),
+        [debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions],
+    );
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
@@ -117,7 +132,16 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         setSelectedOptions(newSelectedOptions);
     }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
 
-    return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
+    return {
+        ...options,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
+        selectedOptions,
+        setSelectedOptions,
+        headerMessage,
+    };
 }
 
 function NewChatPage({isGroupChat}: NewChatPageProps) {
@@ -221,7 +245,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 if (isOptionInList) {
                     newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
                 } else {
-                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? ''}];
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
                 }
 
                 selectionListRef?.current?.clearInputAfterSelect?.();

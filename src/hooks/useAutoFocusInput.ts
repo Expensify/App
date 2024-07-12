@@ -49,6 +49,9 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
+        if (isInputInitialized) {
+            return;
+        }
         setIsInputInitialized(true);
     };
 

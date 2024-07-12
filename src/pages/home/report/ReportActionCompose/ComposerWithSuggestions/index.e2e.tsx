@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect} from 'react';
+import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
 import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions';
@@ -17,6 +18,12 @@ function IncrementRenderCount() {
 }
 
 function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef>) {
+    'use no memo';
+
+    // we rely on waterfall rendering in react, so we intentionally disable compiler
+    // for this component. This file is only used for e2e tests, so it's okay to
+    // disable compiler for this file.
+
     // Eventually Auto focus on e2e tests
     useEffect(() => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
@@ -26,11 +33,26 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
 
         // We need to wait for the component to be mounted before focusing
         setTimeout(() => {
-            if (!(ref && 'current' in ref)) {
-                return;
-            }
+            const setFocus = () => {
+                if (!(ref && 'current' in ref)) {
+                    return;
+                }
 
-            ref.current?.focus(true);
+                ref.current?.focus(true);
+
+                setTimeout(() => {
+                    // and actually let's verify that the keyboard is visible
+                    if (Keyboard.isVisible()) {
+                        return;
+                    }
+
+                    ref.current?.blur();
+                    setFocus();
+                    // 500ms is enough time for any keyboard to open
+                }, 500);
+            };
+
+            setFocus();
         }, 1);
     }, [ref]);
 

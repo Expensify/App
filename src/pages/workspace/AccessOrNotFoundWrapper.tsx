@@ -22,13 +22,14 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const ACCESS_VARIANTS = {
-    [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy) && !!policy?.isPolicyExpenseChatEnabled,
+    [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy),
+    [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isControlPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>, login: string) => PolicyUtils.isPolicyAdmin(policy, login),
     [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
         policy: OnyxEntry<OnyxTypes.Policy>,
         login: string,
         report: OnyxEntry<OnyxTypes.Report>,
-        allPolicies: OnyxCollection<OnyxTypes.Policy>,
+        allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null,
         iouType?: IOUType,
     ) =>
         !!iouType &&
@@ -36,7 +37,10 @@ const ACCESS_VARIANTS = {
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
         (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies)),
-} as const satisfies Record<string, (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) => boolean>;
+} as const satisfies Record<
+    string,
+    (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: NonNullable<OnyxCollection<OnyxTypes.Policy>> | null, iouType?: IOUType) => boolean
+>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperOnyxProps = {
@@ -92,7 +96,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
         />
     ) : (
         <NotFoundPage
-            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : ROUTES.HOME)}
+            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
         />
@@ -113,7 +117,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         }
 
         Policy.openWorkspace(policyID, []);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);

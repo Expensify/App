@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -53,7 +52,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '', true)), ...CONST.EXPENSIFY_EMAILS],
+        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true)), ...CONST.EXPENSIFY_EMAILS],
         [report],
     );
 
@@ -77,7 +76,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setRecentReports(inviteOptions.recentReports);
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers, options]);
 
     const sections = useMemo(() => {
@@ -153,7 +152,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const reportID = report.reportID;
     const backRoute = useMemo(() => ROUTES.REPORT_PARTICIPANTS.getRoute(reportID), [reportID]);
-    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report?.reportID ?? ''), [report]);
+    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -187,13 +186,27 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName ?? ''});
         }
-        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
+        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, !!userToInvite, searchValue);
     }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
+
+    const footerContent = useMemo(
+        () => (
+            <FormAlertWithSubmitButton
+                isDisabled={!selectedOptions.length}
+                buttonText={translate('common.invite')}
+                onSubmit={inviteUsers}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                enabledWhenOffline
+            />
+        ),
+        [selectedOptions.length, inviteUsers, translate, styles],
+    );
 
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
+            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}
@@ -202,32 +215,22 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     Navigation.goBack(backRoute);
                 }}
             />
-            <View style={[styles.flex1, styles.p1]}>
-                <SelectionList
-                    canSelectMultiple
-                    sections={sections}
-                    ListItem={InviteMemberListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    headerMessage={headerMessage}
-                    onSelectRow={toggleOption}
-                    onConfirm={inviteUsers}
-                    showScrollIndicator
-                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
-                />
-            </View>
-            <View style={[styles.flexShrink0, styles.p5]}>
-                <FormAlertWithSubmitButton
-                    isDisabled={!selectedOptions.length}
-                    buttonText={translate('common.invite')}
-                    onSubmit={inviteUsers}
-                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                    enabledWhenOffline
-                    disablePressOnEnter
-                />
-            </View>
+
+            <SelectionList
+                canSelectMultiple
+                sections={sections}
+                ListItem={InviteMemberListItem}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                headerMessage={headerMessage}
+                onSelectRow={toggleOption}
+                onConfirm={inviteUsers}
+                showScrollIndicator
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                footerContent={footerContent}
+            />
         </ScreenWrapper>
     );
 }

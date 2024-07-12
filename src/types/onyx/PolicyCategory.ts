@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of policy category */
 type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a category */
     name: string;
@@ -17,6 +18,10 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'GL Code'?: string;
 
+    /** Payroll code is used to keep track of taxes, deductions, and an employee’s earnings */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'Payroll Code'?: string;
+
     /** An ID for this category from an external accounting system */
     externalID?: string;
 
@@ -30,6 +35,7 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors | null;
 }>;
 
+/** Record of policy categories, indexed by their name */
 type PolicyCategories = Record<string, PolicyCategory>;
 
 export type {PolicyCategory, PolicyCategories};

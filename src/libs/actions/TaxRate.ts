@@ -4,6 +4,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, RenamePolicyTaxParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {translateLocal} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
@@ -39,7 +40,7 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
 
     const name = values[INPUT_IDS.NAME];
     if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
-        errors[INPUT_IDS.NAME] = 'workspace.taxes.error.taxRateAlreadyExists';
+        errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');
     }
 
     return errors;
@@ -53,7 +54,7 @@ const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE
 
     const value = values[INPUT_IDS.VALUE];
     if (!ValidationUtils.isValidPercentage(value)) {
-        errors[INPUT_IDS.VALUE] = 'workspace.taxes.error.valuePercentageRange';
+        errors[INPUT_IDS.VALUE] = translateLocal('workspace.taxes.error.valuePercentageRange');
     }
 
     return errors;
@@ -123,7 +124,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.createFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.createFailureMessage'),
                             },
                         },
                     },
@@ -199,6 +200,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                             acc[taxID] = {
                                 isDisabled: !isEnabled,
                                 pendingFields: {isDisabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {isDisabled: null},
                             };
                             return acc;
@@ -214,7 +216,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
-                            acc[taxID] = {pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}};
+                            acc[taxID] = {pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}, pendingAction: null};
                             return acc;
                         }, {}),
                     },
@@ -231,7 +233,8 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                             acc[taxID] = {
                                 isDisabled: !!originalTaxes[taxID].isDisabled,
                                 pendingFields: {isDisabled: null},
-                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
+                                pendingAction: null,
+                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             };
                             return acc;
                         }, {}),
@@ -312,7 +315,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.deleteFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
                             };
                             return acc;
                         }, {}),
@@ -346,6 +349,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                             [taxID]: {
                                 value: stringTaxValue,
                                 pendingFields: {value: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {value: null},
                             },
                         },
@@ -360,7 +364,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                 value: {
                     taxRates: {
                         taxes: {
-                            [taxID]: {pendingFields: {value: null}, errorFields: {value: null}},
+                            [taxID]: {pendingFields: {value: null}, pendingAction: null, errorFields: {value: null}},
                         },
                     },
                 },
@@ -376,7 +380,8 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                             [taxID]: {
                                 value: originalTaxRate.value,
                                 pendingFields: {value: null},
-                                errorFields: {value: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
+                                pendingAction: null,
+                                errorFields: {value: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
@@ -408,6 +413,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                             [taxID]: {
                                 name: newName,
                                 pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {name: null},
                             },
                         },
@@ -422,7 +428,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                 value: {
                     taxRates: {
                         taxes: {
-                            [taxID]: {pendingFields: {name: null}, errorFields: {name: null}},
+                            [taxID]: {pendingFields: {name: null}, pendingAction: null, errorFields: {name: null}},
                         },
                     },
                 },
@@ -438,7 +444,8 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                             [taxID]: {
                                 name: originalTaxRate.name,
                                 pendingFields: {name: null},
-                                errorFields: {name: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
+                                pendingAction: null,
+                                errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },

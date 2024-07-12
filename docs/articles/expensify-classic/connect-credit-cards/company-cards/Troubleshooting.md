@@ -64,8 +64,9 @@ Make sure you're importing your card in the correct spot in Expensify and select
 Please note there are some things that cannot be bypassed within Expensify, including two-factor authentication being enabled within your bank account. This will prevent the connection from remaining stable and will need to be turned off on the bank side. 
 
 ## What are the most reliable bank connections in Expensify?*
-The most reliable corporate card to use with Expensify is the Expensify Visa® Commercial Card. We offer daily settlement, unapproved expense limits, and real-time compliance for secure and efficient spending, as well as 2% cash back (_Applies to USD purchases only._) Click here to learn more or apply.
-Additionally, we've teamed up with major banks worldwide to ensure a smooth import of credit card transactions into your accounts. Corporate cards from the following banks also offer the most dependable connections in Expensify:
+All bank connections listed below are extremely reliable, but we recommend transacting with the Expensify Visa® Commercial Card. It also offers daily and monthly settlement, unapproved expense limits, realtime compliance for secure and efficient spending, and cash back on all US purchases. [Click here to learn more about the Expensify Card](https://use.expensify.com/company-credit-card).
+
+We've also teamed up with major banks worldwide to ensure a smooth import of credit card transactions into your accounts:
 - American Express
 - Bank of America
 - Brex
@@ -75,7 +76,7 @@ Additionally, we've teamed up with major banks worldwide to ensure a smooth impo
 - Stripe
 - Wells Fargo
 
-Commercial feeds for company cards are the dependable connections in Expensify. If you have a corporate or commercial card account, you might have access to a daily transaction feed where expenses from Visa, MasterCard, and American Express are automatically sent to Expensify. Reach out to your banking relationship manager to check if your card program qualifies for this feature.
+Commercial feeds for company cards are the dependable connections in Expensify. If you have a corporate or commercial card account, you might have access to a daily transaction feed where expenses from Visa, Mastercard, and American Express are automatically sent to Expensify. Reach out to your banking relationship manager to check if your card program qualifies for this feature.
 
 # Troubleshooting American Express Business
 

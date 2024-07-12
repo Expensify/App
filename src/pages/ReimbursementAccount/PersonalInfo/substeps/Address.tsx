@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -34,20 +34,6 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.STATE, PERSONAL_INFO_STEP_KEY.ZIP_CODE];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
-        errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
-    }
-
-    if (values.requestorAddressZipCode && !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
-        errors.requestorAddressZipCode = 'bankAccount.error.zipCode';
-    }
-
-    return errors;
-};
-
 function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -58,6 +44,23 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
         state: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
         zipCode: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
+                errors.requestorAddressStreet = translate('bankAccount.error.addressStreet');
+            }
+
+            if (values.requestorAddressZipCode && !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
+                errors.requestorAddressZipCode = translate('bankAccount.error.zipCode');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
