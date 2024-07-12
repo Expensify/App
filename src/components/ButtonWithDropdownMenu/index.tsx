@@ -140,7 +140,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     isVisible={isMenuVisible}
                     onClose={() => {
                         setIsMenuVisible(false)
-                        onOptionsMenuHide();
+                        onOptionsMenuHide?.();
                     }}
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}

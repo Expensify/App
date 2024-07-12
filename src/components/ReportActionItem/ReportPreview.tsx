@@ -83,6 +83,12 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
+    /** Callback when the payment options popover is shown */
+    onPaymentOptionsShow?: () => void;
+
+    /** Callback when the payment options popover is closed */
+    onPaymentOptionsHide?: () => void;
+
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
@@ -105,8 +111,8 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
-    onPaymentOptionsShow = () => {},
-    onPaymentOptionsHide = () => {},
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
     userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();

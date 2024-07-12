@@ -42,6 +42,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Callback method fired when the modal is shown */
+    onModalShow?: () => void;
+
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
