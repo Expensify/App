@@ -59,12 +59,26 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const renderGBRTooltip = useCallback(
         () => (
-            <Text>
-                <Text style={styles.quickActionTooltipTitle}>{translate('quickAction.tooltip.title')}</Text>
-                <Text style={styles.quickActionTooltipSubtitle}>{translate('quickAction.tooltip.subtitle')}</Text>
-            </Text>
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
+                <Icon
+                    src={Expensicons.Lightbulb}
+                    fill={theme.tooltipHighlightText}
+                    medium
+                />
+                <Text style={styles.quickActionTooltipSubtitle}>{translate('sidebarScreen.tooltip')}</Text>
+            </View>
         ),
-        [styles.quickActionTooltipTitle, styles.quickActionTooltipSubtitle, translate],
+        [
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentCenter,
+            styles.flexWrap,
+            styles.textAlignCenter,
+            styles.gap1,
+            styles.quickActionTooltipSubtitle,
+            theme.tooltipHighlightText,
+            translate,
+        ],
     );
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -159,6 +173,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 shiftHorizontal={-20}
+                shiftVertical={-50}
                 wrapperStyle={styles.quickActionTooltipWrapper}
             >
                 <View>
