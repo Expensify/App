@@ -124,7 +124,7 @@ function IOURequestStepAmount({
             }
             TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -280,12 +280,7 @@ function IOURequestStepAmount({
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
         if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
-            if (isSplitBill) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.dismissModal();
-            }
-
+            navigateBack();
             return;
         }
 
@@ -294,16 +289,16 @@ function IOURequestStepAmount({
         const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
         const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
-            Navigation.goBack(backTo);
+            navigateBack();
             return;
         }
 
         IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
-        Navigation.dismissModal();
+        navigateBack();
     };
 
     return (

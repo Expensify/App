@@ -13,7 +13,6 @@ import type {
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     UpdateChatPriorityModeParams,
-    UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
@@ -37,7 +36,7 @@ import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -656,23 +655,6 @@ function updatePreferredSkinTone(skinTone: number) {
 }
 
 /**
- * Sync frequentlyUsedEmojis with Onyx and Server
- */
-function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[]) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-            value: frequentlyUsedEmojis,
-        },
-    ];
-
-    const parameters: UpdateFrequentlyUsedEmojisParams = {value: JSON.stringify(frequentlyUsedEmojis)};
-
-    API.write(WRITE_COMMANDS.UPDATE_FREQUENTLY_USED_EMOJIS, parameters, {optimisticData});
-}
-
-/**
  * Sync user chat priority mode with Onyx and Server
  * @param mode
  * @param [automatic] if we changed the mode automatically
@@ -1022,6 +1004,10 @@ function dismissTrackTrainingModal() {
     });
 }
 
+function requestRefund() {
+    API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1041,7 +1027,6 @@ export {
     setShouldUseStagingServer,
     setMuteAllSounds,
     clearUserErrorMessage,
-    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
@@ -1053,4 +1038,5 @@ export {
     clearCustomStatus,
     updateDraftCustomStatus,
     clearDraftCustomStatus,
+    requestRefund,
 };

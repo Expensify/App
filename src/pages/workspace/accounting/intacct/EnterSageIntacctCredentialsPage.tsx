@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import connectToSageIntacct from '@libs/actions/connections/SageIntacct';
+import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -20,9 +20,9 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
-type IntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
-function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps) {
+function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID: string = route.params.policyID;
@@ -93,6 +93,6 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     );
 }
 
-EnterSageIntacctCredentialsPage.displayName = 'PolicyEnterSageIntacctCredentialsPage';
+EnterSageIntacctCredentialsPage.displayName = 'EnterSageIntacctCredentialsPage';
 
 export default EnterSageIntacctCredentialsPage;
