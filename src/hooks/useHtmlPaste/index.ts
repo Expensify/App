@@ -119,8 +119,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
         let unsubscribeFocus: () => void;
         let unsubscribeBlur: () => void;
         if (removeListenerOnScreenBlur) {
-            unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
-            unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+            unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste, true));
+            unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste, true));
         }
 
         document.addEventListener('paste', handlePaste, true);
@@ -130,7 +130,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 unsubscribeFocus();
                 unsubscribeBlur();
             }
-            document.removeEventListener('paste', handlePaste);
+            document.removeEventListener('paste', handlePaste, true);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
