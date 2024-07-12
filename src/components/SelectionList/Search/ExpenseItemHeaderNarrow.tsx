@@ -94,6 +94,7 @@ function ExpenseItemHeaderNarrow({
                     action={action}
                     transactionID={transactionID}
                     goToItem={onButtonPress}
+                    isLargeScreenWidth={false}
                 />
             </View>
         </View>
