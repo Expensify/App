@@ -50,6 +50,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -325,6 +326,9 @@ function ReportActionItem({
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
+    const isArchivedRoom = ReportUtils.isArchivedRoomWithID(originalReportID);
+    const disabledActions = useMemo(() => (!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
+    const isChronosReport = ReportUtils.chatIncludesChronosWithID(originalReportID);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -350,16 +354,16 @@ function ReportActionItem({
                 draftMessage ?? '',
                 () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoomWithID(originalReportID),
-                ReportUtils.chatIncludesChronosWithID(originalReportID),
+                isArchivedRoom,
+                isChronosReport,
                 false,
                 false,
-                [],
+                disabledActions,
                 false,
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, disabledActions, isArchivedRoom, isChronosReport],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -395,6 +399,20 @@ function ReportActionItem({
     const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
+        if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
+            return [
+                {
+                    text: 'subscription.cardSection.addCardButton',
+                    key: `${action.reportActionID}-actionableAddPaymentCard-submit`,
+                    onPress: () => {
+                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                    },
+                    isMediumSized: true,
+                    isPrimary: true,
+                },
+            ];
+        }
+
         if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || ReportActionsUtils.getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
@@ -616,6 +634,10 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isOldDotReportAction(action)) {
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(report.reportID)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -888,12 +910,12 @@ function ReportActionItem({
                                 reportActionID={action.reportActionID}
                                 anchor={popoverAnchorRef}
                                 originalReportID={originalReportID ?? '-1'}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(report)}
+                                isArchivedRoom={isArchivedRoom}
                                 displayAsGroup={displayAsGroup}
-                                disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
+                                disabledActions={disabledActions}
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
                                 draftMessage={draftMessage}
-                                isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
+                                isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                 setIsEmojiPickerActive={setIsEmojiPickerActive}
                             />
