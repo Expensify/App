@@ -6,6 +6,8 @@ import * as NextStepUtils from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ReportNextStep from '@src/types/onyx/ReportNextStep';
+import type { ValueOf } from 'type-fest';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
@@ -15,7 +17,8 @@ type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep;
 };
 
-const iconMap = {
+type IconMap = Record<ValueOf<typeof CONST.NEXT_STEP.ICONS>, IconAsset>;
+const iconMap: IconMap = {
     [CONST.NEXT_STEP.ICONS.HOURGLASS]: Expensicons.Hourglass,
     [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
     [CONST.NEXT_STEP.ICONS.STOPWATCH]: Expensicons.Stopwatch,
