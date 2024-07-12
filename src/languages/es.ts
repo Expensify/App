@@ -1546,7 +1546,7 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
-        startGroup: 'Grupo de inicio',
+        startGroup: 'Crear grupo',
         addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
