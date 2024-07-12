@@ -164,7 +164,6 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
-    const isReceiptStateOpen = hasReceipt && TransactionUtils.isReceiptStateOpen(transaction);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
@@ -344,9 +343,10 @@ function MoneyRequestView({
         CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
-    let receiptViolations =
+    const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
-    const shouldShowAuditMessage = !isReceiptBeingScanned && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage =
+        !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -385,10 +385,6 @@ function MoneyRequestView({
         );
     });
 
-    if (!shouldShowAuditMessage || !hasReceipt || (!didReceiptScanSucceed && !isReceiptStateOpen)) {
-        receiptViolations = [];
-    }
-
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -396,7 +392,7 @@ function MoneyRequestView({
                 {shouldShowReceiptAudit && (
                     <ReceiptAudit
                         notes={receiptViolations}
-                        shouldShowAuditResult={!!isReceiptBeingScanned}
+                        shouldShowAuditResult={shouldShowAuditMessage}
                     />
                 )}
                 {(hasReceipt || errors) && (
