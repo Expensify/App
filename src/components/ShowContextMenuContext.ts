@@ -17,7 +17,7 @@ type ShowContextMenuContextProps = {
     checkIfContextMenuActive: () => void;
 };
 
-const  ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
+const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
     report: undefined,
     action: undefined,
