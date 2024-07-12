@@ -98,7 +98,7 @@ function IOURequestStepTag({
         }
         if (isEditing) {
             IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '-1', updatedTag, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
+            navigateBack();
             return;
         }
         IOU.setMoneyRequestTag(transactionID, updatedTag);
