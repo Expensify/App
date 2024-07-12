@@ -32,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -76,7 +76,15 @@ function IOURequestStepDistance({
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const waypoints = useMemo(() => optimisticWaypoints ?? transaction?.comment?.waypoints ?? {waypoint0: {}, waypoint1: {}}, [optimisticWaypoints, transaction]);
+    const waypoints = useMemo(
+        () =>
+            optimisticWaypoints ??
+            transaction?.comment?.waypoints ?? {
+                waypoint0: {keyForList: 'start_waypoint'},
+                waypoint1: {keyForList: 'stop_waypoint'},
+            },
+        [optimisticWaypoints, transaction],
+    );
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
@@ -93,7 +101,15 @@ function IOURequestStepDistance({
     const isEmptyCoordinates = !transaction?.routes?.route0?.geometry?.coordinates?.length;
     const shouldFetchRoute = (isEmptyCoordinates || isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
-    const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => !isEmpty(waypoints[key])).length, [waypoints]);
+    const isWaypointEmpty = (waypoint?: Waypoint) => {
+        if (!waypoint) {
+            return true;
+        }
+        const {keyForList, ...waypointWithoutKey} = waypoint;
+        return isEmpty(waypointWithoutKey);
+    };
+    const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => !isWaypointEmpty(waypoints[key])).length, [waypoints]);
+
     const duplicateWaypointsError = useMemo(
         () => nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount,
         [nonEmptyWaypointsCount, validatedWaypoints],
@@ -345,7 +361,7 @@ function IOURequestStepDistance({
             data.forEach((waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
                 // Find waypoint that BECOMES empty after dragging
-                if (isEmpty(newWaypoints[`waypoint${index}`]) && !isEmpty(waypoints[`waypoint${index}`] ?? {})) {
+                if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
                 }
             });
