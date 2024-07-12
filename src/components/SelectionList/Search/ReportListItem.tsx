@@ -59,6 +59,7 @@ function ReportListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     onFocus,
+    onLongPressRow,
     shouldSyncFocus,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
@@ -110,6 +111,7 @@ function ReportListItem<TItem extends ListItem>({
                 onSelectRow={() => openReportInRHP(transactionItem)}
                 onDismissError={onDismissError}
                 onFocus={onFocus}
+                onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
             />
         );
@@ -126,6 +128,7 @@ function ReportListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onLongPressRow={onLongPressRow}
             onDismissError={onDismissError}
             errors={item.errors}
             pendingAction={item.pendingAction}
@@ -155,7 +158,7 @@ function ReportListItem<TItem extends ListItem>({
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
-                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !isLargeScreenWidth && styles.mr3]}
                                 />
                             )}
                             <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
@@ -200,6 +203,7 @@ function ReportListItem<TItem extends ListItem>({
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
                         isButtonSelected={item.isSelected}
+                        shouldShowTransactionCheckbox
                     />
                 ))}
             </View>
