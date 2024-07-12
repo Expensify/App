@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import TextLink from "@components/TextLink";
 
 function ExpiredValidateCodeModal() {
     const theme = useTheme();
@@ -27,9 +26,6 @@ function ExpiredValidateCodeModal() {
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
                     <Text style={styles.textAlignCenter}>{translate('validateCodeModal.expiredCodeDescription')}</Text>
-                    <>
-                        {translate('validateCodeModal.or')} <TextLink onPress={signInHere}>{'request one here'}</TextLink>
-                    </>
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>
