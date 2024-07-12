@@ -96,18 +96,18 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: `${ownerDisplayName}`,
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'submit',
+                        text: 'add',
                         type: 'strong',
                     },
                     {
-                        text: ' these expenses.',
+                        text: ' expenses.',
                     },
                 ],
             };

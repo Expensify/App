@@ -78,18 +78,18 @@ describe('libs/NextStepUtils', () => {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: `${currentUserEmail}`,
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'submit',
+                        text: 'add',
                         type: 'strong',
                     },
                     {
-                        text: ' these expenses.',
+                        text: ' expenses.',
                     },
                 ];
 
@@ -330,18 +330,18 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: 'you',
+                            text: `${currentUserEmail}`,
                             type: 'strong',
                         },
                         {
                             text: ' to ',
                         },
                         {
-                            text: 'submit',
+                            text: 'add',
                             type: 'strong',
                         },
                         {
-                            text: ' these expenses.',
+                            text: ' expenses.',
                         },
                     ];
 
