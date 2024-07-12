@@ -325,7 +325,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: null,
             });
         });
-        
+
         it('should return undefined by default', () => {
             expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
         });
