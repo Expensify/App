@@ -3,7 +3,7 @@ name: Build and deploy apps for testing
 on:
   workflow_dispatch:
     inputs:
-      PULL_REQUEST_NUMBER:
+      PULL_REQUEST_NUMBER: 45332
         description: Pull Request number for correct placement of apps
         required: true
   pull_request_target:
