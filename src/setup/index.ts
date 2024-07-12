@@ -41,6 +41,7 @@ export default function () {
             },
             // Always open the home route on app startup for native platforms by clearing the lastVisitedPath
             [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
+            [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: true,
         },
     });
 
