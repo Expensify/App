@@ -15,12 +15,34 @@ type SearchSelectedNarrowProps = {options: Array<DropdownOption<SearchHeaderOpti
 function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const selectedOptionIndexRef = useRef(-1);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const buttonRef = useRef<View>(null);
 
     const openMenu = () => setIsModalVisible(true);
     const closeMenu = () => setIsModalVisible(false);
+
+    const handleOnModalHide = () => {
+        if (selectedOptionIndexRef.current === -1) {
+            return;
+        }
+        options[selectedOptionIndexRef.current]?.onSelected?.();
+    };
+
+    const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>, index: number) => {
+        if (option?.shouldCloseModalOnSelect) {
+            selectedOptionIndexRef.current = index;
+            closeMenu();
+            return;
+        }
+        option?.onSelected?.();
+    };
+
+    const handleOnCloseMenu = () => {
+        selectedOptionIndexRef.current = -1;
+        closeMenu();
+    };
 
     return (
         <View style={[styles.pb4]}>
@@ -37,18 +59,14 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={closeMenu}
+                onClose={handleOnCloseMenu}
+                onModalHide={handleOnModalHide}
             >
-                {options.map((option) => (
+                {options.map((option, index) => (
                     <MenuItem
                         title={option.text}
                         icon={option.icon}
-                        onPress={() => {
-                            if (option?.shouldCloseModalOnSelect) {
-                                closeMenu();
-                            }
-                            option?.onSelected?.();
-                        }}
+                        onPress={() => handleOnMenuItemPress(option, index)}
                         key={option.value}
                     />
                 ))}
