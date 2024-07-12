@@ -1,8 +1,3 @@
-import {format} from 'date-fns';
-import {fastMerge, Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -27,14 +22,14 @@ import type {
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import { WRITE_COMMANDS } from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
+import { toLocaleDigit } from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,24 +39,29 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import type { OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails } from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type { IOUAction, IOUType } from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant, Split} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type { Participant, Split } from '@src/types/onyx/IOU';
+import type { ErrorFields, Errors } from '@src/types/onyx/OnyxCommon';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type { OnyxData } from '@src/types/onyx/Request';
+import type { Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection } from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import { format } from 'date-fns';
+import { fastMerge, Str } from 'expensify-common';
+import type { NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate } from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
@@ -5347,7 +5347,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
             },
             errors: null,
         },
-    } as unknown as OnyxTypes.ReportActions;
+    } as Record<string, NullishDeep<OnyxTypes.ReportAction>>;
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(iouReport?.reportID ?? '-1', updatedReportAction);
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessage(iouReport?.reportID ?? '-1', updatedReportAction).lastMessageText;
@@ -5400,19 +5400,18 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }
 
-    let urlToNavigateBack: ReturnType<typeof ROUTES.REPORT_WITH_ID.getRoute> | undefined;
-
-    // STEP 5: Calculate what is the url that we will navigate user back
+    // STEP 5: Calculate the url that the user will be navigated back to
     // This depends on which page they are on and which resources were deleted
+    let reportIDToNavigateBack: string | undefined;
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
+        reportIDToNavigateBack = iouReport.reportID;
     }
 
     if (iouReport?.chatReportID && shouldDeleteIOUReport) {
-        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID);
+        reportIDToNavigateBack = iouReport.chatReportID;
     }
+
+    const urlToNavigateBack = reportIDToNavigateBack ? ROUTES.REPORT_WITH_ID.getRoute(reportIDToNavigateBack) : undefined;
 
     return {
         shouldDeleteTransactionThread,
@@ -5472,17 +5471,21 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
                       },
             },
         },
-        {
+    ];
+
+    if (reportPreviewAction?.reportActionID) {
+        onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '-1']: {
+                [reportPreviewAction.reportActionID]: {
+                    ...updatedReportPreviewAction,
                     pendingAction: null,
                     errors: null,
                 },
             },
-        },
-    ];
+        });
+    }
 
     // added the operation to delete associated transaction violations
     if (Permissions.canUseViolations(betas)) {
@@ -5520,13 +5523,6 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: updatedIOUReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction?.reportActionID ?? '-1']: updatedReportPreviewAction,
-            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7325,9 +7321,7 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
 
 export {
     adjustRemainingSplitShares,
-    approveMoneyRequest,
-    unapproveExpenseReport,
-    canApproveIOU,
+    approveMoneyRequest, canApproveIOU,
     cancelPayment,
     canIOUBePaid,
     cleanUpMoneyRequest,
@@ -7377,8 +7371,7 @@ export {
     startMoneyRequest,
     startSplitBill,
     submitReport,
-    trackExpense,
-    unholdRequest,
+    trackExpense, unapproveExpenseReport, unholdRequest,
     updateDistanceRequestRate,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
@@ -7389,6 +7382,7 @@ export {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
-    updateMoneyRequestTaxRate,
+    updateMoneyRequestTaxRate
 };
-export type {GPSPoint as GpsPoint, IOURequestType};
+export type { GPSPoint as GpsPoint, IOURequestType };
+
