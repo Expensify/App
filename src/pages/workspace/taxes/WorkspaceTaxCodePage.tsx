@@ -49,13 +49,9 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
-            if (!values[INPUT_IDS.TAX_CODE]) {
-                return {};
-            }
             if (!policy) {
                 return {};
             }
-
             return validateTaxCode(policy, values);
         },
         [policy],
