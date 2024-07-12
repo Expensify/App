@@ -22,6 +22,7 @@ type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>
 type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
+            /** Whether the record is custom segment or custom list */
             importField: ImportFieldsKeys;
         };
     };
@@ -84,7 +85,7 @@ function NetSuiteImportMappingPage({
                 updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
             }
 
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
         },
         [importField, importValue, policyID],
     );
