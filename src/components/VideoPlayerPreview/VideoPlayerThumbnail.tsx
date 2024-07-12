@@ -40,7 +40,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                 </View>
             )}
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, action, checkIfContextMenuActive}) => (
+                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
                     <PressableWithoutFeedback
                         style={[styles.videoThumbnailContainer]}
                         accessibilityLabel={accessibilityLabel}
@@ -55,7 +55,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                                 report?.reportID ?? '-1',
                                 action,
                                 checkIfContextMenuActive,
-                                ReportUtils.isArchivedRoom(report, ReportUtils.getReportNameValuePair(report?.reportID)),
+                                ReportUtils.isArchivedRoom(report, reportNameValuePairs),
                             )
                         }
                         shouldUseHapticsOnLongPress

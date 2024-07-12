@@ -41,7 +41,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFeedback
                     style={[style, isOffline && styles.cursorDefault]}
                     onPress={() => {
@@ -60,7 +60,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                             report?.reportID ?? '-1',
                             action,
                             checkIfContextMenuActive,
-                            ReportUtils.isArchivedRoom(report, ReportUtils.getReportNameValuePair(report?.reportID)),
+                            ReportUtils.isArchivedRoom(report, reportNameValuePairs),
                         )
                     }
                     shouldUseHapticsOnLongPress

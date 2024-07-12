@@ -78,7 +78,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -100,7 +100,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     report?.reportID ?? '-1',
                                     action,
                                     checkIfContextMenuActive,
-                                    ReportUtils.isArchivedRoom(report, ReportUtils.getReportNameValuePair(report?.reportID)),
+                                    ReportUtils.isArchivedRoom(report, reportNameValuePairs),
                                 )
                             }
                             shouldUseHapticsOnLongPress
