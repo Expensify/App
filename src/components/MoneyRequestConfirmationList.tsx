@@ -162,6 +162,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** The action to take */
     action?: IOUAction;
+
+    /** Should play sound on confirmation */
+    shouldPlaySound?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
@@ -204,6 +207,7 @@ function MoneyRequestConfirmationList({
     action = CONST.IOU.ACTION.CREATE,
     currencyList,
     shouldDisplayReceipt = false,
+    shouldPlaySound = true,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -240,10 +244,7 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
-    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const prevDistance = usePrevious(distance);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
@@ -257,6 +258,18 @@ function MoneyRequestConfirmationList({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
+
+    const distance = useMemo(() => {
+        const value = TransactionUtils.getDistance(transaction);
+        if (canUseP2PDistanceRequests && isMovingTransactionFromTrackExpense && unit && !TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
+            return DistanceRequestUtils.convertToDistanceInMeters(value, unit);
+        }
+        return value;
+    }, [isMovingTransactionFromTrackExpense, unit, transaction, canUseP2PDistanceRequests]);
+    const prevDistance = usePrevious(distance);
+
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
+
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
     const formattedAmount = isDistanceRequestWithPendingRoute
@@ -287,7 +300,7 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory;
-    const [shouldResetAmount, setShouldResetAmount] = useState(false);
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -466,8 +479,6 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
-                    shouldResetAmount={shouldResetAmount}
-                    onResetAmount={(resetValue) => setShouldResetAmount(resetValue)}
                 />
             ),
         }));
@@ -490,7 +501,6 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
-        shouldResetAmount,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -508,7 +518,6 @@ function MoneyRequestConfirmationList({
                     <PressableWithFeedback
                         onPress={() => {
                             IOU.resetSplitShares(transaction);
-                            setShouldResetAmount(true);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
@@ -693,7 +702,9 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                playSound(SOUNDS.DONE);
+                if (shouldPlaySound) {
+                    playSound(SOUNDS.DONE);
+                }
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
             } else {
@@ -727,6 +738,7 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
+            shouldPlaySound,
         ],
     );
 

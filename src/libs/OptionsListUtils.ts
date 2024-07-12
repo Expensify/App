@@ -657,10 +657,11 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = visibleReportActionItems[report?.reportID ?? '-1'] ?? null;
+    const reportID = report?.reportID ?? '-1';
+    const lastReportAction = visibleReportActionItems[reportID] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    const lastOriginalReportAction = lastReportActions[report?.reportID ?? '-1'] ?? null;
+    const lastOriginalReportAction = lastReportActions[reportID] ?? null;
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isArchivedRoom(report)) {
@@ -720,7 +721,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastReportAction).text);
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else if (ReportActionUtils.isApprovedOrSubmittedReportAction(lastReportAction)) {
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+        lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(reportID);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+        lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(reportID);
+    } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     }
 
