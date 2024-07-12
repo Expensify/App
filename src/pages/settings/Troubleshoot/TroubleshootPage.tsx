@@ -40,11 +40,12 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
+    shouldMaskOnyxState?: boolean;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -52,7 +53,6 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
-    const [shouldMaskOnyxState, setShouldMaskOnyxState] = useState(true);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -141,8 +141,8 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={shouldMaskOnyxState}
-                                        onToggle={setShouldMaskOnyxState}
+                                        isOn={!!shouldMaskOnyxState}
+                                        onToggle={App.setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
                             </View>
@@ -182,5 +182,8 @@ TroubleshootPage.displayName = 'TroubleshootPage';
 export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldStoreLogs: {
         key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+    shouldMaskOnyxState: {
+        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
     },
 })(TroubleshootPage);
