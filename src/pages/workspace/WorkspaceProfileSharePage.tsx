@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
@@ -10,18 +10,23 @@ import QRShare from '@components/QRShare';
 import type {QRShareHandle} from '@components/QRShare/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
+
+const adminsRoomMentionText = '#admins';
 
 function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const themeStyles = useThemeStyles();
@@ -37,6 +42,22 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
     const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
+    const adminRoom = useMemo(() => {
+        if (!policy?.id) {
+            return undefined;
+        }
+        return ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
+    }, [policy?.id]);
+
+    const shareNote = useMemo(() => {
+        const header = translate('workspace.common.shareNote.header');
+        const content = translate('workspace.common.shareNote.content');
+        const adminRoomMentionIndex = content.indexOf(adminsRoomMentionText);
+        return {
+            header,
+            contentParts: [content.slice(0, adminRoomMentionIndex), content.slice(adminRoomMentionIndex + adminsRoomMentionText.length)],
+        };
+    }, [translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -53,6 +74,27 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                 />
                 <ScrollView style={[themeStyles.flex1, themeStyles.pt2]}>
                     <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
+                        <View style={[themeStyles.mh5, themeStyles.mv1]}>
+                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mt2]}>{shareNote.header}</Text>
+                        </View>
+                        <View style={[themeStyles.mh5, themeStyles.mt1, themeStyles.mb9]}>
+                            <Text style={[themeStyles.textNormal, themeStyles.mt2]}>
+                                {shareNote.contentParts[0]}
+                                <TextLink
+                                    style={themeStyles.link}
+                                    onPress={() => {
+                                        if (!adminRoom?.reportID) {
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID));
+                                    }}
+                                >
+                                    #admins
+                                </TextLink>
+                                {shareNote.contentParts[1]}
+                            </Text>
+                        </View>
+
                         <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph9]}>
                             {/* 
                             Right now QR code download button is not shown anymore

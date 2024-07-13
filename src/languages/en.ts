@@ -2049,6 +2049,11 @@ export default {
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
+            shareNote: {
+                header: 'Easily share your workspace with other members.',
+                content:
+                    'Share this QR code or copy the link below to make it easy for members to request access to your workspace. All requests to join the workspace will show up in the #admins room for your review.',
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
