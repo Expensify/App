@@ -6,8 +6,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +24,7 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     const hasPoliciesConnectedToNetSuite = !!getPoliciesConnectedToNetSuite()?.length;
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -41,7 +41,7 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
             icon: Expensicons.Copy,
             text: translate('workspace.common.reuseExistingConnection'),
             onSelected: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
             },
         },

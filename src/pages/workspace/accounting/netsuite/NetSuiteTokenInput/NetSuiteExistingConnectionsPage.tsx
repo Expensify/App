@@ -6,7 +6,7 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
+import {getPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -19,18 +19,18 @@ type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList,
 function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct();
+    const policiesConnectedToSageNetSuite = getPoliciesConnectedToNetSuite();
     const policyID: string = route.params.policyID;
 
-    const menuItems = policiesConnectedToSageIntacct.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;
+    const menuItems = policiesConnectedToSageNetSuite.map((policy) => {
+        const lastSuccessfulSyncDate = policy.connections?.netsuite.lastSyncDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,
             key: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
-            description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
+            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 // waiting for backend for reusing existing connections
                 Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
@@ -45,7 +45,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             testID={NetSuiteExistingConnectionsPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.intacct.existingConnections')}
+                title={translate('workspace.common.existingConnections')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
             />

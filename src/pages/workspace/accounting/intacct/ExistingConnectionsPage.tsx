@@ -30,7 +30,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             key: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
-            description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
+            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct, date) : translate('workspace.accounting.intacct'),
             onPress: () => {
                 // waiting for backend for reusing existing connections
                 Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
@@ -45,7 +45,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             testID={ExistingConnectionsPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.intacct.existingConnections')}
+                title={translate('workspace.common.existingConnections')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
             />

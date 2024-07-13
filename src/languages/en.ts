@@ -2051,6 +2051,8 @@ export default {
             appliedOnExport: 'Not imported into Expensify, applied on export',
             createNewConnection: 'Create new connection',
             reuseExistingConnection: 'Reuse existing connection',
+            existingConnections: 'Existing connections',
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2585,8 +2587,6 @@ export default {
             downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
             followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
             enterCredentials: 'Enter your Sage Intacct credentials',
-            existingConnections: 'Existing connections',
-            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
             employeeDefault: 'Sage Intacct employee default',
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
