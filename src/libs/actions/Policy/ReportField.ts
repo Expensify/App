@@ -164,19 +164,36 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
         value: type === CONST.REPORT_FIELD_TYPES.LIST ? CONST.REPORT_FIELD_TYPES.LIST : null,
     };
 
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                    },
-                    errorFields: null,
-                },
+    const policyExpenseReports = Object.values(ReportConnection.getAllReports() ?? {}).filter(
+        (report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE,
+    ) as Report[];
+
+    const onyxOperationsToAddExpenseReportFields = policyExpenseReports.map((report) => ({
+        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            fieldList: {
+                [fieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
-        ],
+        },
+    }));
+
+    const optimisticData = [
+        ...onyxOperationsToAddExpenseReportFields,
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                },
+                errorFields: null,
+            },
+        },
+    ] as OnyxUpdate[];
+
+    const onyxData: OnyxData = {
+        optimisticData,
         successData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -204,21 +221,6 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
             },
         ],
     };
-    const policyExpenseReports = Object.values(ReportConnection.getAllReports() ?? {}).filter(
-        (report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE,
-    ) as Report[];
-
-    onyxData.optimisticData?.push(
-        ...(policyExpenseReports.map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: newReportField,
-                },
-            },
-        })) as OnyxUpdate[]),
-    );
 
     const parameters: CreateWorkspaceReportFieldParams = {
         policyID,
