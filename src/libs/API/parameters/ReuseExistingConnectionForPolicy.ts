@@ -1,4 +1,4 @@
-import type { ConnectionName } from "@src/types/onyx/Policy";
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReuseExistingConnectionForPolicy = {
     policyID: string;
