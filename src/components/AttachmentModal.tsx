@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -455,6 +455,8 @@ function AttachmentModal({
         [closeModal, nope, sourceForAttachmentView],
     );
 
+    const submitRef = useRef<View>(null);
+
     return (
         <>
             <Modal
@@ -471,6 +473,12 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
+                initialFocus={() => {
+                    if (!submitRef.current) {
+                        return false;
+                    }
+                    return submitRef.current as View | HTMLElement;
+                }}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
@@ -540,6 +548,7 @@ function AttachmentModal({
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
+                                        ref={submitRef}
                                         success
                                         large
                                         style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}

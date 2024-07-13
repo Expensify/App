@@ -1,3 +1,4 @@
+import type {FocusTargetOrFalse} from 'focus-trap-react';
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
@@ -87,6 +88,8 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
     shouldUseModalPaddingStyle?: boolean;
+
+    initialFocus?: FocusTargetOrFalse | undefined | (() => void);
 };
 
 export default BaseModalProps;

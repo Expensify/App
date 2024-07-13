@@ -1,0 +1,14 @@
+diff --git a/node_modules/focus-trap-react/index.d.ts b/node_modules/focus-trap-react/index.d.ts
+index 9274032..a5f633c 100644
+--- a/node_modules/focus-trap-react/index.d.ts
++++ b/node_modules/focus-trap-react/index.d.ts
+@@ -1,7 +1,8 @@
+-import { Options as FocusTrapOptions } from 'focus-trap';
++import { Options as FocusTrapOptions, FocusTargetOrFalse } from 'focus-trap';
+ import * as React from 'react';
+ 
+ export = FocusTrap;
++export type FocusTargetOrFalse = FocusTargetOrFalse;
+ 
+ declare namespace FocusTrap {
+   export interface Props extends React.AllHTMLAttributes<any> {
