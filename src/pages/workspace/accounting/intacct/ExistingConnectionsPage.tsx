@@ -1,11 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ConnectionUtils from '@libs/actions/connections';
 import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -22,6 +23,13 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct();
     const policyID: string = route.params.policyID;
 
+    const reuseExistingConnection = useCallback(
+        (connectedPolicyID: string) => {
+            ConnectionUtils.reuseExistingConnection(connectedPolicyID, policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
+        },
+        [policyID],
+    );
+
     const menuItems = policiesConnectedToSageIntacct.map((policy) => {
         const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
@@ -32,7 +40,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct, date) : translate('workspace.accounting.intacct'),
             onPress: () => {
-                // waiting for backend for reusing existing connections
+                reuseExistingConnection(policy.id);
                 Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
             },
         };
