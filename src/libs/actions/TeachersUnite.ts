@@ -11,7 +11,7 @@ import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import { openReport } from './Report';
+import {openReport} from './Report';
 
 type CreationData = {
     reportID: string;
@@ -63,8 +63,8 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
     };
 
     API.write(WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER, parameters, {optimisticData});
-    Navigation.dismissModal(publicRoomReportID);
     openReport(publicRoomReportID);
+    Navigation.dismissModal(publicRoomReportID);
 }
 
 /**
