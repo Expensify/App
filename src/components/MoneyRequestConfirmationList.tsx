@@ -760,9 +760,7 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
-                buttonRef={(ref) => {
-                    inputCallbackRef(ref);
-                }}
+                buttonRef={inputCallbackRef}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}

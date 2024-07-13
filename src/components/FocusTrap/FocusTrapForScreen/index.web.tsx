@@ -40,7 +40,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
-                delayInitialFocus: CONST.ANIMATED_TRANSITION + CONST.ANIMATION_IN_TIMING,
+                delayInitialFocus: CONST.ANIMATED_TRANSITION,
                 initialFocus: (focusTrapContainers) => {
                     const hasFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
                     if (hasFocusedElementInsideContainer) {

@@ -1,5 +1,5 @@
 diff --git a/node_modules/focus-trap/dist/focus-trap.esm.js b/node_modules/focus-trap/dist/focus-trap.esm.js
-index 10d56db..60fccbe 100644
+index 10d56db..a6d76d8 100644
 --- a/node_modules/focus-trap/dist/focus-trap.esm.js
 +++ b/node_modules/focus-trap/dist/focus-trap.esm.js
 @@ -100,8 +100,8 @@ var isKeyForward = function isKeyForward(e) {
@@ -22,15 +22,6 @@ index 10d56db..60fccbe 100644
  
      // false explicitly indicates we want no initialFocus at all
      if (node === false) {
-@@ -440,7 +440,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
-     }
-   };
-   var getReturnFocusNode = function getReturnFocusNode(previousActiveElement) {
--    var node = getNodeForOption('setReturnFocus', previousActiveElement);
-+    var node = getNodeForOption('setReturnFocus', previousActiveElement, state.containers);
-     return node ? node : node === false ? false : previousActiveElement;
-   };
- 
 @@ -744,7 +744,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
      // that caused the focus trap activation.
      state.delayInitialFocusTimer = config.delayInitialFocus ? delay(function () {
@@ -50,7 +41,7 @@ index 10d56db..60fccbe 100644
        if (returnFocus && checkCanReturnFocus) {
          checkCanReturnFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation)).then(finishDeactivation, finishDeactivation);
 diff --git a/node_modules/focus-trap/index.d.ts b/node_modules/focus-trap/index.d.ts
-index 400db1b..b49618c 100644
+index 400db1b..69f4b94 100644
 --- a/node_modules/focus-trap/index.d.ts
 +++ b/node_modules/focus-trap/index.d.ts
 @@ -16,7 +16,7 @@ declare module 'focus-trap' {
@@ -62,17 +53,7 @@ index 400db1b..b49618c 100644
  
    type MouseEventToBoolean = (event: MouseEvent | TouchEvent) => boolean;
    type KeyboardEventToBoolean = (event: KeyboardEvent) => boolean;
-@@ -147,7 +147,8 @@ declare module 'focus-trap' {
-     setReturnFocus?:
-       | FocusTargetValueOrFalse
-       | ((
--          nodeFocusedBeforeActivation: HTMLElement | SVGElement
-+          nodeFocusedBeforeActivation: HTMLElement | SVGElement,
-+          containers: Array<HTMLElement>
-         ) => FocusTargetValueOrFalse);
-     /**
-      * Default: `true`. If `false` or returns `false`, the `Escape` key will not trigger
-@@ -185,7 +186,7 @@ declare module 'focus-trap' {
+@@ -185,7 +185,7 @@ declare module 'focus-trap' {
       * This prevents elements within the focusable element from capturing
       * the event that triggered the focus trap activation.
       */
@@ -81,15 +62,6 @@ index 400db1b..b49618c 100644
      /**
       * Default: `window.document`. Document where the focus trap will be active.
       * This allows to use FocusTrap in an iFrame context.
-@@ -222,6 +223,8 @@ declare module 'focus-trap' {
-      * keyboard navigation within the trap, for example. Also see `isKeyForward()` option.
-      */
-     isKeyBackward?: KeyboardEventToBoolean;
-+
-+    testID?: string;
-   }
- 
-   type ActivateOptions = Pick<Options, 'onActivate' | 'onPostActivate' | 'checkCanFocusTrap'>;
 diff --git a/node_modules/focus-trap/index.js b/node_modules/focus-trap/index.js
 index de8e46a..bfc8b63 100644
 --- a/node_modules/focus-trap/index.js
