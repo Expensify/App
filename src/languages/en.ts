@@ -3735,12 +3735,14 @@ export default {
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
-        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
+        joinExpensifyOrg:
+            'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
-        schoolPrincipalVerfiyExpense: 'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
         principalFirstName: 'Principal first name',
         principalLastName: 'Principal last name',
         principalWorkEmail: 'Principal work email',
