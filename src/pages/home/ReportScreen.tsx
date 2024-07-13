@@ -729,7 +729,7 @@ function ReportScreen({
     }, [report]);
 
     if (
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted) || 
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             reportActionIDFromRoute &&
