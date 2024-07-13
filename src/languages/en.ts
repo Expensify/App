@@ -1627,32 +1627,58 @@ export default {
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
         error: {
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             youNeedToSelectAnOption: 'Please select an option to proceed',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             noBankAccountAvailable: "Sorry, there's no bank account available",
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             noBankAccountSelected: 'Please choose an account',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             taxID: 'Please enter a valid tax ID number',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             website: 'Please enter a valid website using lower-case letters',
             zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             phoneNumber: 'Please enter a valid phone number',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             companyName: 'Please enter a valid business name',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             addressCity: 'Please enter a valid city',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             addressStreet: 'Please enter a valid street address',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             addressState: 'Please select a valid state',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             incorporationDateFuture: "Incorporation date can't be in the future",
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             incorporationState: 'Please select a valid state',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             industryCode: 'Please enter a valid industry classification code with six digits',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             restrictedBusiness: "Please confirm the business isn't on the list of restricted businesses",
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             routingNumber: 'Please enter a valid routing number',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             accountNumber: 'Please enter a valid account number',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             routingAndAccountNumberCannotBeSame: "Routing and account numbers can't match",
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             companyType: 'Please select a valid company type',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             tooManyAttempts: 'Due to a high number of login attempts, this option has been disabled for 24 hours. Please try again later or enter details manually instead.',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             address: 'Please enter a valid address',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             dob: 'Please select a valid date of birth',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             age: 'Must be over 18 years old',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             ssnLast4: 'Please enter valid last 4 digits of SSN',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             firstName: 'Please enter a valid first name',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             lastName: 'Please enter a valid last name',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
         },
@@ -3709,14 +3735,12 @@ export default {
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
-        joinExpensifyOrg:
-            'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
+        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
-        schoolPrincipalVerfiyExpense:
-            'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
+        schoolPrincipalVerfiyExpense: 'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
         principalFirstName: 'Principal first name',
         principalLastName: 'Principal last name',
         principalWorkEmail: 'Principal work email',
