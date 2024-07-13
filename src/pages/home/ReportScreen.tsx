@@ -314,7 +314,7 @@ function ReportScreen({
     );
 
     const isPendingActionExist = !!reportActions.at(0)?.pendingAction;
-    const doesCreatedActionExists = useCallback(() => !!sortedAllReportActions.findLast((action) => ReportActionsUtils.isCreatedAction(action)), [sortedAllReportActions]);
+    const doesCreatedActionExists = useCallback(() => !!sortedAllReportActions?.findLast((action) => ReportActionsUtils.isCreatedAction(action)), [sortedAllReportActions]);
     const isLinkedMessageAvailable = useMemo(() => indexOfLinkedMessage > -1, [indexOfLinkedMessage]);
 
     // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
@@ -733,7 +733,8 @@ function ReportScreen({
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             reportActionIDFromRoute &&
-            sortedAllReportActions.length > 0 &&
+            sortedAllReportActions &&
+            sortedAllReportActions?.length > 0 &&
             reportActions.length === 0 &&
             !isLinkingToMessage)
     ) {

@@ -30,8 +30,6 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
         [reportActionID, sortedAllReportActions],
     );
 
-    console.log({reportActions, sortedAllReportActions});
-
     return {
         reportActions,
         linkedAction,
