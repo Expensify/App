@@ -147,9 +147,13 @@ jobs:
         env:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
-      - name: Build production desktop app
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build
+      - name: Build desktop app
+        run: |
+          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+            npm run desktop-build
+          else
+            npm run desktop-build-staging
+          fi
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -159,18 +163,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
 
-
-      - name: Build staging desktop app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NewExpensify.dmg
+          path: desktop-build/NewExpensify.dmg
 
   iOS:
     name: Build and deploy iOS
