@@ -1357,11 +1357,11 @@ function generateDefaultWorkspaceName(email = ''): string {
     const username = emailParts[0];
     const domain = emailParts[1];
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
-    const displayName = userDetails?.displayName.trim();
+    const displayName = userDetails?.displayName?.trim();
 
     if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
-    } else if (!!displayName) {
+    } else if (displayName) {
         defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
     } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
