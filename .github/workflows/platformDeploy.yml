@@ -110,7 +110,7 @@ jobs:
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
-          gh run download "$RUN_ID" --name android/app/build/outputs/bundle/productionRelease/app-production-release.aab
+          gh run download "$RUN_ID" --name app-production-release.aab
           gh release upload ${{ github.event.release.tag_name }} app-production-release.aab
         env:
           GITHUB_TOKEN: ${{ github.token }}
