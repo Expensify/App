@@ -14,10 +14,12 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
+    const styles = useThemeStyles();
     const policyID = route.params.policyID;
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.find((f) => f.alias === route.params.featureName);
     const {translate} = useLocalize();
@@ -38,6 +40,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         <ScreenWrapper
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
