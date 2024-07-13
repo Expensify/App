@@ -3075,6 +3075,10 @@ function getPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
 }
 
+function getPoliciesConnectedToNetSuite(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.netsuite);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -3145,6 +3149,7 @@ export {
     requestExpensifyCardLimitIncrease,
     getPoliciesConnectedToSageIntacct,
     clearSageIntacctErrorField,
+    getPoliciesConnectedToNetSuite,
 };
 
 export type {NewCustomUnit};
