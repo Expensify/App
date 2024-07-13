@@ -242,14 +242,17 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - name: Set iOS version in ENV
+        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
+
       - name: Run Fastlane
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios beta
+        run: bundle exec fastlane ios ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+          VERSION: ${{ env.IOS_VERSION }}
 
       - name: Archive iOS sourcemaps
         uses: actions/upload-artifact@v4
@@ -275,16 +278,6 @@ jobs:
         run: gh release upload ${{ github.event.release.tag_name }} /Users/runner/work/App/App/New Expensify.ipa
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Set iOS version in ENV
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
-
-      - name: Run Fastlane for App Store release
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios production
-        env:
-          VERSION: ${{ env.IOS_VERSION }}
 
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
