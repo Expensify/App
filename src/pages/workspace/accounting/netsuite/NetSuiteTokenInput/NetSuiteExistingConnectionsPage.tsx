@@ -1,9 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
@@ -15,7 +14,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
+type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
 
 function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
@@ -47,23 +46,26 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     });
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorInWideScreen
-            testID={NetSuiteExistingConnectionsPage.displayName}
+        <ConnectionLayout
+            displayName={NetSuiteExistingConnectionsPage.displayName}
+            headerTitle="workspace.common.existingConnections"
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.flex1]}
+            titleStyle={styles.ph5}
+            shouldLoadForEmptyConnection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+            shouldIncludeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton
-                title={translate('workspace.common.existingConnections')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
-            />
             <View style={[styles.flex1]}>
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
             </View>
-        </ScreenWrapper>
+        </ConnectionLayout>
     );
 }
 
