@@ -75,6 +75,7 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
                 style={styles.justifyContentCenter}
                 small
                 isDisabled={isOffline}
+                ref={threeDotsMenuContainerRef}
             />
             <PopoverMenu
                 isVisible={isReuseConnectionsPopoverOpen}
