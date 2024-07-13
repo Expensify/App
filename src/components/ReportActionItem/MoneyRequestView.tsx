@@ -117,7 +117,7 @@ function MoneyRequestView({
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
-        selector: (report) => report && {reportID: report.reportID, errorFields: report.errorFields},
+        selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
     });
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
