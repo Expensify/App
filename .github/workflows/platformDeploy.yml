@@ -311,41 +311,33 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Build web for production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run build
+      - name: Build web
+        run: |
+          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+            npm run build
+          else
+            npm run build-staging
+          fi
 
-      - name: Build web for staging
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run build-staging
-
-      - name: Build storybook docs for production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run storybook-build
+      - name: Build storybook docs
         continue-on-error: true
+        run: |
+          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+            npm run storybook-build
+          else
+            npm run storybook-build-staging
+          fi
 
-      - name: Build storybook docs for staging
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run storybook-build-staging
-        continue-on-error: true
-
-      - name: Deploy production to S3
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/.well-known/apple-app-site-association && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/apple-app-site-association
-
-      - name: Deploy staging to S3
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/.well-known/apple-app-site-association && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/apple-app-site-association
-
-      - name: Purge production Cloudflare cache
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      - name: Deploy to S3
+        run: |
+          aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist ${{ env.S3_URL }}/
+          aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
+          aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && '' || 'staging-' }}expensify-cash
 
-      - name: Purge staging Cloudflare cache
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      - name: Purge Cloudflare cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && '' || 'staging.' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
