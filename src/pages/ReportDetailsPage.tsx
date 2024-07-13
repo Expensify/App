@@ -753,12 +753,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onCancel={() => setIsDeleteModalVisible(false)}
                     onModalHide={() => {
                         // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
-                        if (isTransactionDeleted.current) {
-                            if (!navigateBackToAfterDelete.current) {
-                                Navigation.dismissModal();
-                            } else {
-                                ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
-                            }
+                        if (!isTransactionDeleted.current) {
+                            return;
+                        }
+
+                        if (!navigateBackToAfterDelete.current) {
+                            Navigation.dismissModal();
+                        } else {
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
