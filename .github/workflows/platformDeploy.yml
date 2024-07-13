@@ -36,7 +36,7 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
-    if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+    if: ${{ github.event_name != 'release' }}
     needs: validateActor
     secrets: inherit
 
@@ -370,7 +370,7 @@ jobs:
   hybridApp:
     runs-on: ubuntu-latest
     needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name != 'release' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
