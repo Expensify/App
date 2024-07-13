@@ -57,6 +57,7 @@ import * as SessionUtils from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
+import getIsSmallScreenWidth from './getIsSmallScreenWidth';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -1234,6 +1235,12 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         }
 
         return adminReport ?? reportsValues.find((report) => !isConciergeChatReport(report));
+    }
+
+    // if the user hasn't completed the onboarding flow, whether the user should be in the concierge chat or system chat
+    // should be consistent with what chat the user will land after onboarding flow
+    if (!getIsSmallScreenWidth() && !Array.isArray(onboarding) && !onboarding?.hasCompletedGuidedSetupFlow) {
+        return reportsValues.find(isChatUsedForOnboarding);
     }
 
     // If we only have two reports and one of them is the system chat, filter it out so we don't
