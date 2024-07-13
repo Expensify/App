@@ -275,7 +275,10 @@ jobs:
 
       - name: Upload iOS version to GitHub Release
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} /Users/runner/work/App/App/New Expensify.ipa
+        run: |
+          RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
+          gh run download "$RUN_ID" --name 'New Expensify.ipa'
+          gh release upload ${{ github.event.release.tag_name }} 'New Expensify.ipa'
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
