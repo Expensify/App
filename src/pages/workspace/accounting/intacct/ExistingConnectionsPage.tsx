@@ -6,7 +6,7 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ConnectionUtils from '@libs/actions/connections';
+import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,7 +25,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
 
     const reuseExistingConnection = useCallback(
         (connectedPolicyID: string) => {
-            ConnectionUtils.reuseExistingConnection(connectedPolicyID, policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
+            copyExistingPolicyConnection(connectedPolicyID, policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
         },
         [policyID],
     );

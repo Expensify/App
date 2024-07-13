@@ -1,9 +1,9 @@
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-type ReuseExistingConnectionForPolicy = {
+type CopyExistingPolicyConnectionParams = {
     policyID: string;
     targetPolicyID: string;
     connectionName: ConnectionName;
 };
 
-export default ReuseExistingConnectionForPolicy;
+export default CopyExistingPolicyConnectionParams;

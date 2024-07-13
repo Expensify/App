@@ -266,7 +266,7 @@ function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: Poli
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 
-function reuseExistingConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
+function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
     let stageInProgress;
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
@@ -291,7 +291,7 @@ function reuseExistingConnection(connectedPolicyID: string, targetPolicyID: stri
         },
     ];
     API.write(
-        WRITE_COMMANDS.REUSE_EXISTING_CONNECTION,
+        WRITE_COMMANDS.COPY_EXISTING_POLICY_CONNECTION,
         {
             policyID: connectedPolicyID,
             targetPolicyID,
@@ -301,4 +301,4 @@ function reuseExistingConnection(connectedPolicyID: string, targetPolicyID: stri
     );
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection, reuseExistingConnection};
+export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection, copyExistingPolicyConnection};
