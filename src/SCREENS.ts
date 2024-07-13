@@ -288,6 +288,7 @@ const SCREENS = {
             NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: 'Policy_Accounting_NetSuite_Import_Custom_Segment_Add',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',
+            NETSUITE_REUSE_EXISTING_CONNECTIONS: 'Policy_Accounting_NetSuite_Reuse_Existing_Connections',
             NETSUITE_TOKEN_INPUT: 'Policy_Accounting_NetSuite_Token_Input',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',

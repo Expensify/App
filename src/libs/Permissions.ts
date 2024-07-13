@@ -37,11 +37,11 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+    return true || !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+    return true || !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
