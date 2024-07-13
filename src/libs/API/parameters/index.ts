@@ -257,3 +257,4 @@ export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteG
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
+export type {default as ReuseExistingConnectionForPolicy} from './ReuseExistingConnectionForPolicy';
