@@ -637,7 +637,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    // A flag to indicate whether the user choose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);
+    // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
@@ -750,10 +752,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     onModalHide={() => {
-                        if (isTransactionDeleted.current && !navigateBackToAfterDelete.current) {
-                            Navigation.dismissModal();
-                        } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                        // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
+                        if (isTransactionDeleted.current) {
+                            if (!navigateBackToAfterDelete.current) {
+                                Navigation.dismissModal();
+                            } else {
+                                ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                            }
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
