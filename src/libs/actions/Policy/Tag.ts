@@ -1,7 +1,15 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled, SetPolicyTagsRequired} from '@libs/API/parameters';
+import type {
+    EnablePolicyTagsParams,
+    OpenPolicyTagsPageParams,
+    RenamePolicyTaglistParams,
+    RenamePolicyTagsParams,
+    SetPolicyTagsEnabled,
+    SetPolicyTagsRequired,
+    UpdatePolicyTagGLCodeParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -756,6 +764,81 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
+function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[tagListIndex];
+    const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                ...policyTagToUpdate,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'GL Code': glCode,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                errors: null,
+                                pendingAction: null,
+                                pendingFields: {
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    'GL Code': null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                ...policyTagToUpdate,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyTagGLCodeParams = {
+        policyID,
+        tagName,
+        tagListName,
+        tagListIndex,
+        glCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -770,6 +853,7 @@ export {
     renamePolicyTag,
     renamePolicyTaglist,
     setWorkspaceTagEnabled,
+    setPolicyTagGLCode,
 };
 
 export type {NewCustomUnit};
