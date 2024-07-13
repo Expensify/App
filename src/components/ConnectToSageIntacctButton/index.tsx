@@ -37,7 +37,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
-            text: translate('workspace.intacct.createNewConnection'),
+            text: translate('workspace.common.createNewConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
@@ -45,7 +45,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         },
         {
             icon: Expensicons.Copy,
-            text: translate('workspace.intacct.reuseExistingConnection'),
+            text: translate('workspace.common.reuseExistingConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
