@@ -2145,7 +2145,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string) {
+function deleteReport(reportID: string, shouldDeleteChildReports = false) {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
@@ -2165,30 +2165,32 @@ function deleteReport(reportID: string) {
 
     Onyx.multiSet(onyxData);
 
-    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
-        if (!reportAction.childReportID) {
-            return;
-        }
-        deleteReport(reportAction.childReportID);
-    });
+    if (shouldDeleteChildReports) {
+        Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+            if (!reportAction.childReportID) {
+                return;
+            }
+            deleteReport(reportAction.childReportID, shouldDeleteChildReports);
+        });
+    }
 
     // Delete linked IOU report
     if (report?.iouReportID) {
-        deleteReport(report.iouReportID);
+        deleteReport(report.iouReportID, shouldDeleteChildReports);
     }
 }
 
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop?: boolean) {
+function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
     }
     Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
-    deleteReport(reportID);
+    deleteReport(reportID, shouldDeleteChildReports);
 }
 
 /**

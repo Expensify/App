@@ -116,6 +116,9 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
+        selector: (report) => report && {reportID: report.reportID, errorFields: report.errorFields},
+    });
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -405,9 +408,8 @@ function MoneyRequestView({
                                 return;
                             }
                             if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                const chatReportID = parentReport?.parentReportID ?? '';
-                                if (ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReportID)) {
-                                    Report.navigateToConciergeChatAndDeleteReport(chatReportID, true);
+                                if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+                                    Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                                     return;
                                 }
                                 if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
