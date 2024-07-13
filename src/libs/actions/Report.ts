@@ -2704,6 +2704,12 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
+
+    // if this is the leave action from workspace room or chat thread, simply dismiss the modal, i.e: allowing user to view the room/thread and join again immediately
+    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
+        return;
+    }
+    // in other case, the report is deleted and we should move the user to other report
     navigateToMostRecentReport(report);
 }
 
