@@ -260,20 +260,20 @@ jobs:
           name: ios-sourcemap-${{ github.ref_name }}
           path: main.jsbundle.map
 
-      - name: Upload iOS version to GitHub artifacts
+      - name: Upload iOS build to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
           name: New Expensify.ipa
           path: /Users/runner/work/App/App/New Expensify.ipa
 
-      - name: Upload iOS version to Browser Stack
+      - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Upload iOS version to GitHub Release
+      - name: Upload iOS build to GitHub Release
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
