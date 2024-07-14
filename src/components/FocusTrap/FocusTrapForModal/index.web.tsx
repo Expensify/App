@@ -1,7 +1,6 @@
 import FocusTrap from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active}: FocusTrapForModalProps) {
@@ -13,12 +12,6 @@ function FocusTrapForModal({children, active}: FocusTrapForModalProps) {
                 clickOutsideDeactivates: true,
                 initialFocus: false,
                 fallbackFocus: document.body,
-                setReturnFocus: (element) => {
-                    if (ReportActionComposeFocusManager.isFocused()) {
-                        return false;
-                    }
-                    return element;
-                },
             }}
         >
             {children}
