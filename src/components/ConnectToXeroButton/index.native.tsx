@@ -37,7 +37,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
     const {isOffline} = useNetwork();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const is2FAEnabled = account?.requiresTwoFactorAuth;
+    const is2FAEnabled = account?.requiresTwoFactorAuth ?? false;
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
