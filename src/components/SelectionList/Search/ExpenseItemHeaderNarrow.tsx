@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -20,6 +21,7 @@ type ExpenseItemHeaderNarrowProps = {
     participantToDisplayName: string;
     action?: SearchTransactionAction;
     transactionID?: string;
+    containerStyle?: StyleProp<ViewStyle>;
     onButtonPress: () => void;
     canSelectMultiple?: boolean;
     isSelected?: boolean;
@@ -36,6 +38,7 @@ function ExpenseItemHeaderNarrow({
     onButtonPress,
     action,
     canSelectMultiple,
+    containerStyle,
     isDisabledCheckbox,
     isSelected,
     isDisabled,
@@ -48,7 +51,7 @@ function ExpenseItemHeaderNarrow({
     const theme = useTheme();
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4, styles.gap2]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4, styles.gap2, containerStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
                 {canSelectMultiple && (
                     <PressableWithFeedback

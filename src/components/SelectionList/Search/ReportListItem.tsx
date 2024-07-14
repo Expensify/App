@@ -71,7 +71,15 @@ function ReportListItem<TItem extends ListItem>({
         return;
     }
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, styles.ph3];
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv3,
+        styles.pb0,
+        item.isSelected && styles.activeComponentBG,
+        isFocused && styles.sidebarLinkActive,
+        styles.ph0,
+        styles.overflowHidden,
+    ];
 
     const handleOnButtonPress = () => {
         onSelectRow(item);
@@ -144,9 +152,10 @@ function ReportListItem<TItem extends ListItem>({
                         participantToDisplayName={participantToDisplayName}
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
+                        containerStyle={styles.ph3}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40, styles.ph3, styles.pb3]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
@@ -191,11 +200,11 @@ function ReportListItem<TItem extends ListItem>({
                         }}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
-                        containerStyle={styles.mt3}
+                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv2]}
                         isChildListItem
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
-                        isButtonSelected={item.isSelected}
+                        isButtonSelected={transaction.isSelected}
                         shouldShowTransactionCheckbox
                     />
                 ))}
