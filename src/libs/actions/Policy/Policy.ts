@@ -3188,7 +3188,6 @@ export {
     updateWorkspaceAvatar,
     updateWorkspaceCustomUnitAndRate,
     updateWorkspaceDescription,
-
     upgradeToCorporate
 };
 
