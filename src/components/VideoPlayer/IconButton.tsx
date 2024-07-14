@@ -4,8 +4,8 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type IconAsset from '@src/types/utils/IconAsset';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type IconButtonProps = {
     src: IconAsset;
