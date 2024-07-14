@@ -4027,6 +4027,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
             borderRadius: 20,
             width: 335,
+            overflow: 'hidden',
         },
 
         eReceiptBackgroundThumbnail: {
