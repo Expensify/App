@@ -89,17 +89,17 @@ type MoneyRequestAmountInputProps = {
      */
     autoGrow?: boolean;
 
-     /**
+    /**
      * Determines whether the amount should be reset.
      */
-     shouldResetAmount?: boolean;
+    shouldResetAmount?: boolean;
 
-     /**
-      * Callback function triggered when the amount is reset.
-      *
-      * @param resetValue - A boolean indicating whether the amount should be reset.
-      */
-     onResetAmount?: (resetValue: boolean) => void;
+    /**
+     * Callback function triggered when the amount is reset.
+     *
+     * @param resetValue - A boolean indicating whether the amount should be reset.
+     */
+    onResetAmount?: (resetValue: boolean) => void;
 };
 
 type Selection = {
@@ -216,7 +216,6 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-     
         const frontendAmount = onFormatAmount(amount, currency);
         setCurrentAmount(frontendAmount);
         if (shouldResetAmount) {
@@ -227,7 +226,7 @@ function MoneyRequestAmountInput(
             onResetAmount?.(false);
             return;
         }
-         
+
         if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
