@@ -7,6 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
@@ -78,42 +79,49 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
                 onBackButtonPress={Navigation.goBack}
             />
-            <KeyboardAvoidingView
-                style={[styles.flex1, styles.dFlex]}
-                behavior="padding"
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                shouldEnableKeyboardAvoidingView
+                testID="BaseOnboardingWork"
             >
-                <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
-                    footerContent={isSmallScreenWidth && WorkFooterInstance}
-                    validate={validate}
-                    onSubmit={completeEngagement}
-                    submitButtonText={translate('common.continue')}
-                    enabledWhenOffline
-                    submitFlexEnabled
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
-                    shouldTrimValues={false}
+                <KeyboardAvoidingView
+                    style={[styles.flex1, styles.dFlex]}
+                    behavior="padding"
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.WORK}
-                            name="fwork"
-                            label={translate('common.businessName')}
-                            aria-label={translate('common.businessName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            shouldSaveDraft
-                            maxLength={CONST.TITLE_CHARACTER_LIMIT}
-                            spellCheck={false}
-                            autoFocus
-                        />
-                    </View>
-                </FormProvider>
-            </KeyboardAvoidingView>
+                    <FormProvider
+                        style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                        formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
+                        footerContent={isSmallScreenWidth && WorkFooterInstance}
+                        validate={validate}
+                        onSubmit={completeEngagement}
+                        submitButtonText={translate('common.continue')}
+                        enabledWhenOffline
+                        submitFlexEnabled
+                        shouldValidateOnBlur
+                        shouldValidateOnChange
+                        shouldTrimValues={false}
+                    >
+                        <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                            <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
+                        </View>
+                        <View style={styles.mb4}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.WORK}
+                                name="fwork"
+                                label={translate('common.businessName')}
+                                aria-label={translate('common.businessName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                shouldSaveDraft
+                                maxLength={CONST.TITLE_CHARACTER_LIMIT}
+                                spellCheck={false}
+                                autoFocus
+                            />
+                        </View>
+                    </FormProvider>
+                </KeyboardAvoidingView>
+            </ScreenWrapper>
         </View>
     );
 }

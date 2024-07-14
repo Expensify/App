@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useSession} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -136,57 +137,64 @@ function BaseOnboardingPersonalDetails({
                 progressBarPercentage={75}
                 onBackButtonPress={Navigation.goBack}
             />
-            <KeyboardAvoidingView
-                style={[styles.flex1, styles.dFlex]}
-                behavior="padding"
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                shouldEnableKeyboardAvoidingView
+                testID="BaseOnboardingWork"
             >
-                <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
-                    footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
-                    validate={validate}
-                    onSubmit={completeEngagement}
-                    submitButtonText={translate('common.continue')}
-                    enabledWhenOffline
-                    submitFlexEnabled
-                    shouldValidateOnBlur={false}
-                    shouldValidateOnChange={shouldValidateOnChange}
-                    shouldTrimValues={false}
+                <KeyboardAvoidingView
+                    style={[styles.flex1, styles.dFlex]}
+                    behavior="padding"
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.FIRST_NAME}
-                            name="fname"
-                            label={translate('common.firstName')}
-                            aria-label={translate('common.firstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserPersonalDetails?.firstName}
-                            shouldSaveDraft
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            spellCheck={false}
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LAST_NAME}
-                            name="lname"
-                            label={translate('common.lastName')}
-                            aria-label={translate('common.lastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserPersonalDetails?.lastName}
-                            shouldSaveDraft
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            spellCheck={false}
-                        />
-                    </View>
-                </FormProvider>
-            </KeyboardAvoidingView>
+                    <FormProvider
+                        style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                        formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
+                        footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
+                        validate={validate}
+                        onSubmit={completeEngagement}
+                        submitButtonText={translate('common.continue')}
+                        enabledWhenOffline
+                        submitFlexEnabled
+                        shouldValidateOnBlur={false}
+                        shouldValidateOnChange={shouldValidateOnChange}
+                        shouldTrimValues={false}
+                    >
+                        <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                            <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                        </View>
+                        <View style={styles.mb4}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                ref={inputCallbackRef}
+                                inputID={INPUT_IDS.FIRST_NAME}
+                                name="fname"
+                                label={translate('common.firstName')}
+                                aria-label={translate('common.firstName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={currentUserPersonalDetails?.firstName}
+                                shouldSaveDraft
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                                spellCheck={false}
+                            />
+                        </View>
+                        <View>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.LAST_NAME}
+                                name="lname"
+                                label={translate('common.lastName')}
+                                aria-label={translate('common.lastName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={currentUserPersonalDetails?.lastName}
+                                shouldSaveDraft
+                                maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                                spellCheck={false}
+                            />
+                        </View>
+                    </FormProvider>
+                </KeyboardAvoidingView>
+            </ScreenWrapper>
         </View>
     );
 }
