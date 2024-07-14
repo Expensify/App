@@ -11,7 +11,6 @@ import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
 
 let isOffline = false;
-let hasPendingNetworkCheck = false;
 type NetworkStatus = ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>;
 
 type ResponseJSON = {
@@ -191,13 +190,8 @@ function clearReconnectionCallbacks() {
  * Refresh NetInfo state.
  */
 function recheckNetworkConnection() {
-    if (hasPendingNetworkCheck) {
-        return;
-    }
-
     Log.info('[NetworkConnection] recheck NetInfo');
-    hasPendingNetworkCheck = true;
-    NetInfo.refresh().finally(() => (hasPendingNetworkCheck = false));
+    NetInfo.refresh();
 }
 
 export default {
