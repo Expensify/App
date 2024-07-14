@@ -213,9 +213,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     onTouchStart={() => setUserInteractedWithMap(true)}
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
-                    scaleBarEnabled
+                    scaleBarEnabled={false}
+                    scaleBarPosition={{...styles.tn8, left: 0}}
                     compassEnabled
-                    compassPosition={{...styles.l2, ...styles.t8}}
+                    compassPosition={{...styles.l2, ...styles.t5}}
                     logoPosition={{...styles.l2, ...styles.b2}}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...responder.panHandlers}
