@@ -141,7 +141,7 @@ function BaseOnboardingPersonalDetails({
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 shouldEnableKeyboardAvoidingView
-                testID="BaseOnboardingWork"
+                testID="BaseOnboardingPersonalDetails"
             >
                 <KeyboardAvoidingView
                     style={[styles.flex1, styles.dFlex]}
