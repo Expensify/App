@@ -129,7 +129,7 @@ module.exports = {
                 filter: {
                     regex: '^private_[a-zA-Z0-9_]+$',
                     match: false,
-                }
+                },
             },
             {
                 selector: 'function',
