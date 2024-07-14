@@ -49,7 +49,15 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                     shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                 >
                     <View style={safeAreaPaddingBottomStyle}>
-                        <View style={[styles.mh3, styles.br3, styles.flex1, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
+                        <View
+                            style={[
+                                styles.mh3,
+                                styles.br3,
+                                styles.cardSectionIllustration,
+                                styles.alignItemsCenter,
+                                StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor),
+                            ]}
+                        >
                             <Lottie
                                 source={LottieAnimations.Safe}
                                 style={styles.h100}
