@@ -5,7 +5,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
-import CONST from '@src/CONST';
 
 type IconButtonProps = {
     src: IconAsset;
@@ -30,7 +29,6 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 onPress={onPress}
                 style={[styles.videoIconButton, style]}
                 hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
-                role={CONST.ROLE.BUTTON}
             >
                 <Icon
                     src={src}
