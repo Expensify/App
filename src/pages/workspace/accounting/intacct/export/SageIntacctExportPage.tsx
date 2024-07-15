@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCurrentSageIntacctEntityName} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -16,7 +17,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
 
     const {config} = policy?.connections?.intacct ?? {};
-    const {export: exportConfig, credentials} = policy?.connections?.intacct?.config ?? {};
+    const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const sections = useMemo(
         () => [
@@ -70,7 +71,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctExportPage.displayName}
             headerTitle="workspace.accounting.export"
-            headerSubtitle={credentials?.companyID}
+            headerSubtitle={getCurrentSageIntacctEntityName(policy)}
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

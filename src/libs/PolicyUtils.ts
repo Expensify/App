@@ -318,6 +318,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
@@ -644,6 +648,12 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
+function getCurrentSageIntacctEntityName(policy?: Policy): string | undefined {
+    const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    const entities = policy?.connections?.intacct?.data?.entities;
+    return entities?.find((entity) => entity.id === currentEntityID)?.name;
+}
+
 function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
     const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
     return (bankAccounts ?? []).map(({id, name}) => ({
@@ -806,9 +816,11 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
+    getCurrentSageIntacctEntityName,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -24,6 +24,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -102,6 +103,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -135,6 +137,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
+        notNow: 'Not now',
         learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
@@ -391,6 +394,8 @@ export default {
         notAllowedExtension: 'This file type is not allowed. Please try a different file type.',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Please try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+        attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
+        attachmentImageTooLarge: 'This image is too large to preview before uploading.',
     },
     connectionComplete: {
         title: 'Connection complete',
@@ -606,7 +611,7 @@ export default {
         saveTheWorld: 'Save the world',
     },
     allSettingsScreen: {
-        subscriptions: 'Subscriptions',
+        subscription: 'Subscription',
         cardsAndDomains: 'Cards & Domains',
     },
     tabSelector: {
@@ -626,6 +631,10 @@ export default {
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
+        locationAccessTitle: 'Allow location access',
+        locationAccessMessage: 'We’ll use your location to accurately determine your default currency and timezone. You can edit access in your device’s settings anytime.',
+        locationErrorTitle: 'Enable location in settings',
+        locationErrorMessage: 'Allowing location access is required to help accurately determine your default currency and timezone. Tap Settings to update permissions.',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
@@ -642,7 +651,7 @@ export default {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
+        paySomeone: (name: string) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
@@ -702,8 +711,8 @@ export default {
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
             }`,
-        deleteExpense: 'Delete expense',
-        deleteConfirmation: 'Are you sure that you want to delete this expense?',
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Delete ${Str.pluralize('expense', 'expenses', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Are you sure that you want to delete ${Str.pluralize('this expense', 'these expenses', count)}?`,
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
@@ -1464,7 +1473,6 @@ export default {
             title: 'What do you want to do today?',
             errorSelection: 'Please make a selection to continue.',
             errorContinue: 'Please press continue to get set up.',
-            errorBackButton: 'Please finish the setup questions to start using the app.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -2583,6 +2591,7 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
+            entity: 'Entity',
             employeeDefault: 'Sage Intacct employee default',
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
@@ -2638,6 +2647,12 @@ export default {
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
             cashBack: 'Cash back',
             cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            issueNewCard: 'Issue new card',
+            finishSetup: 'Finish setup',
+            chooseBankAccount: 'Choose bank account',
+            chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
+            accountEndingIn: 'Account ending in',
+            addNewBankAccount: 'Add a new bank account',
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -2666,6 +2681,10 @@ export default {
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
             importedFromAccountingSoftware: 'The categories below are imported from your',
+            payrollCode: 'Payroll code',
+            updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again.',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         moreFeatures: {
             spendSection: {
@@ -2803,6 +2822,8 @@ export default {
             existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
             importedFromAccountingSoftware: 'The tags below are imported from your',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -3126,6 +3147,7 @@ export default {
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
+            cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
@@ -3815,7 +3837,19 @@ export default {
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
-        modifiedAmount: 'Amount greater than scanned receipt',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams): string => {
+            switch (type) {
+                case 'distance':
+                    return 'Amount differs from calculated distance';
+                case 'card':
+                    return 'Amount greater than card transaction';
+                default:
+                    if (displayPercentVariance) {
+                        return `Amount ${displayPercentVariance}% greater than scanned receipt`;
+                    }
+                    return 'Amount greater than scanned receipt';
+            }
+        },
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,
@@ -3978,6 +4012,10 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
+            },
+            trialEnded: {
+                title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },

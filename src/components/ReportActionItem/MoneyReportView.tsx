@@ -62,7 +62,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
             <AnimatedEmptyStateBackground />
             {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                 <>
-                    {ReportUtils.reportFieldsEnabled(report) &&
+                    {ReportUtils.isPaidGroupPolicyExpenseReport(report) &&
                         sortedPolicyReportFields.map((reportField) => {
                             if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
                                 return null;

@@ -283,7 +283,11 @@ function addSageIntacctUserDimensions(
 ) {
     const newDimensions = [...existingUserDimensions, {mapping, dimension: dimensionName}];
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: newDimensions}, prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions));
+    API.write(
+        WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
+        {policyID, dimensions: JSON.stringify(newDimensions)},
+        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions),
+    );
 }
 
 function editSageIntacctUserDimensions(
@@ -300,13 +304,17 @@ function editSageIntacctUserDimensions(
         return userDimension;
     });
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: newDimensions}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: JSON.stringify(newDimensions)}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
 }
 
 function removeSageIntacctUserDimensions(policyID: string, dimensionName: string, existingUserDimensions: SageIntacctDimension[]) {
     const newDimensions = existingUserDimensions.filter((userDimension) => dimensionName !== userDimension.dimension);
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: newDimensions}, prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions));
+    API.write(
+        WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
+        {policyID, dimensions: JSON.stringify(newDimensions)},
+        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions),
+    );
 }
 
 function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null) {
@@ -732,6 +740,23 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID:
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateSageIntacctEntity(policyID: string, entity: string) {
+    const parameters = {
+        policyID,
+        entity,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity));
+}
+
+function reuseSageIntacctConnection(policyID: string, targetPolicyID: string, connectionName: string) {
+    const parameters = {
+        policyID,
+        targetPolicyID,
+        connectionName,
+    };
+    API.write(WRITE_COMMANDS.COPY_EXISTING_POLICY_CONNECTION, parameters, {});
+}
+
 export {
     connectToSageIntacct,
     updateSageIntacctBillable,
@@ -752,4 +777,6 @@ export {
     updateSageIntacctApprovalMode,
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
+    updateSageIntacctEntity,
+    reuseSageIntacctConnection,
 };
