@@ -41,7 +41,7 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
-    shouldMaskOnyxState: OnyxEntry<boolean>;
+    shouldMaskOnyxState: boolean;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
@@ -142,7 +142,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={!!shouldMaskOnyxState}
+                                        isOn={shouldMaskOnyxState}
                                         onToggle={setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
