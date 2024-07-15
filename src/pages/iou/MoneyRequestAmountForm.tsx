@@ -164,7 +164,7 @@ function MoneyRequestAmountForm(
         if (!currency || typeof amount !== 'number') {
             return;
         }
-        initializeAmount(amount, currency);
+        initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
