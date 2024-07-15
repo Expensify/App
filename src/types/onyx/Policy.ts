@@ -1154,6 +1154,9 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Sage Intacct sync */
         sync: SageIntacctSyncConfig;
 
+        /** Sage Intacct entity */
+        entity?: string;
+
         /** Collection of Sage Intacct config errors */
         errors?: OnyxCommon.Errors;
 

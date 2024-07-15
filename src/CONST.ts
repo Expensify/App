@@ -1383,6 +1383,7 @@ const CONST = {
         SYNC: 'sync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        ENTITY: 'entity',
     },
 
     SAGE_INTACCT: {
