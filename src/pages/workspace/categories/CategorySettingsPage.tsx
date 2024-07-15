@@ -141,7 +141,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             title={policyCategory['GL Code']}
                             description={translate(`workspace.categories.glCode`)}
                             onPress={() => {
-                                if (policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+                                if (!isControlPolicy(policy)) {
                                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
                                     return;
                                 }
@@ -155,7 +155,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             title={policyCategory['Payroll Code']}
                             description={translate(`workspace.categories.payrollCode`)}
                             onPress={() => {
-                                if (policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+                                if (!isControlPolicy(policy)) {
                                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
                                     return;
                                 }
