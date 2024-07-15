@@ -1070,20 +1070,23 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
 
     const persistedRequests = PersistedRequests.getAll();
 
-    persistedRequests.forEach((persistedRequest, requestIndex) => {
-        const {command, data} = persistedRequest;
+    persistedRequests.forEach((request, index) => {
+        const {command, data} = request;
 
         if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
-            if (data.policyName !== name) {
+            const policyNameChanged = data.policyName !== name;
+            const outputCurrencyChanged = data.outputCurrency !== currency;
+
+            if (policyNameChanged || outputCurrencyChanged) {
                 const updatedRequest = {
-                    ...persistedRequest,
+                    ...request,
                     data: {
                         ...data,
-                        policyName: name,
+                        policyName: policyNameChanged ? name : data.policyName,
+                        outputCurrency: outputCurrencyChanged ? currency : data.outputCurrency,
                     },
                 };
-
-                PersistedRequests.update(requestIndex, updatedRequest);
+                PersistedRequests.update(index, updatedRequest);
             }
         }
     });
