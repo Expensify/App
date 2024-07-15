@@ -25,7 +25,7 @@ export type {PrivateNotesForm} from './PrivateNotesForm';
 export type {ProfileSettingsForm} from './ProfileSettingsForm';
 export type {ReimbursementAccountForm} from './ReimbursementAccountForm';
 export type {ReportDescriptionForm} from './ReportDescriptionForm';
-export type {ReportFieldEditForm} from './ReportFieldEditForm';
+export type {ReportFieldsEditForm} from './ReportFieldsEditForm';
 export type {ReportVirtualCardFraudForm} from './ReportVirtualCardFraudForm';
 export type {RequestPhysicalCardForm} from './RequestPhysicalCardForm';
 export type {RoomNameForm} from './RoomNameForm';
