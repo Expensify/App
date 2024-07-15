@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -7,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
@@ -50,8 +52,30 @@ function SearchListWithHeader(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TransactionListItemType | ReportListItemType | null>(null);
     const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
+    const [selectedItemsToDelete, setSelectedItemsToDelete] = useState<string[]>([]);
+    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
+
+    const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
+        setSelectedItemsToDelete(itemsToDelete);
+        setDeleteExpensesConfirmModalVisible(true);
+    };
+
+    const handleOnCancelConfirmModal = () => {
+        setSelectedItemsToDelete([]);
+        setDeleteExpensesConfirmModalVisible(false);
+    };
 
     const clearSelectedItems = () => setSelectedItems({});
+
+    const handleDeleteExpenses = () => {
+        if (selectedItemsToDelete.length === 0) {
+            return;
+        }
+
+        clearSelectedItems();
+        setDeleteExpensesConfirmModalVisible(false);
+        SearchActions.deleteMoneyRequestOnSearch(hash, selectedItemsToDelete);
+    };
 
     useEffect(() => {
         clearSelectedItems();
@@ -152,6 +176,7 @@ function SearchListWithHeader(
                 clearSelectedItems={clearSelectedItems}
                 query={query}
                 hash={hash}
+                onSelectDeleteOption={handleOnSelectDeleteOption}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
                 setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                 isSearchResultsMode={isSearchResultsMode}
@@ -168,7 +193,16 @@ function SearchListWithHeader(
                 onSelectAll={toggleAllTransactions}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
             />
-
+            <ConfirmModal
+                isVisible={deleteExpensesConfirmModalVisible}
+                onConfirm={handleDeleteExpenses}
+                onCancel={handleOnCancelConfirmModal}
+                title={translate('iou.deleteExpense', {count: selectedItemsToDelete.length})}
+                prompt={translate('iou.deleteConfirmation', {count: selectedItemsToDelete.length})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}

@@ -1175,6 +1175,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import` as const,

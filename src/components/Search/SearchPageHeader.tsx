@@ -20,11 +20,12 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SelectedTransactions} from './types';
 
-type SearchHeaderProps = {
+type SearchPageHeaderProps = {
     query: SearchQuery;
     selectedItems?: SelectedTransactions;
     clearSelectedItems?: () => void;
     hash: number;
+    onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
     isSearchResultsMode?: boolean;
@@ -37,10 +38,11 @@ function SearchPageHeader({
     selectedItems = {},
     hash,
     clearSelectedItems,
+    onSelectDeleteOption,
     isMobileSelectionModeActive,
     setIsMobileSelectionModeActive,
     isSearchResultsMode = false,
-}: SearchHeaderProps) {
+}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -89,20 +91,15 @@ function SearchPageHeader({
             return options;
         }
 
-        const itemsToDelete = selectedItemsKeys.filter((id) => selectedItems[id].canDelete);
+        const itemsToDelete = Object.keys(selectedItems ?? {}).filter((id) => selectedItems[id].canDelete);
 
         if (itemsToDelete.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {
-                    clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
-                    }
-                    SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
-                },
+                shouldCloseModalOnSelect: true,
+                onSelected: () => onSelectDeleteOption?.(itemsToDelete),
             });
         }
 
@@ -159,7 +156,19 @@ function SearchPageHeader({
         }
 
         return options;
-    }, [clearSelectedItems, hash, selectedItems, selectedItemsKeys, styles, theme, translate, isMobileSelectionModeActive, setIsMobileSelectionModeActive]);
+    }, [
+        selectedItemsKeys,
+        selectedItems,
+        translate,
+        onSelectDeleteOption,
+        clearSelectedItems,
+        isMobileSelectionModeActive,
+        hash,
+        setIsMobileSelectionModeActive,
+        theme.icon,
+        styles.colorMuted,
+        styles.fontWeightNormal,
+    ]);
 
     if (isSmallScreenWidth) {
         if (isMobileSelectionModeActive) {
