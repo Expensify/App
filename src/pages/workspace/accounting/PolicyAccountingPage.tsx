@@ -63,6 +63,7 @@ type AccountingIntegration = {
     onImportPagePress: () => void;
     onExportPagePress: () => void;
     onAdvancedPagePress: () => void;
+    onCardReconciliationPagePress: () => void;
 };
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -85,6 +86,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -100,6 +102,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
@@ -115,6 +118,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
@@ -128,9 +132,10 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                onImportPagePress: () => {},
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
-                onAdvancedPagePress: () => {},
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
             };
         default:
             return undefined;
@@ -152,7 +157,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
         !!connectionSyncProgress?.stageInProgress &&
-        connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy.connections?.[connectionSyncProgress.connectionName]) &&
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
@@ -319,6 +324,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
                       },
+                      {
+                          icon: Expensicons.ExpensifyCard,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.cardReconciliation'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: integrationData?.onCardReconciliationPagePress,
+                      },
+
                       {
                           icon: Expensicons.Gear,
                           iconRight: Expensicons.ArrowRight,
