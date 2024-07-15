@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -53,6 +53,14 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
+
+    useEffect(() => {
+        // Set shouldMaskOnyxState to true when user navigates to troubleshoot page after sign in
+        if (shouldMaskOnyxState !== undefined) {
+            return;
+        }
+        App.setShouldMaskOnyxState(true);
+    });
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -141,7 +149,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={!!shouldMaskOnyxState}
+                                        isOn={shouldMaskOnyxState ?? true}
                                         onToggle={App.setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
