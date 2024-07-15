@@ -430,7 +430,12 @@ function getPersonalPolicy() {
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+    if (!policy || !policy.employeeList) {
+        return [];
+    }
+    return Object.keys(policy.employeeList)
+        .map((email) => ({...policy.employeeList?.[email], email}))
+        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
