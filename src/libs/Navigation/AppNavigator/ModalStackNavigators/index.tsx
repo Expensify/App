@@ -483,7 +483,7 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
 });
 
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
-    //[SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
+    [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
 });
 
