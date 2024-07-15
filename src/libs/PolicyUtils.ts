@@ -2,14 +2,28 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {
+    ConnectionLastSync,
+    Connections,
+    CustomUnit,
+    NetSuiteAccount,
+    NetSuiteConnection,
+    NetSuiteCustomList,
+    NetSuiteCustomSegment,
+    PolicyFeatureName,
+    Rate,
+    Tenant,
+} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -142,7 +156,8 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     return (
         !!policy &&
         (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
+        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+        !!policy?.role
     );
 }
 
@@ -238,6 +253,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 
     return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
 }
+
 /**
  * Gets all tag lists of a policy
  */
@@ -300,6 +316,10 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 
 function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
@@ -410,7 +430,12 @@ function getPersonalPolicy() {
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+    if (!policy || !policy.employeeList) {
+        return [];
+    }
+    return Object.keys(policy.employeeList)
+        .map((email) => ({...policy.employeeList?.[email], email}))
+        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -536,6 +561,88 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
 }
 
+function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
+
+    return accountOptions.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
+
+    return accountOptions.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const defaultApprovalAccount: NetSuiteAccount = {
+        id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+        name: Localize.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+        type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
+    };
+    const accountOptions = [defaultApprovalAccount].concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE));
+
+    return accountOptions.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: LocaleContextProps['translate']): string | undefined {
+    const importMapping = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
+    if (!importMapping?.customers && !importMapping?.jobs) {
+        return undefined;
+    }
+    const importFields: string[] = [];
+    const importCustomer = importMapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importJobs = importMapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+
+    if (importCustomer === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && importJobs === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+        return undefined;
+    }
+
+    const importedValue = importMapping?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
+
+    if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+        importFields.push(translate('workspace.netsuite.import.customersOrJobs.customers'));
+    }
+
+    if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+        importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
+    }
+
+    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
+    return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
+}
+
+function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
+    return 'segmentName' in customField;
+}
+
+function getNameFromNetSuiteCustomField(customField: NetSuiteCustomList | NetSuiteCustomSegment): string {
+    return 'segmentName' in customField ? customField.segmentName : customField.listName;
+}
+
+function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
+    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
+    const fieldKey = fieldName as keyof typeof customField;
+    return fieldsAllowedToEdit.includes(fieldKey);
+}
+
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
     if (!connection) {
         return undefined;
@@ -544,6 +651,52 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
         return (connection as NetSuiteConnection)?.lastSyncDate;
     }
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+}
+
+function getCurrentSageIntacctEntityName(policy?: Policy): string | undefined {
+    const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    const entities = policy?.connections?.intacct?.data?.entities;
+    return entities?.find((entity) => entity.id === currentEntityID)?.name;
+}
+
+function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
+    const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
+    return (bankAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+    const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
+    return vendors.map(({id, value}) => ({
+        value: id,
+        text: value,
+        keyForList: id,
+        isSelected: selectedVendorId === id,
+    }));
+}
+
+function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | undefined {
+    const {
+        nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
+        nonReimbursableVendor: expenseReportDefaultVendor,
+        nonReimbursable,
+    } = policy?.connections?.intacct?.config.export ?? {};
+
+    return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
+}
+
+function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
+    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
+    return creditCards.map(({name}) => ({
+        value: name,
+        text: name,
+        keyForList: name,
+        isSelected: name === selectedAccount,
+    }));
 }
 
 /**
@@ -586,6 +739,13 @@ function getCurrentConnectionName(policy: Policy | undefined): string | undefine
     return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
 
+/**
+ * Check if the policy member is deleted from the workspace
+ */
+function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: boolean) {
+    return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -619,6 +779,7 @@ export {
     hasPolicyErrorFields,
     hasTaxRateError,
     isExpensifyTeam,
+    isDeletedPolicyEmployee,
     isFreeGroupPolicy,
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
@@ -641,10 +802,17 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getNetSuiteReimbursableAccountOptions,
+    getNetSuiteCollectionAccountOptions,
+    getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getSageIntacctVendors,
+    getSageIntacctNonReimbursableActiveDefaultVendor,
+    getSageIntacctCreditCards,
+    getSageIntacctBankAccounts,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,
@@ -652,6 +820,12 @@ export {
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
+    getCustomersOrJobsLabelNetSuite,
+    isControlPolicy,
+    isNetSuiteCustomSegmentRecord,
+    getNameFromNetSuiteCustomField,
+    isNetSuiteCustomFieldPropertyEditable,
+    getCurrentSageIntacctEntityName,
 };
 
 export type {MemberEmailsToAccountIDs};
