@@ -40,6 +40,7 @@ import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -115,6 +116,9 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
+        selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
+    });
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -216,15 +220,14 @@ function MoneyRequestView({
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
+
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newBillable === TransactionUtils.getBillable(transaction)) {
-                Navigation.dismissModal();
                 return;
             }
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID, newBillable, policy, policyTagList, policyCategories);
-            Navigation.dismissModal();
         },
         [transaction, report, policy, policyTagList, policyCategories],
     );
@@ -404,11 +407,14 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
-                            if (
-                                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-                                Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))
-                            ) {
-                                deleteTransaction(parentReport, parentReportAction);
+                            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                                if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+                                    Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                                    return;
+                                }
+                                if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
+                                    deleteTransaction(parentReport, parentReportAction);
+                                }
                             }
                             Transaction.clearError(transaction.transactionID);
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
