@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
@@ -21,14 +21,11 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -36,7 +33,6 @@ function AddPaymentCard() {
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
     useEffect(() => {
         PaymentMethods.clearPaymentCardFormErrorAndSubmit();
@@ -45,15 +41,6 @@ function AddPaymentCard() {
             PaymentMethods.clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
-
-    useEffect(() => {
-        if (!defaultCard?.accountData || isEmptyObject(defaultCard?.accountData)) {
-            setShouldShowPaymentCardForm(true);
-            return;
-        }
-        PaymentMethods.setPaymentCardForm(defaultCard.accountData);
-        setShouldShowPaymentCardForm(true);
-    }, [defaultCard?.accountData]);
 
     const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
         const cardData = {
@@ -84,7 +71,7 @@ function AddPaymentCard() {
             <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
             <View style={styles.containerWithSpaceBetween}>
                 <PaymentCardForm
-                    shouldShowPaymentCardForm={shouldShowPaymentCardForm}
+                    shouldShowPaymentCardForm
                     addPaymentCard={addPaymentCard}
                     showAcceptTerms
                     showCurrencyField
