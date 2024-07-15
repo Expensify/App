@@ -3330,7 +3330,7 @@ export default {
             },
             glCodes: {
                 title: 'GL codes',
-                description: `Add GL codes to your categories for easy export of expenses to your accounting and payroll systems.`,
+                description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'GL codes are only available on the Control plan, starting at ',
             },
             glAndPayrollCodes: {
