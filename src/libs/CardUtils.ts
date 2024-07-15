@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Localize from './Localize';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
@@ -143,6 +144,14 @@ function getMCardNumberString(cardNumber: string): string {
     return cardNumber.replace(/\s/g, '');
 }
 
+function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountList>) {
+    if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+        return [];
+    }
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.allowDebit || bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -155,4 +164,5 @@ export {
     findPhysicalCard,
     hasDetectedFraud,
     getMCardNumberString,
+    getEligibleBankAccountsForCard,
 };

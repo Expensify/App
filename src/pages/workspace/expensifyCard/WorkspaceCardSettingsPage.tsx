@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-// import {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,7 +13,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
-// import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -21,12 +21,19 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    // const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
+    const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    const bankAccountNumber = bankAccountList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
 
     return (
         <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -39,7 +46,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
                                 description={translate('workspace.expensifyCard.settlementAccount')}
-                                title="xxxxxxxxxxxx1234"
+                                title={bankAccountNumber ? `XXXXXXXXXXXX${bankAccountNumber.slice(-4)}` : ''}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}
                             />
@@ -47,7 +54,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
                                 description={translate('workspace.expensifyCard.settlementFrequency')}
-                                title="Monthly"
+                                title={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
                             />
@@ -55,6 +62,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                     </View>
                 </ScrollView>
             </ScreenWrapper>
+            //{' '}
         </AccessOrNotFoundWrapper>
     );
 }

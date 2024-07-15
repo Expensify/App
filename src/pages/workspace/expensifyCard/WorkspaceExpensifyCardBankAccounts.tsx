@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +27,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const policyID = route?.params?.policyID ?? '-1';
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
 
     const handleAddBankAccount = () => {
         // TODO: call to API - UpdateCardSettlementAccount
@@ -42,7 +44,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         }
 
         // const eligibleBankAccounts = Object.values(bankAccountsList).filter((bankAccount) => bankAccount.accountData.allowDebit || bankAccount.accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
-        const eligibleBankAccounts = Object.values(bankAccountsList);
+        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;

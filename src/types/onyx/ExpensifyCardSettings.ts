@@ -10,6 +10,15 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The total amount of cash back earned thus far */
     cashBack: number;
+
+    /** The date of the last settlement */
+    monthlySettlementDate: Date;
+
+    /** Whether monthly option should appear in the settlement frequency settings */
+    isMonthlySettlementAllowed: boolean;
+
+    /** The bank account chosen for the card settlement */
+    paymentBankAccountID: number;
 }>;
 
 export default ExpensifyCardSettings;
