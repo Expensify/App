@@ -13,7 +13,7 @@ import type {
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -162,7 +162,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
     const parameters: AddPaymentCardParams = {
-        cardNumber: params.cardNumber,
+        cardNumber: CardUtils.getMCardNumberString(params.cardNumber),
         cardYear,
         cardMonth,
         cardCVV: params.securityCode,
@@ -253,24 +253,12 @@ function addSubscriptionPaymentCard(cardData: {
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
-            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-
-            Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-        });
-    } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        });
-        Navigation.goBack();
-    }
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+    Navigation.goBack();
 }
 
 /**
