@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {SelectedTagOption} from '@components/TagPicker';
+import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -177,6 +178,7 @@ type GetOptionsConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
+    action?: IOUAction;
 };
 
 type GetUserToInviteConfig = {
@@ -275,6 +277,13 @@ Onyx.connect({
 
         policies[key] = policy;
     },
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 const lastReportActions: ReportActions = {};
@@ -1813,6 +1822,7 @@ function getOptions(
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
         includeDomainEmail = false,
+        action,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -2052,7 +2062,14 @@ function getOptions(
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
-            recentReportOptions.push(reportOption);
+            if (action === CONST.IOU.ACTION.CATEGORIZE) {
+                const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
+                if (getEnabledCategoriesCount(policyCategories) !== 0) {
+                    recentReportOptions.push(reportOption);
+                }
+            } else {
+                recentReportOptions.push(reportOption);
+            }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
@@ -2215,6 +2232,7 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includeInvoiceRooms = false,
+    action: IOUAction | undefined = undefined,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2242,6 +2260,7 @@ function getFilteredOptions(
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
+            action,
         },
     );
 }
