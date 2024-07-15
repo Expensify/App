@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
+import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
@@ -455,7 +456,7 @@ function AttachmentModal({
         [closeModal, nope, sourceForAttachmentView],
     );
 
-    const submitRef = useRef<View>(null);
+    const submitRef = useRef<View | HTMLElement>(null);
 
     return (
         <>
@@ -477,7 +478,7 @@ function AttachmentModal({
                     if (!submitRef.current) {
                         return false;
                     }
-                    return submitRef.current as View | HTMLElement;
+                    return submitRef.current;
                 }}
             >
                 <GestureHandlerRootView style={styles.flex1}>
@@ -548,7 +549,7 @@ function AttachmentModal({
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
-                                        ref={submitRef}
+                                        ref={viewForwardedRef(submitRef)}
                                         success
                                         large
                                         style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
