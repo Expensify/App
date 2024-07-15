@@ -377,7 +377,7 @@ function getCombinedReportActions(
     let filteredTransactionThreadReportActions = transactionThreadReportActions;
     let filteredParentReportActions = reportActions;
 
-    if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created < parentReportCreatedAction.created) {
+    if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
         filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     } else {
         filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
