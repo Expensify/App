@@ -177,6 +177,9 @@ type MenuItemBaseProps = {
     /** Text that appears above the title */
     label?: string;
 
+    /** Limit to truncate description for menu item */
+    limit?: number;
+
     isLabelHoverable?: boolean;
 
     /** Label to be displayed on the right */
@@ -357,6 +360,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        limit = 100,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -503,9 +507,6 @@ function MenuItem(
             )();
         }
     };
-
-    const maxDescLength = 100;
-    const parser = new ExpensiMark();
 
     return (
         <View onBlur={onBlur}>
@@ -658,7 +659,7 @@ function MenuItem(
                                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
-                                                                        <RenderHTML html={parser.truncateHTML(processedTitle, maxDescLength)} />
+                                                                        <RenderHTML html={Parser.truncateHTML(processedTitle, limit, {ellipsis: true})} />
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
