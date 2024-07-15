@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getCurrentSageIntacctEntityName} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -30,7 +31,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
 
-    const {importEmployees, autoSync, sync, pendingFields, errorFields, entity} = policy?.connections?.intacct?.config ?? {};
+    const {importEmployees, autoSync, sync, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
     const {data, config} = policy?.connections?.intacct ?? {};
 
     const toggleSections = useMemo(
@@ -99,7 +100,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
-            headerSubtitle={entity}
+            headerSubtitle={getCurrentSageIntacctEntityName(policy)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
