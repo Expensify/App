@@ -36,12 +36,12 @@ const PLATFORM_DEPLOY__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK = createMockStep('De
 const PLATFORM_DEPLOY__ANDROID__SET_VERSION__STEP_MOCK = createMockStep('Set version in ENV', 'Setting version in ENV', 'ANDROID', null, null, null, {VERSION_CODE: '1.2.3'});
 const PLATFORM_DEPLOY__ANDROID__FASTLANE__STEP_MOCK = createMockStep('Run Fastlane', 'Running Fastlane', 'ANDROID', null, [
     'RUBYOPT',
-    'VERSION',
     'MYAPP_UPLOAD_STORE_PASSWORD',
     'MYAPP_UPLOAD_KEY_PASSWORD',
+    'VERSION',
 ]);
 const PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive Android sourcemaps', 'Archiving Android sourcemaps', 'ANDROID', ['name', 'path']);
-const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockStep('Upload Android build to GitHub artifacts', 'Uploading android build to GitHub artifacts', 'ANDROID', [
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockStep('Upload Android build to GitHub artifacts', 'Uploading Android build to GitHub artifacts', 'ANDROID', [
     'name',
     'path',
 ]);
@@ -124,7 +124,7 @@ const PLATFORM_DEPLOY__IOS__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockSt
     'name',
     'path',
 ]);
-const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = createMockStep('Upload iOS build to Browser Stack', 'Uploading version to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
+const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = createMockStep('Upload iOS build to Browser Stack', 'Uploading build to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
 const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
 const PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK = createMockStep(
     'Warn deployers if iOS production deploy failed',

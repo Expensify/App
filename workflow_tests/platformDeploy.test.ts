@@ -44,6 +44,7 @@ describe('test workflow platformDeploy', () => {
     afterEach(async () => {
         await mockGithub.teardown();
     });
+
     describe('push', () => {
         describe('tag', () => {
             it('as team member - platform deploy executes on staging', async () => {
