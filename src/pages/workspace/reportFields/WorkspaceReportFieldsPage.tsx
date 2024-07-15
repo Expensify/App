@@ -120,8 +120,8 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields(isAllSelected ? [] : availableReportFields);
     };
 
-    const navigateToReportFieldSettings = (reportField: ReportFieldForList) => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
+    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
     const handleDeleteReportFields = () => {
@@ -267,7 +267,7 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple={!hasAccountingConnections}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={navigateToReportFieldSettings}
+                        onSelectRow={navigateToReportFieldsSettings}
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
