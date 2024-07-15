@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
@@ -89,6 +89,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Whether we should use the danger theme color */
     danger?: boolean;
 
+    /** Whether we should display the button as a link */
+    link?: boolean;
+
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
 
@@ -118,6 +121,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    /** Whether button's content should be centered */
+    isContentCentered?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -147,7 +153,7 @@ function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPre
             priority: enterKeyEventListenerPriority,
             shouldPreventDefault: false,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [shouldDisableEnterShortcut, isFocused],
     );
 
@@ -202,6 +208,8 @@ function Button(
         id = '',
         accessibilityLabel = '',
         isSplitButton = false,
+        link = false,
+        isContentCentered = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -209,6 +217,7 @@ function Button(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const [isHovered, setIsHovered] = useState(false);
 
     const renderContent = () => {
         if ('children' in rest) {
@@ -229,6 +238,10 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     textStyles,
+                    link && styles.link,
+                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
+                    link && styles.fontWeightNormal,
+                    link && styles.fontSizeLabel,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -239,7 +252,7 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
                             <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
@@ -339,6 +352,7 @@ function Button(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
+                    link && styles.bgTransparent,
                 ]}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -349,6 +363,8 @@ function Button(
                 accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
             >
                 {renderContent()}
                 {isLoading && (

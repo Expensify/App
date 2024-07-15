@@ -21,9 +21,13 @@ Onyx.connect({
 });
 
 let currentUserEmail = '';
+let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (value) => (currentUserEmail = value?.email ?? ''),
+    callback: (value) => {
+        currentUserEmail = value?.email ?? '';
+        currentUserAccountID = value?.accountID ?? -1;
+    },
 });
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
@@ -157,4 +161,29 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink};
+function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
+    const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
+    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
+    const exitTo = `exitTo=${url}`;
+    const accountID = `accountID=${currentUserAccountID}`;
+    const paramsArray = [accountID, emailParam, authTokenParam, exitTo];
+    const params = paramsArray.filter(Boolean).join('&');
+
+    return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;
+}
+
+/**
+ * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+ */
+function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = false) {
+    asyncOpenURL(
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
+            .catch(() => buildURLWithAuthToken(url)),
+        (link) => link,
+        shouldSkipCustomSafariLogic,
+    );
+}
+
+export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken};

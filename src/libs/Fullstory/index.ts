@@ -92,6 +92,11 @@ const FS = {
             });
         }
     },
+
+    /**
+     * Init function, created so we're consistent with the native file
+     */
+    init: () => {},
 };
 
 export default FS;

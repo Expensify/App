@@ -53,7 +53,6 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
-        mode: 'legacy',
     });
 
     // When app loads, get current version (production only)

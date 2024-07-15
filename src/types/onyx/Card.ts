@@ -31,12 +31,18 @@ type Card = {
     /** Is card data loading */
     isLoading?: boolean;
 
+    /** Cardholder account ID */
+    accountID?: number;
+
     /** Additional card data */
     nameValuePairs?: {
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        /** User-defined nickname for a virtual card */
+        /** Card spending limit */
+        limit?: number;
+
+        /** User-defined nickname for the card */
         cardTitle?: string;
 
         /** Account ID of user that issued the card */
@@ -83,5 +89,41 @@ type ExpensifyCardDetails = {
 /** Record of Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
+/** Issue new card flow steps */
+type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
+
+/** Data required to be sent to issue a new card */
+type IssueNewCardData = {
+    /** The email address of the cardholder */
+    assigneeEmail: string;
+
+    /** Card type */
+    cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
+
+    /** Card spending limit type */
+    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
+    /** Card spending limit */
+    limit: number;
+
+    /** Name of the card */
+    cardTitle: string;
+};
+
+/** Model of Issue new card flow */
+type IssueNewCard = {
+    /** The current step of the flow */
+    currentStep: IssueNewCardStep;
+
+    /** Data required to be sent to issue a new card */
+    data: IssueNewCardData;
+
+    /** Whether the user is editing step */
+    isEditing: boolean;
+};
+
+/** List of Expensify cards */
+type WorkspaceCardsList = Record<string, Card>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList};

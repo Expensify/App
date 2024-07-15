@@ -50,11 +50,11 @@ class JobMocker {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = mockJob.steps.map((step): StepIdentifier => {
-                    const mockStep: StepIdentifier = {
+                job.steps = mockJob.steps.map((step) => {
+                    const mockStep = {
                         name: step.name,
                         run: step.mockWith,
-                    };
+                    } as StepIdentifier;
                     if (step.id) {
                         mockStep.id = step.id;
                     }
@@ -94,9 +94,7 @@ class JobMocker {
     }
 
     readWorkflowFile(location: PathOrFileDescriptor): YamlWorkflow {
-        const test: YamlWorkflow = yaml.parse(fs.readFileSync(location, 'utf8'));
-
-        return test;
+        return yaml.parse(fs.readFileSync(location, 'utf8')) as YamlWorkflow;
     }
 
     writeWorkflowFile(location: PathOrFileDescriptor, data: YamlWorkflow) {

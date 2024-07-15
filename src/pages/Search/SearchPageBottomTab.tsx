@@ -1,14 +1,15 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useActiveRoute from '@hooks/useActiveRoute';
+import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -16,7 +17,7 @@ import SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import SearchFilters from './SearchFilters';
 
-type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = StackScreenProps<CentralPaneScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 const defaultSearchProps = {
     query: '' as SearchQuery,
@@ -27,8 +28,9 @@ const defaultSearchProps = {
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const activeRoute = useActiveRoute();
+    const activeBottomTabRoute = useActiveBottomTabRoute();
     const styles = useThemeStyles();
+    const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
     const {
         query: rawQuery,
@@ -36,11 +38,11 @@ function SearchPageBottomTab() {
         sortBy,
         sortOrder,
     } = useMemo(() => {
-        if (activeRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeRoute.params) {
+        if (activeBottomTabRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeBottomTabRoute.params) {
             return defaultSearchProps;
         }
-        return {...defaultSearchProps, ...activeRoute.params} as SearchPageProps['route']['params'];
-    }, [activeRoute]);
+        return {...defaultSearchProps, ...activeBottomTabRoute.params} as SearchPageProps['route']['params'];
+    }, [activeBottomTabRoute]);
 
     const query = rawQuery as SearchQuery;
 
@@ -59,18 +61,29 @@ function SearchPageBottomTab() {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <TopBar
-                    activeWorkspaceID={policyIDs}
-                    breadcrumbLabel={translate('common.search')}
-                    shouldDisplaySearch={false}
-                />
-                <SearchFilters query={query} />
+                {!isMobileSelectionModeActive ? (
+                    <>
+                        <TopBar
+                            activeWorkspaceID={policyIDs}
+                            breadcrumbLabel={translate('common.search')}
+                            shouldDisplaySearch={false}
+                        />
+                        <SearchFilters query={query} />
+                    </>
+                ) : (
+                    <HeaderWithBackButton
+                        title={translate('search.selectMultiple')}
+                        onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
+                    />
+                )}
                 {isSmallScreenWidth && (
                     <Search
                         policyIDs={policyIDs}
                         query={query}
                         sortBy={sortBy}
                         sortOrder={sortOrder}
+                        isMobileSelectionModeActive={isMobileSelectionModeActive}
+                        setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                     />
                 )}
             </FullPageNotFoundView>

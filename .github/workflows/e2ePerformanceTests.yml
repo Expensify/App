@@ -156,7 +156,7 @@ jobs:
         run: mkdir zip
 
       - name: Download baseline APK
-        uses: actions/download-artifact@348754975ef0295bfa2c111cba996120cfdf8a5d
+        uses: actions/download-artifact@v4
         id: downloadBaselineAPK
         with:
           name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
@@ -170,7 +170,7 @@ jobs:
         run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk"
 
       - name: Download delta APK
-        uses: actions/download-artifact@348754975ef0295bfa2c111cba996120cfdf8a5d
+        uses: actions/download-artifact@v4
         id: downloadDeltaAPK
         with:
           name: delta-apk-${{ needs.buildDelta.outputs.DELTA_REF }}
@@ -184,6 +184,9 @@ jobs:
 
       - name: Copy e2e code into zip folder
         run: cp tests/e2e/dist/index.js zip/testRunner.ts
+
+      - name: Copy profiler binaries into zip folder
+        run: cp -r node_modules/@perf-profiler/android/cpp-profiler/bin zip/bin
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip
@@ -254,12 +257,12 @@ jobs:
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         id: checkIfRegressionDetected
         run: |
-          if grep -q '🔴' ./output.md; then
+          if grep -q '🔴' "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"; then
             # Create an output to the GH action that the test failed:
             echo "performanceRegressionDetected=true" >> "$GITHUB_OUTPUT"
 
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F ./output.md
+            gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
             echo "performanceRegressionDetected=false" >> "$GITHUB_OUTPUT"
