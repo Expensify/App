@@ -162,7 +162,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
             if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-                return null;
+                return undefined;
             }
             return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
@@ -179,6 +179,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         return report;
     }, [caseID, parentReport, report]);
+
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
     const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
     const shouldShowTaskDeleteButton =
@@ -503,11 +505,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
         : '';
 
-    const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+    const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(moneyRequestAction);
     const shouldShowHoldAction =
-        caseID !== CASES.MONEY_REPORT &&
+        caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedRoom(parentReport, parentReportNameValuePairs);
+        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
@@ -519,7 +521,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         if (isExpenseReport && shouldShowHoldAction) {
-            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: parentReportAction}));
+            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: moneyRequestAction}));
         }
 
         if (report) {
@@ -529,7 +531,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, parentReportAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
+    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>

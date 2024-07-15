@@ -281,12 +281,7 @@ function IOURequestStepAmount({
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
         if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
-            if (isSplitBill) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.dismissModal();
-            }
-
+            navigateBack();
             return;
         }
 
@@ -299,12 +294,12 @@ function IOURequestStepAmount({
 
         if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
-            Navigation.goBack(backTo);
+            navigateBack();
             return;
         }
 
         IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
-        Navigation.dismissModal();
+        navigateBack();
     };
 
     return (
