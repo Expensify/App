@@ -4435,6 +4435,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         automatic: false,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
+        isAttachmentOnly: false,
         message: [
             {
                 // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
