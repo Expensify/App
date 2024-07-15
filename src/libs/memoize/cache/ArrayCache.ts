@@ -32,6 +32,7 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
             cache.push(entry);
             return {value: entry[1]};
         },
+
         set(key, value) {
             const index = getKeyIndex(key);
 
@@ -45,6 +46,7 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
                 cache.shift();
             }
         },
+
         getSet(key: K, valueProducer: () => V) {
             const index = getKeyIndex(key);
 
@@ -64,11 +66,13 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
 
             return {value};
         },
+
         snapshot: {
             keys: () => cache.map((entry) => entry[0]),
             values: () => cache.map((entry) => entry[1]),
             entries: () => [...cache],
         },
+
         get size() {
             return cache.length;
         },
