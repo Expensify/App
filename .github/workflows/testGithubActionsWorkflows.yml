@@ -16,6 +16,11 @@ jobs:
       CI: true
     name: test GitHub Workflows
     steps:
+      - name: Test exit status code
+        run: |
+          exit 1
+          echo "Yooo"
+
       - name: Checkout
         uses: actions/checkout@v3
 
