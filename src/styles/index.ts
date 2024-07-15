@@ -340,6 +340,9 @@ const styles = (theme: ThemeColors) =>
         appBG: {
             backgroundColor: theme.appBG,
         },
+        fontSizeLabel: {
+            fontSize: variables.fontSizeLabel,
+        },
 
         h4: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -5078,15 +5081,9 @@ const styles = (theme: ThemeColors) =>
             height: 172,
         },
 
-        reportListItemSeparator: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.activeComponentBG,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontWeight: FontUtils.fontWeight.bold,
         },
 
         skeletonBackground: {
