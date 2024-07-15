@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import setShouldMaskOnyxState from '@libs/actions/setShouldMaskOnyxState';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
@@ -59,7 +60,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
         if (shouldMaskOnyxState !== undefined) {
             return;
         }
-        App.setShouldMaskOnyxState(true);
+        setShouldMaskOnyxState(true);
     });
 
     const exportOnyxState = useCallback(() => {
@@ -150,7 +151,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
                                         isOn={shouldMaskOnyxState ?? true}
-                                        onToggle={App.setShouldMaskOnyxState}
+                                        onToggle={setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
                             </View>
