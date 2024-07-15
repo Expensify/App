@@ -63,7 +63,7 @@ function IOURequestStepDistance({
     report,
     policy,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, iouRequestType, reportID, transactionID, backTo},
     },
     transaction,
     transactionBackup,
@@ -124,14 +124,14 @@ function IOURequestStepDistance({
     }
 
     useEffect(() => {
-        if (isOffline || recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
+        if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || isOffline || recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
             return;
         }
 
         // Only load the recent waypoints if they have been read from Onyx as undefined
         // If the account doesn't have recent waypoints they will be returned as an empty array
         TransactionAction.openDraftDistanceExpense();
-    }, [recentWaypointsStatus, recentWaypoints, isOffline]);
+    }, [iouRequestType, recentWaypointsStatus, recentWaypoints, isOffline]);
 
     useEffect(() => {
         MapboxToken.init();

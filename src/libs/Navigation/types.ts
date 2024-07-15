@@ -701,12 +701,14 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
         action: IOUAction;
         iouType: IOUType;
+        iouRequestType: IOURequestType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
+        iouRequestType: IOURequestType;
         reportID: string;
         transactionID: string;
 
