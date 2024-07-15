@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,8 +25,8 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
         <>
             <Button
                 onPress={() => {
-                    if (policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
-                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netSuite.alias, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)));
+                    if (!isControlPolicy(policy)) {
+                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netSuite.alias));
                         return;
                     }
 

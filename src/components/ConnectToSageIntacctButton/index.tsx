@@ -12,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,10 +62,8 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         <>
             <Button
                 onPress={() => {
-                    if (policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
-                        Navigation.navigate(
-                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.sageIntacct.alias, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)),
-                        );
+                    if (!isControlPolicy(policy)) {
+                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.sageIntacct.alias));
                         return;
                     }
 
