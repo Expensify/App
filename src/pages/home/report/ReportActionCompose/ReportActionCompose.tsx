@@ -26,7 +26,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
-import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -61,6 +60,7 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    getIsSuggestionsMenuVisible: () => boolean;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -104,7 +104,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
     blockedFromConcierge,
-    currentUserPersonalDetails = {},
+    currentUserPersonalDetails,
     disabled = false,
     isComposerFullSize = false,
     onSubmit,
@@ -161,7 +161,6 @@ function ReportActionCompose({
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
-        Log.info('[ReportActionCompose] Initializing state `isCommentEmpty` with value that depends on draftComment', true, {draftComment});
         return !draftComment || !!draftComment.match(/^(\s)*$/);
     });
 
@@ -199,7 +198,7 @@ function ReportActionCompose({
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
         () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -242,7 +241,7 @@ function ReportActionCompose({
             containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isComposerFullSize],
     );
 
@@ -269,11 +268,8 @@ function ReportActionCompose({
             playSound(SOUNDS.DONE);
             const newComment = composerRef?.current?.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
-            Log.info('[ReportActionCompose] `textInputShouldClear` changed to false', true, {oldTextInputShouldClear: textInputShouldClear});
             setTextInputShouldClear(false);
         },
-        // We don't want to have `textInputShouldClear` in dependencies since it is only used in Log.info
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID],
     );
 
@@ -346,7 +342,7 @@ function ReportActionCompose({
             }
             EmojiPickerActions.hideEmojiPicker();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 

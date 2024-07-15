@@ -800,15 +800,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): Imag
 /**
  * Gets the style for the container of the empty state background image that overlap the created report action
  */
-function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
-        return {
-            position: 'absolute',
-            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-            width: '100%',
-        };
-    }
-
+function getReportWelcomeBackgroundContainerStyle(): ViewStyle {
     return {
         position: 'absolute',
         top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
@@ -1232,16 +1224,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number): ViewStyle => {
         if (textInputHeight > maxHeight) {
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,
             };
         }
 
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
             ...styles.pr0,
             ...styles.overflowHidden,
@@ -1270,17 +1258,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getBadgeColorStyle: (isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle => {
         if (isSuccess) {
             if (isAdHoc) {
-                // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
             }
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
         }
         if (isError) {
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
         }
         return {};
@@ -1357,8 +1339,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...styles.cursorDisabled,
         };
 
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return {
             ...styles.link,
             ...(isDisabled ? disabledLinkStyles : {}),
@@ -1424,8 +1404,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getGoogleListViewStyle: (shouldDisplayBorder: boolean): ViewStyle => {
         if (shouldDisplayBorder) {
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return {
                 ...styles.borderTopRounded,
                 ...styles.borderBottomRounded,
@@ -1491,35 +1469,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
      */
-    getMiniReportActionContextMenuWrapperStyle: (isReportActionItemGrouped: boolean): ViewStyle =>
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-            ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
-            ...positioning.r4,
-            ...styles.cursorDefault,
-            ...styles.userSelectNone,
-            overflowAnchor: 'none',
-            position: 'absolute',
-            zIndex: 8,
-        }),
+    getMiniReportActionContextMenuWrapperStyle: (isReportActionItemGrouped: boolean): ViewStyle => ({
+        ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
+        ...positioning.r4,
+        ...styles.cursorDefault,
+        ...styles.userSelectNone,
+        overflowAnchor: 'none',
+        position: 'absolute',
+        zIndex: 8,
+    }),
 
     /**
      * Generate the styles for the ReportActionItem wrapper view.
      */
-    getReportActionItemStyle: (isHovered = false, isClickable = false): ViewStyle =>
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-            display: 'flex',
-            justifyContent: 'space-between',
-            backgroundColor: isHovered
-                ? theme.hoverComponentBG
-                : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-                  theme.transparent,
-            opacity: 1,
-            ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
-        }),
+    getReportActionItemStyle: (isHovered = false, isClickable = false): ViewStyle => ({
+        display: 'flex',
+        justifyContent: 'space-between',
+        backgroundColor: isHovered
+            ? theme.hoverComponentBG
+            : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
+              theme.transparent,
+        opacity: 1,
+        ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
+    }),
 
     /**
      * Determines the theme color for a modal based on the app's background color,
@@ -1543,41 +1515,38 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getZoomCursorStyle: (isZoomed: boolean, isDragging: boolean): ViewStyle => {
         if (!isZoomed) {
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return styles.cursorZoomIn;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
     getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
-            case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
+            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w84 : variables.w52);
+            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w92 : variables.w52);
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-            case CONST.SEARCH_TABLE_COLUMNS.FROM:
-            case CONST.SEARCH_TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.TO:
                 columnWidth = styles.flex1;
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
-            case CONST.SEARCH_TABLE_COLUMNS.TAG:
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT:
-            case CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.TYPE:
+            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.ACTION:
+            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
             default:

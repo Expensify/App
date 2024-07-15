@@ -124,6 +124,7 @@ function IOURequestStepScan({
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
+            // eslint-disable-next-line react-compiler/react-compiler
             focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
             focusIndicatorScale.value = 2;
             focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
@@ -370,7 +371,7 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            Navigation.dismissModal();
+            navigateBack();
             IOU.replaceReceipt(transactionID, file as File, source);
         },
         [transactionID],

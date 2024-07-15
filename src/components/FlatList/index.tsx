@@ -44,6 +44,8 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     const mutationObserverRef = useRef<MutationObserver | null>(null);
     const lastScrollOffsetRef = useRef(0);
     const isListRenderedRef = useRef(false);
+    const mvcpAutoscrollToTopThresholdRef = useRef(mvcpAutoscrollToTopThreshold);
+    mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
 
     const getScrollOffset = useCallback((): number => {
         if (!scrollRef.current) {
@@ -52,7 +54,6 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         return horizontal ? getScrollableNode(scrollRef.current)?.scrollLeft ?? 0 : getScrollableNode(scrollRef.current)?.scrollTop ?? 0;
     }, [horizontal]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const getContentView = useCallback(() => getScrollableNode(scrollRef.current)?.childNodes[0], []);
 
     const scrollToOffset = useCallback(
@@ -105,11 +106,11 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             const scrollOffset = getScrollOffset();
             prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
             scrollToOffset(scrollOffset + delta, false);
-            if (mvcpAutoscrollToTopThreshold != null && scrollOffset <= mvcpAutoscrollToTopThreshold) {
+            if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
                 scrollToOffset(0, true);
             }
         }
-    }, [getScrollOffset, scrollToOffset, mvcpMinIndexForVisible, mvcpAutoscrollToTopThreshold, horizontal]);
+    }, [getScrollOffset, scrollToOffset, mvcpMinIndexForVisible, horizontal]);
 
     const setupMutationObserver = useCallback(() => {
         const contentView = getContentView();
@@ -149,10 +150,13 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         if (!isListRenderedRef.current) {
             return;
         }
-        requestAnimationFrame(() => {
+        const animationFrame = requestAnimationFrame(() => {
             prepareForMaintainVisibleContentPosition();
             setupMutationObserver();
         });
+        return () => {
+            cancelAnimationFrame(animationFrame);
+        };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
     const setMergedRef = useMergeRefs(scrollRef, ref);
@@ -175,6 +179,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         const mutationObserver = mutationObserverRef.current;
         return () => {
             mutationObserver?.disconnect();
+            mutationObserverRef.current = null;
         };
     }, []);
 
@@ -198,6 +203,10 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             ref={onRef}
             onLayout={(e) => {
                 isListRenderedRef.current = true;
+                if (!mutationObserverRef.current) {
+                    prepareForMaintainVisibleContentPosition();
+                    setupMutationObserver();
+                }
                 props.onLayout?.(e);
             }}
         />

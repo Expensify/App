@@ -216,15 +216,14 @@ function MoneyRequestView({
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
+
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newBillable === TransactionUtils.getBillable(transaction)) {
-                Navigation.dismissModal();
                 return;
             }
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID, newBillable, policy, policyTagList, policyCategories);
-            Navigation.dismissModal();
         },
         [transaction, report, policy, policyTagList, policyCategories],
     );
@@ -404,7 +403,10 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
-                            if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
+                            if (
+                                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                                Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))
+                            ) {
                                 deleteTransaction(parentReport, parentReportAction);
                             }
                             Transaction.clearError(transaction.transactionID);
