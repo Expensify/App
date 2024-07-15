@@ -150,10 +150,13 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         if (!isListRenderedRef.current) {
             return;
         }
-        requestAnimationFrame(() => {
+        const animationFrame = requestAnimationFrame(() => {
             prepareForMaintainVisibleContentPosition();
             setupMutationObserver();
         });
+        return () => {
+            cancelAnimationFrame(animationFrame);
+        };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
     const setMergedRef = useMergeRefs(scrollRef, ref);
@@ -176,6 +179,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         const mutationObserver = mutationObserverRef.current;
         return () => {
             mutationObserver?.disconnect();
+            mutationObserverRef.current = null;
         };
     }, []);
 
@@ -199,6 +203,10 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             ref={onRef}
             onLayout={(e) => {
                 isListRenderedRef.current = true;
+                if (!mutationObserverRef.current) {
+                    prepareForMaintainVisibleContentPosition();
+                    setupMutationObserver();
+                }
                 props.onLayout?.(e);
             }}
         />

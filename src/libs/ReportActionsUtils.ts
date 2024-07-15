@@ -260,6 +260,18 @@ function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAct
     return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
 }
 
+function isInviteOrRemovedAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
+    return isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
+    );
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -1396,6 +1408,14 @@ function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: s
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
+/**
+ * Checks if a given report action corresponds to a add payment card action.
+ * @param reportAction
+ */
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1474,6 +1494,7 @@ export {
     isClosedAction,
     isRenamedAction,
     isRoomChangeLogAction,
+    isInviteOrRemovedAction,
     isChronosOOOListAction,
     isAddCommentAction,
     isPolicyChangeLogAction,
@@ -1481,6 +1502,7 @@ export {
     isTripPreview,
     getIOUActionForReportID,
     getFilteredForOneTransactionView,
+    isActionableAddPaymentCard,
 };
 
 export type {LastVisibleMessage};
