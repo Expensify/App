@@ -340,6 +340,9 @@ const styles = (theme: ThemeColors) =>
         appBG: {
             backgroundColor: theme.appBG,
         },
+        fontSizeLabel: {
+            fontSize: variables.fontSizeLabel,
+        },
 
         h4: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -1447,6 +1450,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             minHeight: '100%',
             flex: 1,
+        },
+
+        lhnSuccessText: {
+            color: theme.success,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         signInPageHeroCenter: {
@@ -2888,7 +2896,7 @@ const styles = (theme: ThemeColors) =>
 
         subscriptionAddedCardIcon: {
             padding: 10,
-            backgroundColor: theme.icon,
+            backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.componentBorderRadius,
             height: variables.iconSizeExtraLarge,
             width: variables.iconSizeExtraLarge,
@@ -5088,15 +5096,62 @@ const styles = (theme: ThemeColors) =>
             height: 172,
         },
 
-        reportListItemSeparator: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.activeComponentBG,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        skeletonBackground: {
+            flex: 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            paddingRight: 8,
+            paddingLeft: 8,
+        },
+
+        emptyStateScrollView: {
+            minHeight: 400,
+            height: '100%',
+            flex: 1,
+        },
+
+        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            padding: isSmallScreenWidth ? 32 : 0,
+            width: '100%',
+        }),
+
+        emptyStateContent: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 400,
+        },
+
+        emptyStateHeader: (isIllustration: boolean) => ({
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            minHeight: 200,
+            alignItems: isIllustration ? 'center' : undefined,
+            justifyContent: isIllustration ? 'center' : undefined,
+        }),
+
+        emptyFolderBG: {
+            backgroundColor: theme.emptyFolderBG,
+        },
+
+        emptyStateVideo: {
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        emptyStateFolderIconSize: {
+            width: 184,
+            height: 112,
         },
     } satisfies Styles);
 
