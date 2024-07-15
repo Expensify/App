@@ -26,7 +26,6 @@ import RenameAction from '@components/ReportActionItem/RenameAction';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
-import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -807,19 +806,6 @@ function ReportActionItem({
 
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
-        if (ReportUtils.isTripRoom(report)) {
-            return (
-                <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <TripDetailsView
-                        tripRoomReportID={report.reportID}
-                        shouldShowHorizontalRule={false}
-                    />
-                </OfflineWithFeedback>
-            );
-        }
-    }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
