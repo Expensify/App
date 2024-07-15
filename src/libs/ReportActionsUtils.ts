@@ -1446,13 +1446,15 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     }
 
     const isPending = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-    const {label, markedManually, reimbursableUrls, nonReimbursableUrls} = (getOriginalMessage(reportAction) ?? {}) as OriginalMessageExportIntegration;
+    const originalMessage = (getOriginalMessage(reportAction) ?? {}) as OriginalMessageExportIntegration;
+    const {label, markedManually} = originalMessage;
+    const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
+    const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
     const reportID = reportAction?.reportID ?? '';
     const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
     const base62ReportID = getBase62ReportID(Number(reportID));
 
     const result: Array<{text: string; url: string}> = [];
-
     if (isPending) {
         result.push({
             text: Localize.translateLocal('report.actions.type.exportedToIntegration.pending', {label}),

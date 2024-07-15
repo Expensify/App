@@ -429,12 +429,12 @@ type OriginalMessageExportIntegration = {
     /**
      * An list of URLs to the report in the integration for company card expenses
      */
-    nonReimbursableUrls: string[];
+    nonReimbursableUrls?: string[];
 
     /**
      * An list of URLs to the report in the integration for out of pocket expenses
      */
-    reimbursableUrls: string[];
+    reimbursableUrls?: string[];
 };
 
 /** Model of `unapproved` report action */
