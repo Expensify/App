@@ -32,7 +32,7 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
     // a translateX shared value and updates the slider position.
     const rSliderStyle = useAnimatedStyle(() => ({
         transform: [{translateX: sliderValue.value}],
-    }));
+    }), [sliderValue]); 
 
     const panGesture = Gesture.Pan()
         .minDistance(5)
