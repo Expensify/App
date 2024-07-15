@@ -1286,7 +1286,8 @@ function isArchivedRoomWithID(reportID?: string) {
 /**
  * Whether the provided report is a closed report
  */
-function isClosedReport(report: OnyxEntry<Report>): boolean {
+function isClosedReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
 
