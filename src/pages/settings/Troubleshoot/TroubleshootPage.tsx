@@ -55,14 +55,6 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
 
-    useEffect(() => {
-        // Set shouldMaskOnyxState to true when user navigates to troubleshoot page after sign in
-        if (shouldMaskOnyxState !== undefined) {
-            return;
-        }
-        setShouldMaskOnyxState(true);
-    });
-
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             let dataToShare = value;
@@ -150,7 +142,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={shouldMaskOnyxState ?? true}
+                                        isOn={!!shouldMaskOnyxState}
                                         onToggle={setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
@@ -194,5 +186,6 @@ export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     },
     shouldMaskOnyxState: {
         key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
+        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
     },
 })(TroubleshootPage);
