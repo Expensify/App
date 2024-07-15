@@ -567,7 +567,6 @@ Onyx.connect({
 });
 
 let allReportsViolations: OnyxCollection<ReportViolations>;
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -5382,6 +5381,11 @@ function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxC
     return transactions.some((transaction) => TransactionUtils.hasWarningTypeViolation(transaction.transactionID, transactionViolations));
 }
 
+function hasReportViolations(reportID: string) {
+    const reportViolations = allReportsViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
+    return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
+}
+
 /**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
@@ -7416,6 +7420,7 @@ export {
     hasOnlyNonReimbursableTransactions,
     getMostRecentlyVisitedReport,
     getReport,
+    hasReportViolations,
 };
 
 export type {

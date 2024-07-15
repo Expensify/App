@@ -39,8 +39,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportViolations] = useOnyx(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -128,7 +126,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
-            const thisReportViolations = reportViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
@@ -157,8 +154,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
-                    reportViolations={thisReportViolations}
-                    isReportOwner={itemFullReport?.ownerAccountID === session?.accountID}
                 />
             );
         },
@@ -168,7 +163,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             transactions,
             draftComments,
-            reportViolations,
             personalDetails,
             optionMode,
             shouldDisableFocusOptions,
@@ -177,7 +171,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactionViolations,
             canUseViolations,
             onLayoutItem,
-            session?.accountID,
         ],
     );
 

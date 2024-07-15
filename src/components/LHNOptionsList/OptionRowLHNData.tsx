@@ -1,11 +1,12 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -27,11 +28,10 @@ function OptionRowLHNData({
     transaction,
     lastReportActionTransaction,
     transactionViolations,
-    reportViolations,
     canUseViolations,
-    isReportOwner = false,
     ...propsToForward
 }: OptionRowLHNDataProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
@@ -39,7 +39,8 @@ function OptionRowLHNData({
     const optionItemRef = useRef<OptionData>();
 
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
-    const shouldDisplayReportViolations = isReportOwner && Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
+    const isReportOwner = fullReport?.ownerAccountID === session?.accountID;
+    const shouldDisplayReportViolations = isReportOwner && ReportUtils.hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!

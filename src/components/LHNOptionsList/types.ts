@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -85,12 +85,6 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** Report level fields violations */
-    reportViolations?: ReportViolations;
-
-    /** Indicates if user if report owner */
-    isReportOwner?: boolean;
 };
 
 type OptionRowLHNProps = {
