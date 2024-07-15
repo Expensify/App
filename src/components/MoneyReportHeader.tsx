@@ -118,8 +118,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
 
-    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
-    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && !!policy;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && !!policy;
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
 
@@ -286,6 +285,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
+                            policy={policy}
                             report={moneyRequestReport}
                             connectionName={connectedIntegration}
                         />
@@ -337,6 +337,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                         <ExportWithDropdownMenu
+                            policy={policy}
                             report={moneyRequestReport}
                             connectionName={connectedIntegration}
                         />

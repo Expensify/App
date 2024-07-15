@@ -340,9 +340,8 @@ function ReportPreview({
      * Manual export
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
-    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
 
-    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
 
     return (
         <OfflineWithFeedback
@@ -454,6 +453,7 @@ function ReportPreview({
                                 )}
                                 {shouldShowExportIntegrationButton && (
                                     <ExportWithDropdownMenu
+                                        policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
                                     />

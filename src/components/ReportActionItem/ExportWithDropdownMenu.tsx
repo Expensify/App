@@ -8,20 +8,23 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ExportWithDropdownMenuProps = {
+    policy: OnyxEntry<Policy>;
+
     report: OnyxEntry<Report>;
 
     connectionName: ConnectionName;
 };
 
-function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenuProps) {
+function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -32,6 +35,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
     const isExported = ReportUtils.isExported(report);
+    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
         const optionTemplate = {
@@ -82,7 +86,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
     return (
         <>
             <ButtonWithDropdownMenu<ReportExportType>
-                success
+                success={!hasIntegrationAutoSync}
                 pressOnEnter
                 shouldAlwaysShowDropdownMenu
                 anchorAlignment={{
