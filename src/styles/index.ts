@@ -1038,7 +1038,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        invisiblePdf: {
+        invisiblePDF: {
             position: 'absolute',
             opacity: 0,
             width: 1,

@@ -467,7 +467,7 @@ function IOURequestStepScan({
         >
             {pdfFile && (
                 <PDFThumbnail
-                    style={styles.invisiblePdf}
+                    style={styles.invisiblePDF}
                     previewSourceURL={pdfFile?.uri ?? ''}
                     onLoadSuccess={() => {
                         setPdfFile(null);
