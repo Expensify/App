@@ -158,7 +158,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
-            {!!filePath && (
+            {(!!filePath && getPlatform() !== CONST.PLATFORM.WEB) && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
