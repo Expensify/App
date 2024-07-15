@@ -2698,11 +2698,13 @@ export default {
             addNewBankAccount: 'Añadir nueva cuenta bancaria',
             settlementAccount: 'Cuenta de liquidación',
             settlementAccountDescription: 'Elige una cuenta para pagar el saldo de tu Tarjeta Expensify.',
-            settlementAccountInfo: 'Asegúrate de que esta cuenta coincide con tu cuenta de conciliación para que Reconciliación Continua funcione correctamente.',
+            settlementAccountInfoPt1: 'Asegúrate de que esta cuenta coincide con tu',
+            settlementAccountInfoPt2: 'para que Reconciliación Continua funcione correctamente.',
+            reconciliationAccount: 'Cuenta de conciliación',
             settlementFrequency: 'Frecuencia de liquidación',
             settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
             settlementFrequencyInfo:
-                'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días. Más información.',
+                'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días.',
             frequency: {
                 daily: 'Cada día',
                 monthly: 'Mensual',

@@ -1,21 +1,26 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 // import * as CardUtils from '@libs/CardUtils';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 
@@ -25,8 +30,16 @@ function WorkspaceSettlementAccountPage({route}: StackScreenProps<SettingsNaviga
     const policyID = route.params?.policyID ?? '-1';
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    // TODO: uncomment after integration with the BE
+    // const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`);
+    // const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
+
+    // TODO: remove after integration with the BE
+    const isUsedContinuousReconciliation = true;
+    const reconciliationConnection = CONST.POLICY.CONNECTIONS.NAME.QBO;
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
 
     // TODO: for now not filtering the accounts for easier testing
     // const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
@@ -42,10 +55,17 @@ function WorkspaceSettlementAccountPage({route}: StackScreenProps<SettingsNaviga
             return {
                 value: bankAccount.accountData?.bankAccountID,
                 text: bankAccount.title,
-                icon,
-                iconSize,
-                iconStyles,
-                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${bankAccountNumber.slice(-4)}`,
+                leftElement: icon && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+                        <Icon
+                            src={icon}
+                            width={iconSize}
+                            height={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                    </View>
+                ),
+                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
                 keyForList: bankAccount.accountData?.bankAccountID?.toString(),
                 isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
             };
@@ -71,6 +91,18 @@ function WorkspaceSettlementAccountPage({route}: StackScreenProps<SettingsNaviga
             >
                 <HeaderWithBackButton title={translate('workspace.expensifyCard.settlementAccount')} />
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
+                {isUsedContinuousReconciliation && (
+                    <View style={[styles.mh5, styles.mb6]}>
+                        <Text style={[]}>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>
+                        <View style={[styles.flexRow]}>
+                            <TextLink
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, reconciliationConnection))}
+                            >{`${translate('workspace.expensifyCard.reconciliationAccount')} `}</TextLink>
+                            <Text style={[]}>{`(XXXXXXXXXXXX${getLastFourDigits(paymentBankAccountNumber)})`}</Text>
+                        </View>
+                        <Text style={[]}>{translate('workspace.expensifyCard.settlementAccountInfoPt2')}</Text>
+                    </View>
+                )}
                 <SelectionList
                     sections={[{data}]}
                     ListItem={RadioListItem}

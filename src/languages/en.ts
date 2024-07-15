@@ -2650,11 +2650,12 @@ export default {
             addNewBankAccount: 'Add a new bank account',
             settlementAccount: 'Settlement account',
             settlementAccountDescription: 'Choose an account to pay your Expensify Card balance.',
-            settlementAccountInfo: 'Make sure this account matches your reconciliation account so Continuous Reconciliation works properly.',
+            settlementAccountInfoPt1: 'Make sure this account matches your',
+            settlementAccountInfoPt2: 'so Continuous Reconciliation works properly.',
+            reconciliationAccount: 'Reconciliation account',
             settlementFrequency: 'Settlement frequency',
             settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
-            settlementFrequencyInfo:
-                'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history. Learn more.',
+            settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
             frequency: {
                 daily: 'Daily',
                 monthly: 'Monthly',
