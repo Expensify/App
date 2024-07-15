@@ -1,7 +1,12 @@
+
 name: Build and deploy apps for testing
 
 on:
   workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: Pull Request number for correct placement of apps
+        required: true
   pull_request_target:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
@@ -26,12 +31,12 @@ jobs:
       - id: hasReadyToBuildLabel
         name: Set HAS_READY_TO_BUILD_LABEL flag
         run: |
-          echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view 45332 --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
+          echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
           if [[ "$HAS_READY_TO_BUILD_LABEL" != 'true' ]]; then
-            echo "The 'Ready to Build' label is not attached to the PR"
+            echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}"
           fi
         env:
-          PULL_REQUEST_NUMBER: 45332
+          PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
 
   getBranchRef:
@@ -50,7 +55,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          gh pr checkout 45332
+          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +66,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest-xl
     env:
-      PULL_REQUEST_NUMBER: 45332
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,7 +77,7 @@ jobs:
         run: |
           cp .env.staging .env.adhoc
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=45332" >> .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -113,7 +118,6 @@ jobs:
         id: runFastlaneBetaTest
         run: bundle exec fastlane android build_internal
         env:
-          RUBYOPT: '-rostruct' # TODO: Temporary fix until https://github.com/fastlane/fastlane/pull/21950 gets released
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
@@ -132,7 +136,7 @@ jobs:
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      PULL_REQUEST_NUMBER: 45332
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
       DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
@@ -148,7 +152,7 @@ jobs:
         run: |
           cp .env.staging .env.adhoc
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=45332" >> .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
         id: setup-node
@@ -224,7 +228,7 @@ jobs:
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      PULL_REQUEST_NUMBER: 45332
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-14-large
     steps:
       - name: Checkout
@@ -236,7 +240,7 @@ jobs:
         run: |
           cp .env.staging .env.adhoc
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=45332" >> .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -269,7 +273,7 @@ jobs:
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      PULL_REQUEST_NUMBER: 45332
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
@@ -281,7 +285,7 @@ jobs:
         run: |
           cp .env.staging .env.adhoc
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=45332" >> .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -301,7 +305,7 @@ jobs:
         continue-on-error: true
 
       - name: Deploy to S3 for internal testing
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/45332"
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
 
   postGithubComment:
     runs-on: ubuntu-latest
@@ -309,7 +313,7 @@ jobs:
     needs: [validateActor, getBranchRef, android, iOS, desktop, web]
     if: ${{ always() }}
     env:
-      PULL_REQUEST_NUMBER: 45332
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -347,13 +351,13 @@ jobs:
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
-          PR_NUMBER: 45332
+          PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.android.result }}
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{steps.get_android_path.outputs.android_path}}
-          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/45332/NewExpensify.dmg
+          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{steps.get_ios_path.outputs.ios_path}}
-          WEB_LINK: https://45332.pr-testing.expensify.com
+          WEB_LINK: https://${{ env.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
