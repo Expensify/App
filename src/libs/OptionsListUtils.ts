@@ -663,7 +663,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[reportID] ?? null;
     let lastMessageTextFromReport = '';
-    const reportNameValuePairs = ReportUtils.getReportNameValuePair(report?.reportID);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
 
     if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
         const archiveReason =
@@ -789,7 +789,7 @@ function createOption(
     let reportName;
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
-    const reportNameValuePairs = ReportUtils.getReportNameValuePair(report?.reportID);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
