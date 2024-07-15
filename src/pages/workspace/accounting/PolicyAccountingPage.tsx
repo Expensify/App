@@ -1,7 +1,7 @@
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -32,13 +32,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {useAccountingContext} from './AccountingContext';
-import type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps} from './types';
+import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {accountingIntegrationData} from './utils';
 
-function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseNetSuiteIntegration, canUseSageIntacctIntegration} = usePermissions();
@@ -47,7 +48,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {setActiveIntegration} = useAccountingContext();
+    const {startIntegrationFlow} = useAccountingContext();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -92,7 +93,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => setActiveIntegration({name: connectedIntegration, policyID}),
+                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: true,
@@ -104,7 +105,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, setActiveIntegration],
+        [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
     );
 
     useEffect(() => {
@@ -128,7 +129,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() => setActiveIntegration({name: integration, policyID})}
+                            onPress={() => startIntegrationFlow({name: integration})}
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small
@@ -287,7 +288,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         netSuiteSubsidiaryList.length,
         accountingIntegrations,
         isOffline,
-        setActiveIntegration,
+        startIntegrationFlow,
         currentXeroOrganization?.id,
     ]);
 
@@ -306,7 +307,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 title: integrationData?.title,
                 rightComponent: (
                     <Button
-                        onPress={() => setActiveIntegration({name: integration, policyID, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true})}
+                        onPress={() => startIntegrationFlow({name: integration, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true})}
                         text={translate('workspace.accounting.setup')}
                         style={styles.justifyContentCenter}
                         small
@@ -329,7 +330,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,
         isOffline,
-        setActiveIntegration,
+        startIntegrationFlow,
     ]);
 
     return (
@@ -408,13 +409,17 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     );
 }
 
+function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
+    return (
+        <AccountingContextProvider policy={props.policy}>
+            <PolicyAccountingPage
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        </AccountingContextProvider>
+    );
+}
+
 PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
-export default withPolicyConnections(
-    withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
-        connectionSyncProgress: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
-        },
-    })(PolicyAccountingPage),
-    false,
-);
+export default withPolicyConnections(PolicyAccountingPageWrapper);

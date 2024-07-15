@@ -94,8 +94,6 @@ function App({url}: AppProps) {
                             VideoPopoverMenuContextProvider,
                             KeyboardProvider,
                             SearchContextProvider,
-                            // TODO: Verify if we can move this provider somewhere else
-                            AccountingContextProvider,
                         ]}
                     >
                         <CustomStatusBarAndBackground />

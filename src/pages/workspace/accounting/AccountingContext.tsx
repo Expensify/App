@@ -1,36 +1,41 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {accountingIntegrationData} from './utils';
 
 type ActiveIntegration = {
     name: ConnectionName;
-    policyID: string;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: ConnectionName;
 };
 
 type AccountingContextType = {
     activeIntegration?: ActiveIntegration;
-    setActiveIntegration: (activeIntegration: ActiveIntegration) => void;
+    startIntegrationFlow: (activeIntegration: ActiveIntegration) => void;
 };
 
 const defaultAccountingContext = {
     activeIntegration: undefined,
-    setActiveIntegration: () => {},
+    startIntegrationFlow: () => {},
 };
 
 const AccountingContext = React.createContext<AccountingContextType>(defaultAccountingContext);
 
-function AccountingContextProvider({children}: ChildrenProps) {
-    const [activeIntegration, setActiveIntegration] = React.useState<ActiveIntegration>();
+type AccountingContextProviderProps = ChildrenProps & {
+    policy: Policy;
+};
+
+function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
+    const [activeIntegration, startIntegrationFlow] = React.useState<ActiveIntegration>();
     const {translate} = useLocalize();
+    const policyID = policy.id;
 
     const accountingContext = React.useMemo(
         () => ({
             activeIntegration,
-            setActiveIntegration,
+            startIntegrationFlow,
         }),
         [activeIntegration],
     );
@@ -40,7 +45,7 @@ function AccountingContextProvider({children}: ChildrenProps) {
             return null;
         }
 
-        return accountingIntegrationData(activeIntegration.name, activeIntegration.policyID, translate, true, activeIntegration.integrationToDisconnect)?.setupConnectionButton;
+        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect)?.setupConnectionButton;
     };
 
     return (
