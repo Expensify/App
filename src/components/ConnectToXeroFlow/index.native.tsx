@@ -14,14 +14,14 @@ import getUAForWebView from '@libs/getUAForWebView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
-import type {ConnectToXeroButtonProps} from './types';
+import type {ConnectToXeroFlowProps} from './types';
 
-type ConnectToXeroButtonOnyxProps = {
+type ConnectToXeroFlowOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
 };
 
-function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps) {
+function ConnectToXeroFlow({policyID, session, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroFlowProps & ConnectToXeroFlowOnyxProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
@@ -84,10 +84,10 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
     );
 }
 
-ConnectToXeroButton.displayName = 'ConnectToXeroButton';
+ConnectToXeroFlow.displayName = 'ConnectToXeroFlow';
 
-export default withOnyx<ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps, ConnectToXeroButtonOnyxProps>({
+export default withOnyx<ConnectToXeroFlowProps & ConnectToXeroFlowOnyxProps, ConnectToXeroFlowOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(ConnectToXeroButton);
+})(ConnectToXeroFlow);

@@ -1,8 +1,8 @@
 import React from 'react';
-import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
-import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
-import ConnectToSageIntacctButton from '@components/ConnectToSageIntacctButton';
-import ConnectToXeroButton from '@components/ConnectToXeroButton';
+import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
+import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
+import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Navigation from '@navigation/Navigation';
@@ -25,7 +25,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.qbo'),
                 icon: Expensicons.QBOSquare,
                 setupConnectionButton: (
-                    <ConnectToQuickbooksOnlineButton
+                    <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
@@ -42,7 +42,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.xero'),
                 icon: Expensicons.XeroSquare,
                 setupConnectionButton: (
-                    <ConnectToXeroButton
+                    <ConnectToXeroFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
@@ -59,7 +59,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionButton: (
-                    <ConnectToNetSuiteButton
+                    <ConnectToNetSuiteFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
@@ -76,7 +76,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.intacct'),
                 icon: Expensicons.IntacctSquare,
                 setupConnectionButton: (
-                    <ConnectToSageIntacctButton
+                    <ConnectToSageIntacctFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}

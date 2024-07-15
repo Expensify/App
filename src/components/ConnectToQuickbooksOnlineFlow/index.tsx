@@ -6,9 +6,9 @@ import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOn
 import * as Link from '@userActions/Link';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {ConnectToQuickbooksOnlineButtonProps} from './types';
+import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineButtonProps) {
+function ConnectToQuickbooksOnlineFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -42,6 +42,6 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     }
 }
 
-ConnectToQuickbooksOnlineButton.displayName = 'ConnectToQuickbooksOnlineButton';
+ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';
 
-export default ConnectToQuickbooksOnlineButton;
+export default ConnectToQuickbooksOnlineFlow;

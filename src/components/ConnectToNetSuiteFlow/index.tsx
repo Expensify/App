@@ -1,15 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
-import useEnvironment from '@hooks/useEnvironment';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
-import * as Link from '@userActions/Link';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import type {ConnectToXeroButtonProps} from './types';
+import ROUTES from '@src/ROUTES';
+import type {ConnectToNetSuiteFlowProps} from './types';
 
-function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
-    const {environmentURL} = useEnvironment();
-
+function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToNetSuiteFlowProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     useEffect(() => {
@@ -17,7 +14,8 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
             setIsDisconnectModalOpen(true);
             return;
         }
-        Link.openLink(getXeroSetupLink(policyID), environmentURL);
+
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -27,14 +25,15 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
             <AccountingConnectionConfirmationModal
                 onConfirm={() => {
                     removePolicyConnection(policyID, integrationToDisconnect);
-                    Link.openLink(getXeroSetupLink(policyID), environmentURL);
+
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
                     setIsDisconnectModalOpen(false);
                 }}
-                integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
                 onCancel={() => setIsDisconnectModalOpen(false)}
             />
         );
     }
 }
 
-export default ConnectToXeroButton;
+export default ConnectToNetSuiteFlow;

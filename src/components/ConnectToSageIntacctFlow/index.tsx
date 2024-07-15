@@ -13,13 +13,13 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
-type ConnectToSageIntacctButtonProps = {
+type ConnectToSageIntacctFlowProps = {
     policyID: string;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: PolicyConnectionName;
 };
 
-function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToSageIntacctButtonProps) {
+function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToSageIntacctFlowProps) {
     const {translate} = useLocalize();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -116,4 +116,4 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     );
 }
 
-export default ConnectToSageIntacctButton;
+export default ConnectToSageIntacctFlow;

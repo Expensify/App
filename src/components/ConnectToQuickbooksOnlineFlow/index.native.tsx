@@ -16,21 +16,21 @@ import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
-import type {ConnectToQuickbooksOnlineButtonProps} from './types';
+import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-type ConnectToQuickbooksOnlineButtonOnyxProps = {
+type ConnectToQuickbooksOnlineFlowOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
 };
 
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
-function ConnectToQuickbooksOnlineButton({
+function ConnectToQuickbooksOnlineFlow({
     policyID,
     session,
     shouldDisconnectIntegrationBeforeConnecting,
     integrationToDisconnect,
-}: ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps) {
+}: ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -98,10 +98,10 @@ function ConnectToQuickbooksOnlineButton({
     );
 }
 
-ConnectToQuickbooksOnlineButton.displayName = 'ConnectToQuickbooksOnlineButton';
+ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';
 
-export default withOnyx<ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonOnyxProps>({
+export default withOnyx<ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps, ConnectToQuickbooksOnlineFlowOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(ConnectToQuickbooksOnlineButton);
+})(ConnectToQuickbooksOnlineFlow);
