@@ -103,6 +103,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -3836,7 +3837,19 @@ export default {
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
-        modifiedAmount: 'Amount greater than scanned receipt',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams): string => {
+            switch (type) {
+                case 'distance':
+                    return 'Amount differs from calculated distance';
+                case 'card':
+                    return 'Amount greater than card transaction';
+                default:
+                    if (displayPercentVariance) {
+                        return `Amount ${displayPercentVariance}% greater than scanned receipt`;
+                    }
+                    return 'Amount greater than scanned receipt';
+            }
+        },
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,

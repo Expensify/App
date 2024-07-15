@@ -4016,6 +4016,15 @@ const CONST = {
     },
 
     /**
+     * Constants with different types for the modifiedAmount violation
+     */
+    MODIFIED_AMOUNT_VIOLATION_DATA: {
+        DISTANCE: 'distance',
+        CARD: 'card',
+        SMARTSCAN: 'smartscan',
+    },
+
+    /**
      * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
