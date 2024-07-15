@@ -355,7 +355,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 handleMinutesChange(insertAtPosition(minutes, trimmedKey, selectionMinute.start, selectionMinute.end));
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [minutes, hours, selectionMinute, selectionHour],
     );
 
@@ -381,7 +381,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 focusHourInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [selectionHour, selectionMinute],
     );
     const arrowRightCallback = useCallback(
@@ -394,7 +394,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 focusMinuteInputOnFirstCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [selectionHour, selectionMinute],
     );
 
@@ -409,7 +409,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             e.preventDefault();
             focusHourInputOnLastCharacter();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [selectionMinute.start, selectionMinute.end, focusHourInputOnLastCharacter],
     );
 
@@ -430,7 +430,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
 
     useEffect(() => {
         onInputChange(`${hours}:${minutes} ${amPmValue}`);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hours, minutes, amPmValue]);
 
     const handleSubmit = () => {
@@ -463,6 +463,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                                 // eslint-disable-next-line no-param-reassign
                                 ref.current = {hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current};
                             }
+                            // eslint-disable-next-line react-compiler/react-compiler
                             hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {

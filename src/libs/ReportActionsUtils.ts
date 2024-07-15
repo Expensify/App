@@ -20,10 +20,12 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import {parseHtmlToText} from './OnyxAwareParser';
+import Parser from './Parser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
+// eslint-disable-next-line import/no-cycle
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
@@ -44,15 +46,6 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
-
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (reports) => {
-        allReports = reports;
-    },
-});
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -267,6 +260,18 @@ function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAct
     return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
 }
 
+function isInviteOrRemovedAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
+    return isActionOfType(
+        reportAction,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
+    );
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -351,6 +356,14 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
+ * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
+ * Separated it from getCombinedReportActions, so it can be reused
+ */
+function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
+    return reportActions.filter((action) => !isSentMoneyReportAction(action));
+}
+
+/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -369,7 +382,7 @@ function getCombinedReportActions(
 
     // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
@@ -663,8 +676,13 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
 }
 
 function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInputValue<ReportAction> = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
+    let reportActions: Array<ReportAction | null | undefined> = [];
+    if (!_.isEmpty(actionsToMerge)) {
+        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true));
+    } else {
+        reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+    }
+    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
@@ -826,7 +844,7 @@ function getMostRecentReportActionLastModified(): string {
 
     // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
     // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
-    Object.values(allReports ?? {}).forEach((report) => {
+    Object.values(ReportConnection.getAllReports() ?? {}).forEach((report) => {
         const reportLastVisibleActionLastModified = report?.lastVisibleActionLastModified ?? report?.lastVisibleActionCreated;
         if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
             return;
@@ -897,7 +915,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  */
 function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
     }
@@ -1074,11 +1092,11 @@ function getReportActionText(reportAction: PartialReportAction): string {
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = (message?.html || message?.text) ?? '';
-    return text ? parseHtmlToText(text) : '';
+    return text ? Parser.htmlToText(text) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    return html ? parseHtmlToText(html) : '';
+    return html ? Parser.htmlToText(html) : '';
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
@@ -1136,7 +1154,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
@@ -1171,7 +1188,7 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
             if (!oldValue) {
-                Localize.translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
+                return Localize.translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
             }
             return Localize.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
         }
@@ -1328,8 +1345,7 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
  * @param reportID
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
-    const findPendingRequest = sortedReportActions.find(
+    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
         (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
     );
     return !!findPendingRequest;
@@ -1375,7 +1391,7 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
  * Get IOU action for a reportID and transactionID
  */
 function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID ?? '');
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : -1;
@@ -1390,6 +1406,14 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
 function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: string) {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
+}
+
+/**
+ * Checks if a given report action corresponds to a add payment card action.
+ * @param reportAction
+ */
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
 }
 
 export {
@@ -1470,12 +1494,15 @@ export {
     isClosedAction,
     isRenamedAction,
     isRoomChangeLogAction,
+    isInviteOrRemovedAction,
     isChronosOOOListAction,
     isAddCommentAction,
     isPolicyChangeLogAction,
     getTextFromHtml,
     isTripPreview,
     getIOUActionForReportID,
+    getFilteredForOneTransactionView,
+    isActionableAddPaymentCard,
 };
 
 export type {LastVisibleMessage};

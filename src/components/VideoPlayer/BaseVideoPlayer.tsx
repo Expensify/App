@@ -164,6 +164,7 @@ function BaseVideoPlayer({
             if (videoResumeTryNumber.current === 1) {
                 playVideo();
             }
+            // eslint-disable-next-line react-compiler/react-compiler
             videoResumeTryNumber.current -= 1;
         },
         [playVideo, videoResumeTryNumber],
@@ -200,7 +201,7 @@ function BaseVideoPlayer({
             videoStateRef.current = status;
             onPlaybackStatusUpdate?.(status);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
         [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 

@@ -19,6 +19,7 @@ import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import BootSplash from './libs/BootSplash';
+import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -147,6 +148,9 @@ function Expensify({
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
+        // Initialize Fullstory lib
+        FS.init();
+
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
@@ -208,7 +212,7 @@ function Expensify({
             }
             appStateChangeListener.current.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
