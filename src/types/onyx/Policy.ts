@@ -1565,6 +1565,7 @@ export type {
     SageIntacctMappingName,
     SageIntacctDimension,
     SageIntacctDataElementWithValue,
+    NetSuiteMappingValues,
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
 };

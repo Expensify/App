@@ -15,6 +15,7 @@ fullstory {
     org 'o-1WN56P-na1'
     enabledVariants 'all'
     logcatLevel 'debug'
+    recordOnStart false
 }
 
 react {
