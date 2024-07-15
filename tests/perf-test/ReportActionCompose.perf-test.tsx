@@ -34,6 +34,7 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
+        useFocusEffect: jest.fn(),
         useIsFocused: () => true,
         useNavigationState: () => {},
     };
