@@ -39,7 +39,7 @@ Once an invoice is sent, the customer receives an automated email or text messag
 
 Currently, invoices must be paid outside of Expensify. However, the ability to make payments through Expensify is coming soon. 
 
-![A photo of the pay button]({{site.url}}/assets/images/ExpensifyHelp-Invoice-1){:width="100%"}
+![A photo of the pay button]({{site.url}}/assets/images/ExpensifyHelp-Invoice-1.png){:width="100%"}
 
  
 # FAQs
