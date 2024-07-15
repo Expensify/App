@@ -2638,6 +2638,11 @@ export default {
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
             cashBack: 'Cash back',
             cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            changeCardLimit: 'Change card limit',
+            changeLimit: 'Change limit',
+            smartLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined until you approve more expenses on the card.`,
+            monthlyLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined until next month.`,
+            fixedLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined.`,
         },
         categories: {
             deleteCategories: 'Delete categories',

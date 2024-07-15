@@ -2684,6 +2684,12 @@ export default {
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
             cashBack: 'Reembolso',
             cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            changeCardLimit: 'Modificar el límite de la tarjeta',
+            changeLimit: 'Modificar límite',
+            smartLimitWarning: (limit: string) =>
+                `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta que apruebes antiguos gastos de la tarjeta.`,
+            monthlyLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta el próximo mes.`,
+            fixedLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, se rechazarán las nuevas transacciones.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
