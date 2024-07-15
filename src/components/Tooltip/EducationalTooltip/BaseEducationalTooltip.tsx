@@ -24,7 +24,7 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
     useEffect(() => {
         const unsubscribeBlur = navigation.addListener('blur', triggerHideTooltip);
         return () => {
-            unsubscribeBlur();
+            unsubscribeBlur?.();
             triggerHideTooltip();
         };
     }, [navigation, triggerHideTooltip]);
