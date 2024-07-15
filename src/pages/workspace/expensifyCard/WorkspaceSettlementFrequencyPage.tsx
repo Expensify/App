@@ -76,7 +76,6 @@ function WorkspaceSettlementFrequencyPage({route}: StackScreenProps<SettingsNavi
                     initiallyFocusedOptionKey={selectedFrequency}
                 />
             </ScreenWrapper>
-            //{' '}
         </AccessOrNotFoundWrapper>
     );
 }

@@ -7,6 +7,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -24,6 +26,8 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+
+    console.log({cardSettings});
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
     const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
@@ -56,13 +60,25 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                                 description={translate('workspace.expensifyCard.settlementFrequency')}
                                 title={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
                                 shouldShowRightIcon
+                                // TODO: enable after API is ready
+                                // disabled={settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
                             />
                         </OfflineWithFeedback>
+                        {settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY && (
+                            <Text style={[styles.mh5, styles.textLabelSupporting]}>
+                                {translate('workspace.expensifyCard.settlementFrequencyInfo')}{' '}
+                                <TextLink
+                                    href=""
+                                    style={styles.label}
+                                >
+                                    {translate('common.learnMore')}
+                                </TextLink>
+                            </Text>
+                        )}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
-            //{' '}
         </AccessOrNotFoundWrapper>
     );
 }
