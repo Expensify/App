@@ -422,6 +422,8 @@ function IOURequestStepScan({
             if (!isFileValid) {
                 return;
             }
+
+            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
             if (Str.isPDF(file.name ?? '') && !isPdfValidated) {
                 setPdfFile(file);
                 return;
