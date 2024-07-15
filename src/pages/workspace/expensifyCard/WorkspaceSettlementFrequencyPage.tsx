@@ -26,7 +26,7 @@ function WorkspaceSettlementFrequencyPage({route}: StackScreenProps<SettingsNavi
             },
             {
                 value: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
-                text: translate('workspace.expensifyCard.frequency.daily'),
+                text: translate('workspace.expensifyCard.frequency.monthly'),
                 keyForList: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
             },
         ],
