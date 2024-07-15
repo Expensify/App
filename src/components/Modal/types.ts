@@ -1,8 +1,10 @@
-import type {FocusTargetOrFalse} from 'focus-trap-react';
+import type FocusTrap from 'focus-trap-react';
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+type FocusTrapOptions = Exclude<FocusTrap.Props['focusTrapOptions'], undefined>;
 
 type PopoverAnchorPosition = {
     top?: number;
@@ -89,7 +91,8 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
     shouldUseModalPaddingStyle?: boolean;
 
-    initialFocus?: FocusTargetOrFalse | undefined | (() => void);
+    /** Extend from focus-trap options can help to set focus element when inital */
+    initialFocus?: FocusTrapOptions['initialFocus'];
 };
 
 export default BaseModalProps;
