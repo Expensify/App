@@ -49,6 +49,11 @@ const ROUTES = {
         },
     },
 
+    SEARCH_ADVANCED_FILTERS: {
+        route: '/search/:query/filters',
+        getRoute: (query: string) => `search/${query}/filters` as const,
+    },
+
     SEARCH_REPORT: {
         route: '/search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,

@@ -956,6 +956,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
+                    screens: {
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
                     screens: {
                         [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,

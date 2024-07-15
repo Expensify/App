@@ -20,6 +20,7 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
+    SearchAdvancedFiltersParamList,
     SearchReportParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
@@ -30,6 +31,7 @@ import type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
+import SearchAdvancedFiltersPage from '@pages/Search/SearchAdvancedFiltersPage';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -490,6 +492,10 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
 });
 
+const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
+});
+
 const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.RESTRICTED_ACTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default,
 });
@@ -524,4 +530,5 @@ export {
     TransactionDuplicateStackNavigator,
     SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
+    SearchAdvancedFiltersModalStackNavigator,
 };

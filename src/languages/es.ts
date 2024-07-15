@@ -3529,6 +3529,7 @@ export default {
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
+        filtersHeader: 'Filtros',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

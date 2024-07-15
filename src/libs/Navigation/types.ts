@@ -1035,6 +1035,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<{}>;
 };
 
 type TravelNavigatorParamList = {
@@ -1226,6 +1227,12 @@ type SearchReportParamList = {
     };
 };
 
+type SearchAdvancedFiltersParamList = {
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: {
+        query: string;
+    };
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -1303,5 +1310,6 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
 };

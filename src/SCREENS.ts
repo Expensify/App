@@ -30,6 +30,7 @@ const SCREENS = {
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
+        ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
@@ -145,6 +146,7 @@ const SCREENS = {
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
     },

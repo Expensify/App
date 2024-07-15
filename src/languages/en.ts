@@ -3478,6 +3478,7 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        filtersHeader: 'Filters',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
