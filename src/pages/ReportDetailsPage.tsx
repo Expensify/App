@@ -696,20 +696,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         promotedActions={promotedActions}
                     />
 
-                    {menuItems.map((item) => {
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    {menuItems.map((item) => (
+                        <MenuItem
+                            key={item.key}
+                            title={translate(item.translationKey)}
+                            subtitle={item.subtitle}
+                            icon={item.icon}
+                            onPress={item.action}
+                            isAnonymousAction={item.isAnonymousAction}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                        />
+                    ))}
 
                     {shouldShowDeleteButton && (
                         <MenuItem
