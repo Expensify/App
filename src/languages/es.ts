@@ -2726,8 +2726,8 @@ export default {
             importedFromAccountingSoftware: 'Categorías importadas desde',
             payrollCode: 'Código de nómina',
             updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
-            glCode: 'Código GL',
-            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código GL. Inténtelo nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
         },
         moreFeatures: {
             spendSection: {
@@ -2865,8 +2865,8 @@ export default {
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
-            glCode: 'Código GL',
-            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código GL. Por favor, inténtelo nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
