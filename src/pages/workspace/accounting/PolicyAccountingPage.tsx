@@ -80,16 +80,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            ...(!shouldShowEnterCredentials
+            ...(shouldShowEnterCredentials
                 ? [
-                      {
-                          icon: Expensicons.Sync,
-                          text: translate('workspace.accounting.syncNow'),
-                          onSelected: () => syncConnection(policyID, connectedIntegration),
-                          disabled: isOffline,
-                      },
-                  ]
-                : [
                       {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
@@ -97,6 +89,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: true,
+                      },
+                  ]
+                : [
+                      {
+                          icon: Expensicons.Sync,
+                          text: translate('workspace.accounting.syncNow'),
+                          onSelected: () => syncConnection(policyID, connectedIntegration),
+                          disabled: isOffline,
                       },
                   ]),
             {
