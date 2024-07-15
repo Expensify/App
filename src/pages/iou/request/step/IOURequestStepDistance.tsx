@@ -63,7 +63,7 @@ function IOURequestStepDistance({
     report,
     policy,
     route: {
-        params: {action, iouType, iouRequestType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
     transactionBackup,
@@ -102,6 +102,7 @@ function IOURequestStepDistance({
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const iouRequestType = TransactionUtils.getRequestType(transaction);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -254,7 +255,7 @@ function IOURequestStepDistance({
                         category: '',
                         tag: '',
                         billable: false,
-                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        iouRequestType,
                         existingSplitChatReportID: report?.reportID,
                     });
                     return;
