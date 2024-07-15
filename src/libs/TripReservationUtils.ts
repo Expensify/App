@@ -1,4 +1,3 @@
-import type {EReceiptColorName} from '@styles/utils/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
