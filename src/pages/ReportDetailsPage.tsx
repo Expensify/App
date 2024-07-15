@@ -697,8 +697,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     />
 
                     {menuItems.map((item) => {
-                        const brickRoadIndicator =
-                            ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
                         return (
                             <MenuItem
                                 key={item.key}
@@ -708,7 +706,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
-                                brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         );
                     })}
