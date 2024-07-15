@@ -130,6 +130,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether the subtitle should be displayed above the title */
+    showSubtitleAboveTitle?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
-import SearchFilters from './SearchFilters';
+import SearchResultsFilters from './SearchResultsFilters';
 
 type SearchPageProps = StackScreenProps<CentralPaneScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
@@ -68,7 +68,7 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchFilters query={query} />
+                        <SearchResultsFilters query={query} />
                     </>
                 ) : (
                     <HeaderWithBackButton

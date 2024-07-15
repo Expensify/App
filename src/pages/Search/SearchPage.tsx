@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import SearchV2 from '@components/Search/SearchV2';
 
 type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
@@ -43,7 +44,7 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <Search
+                <SearchV2
                     policyIDs={policyIDs}
                     query={query}
                     sortBy={sortBy}

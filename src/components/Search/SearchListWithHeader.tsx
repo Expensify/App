@@ -20,6 +20,7 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
     searchType: SearchDataTypes;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
+    isSearchResultsMode?: boolean;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -41,7 +42,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
 }
 
 function SearchListWithHeader(
-    {ListItem, onSelectRow, query, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, ...props}: SearchListWithHeaderProps,
+    {ListItem, onSelectRow, query, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isSearchResultsMode = false, ...props}: SearchListWithHeaderProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -153,6 +154,7 @@ function SearchListWithHeader(
                 hash={hash}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
                 setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
+                isSearchResultsMode={isSearchResultsMode}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading

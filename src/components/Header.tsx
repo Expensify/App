@@ -21,9 +21,12 @@ type HeaderProps = {
 
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether the subtitle should be displayed above the title */
+    showSubtitleAboveTitle?: boolean;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, showSubtitleAboveTitle = false}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -46,6 +49,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
             <View style={styles.mw100}>
+                {showSubtitleAboveTitle && renderedSubtitle}
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
@@ -56,7 +60,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                           </Text>
                       )
                     : title}
-                {renderedSubtitle}
+                {!showSubtitleAboveTitle && renderedSubtitle}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

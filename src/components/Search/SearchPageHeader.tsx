@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -25,22 +27,58 @@ type SearchHeaderProps = {
     hash: number;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
+    isSearchResultsMode?: boolean;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchHeaderProps) {
+function SearchPageHeader({
+    query,
+    selectedItems = {},
+    hash,
+    clearSelectedItems,
+    isMobileSelectionModeActive,
+    setIsMobileSelectionModeActive,
+    isSearchResultsMode = false,
+}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
-        all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
-        shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
-        drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
-        finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
-    };
+    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = useMemo(
+        () => ({
+            all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
+            shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
+            drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
+            finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
+        }),
+        [translate],
+    );
+
+    const subtitle = useMemo(() => {
+        if (!isSearchResultsMode) {
+            return '';
+        }
+
+        return 'Filters';
+    }, [isSearchResultsMode]);
+
+    const headerTitle = useMemo(() => {
+        if (isSearchResultsMode) {
+            return SearchUtils.getSearchHeaderTitle(query, false);
+        }
+
+        return headerContent[query]?.title;
+    }, [headerContent, isSearchResultsMode, query]);
+
+    const headerIcon = useMemo(() => {
+        if (isSearchResultsMode) {
+            return Illustrations.Filters;
+        }
+
+        return headerContent[query]?.icon;
+    }, [headerContent, isSearchResultsMode, query]);
 
     const selectedItemsKeys = Object.keys(selectedItems ?? []);
 
@@ -137,10 +175,20 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
 
     return (
         <HeaderWithBackButton
-            title={headerContent[query]?.title}
-            icon={headerContent[query]?.icon}
+            title={headerTitle}
+            icon={headerIcon}
             shouldShowBackButton={false}
+            showSubtitleAboveTitle={isSearchResultsMode}
+            subtitle={subtitle}
         >
+            {isSearchResultsMode && (
+                <Button
+                    icon={Expensicons.Filters}
+                    text="Filters"
+                    medium
+                />
+            )}
+
             {headerButtonsOptions.length > 0 && (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
@@ -151,6 +199,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                     options={headerButtonsOptions}
                     isSplitButton={false}
                     isDisabled={isOffline}
+                    style={styles.ml2}
                 />
             )}
         </HeaderWithBackButton>

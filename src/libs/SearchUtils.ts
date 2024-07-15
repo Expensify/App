@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
@@ -394,6 +395,14 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
     return filters;
 }
 
+function getSearchHeaderTitle(query: string, isSmallScreenWidth: boolean) {
+    if (isSmallScreenWidth) {
+        return `Type: Expense, Status: ${Str.recapitalize(query)}`;
+    }
+
+    return `type:expense status:${query}`;
+}
+
 export {
     buildJSONQuery,
     getListItem,
@@ -408,4 +417,5 @@ export {
     isTransactionListItemType,
     isSearchResultsEmpty,
     getFilters,
+    getSearchHeaderTitle,
 };
