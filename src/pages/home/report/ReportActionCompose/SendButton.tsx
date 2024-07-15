@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useFocusEffect} from '@react-navigation/native';
+import useFreezeId from './useFreezeId';
 
 type SendButtonProps = {
     /** Whether the button is disabled */
@@ -25,17 +25,11 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [uniqueRenderId, setUniqueRenderId] = useState(0);
+    const freezeId = useFreezeId();
 
     const Tap = Gesture.Tap().onEnd(() => {
         handleSendMessage();
     });
-
-    useFocusEffect(
-        useCallback(() => {
-            setUniqueRenderId((c) => c + 1);
-        }, []),
-    );
 
     return (
         <View
@@ -48,7 +42,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                 // if not, the GestureDetector may not function correctly.
                 // The same is applicable when parent enables/disables freeze - after that we need to re-create
                 // the gesture detector. Otherwise `onEnd` will not be
-                key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}-${uniqueRenderId}`}
+                key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}-${freezeId}`}
                 gesture={Tap}
             >
                 <Tooltip text={translate('common.send')}>
