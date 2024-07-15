@@ -4531,7 +4531,7 @@ export default {
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
                 subtitle: '¡Ya casi estamos! Completa ',
-                subtitleLink: 'la lista de configuración',
+                subtitleLink: 'la lista de configuración.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
