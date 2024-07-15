@@ -1493,7 +1493,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
                     url += wasExportedAfterBase62 ? base62ReportID : reportID;
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
-                    url = '';
+                    // The first three characters in a Salesforce ID is the expense type
+                    url = nonReimbursableUrls[0].substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3);
                     break;
                 default:
                     url = QBO_EXPENSES_URL;
