@@ -24,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
@@ -53,7 +52,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
     const {setCurrentSearchHash} = useSearchContext();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
-    const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -102,9 +101,8 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingItems = !isOffline && searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (isLoadingItems) {
         return (
@@ -118,7 +116,9 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         );
     }
 
-    if (shouldShowEmptyState) {
+    const shouldShowEmptyState = searchResults && SearchUtils.isSearchResultsEmpty(searchResults);
+
+    if (shouldShowEmptyState ?? !searchResults) {
         return (
             <>
                 <SearchPageHeader

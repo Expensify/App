@@ -24,6 +24,7 @@ type AccountingIntegration = {
     onImportPagePress: () => void;
     onExportPagePress: () => void;
     onAdvancedPagePress: () => void;
+    onCardReconciliationPagePress: () => void;
 };
 
 export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};

@@ -243,6 +243,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           onPress: integrationData?.onExportPagePress,
                       },
                       {
+                          icon: Expensicons.ExpensifyCard,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.cardReconciliation'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: integrationData?.onCardReconciliationPagePress,
+                      },
+
+                      {
                           icon: Expensicons.Gear,
                           iconRight: Expensicons.ArrowRight,
                           shouldShowRightIcon: true,
