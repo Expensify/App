@@ -126,7 +126,7 @@ function createTaskAndNavigate(
 
     const currentTime = DateUtils.getDBTimeWithSkew();
     const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
-    const parentReport = getReport(parentReportID);
+    const parentReport = ReportUtils.getReport(parentReportID);
     const optimisticParentReport = {
         lastVisibleActionCreated: optimisticAddCommentReport.reportAction.created,
         lastMessageText: lastCommentText,
@@ -904,13 +904,6 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
         return undefined;
     }
     return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-}
-
-/**
- * Returns the report
- */
-function getReport(reportID: string): OnyxEntry<OnyxTypes.Report> {
-    return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 /**
