@@ -430,6 +430,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
+
+        /** The bank of the purchaser card, if any */
+        bank?: string;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     },
     keyof Comment
 >;
