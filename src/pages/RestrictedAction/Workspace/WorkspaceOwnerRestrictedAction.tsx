@@ -20,6 +20,7 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
 
     const addPaymentCard = () => {
+        Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     };
 

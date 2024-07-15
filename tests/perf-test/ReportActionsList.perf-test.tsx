@@ -52,12 +52,12 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 });
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: () => mockedNavigate,
         useIsFocused: () => true,
-    } as typeof Navigation;
+    };
 });
 
 jest.mock('@src/components/ConfirmedRoute.tsx');

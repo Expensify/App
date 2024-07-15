@@ -1,12 +1,19 @@
 import {isEmpty} from 'lodash';
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
 import type RadioListItem from './SelectionList/RadioListItem';
@@ -30,6 +37,9 @@ type SelectionScreenProps = {
 
     /** Content to display if the list is empty */
     listEmptyContent?: React.JSX.Element | null;
+
+    /** Custom content to display in the footer of list component. */
+    listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
     sections: Array<SectionListDataType<SelectorType>>;
@@ -60,6 +70,18 @@ type SelectionScreenProps = {
 
     /** Name of the current connection */
     connectionName: ConnectionName;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction | null;
+
+    /** The errors to display  */
+    errors?: OnyxCommon.Errors | ReceiptErrors | null;
+
+    /** Additional style object for the error row */
+    errorRowStyles?: StyleProp<ViewStyle>;
+
+    /** A function to run when the X button next to the error is clicked */
+    onClose?: () => void;
 };
 
 function SelectionScreen({
@@ -67,6 +89,7 @@ function SelectionScreen({
     title,
     headerContent,
     listEmptyContent,
+    listFooterContent,
     sections,
     listItem,
     initiallyFocusedOptionKey,
@@ -77,8 +100,13 @@ function SelectionScreen({
     featureName,
     shouldBeBlocked,
     connectionName,
+    pendingAction,
+    errors,
+    errorRowStyles,
+    onClose,
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const policy = PolicyUtils.getPolicy(policyID);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
@@ -91,23 +119,37 @@ function SelectionScreen({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
                 testID={displayName}
             >
                 <HeaderWithBackButton
                     title={translate(title)}
                     onBackButtonPress={onBackButtonPress}
                 />
-                <SelectionList
-                    onSelectRow={onSelectRow}
-                    headerContent={headerContent}
-                    sections={sections}
-                    ListItem={listItem}
-                    showScrollIndicator
-                    shouldShowTooltips={false}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                    listEmptyContent={listEmptyContent}
-                />
+                {headerContent}
+                <OfflineWithFeedback
+                    pendingAction={pendingAction}
+                    style={[styles.flex1]}
+                    contentContainerStyle={[styles.flex1]}
+                >
+                    <SelectionList
+                        onSelectRow={onSelectRow}
+                        sections={sections}
+                        ListItem={listItem}
+                        showScrollIndicator
+                        shouldShowTooltips={false}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        listEmptyContent={listEmptyContent}
+                        listFooterContent={listFooterContent}
+                        sectionListStyle={[styles.flexGrow0]}
+                    >
+                        <ErrorMessageRow
+                            errors={errors}
+                            errorRowStyles={errorRowStyles}
+                            onClose={onClose}
+                        />
+                    </SelectionList>
+                </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

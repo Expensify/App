@@ -19,13 +19,16 @@ import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -121,6 +124,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             undefined,
             undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
+            action,
         );
 
         return optionList;
@@ -216,7 +220,17 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         );
 
         return [newSections, headerMessage];
-    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        debouncedSearchTerm,
+        participants,
+        chatOptions.recentReports,
+        chatOptions.personalDetails,
+        chatOptions.userToInvite,
+        personalDetails,
+        translate,
+    ]);
 
     /**
      * Adds a single participant to the expense
@@ -246,7 +260,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             onParticipantsAdded(newParticipants);
             onFinish();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded],
     );
 
@@ -289,7 +303,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
             onParticipantsAdded(newSelectedOptions);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [participants, onParticipantsAdded],
     );
 
@@ -380,12 +394,18 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     ]);
 
     const onSelectRow = useCallback(
-        (item: Participant) => {
-            if (isIOUSplit) {
-                addParticipantToSelection(item);
+        (option: Participant) => {
+            if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
-            addSingleParticipant(item);
+
+            if (isIOUSplit) {
+                addParticipantToSelection(option);
+                return;
+            }
+
+            addSingleParticipant(option);
         },
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );

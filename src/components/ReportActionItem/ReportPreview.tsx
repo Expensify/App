@@ -121,13 +121,14 @@ function ReportPreview({
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
@@ -201,6 +202,18 @@ function ReportPreview({
         } else {
             IOU.approveMoneyRequest(iouReport, true);
         }
+    };
+
+    const getSettlementAmount = () => {
+        if (hasOnlyHeldExpenses) {
+            return '';
+        }
+
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+            return nonHeldAmount;
+        }
+
+        return CurrencyUtils.convertToDisplayString(reimbursableSpend, iouReport?.currency);
     };
 
     const getDisplayAmount = (): string => {
@@ -405,7 +418,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <SettlementButton
-                                        formattedAmount={getDisplayAmount() ?? ''}
+                                        formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
@@ -445,7 +458,7 @@ function ReportPreview({
             </View>
             {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}
@@ -454,6 +467,7 @@ function ReportPreview({
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={iouReport}
+                    transactionCount={numberOfRequests}
                 />
             )}
         </OfflineWithFeedback>
