@@ -83,6 +83,7 @@ jobs:
       - name: Run Fastlane
         run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
         env:
+          RUBYOPT: '-rostruct' # TODO: Temporary fix until https://github.com/fastlane/fastlane/pull/21950 gets released
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
           VERSION: ${{ env.VERSION_CODE }}
