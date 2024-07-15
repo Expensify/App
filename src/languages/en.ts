@@ -24,6 +24,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -392,6 +393,8 @@ export default {
         notAllowedExtension: 'This file type is not allowed. Please try a different file type.',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Please try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+        attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
+        attachmentImageTooLarge: 'This image is too large to preview before uploading.',
     },
     connectionComplete: {
         title: 'Connection complete',
@@ -707,8 +710,8 @@ export default {
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
             }`,
-        deleteExpense: 'Delete expense',
-        deleteConfirmation: 'Are you sure that you want to delete this expense?',
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Delete ${Str.pluralize('expense', 'expenses', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Are you sure that you want to delete ${Str.pluralize('this expense', 'these expenses', count)}?`,
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
