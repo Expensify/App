@@ -2709,7 +2709,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
         return;
     }
-    // in other case, the report is deleted and we should move the user to other report
+    // In other cases, the report is deleted and we should move the user to another report.
     navigateToMostRecentReport(report);
 }
 
