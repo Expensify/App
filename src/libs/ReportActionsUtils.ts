@@ -83,6 +83,27 @@ Onyx.connect({
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
+/*
+ * Url to the Xero non reimbursable expenses list
+ */
+const XERO_NON_REIMBURSABLE_EXPENSES_URL = 'https://go.xero.com/Bank/BankAccounts.aspx';
+
+/*
+ * Url to the NetSuite global search, which should be suffixed with the reportID.
+ */
+const NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX =
+    'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
+
+/*
+ * Url prefix to any Salesforce transaction or transaction list.
+ */
+const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
+
+/*
+ * Url to the QBO expenses list
+ */
+const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
+
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
@@ -1465,17 +1486,17 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
-                    url = 'https://go.xero.com/Bank/BankAccounts.aspx';
+                    url = XERO_NON_REIMBURSABLE_EXPENSES_URL;
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite:
-                    url = 'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
+                    url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
                     url += wasExportedAfterBase62 ? base62ReportID : reportID;
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
                     url = '';
                     break;
                 default:
-                    url = 'https://qbo.intuit.com/app/expenses';
+                    url = QBO_EXPENSES_URL;
             }
         }
 
