@@ -8,8 +8,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import * as PolicyAction from '@userActions/Policy/Policy';
@@ -31,11 +29,9 @@ function ConnectToQuickbooksOnlineFlow({
     shouldDisconnectIntegrationBeforeConnecting,
     integrationToDisconnect,
 }: ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
-    const {isOffline} = useNetwork();
 
     const authToken = session?.authToken ?? null;
 
@@ -49,6 +45,7 @@ function ConnectToQuickbooksOnlineFlow({
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         PolicyAction.enablePolicyTaxes(policyID, false);
         setWebViewOpen(true);
+        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

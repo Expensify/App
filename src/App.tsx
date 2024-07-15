@@ -5,7 +5,6 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {AccountingContextProvider} from '@pages/workspace/accounting/AccountingContext';
 import '../wdyr';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
