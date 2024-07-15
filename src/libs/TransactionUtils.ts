@@ -927,17 +927,14 @@ function getTransactionID(threadReportID: string): string {
     return IOUTransactionID;
 }
 
-function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>): OnyxEntry<Transaction> {
-    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? null;
+function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>): Partial<Transaction> {
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? undefined;
     const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
 
-    if (!originalTransaction) {
-        return undefined;
-    }
     return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant, comment: {comment: reviewDuplicateTransaction?.description}};
 }
 
-function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: OnyxEntry<Transaction>): TransactionMergeParams {
+function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
         amount: originalTransaction?.modifiedAmount ?? 0,
         reportID: originalTransaction?.reportID ?? '',

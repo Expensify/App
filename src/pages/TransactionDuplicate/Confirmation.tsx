@@ -29,7 +29,7 @@ function Confirmation() {
     const {translate} = useLocalize();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const transaction: OnyxEntry<Transaction> = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
+    const transaction: Partial<Transaction> = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
@@ -52,7 +52,7 @@ function Confirmation() {
         }),
         [report, reportAction],
     );
-
+    console.log(transaction);
     return (
         <ScreenWrapper
             testID={Confirmation.displayName}
