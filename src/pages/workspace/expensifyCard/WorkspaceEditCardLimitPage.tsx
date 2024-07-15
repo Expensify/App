@@ -15,6 +15,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -94,50 +95,56 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     );
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceEditCardLimitPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.cardLimit')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT}
-                submitButtonText={translate('common.save')}
-                onSubmit={submit}
-                style={styles.flex1}
-                submitButtonStyles={[styles.mh5, styles.mt0]}
-                submitFlexEnabled={false}
-                enabledWhenOffline
-                validate={validate}
+            <ScreenWrapper
+                testID={WorkspaceEditCardLimitPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
             >
-                {({inputValues}) => (
-                    <>
-                        <InputWrapper
-                            InputComponent={AmountForm}
-                            defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card.nameValuePairs?.limit, CONST.CURRENCY.USD, false)}
-                            isCurrencyPressable={false}
-                            inputID={INPUT_IDS.LIMIT}
-                            ref={inputCallbackRef}
-                        />
-                        <ConfirmModal
-                            title={translate('workspace.expensifyCard.changeCardLimit')}
-                            isVisible={isConfirmModalVisible}
-                            onConfirm={() => updateCardLimit(inputValues[INPUT_IDS.LIMIT])}
-                            onCancel={() => setIsConfirmModalVisible(false)}
-                            prompt={translate(getPromptTextKey, CurrencyUtils.convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD))}
-                            confirmText={translate('workspace.expensifyCard.changeLimit')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                            shouldEnableNewFocusManagement
-                        />
-                    </>
-                )}
-            </FormProvider>
-        </ScreenWrapper>
+                <HeaderWithBackButton
+                    title={translate('workspace.expensifyCard.cardLimit')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={submit}
+                    style={styles.flex1}
+                    submitButtonStyles={[styles.mh5, styles.mt0]}
+                    submitFlexEnabled={false}
+                    enabledWhenOffline
+                    validate={validate}
+                >
+                    {({inputValues}) => (
+                        <>
+                            <InputWrapper
+                                InputComponent={AmountForm}
+                                defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card.nameValuePairs?.limit, CONST.CURRENCY.USD, false)}
+                                isCurrencyPressable={false}
+                                inputID={INPUT_IDS.LIMIT}
+                                ref={inputCallbackRef}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.expensifyCard.changeCardLimit')}
+                                isVisible={isConfirmModalVisible}
+                                onConfirm={() => updateCardLimit(inputValues[INPUT_IDS.LIMIT])}
+                                onCancel={() => setIsConfirmModalVisible(false)}
+                                prompt={translate(getPromptTextKey, CurrencyUtils.convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD))}
+                                confirmText={translate('workspace.expensifyCard.changeLimit')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                                shouldEnableNewFocusManagement
+                            />
+                        </>
+                    )}
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
