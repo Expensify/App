@@ -1,14 +1,14 @@
-import type {Cache, CacheOpts} from '@libs/memoize/types';
+import type {Cache, CacheConfig} from './types';
 
 /**
  * Builder of the cache using `Array` primitive under the hood. It is an LRU cache, where the most recently accessed elements are at the end of the array, and the least recently accessed elements are at the front.
- * @param opts - Cache options, check `CacheOpts` type for more details.
+ * @param config - Cache configuration, check `CacheConfig` type for more details.
  * @returns
  */
-function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
+function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
     const cache: Array<[K, V]> = [];
 
-    const {maxSize, keyComparator} = opts;
+    const {maxSize, keyComparator} = config;
 
     function getKeyIndex(key: K) {
         // We search the array backwards because the most recently added entries are at the end, and our heuristic follows the principles of an LRU cache - that the most recently added entries are most likely to be used again.
@@ -65,15 +65,9 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
             return {value};
         },
         snapshot: {
-            keys() {
-                return cache.map((entry) => entry[0]);
-            },
-            values() {
-                return cache.map((entry) => entry[1]);
-            },
-            entries() {
-                return [...cache];
-            },
+            keys: () => cache.map((entry) => entry[0]),
+            values: () => cache.map((entry) => entry[1]),
+            entries: () => [...cache],
         },
         get size() {
             return cache.length;
@@ -81,4 +75,4 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
     };
 }
 
-export default buildArrayCache;
+export default ArrayCache;

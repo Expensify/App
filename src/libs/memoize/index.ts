@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import type {Constructor} from 'type-fest';
-import buildArrayCache from './cache/arrayCacheBuilder';
+import ArrayCache from './cache/ArrayCache';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
 import {getEqualityComparator, mergeOptions, truncateArgs} from './utils';
@@ -45,7 +45,7 @@ class Memoize {
 function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
     const options = mergeOptions(opts);
 
-    const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
+    const cache = ArrayCache<Parameters<Fn>, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
 
     const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 
