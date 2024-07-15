@@ -1440,6 +1440,12 @@ function getExportIntegrationLastMessageText(reportAction: OnyxEntry<ReportActio
     return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
 }
 
+function getExportIntegrationMessageHTML(reportAction: OnyxEntry<ReportAction>): string {
+    const fragments = getExportIntegrationActionFragments(reportAction);
+    const htmlFragments = fragments.map((fragment) => (fragment.url ? `<a href="${fragment.url}">${fragment.text}</a>` : fragment.text));
+    return htmlFragments.join(' ');
+}
+
 function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportAction>): Array<{text: string; url: string}> {
     if (reportAction?.actionName !== 'EXPORTINTEGRATION') {
         throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
@@ -1598,6 +1604,7 @@ export {
     isActionableAddPaymentCard,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
+    getExportIntegrationMessageHTML,
 };
 
 export type {LastVisibleMessage};
