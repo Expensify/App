@@ -119,7 +119,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
 
     const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
-    // TODO: Double check the condition below
     const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && !!policy;
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
