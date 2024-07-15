@@ -24,7 +24,7 @@ Egencia controls the feed, so to connect Expensify you will need to:
 # How to Connect to a Central Purchasing Account
 Once your Egencia account manager has established the feed, you can automatically forward all Egencia booking receipts to a single Expensify account. To do this: 
 1. Open a chat with Concierge. 
-2. Tell Concierge “Please enable Central Purchasing Account for our Egencia feed. The account email is: xxx@yourdomain.com”.
+2. Tell Concierge the address of your central purchasing account, “Please enable Central Purchasing Account for our Egencia feed. The account email is: xxx@yourdomain.com”.
 
-The receipt the traveler receives is a "reservation expense." Reservation expenses are non-reimbursable and won’t be included in any integrated accounting system exports. The reservation sent to the traveler's account is added to their mobile app Trips feature so that the traveler can easily keep tabs on upcoming travel and receive trip notifications.
+A receipt will be sent to both the traveler and the central account. The receipt sent to the traveler is a "reservation expense." Reservation expenses are non-reimbursable and won’t be included in any integrated accounting system exports.
 
