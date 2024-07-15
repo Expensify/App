@@ -1,12 +1,11 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -31,7 +30,6 @@ function OptionRowLHNData({
     canUseViolations,
     ...propsToForward
 }: OptionRowLHNDataProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
@@ -39,7 +37,7 @@ function OptionRowLHNData({
     const optionItemRef = useRef<OptionData>();
 
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
-    const isReportOwner = fullReport?.ownerAccountID === session?.accountID;
+    const isReportOwner = fullReport?.ownerAccountID === getCurrentUserAccountID();
     const shouldDisplayReportViolations = isReportOwner && ReportUtils.hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
@@ -51,7 +49,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || !!shouldDisplayReportViolations,
+            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
             transactionViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
