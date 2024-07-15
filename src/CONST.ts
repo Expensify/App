@@ -335,6 +335,8 @@ const CONST = {
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
             VERIFYING: 'VERIFYING',
+            VALIDATING: 'VALIDATING',
+            SETUP: 'SETUP',
             PENDING: 'PENDING',
             OPEN: 'OPEN',
         },
@@ -361,7 +363,6 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
-        REPORT_FIELDS: 'reportFields',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -668,6 +669,7 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
@@ -840,6 +842,8 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+            PAYCHECK: 'paycheck',
+            BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -1243,7 +1247,7 @@ const CONST = {
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
-        SUGGESTION_BOX_MAX_SAFE_DISTANCE: 38,
+        SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
         BIG_SCREEN_SUGGESTION_WIDTH: 300,
     },
     COMPOSER_MAX_HEIGHT: 125,
@@ -2143,6 +2147,7 @@ const CONST = {
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',
+            CONTROL: 'control',
         },
         DEFAULT_MAX_EXPENSE_AGE: 90,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
@@ -5204,6 +5209,39 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
         },
+        SYNTAX_OPERATORS: {
+            AND: 'and',
+            OR: 'or',
+            EQUAL_TO: 'eq',
+            NOT_EQUAL_TO: 'neq',
+            GREATER_THAN: 'gt',
+            GREATER_THAN_OR_EQUAL_TO: 'gte',
+            LOWER_THAN: 'lt',
+            LOWER_THAN_OR_EQUAL_TO: 'lte',
+        },
+        SYNTAX_ROOT_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
+            SORT_BY: 'sortBy',
+            SORT_ORDER: 'sortOrder',
+            OFFSET: 'offset',
+        },
+        SYNTAX_FILTER_KEYS: {
+            DATE: 'date',
+            AMOUNT: 'amount',
+            EXPENSE_TYPE: 'expenseType',
+            CURRENCY: 'currency',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TAX_RATE: 'taxRate',
+            CARD_ID: 'cardID',
+            REPORT_ID: 'reportID',
+            KEYWORD: 'keyword',
+        },
     },
 
     REFERRER: {
@@ -5241,6 +5279,7 @@ const CONST = {
         },
     },
 
+    MAX_LENGTH_256: 256,
     WORKSPACE_CARDS_LIST_LABEL_TYPE: {
         CURRENT_BALANCE: 'currentBalance',
         REMAINING_LIMIT: 'remainingLimit',
@@ -5283,10 +5322,6 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
-    },
-
-    NAVIGATION_ACTIONS: {
-        RESET: 'RESET',
     },
 } as const;
 
