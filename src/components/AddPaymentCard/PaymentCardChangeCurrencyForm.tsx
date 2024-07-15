@@ -1,6 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,9 +9,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,16 +74,6 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         },
         [changeBillingCurrency],
     );
-
-    const [formData] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
-    const formDataComplete = formData?.isLoading === false && !formData.errors;
-    const prevFormDataComplete = usePrevious(formDataComplete);
-
-    useEffect(() => {
-        if (isSecurityCodeRequired && formDataComplete && !prevFormDataComplete) {
-            Navigation.goBack();
-        }
-    }, [formDataComplete, prevFormDataComplete, isSecurityCodeRequired]);
 
     if (isSecurityCodeRequired) {
         return (
