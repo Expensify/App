@@ -565,6 +565,18 @@ Onyx.connect({
     },
 });
 
+let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportNameValuePair = value;
+    },
+});
+
 let isFirstTimeNewExpensifyUser = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
@@ -620,6 +632,13 @@ function isDraftReport(reportID: string | undefined): boolean {
  */
 function getReport(reportID: string): OnyxEntry<Report> {
     return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+/**
+ * Returns the report
+ */
+function getReportNameValuePairs(reportID?: string): OnyxEntry<ReportNameValuePairs> {
+    return allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID ?? -1}`];
 }
 
 /**
@@ -1269,7 +1288,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
  */
 function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     if (reportNameValuePairs) {
-        return reportNameValuePairs.isArchived;
+        return reportNameValuePairs.private_isArchived;
     }
 
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
@@ -1281,7 +1300,7 @@ function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?:
 function isArchivedRoomWithID(reportID?: string) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
-    return isArchivedRoom(report);
+    return isArchivedRoom(report, getReportNameValuePairs(reportID));
 }
 
 /**
@@ -2027,7 +2046,7 @@ function getIcons(
         };
         return [domainIcon];
     }
-    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
+    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         const icons = [getWorkspaceIcon(report, policy)];
 
         if (isInvoiceRoom(report)) {
@@ -2342,7 +2361,10 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    if (isArchivedRoom(optionOrReport) || isArchivedRoom(getReportOrDraftReport(optionOrReport.parentReportID))) {
+    if (
+        isArchivedRoom(optionOrReport, getReportNameValuePairs(optionOrReport?.reportID)) ||
+        isArchivedRoom(getReportOrDraftReport(optionOrReport.parentReportID), getReportNameValuePairs(optionOrReport?.reportID))
+    ) {
         return false;
     }
 
@@ -2435,7 +2457,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
-    if (isArchivedRoom(report)) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         const lastAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '-1');
         const archiveReason = ReportActionsUtils.isClosedAction(lastAction) ? ReportActionsUtils.getOriginalMessage(lastAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
@@ -2460,13 +2482,6 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): boolean {
     const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
     return isActionCreator(holdReportAction);
-}
-
-/**
- * Check if report fields are available to use in a report
- */
-function reportFieldsEnabled(report: Report) {
-    return Permissions.canUseReportFields(allBetas ?? []) && isPaidGroupPolicyExpenseReport(report);
 }
 
 /**
@@ -2570,7 +2585,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
     const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '-1');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
-    if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {
+    if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
         return report.reportName;
     }
 
@@ -3357,7 +3372,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
-            if (isArchivedRoom(report)) {
+            if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
             return formatReportLastMessageText(formattedName);
@@ -3382,7 +3397,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
-        if (parentReportActionMessage && isArchivedRoom(report)) {
+        if (parentReportActionMessage && isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
@@ -3424,7 +3439,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
         formattedName = getInvoicesChatName(report);
     }
 
-    if (isArchivedRoom(report)) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
@@ -3493,7 +3508,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
-    if (isArchivedRoom(report)) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
     }
     return getPolicyName(report);
@@ -3519,7 +3534,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         let reportName = `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`;
 
-        if (isArchivedRoom(parentReport)) {
+        if (isArchivedRoom(parentReport, getReportNameValuePairs(parentReport?.reportID))) {
             reportName += ` (${Localize.translateLocal('common.archived')})`;
         }
 
@@ -3988,7 +4003,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-    if (!!titleReportField && reportFieldsEnabled(expenseReport)) {
+    if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
 
@@ -5093,7 +5108,7 @@ function buildOptimisticTaskReport(
     title?: string,
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
-    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -5277,7 +5292,7 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
  */
 function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
     // Include archived rooms
-    if (isArchivedRoom(report)) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         return true;
     }
 
@@ -5431,7 +5446,7 @@ function shouldReportBeInOptionList({
             // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
             !isChatRoom(report) &&
             !isChatThread(report) &&
-            !isArchivedRoom(report) &&
+            !isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
             !isSelfDM(report) &&
@@ -5506,7 +5521,7 @@ function shouldReportBeInOptionList({
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
-    if (isInDefaultMode && isArchivedRoom(report)) {
+    if (isInDefaultMode && isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
         return true;
     }
 
@@ -5668,7 +5683,7 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
 function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>): boolean {
     return (
         canFlagReportAction(reportAction, report?.reportID) &&
-        !isArchivedRoom(report) &&
+        !isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report) &&
         reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE
@@ -5982,7 +5997,7 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
  */
 function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boolean {
     if (isInvoiceRoom(report)) {
-        if (isArchivedRoom(report)) {
+        if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
             return false;
         }
 
@@ -6053,7 +6068,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
  * Show subscript on workspace chats / threads and expense requests
  */
 function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
-    if (isArchivedRoom(report) && !isWorkspaceThread(report)) {
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) && !isWorkspaceThread(report)) {
         return false;
     }
 
@@ -6200,7 +6215,7 @@ function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
 function shouldDisableRename(report: OnyxEntry<Report>): boolean {
     if (
         isDefaultRoom(report) ||
-        isArchivedRoom(report) ||
+        isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) ||
         isPublicRoom(report) ||
         isThread(report) ||
         isMoneyRequest(report) ||
@@ -6228,14 +6243,14 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report) && !isThread(report) && !isInvoiceRoom(report);
+    return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) && !isThread(report) && !isInvoiceRoom(report);
 }
 
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return PolicyUtils.isPolicyAdmin(policy) && !isArchivedRoom(report);
+    return PolicyUtils.isPolicyAdmin(policy) && !isArchivedRoom(report, getReportNameValuePairs(report?.reportID));
 }
 
 /**
@@ -6441,7 +6456,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
         !isTaskReport(report) &&
         !isInvoiceReport(report) &&
         !isMoneyRequestReport(report) &&
-        !isArchivedRoom(report) &&
+        !isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) &&
         !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
         Object.keys(report.participants ?? {})
             .map(Number)
@@ -6505,7 +6520,7 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return (
         !isMoneyRequestReport(report) &&
-        !isArchivedRoom(report) &&
+        !isArchivedRoom(report, getReportNameValuePairs(report?.reportID)) &&
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
@@ -6654,7 +6669,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
     const isIOUAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
-    const isArchivedReport = isArchivedRoom(getReportOrDraftReport(reportID));
+    const isArchivedReport = isArchivedRoom(getReportOrDraftReport(reportID), getReportNameValuePairs(reportID));
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
 
     return (
@@ -7343,7 +7358,6 @@ export {
     navigateBackAfterDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,
-    reportFieldsEnabled,
     requiresAttentionFromCurrentUser,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
@@ -7376,6 +7390,7 @@ export {
     hasOnlyNonReimbursableTransactions,
     getMostRecentlyVisitedReport,
     getReport,
+    getReportNameValuePairs,
 };
 
 export type {
