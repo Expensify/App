@@ -553,6 +553,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
         policyID,
         oldTaxCode,
         newTaxCode,
+        taxID: originalTaxRate.name ?? '',
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_CODE, parameters, onyxData);
