@@ -1074,16 +1074,16 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         const {command, data} = request;
 
         if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
-            const policyNameChanged = data.policyName !== name;
-            const outputCurrencyChanged = data.outputCurrency !== currency;
+            const isPolicyNameChanged = data.policyName !== name;
+            const isCurrencyChanged = data.outputCurrency !== currency;
 
-            if (policyNameChanged || outputCurrencyChanged) {
+            if (isPolicyNameChanged || isCurrencyChanged) {
                 const updatedRequest = {
                     ...request,
                     data: {
                         ...data,
-                        policyName: policyNameChanged ? name : data.policyName,
-                        outputCurrency: outputCurrencyChanged ? currency : data.outputCurrency,
+                        policyName: isPolicyNameChanged ? name : data.policyName,
+                        outputCurrency: isCurrencyChanged ? currency : data.outputCurrency,
                     },
                 };
                 PersistedRequests.update(index, updatedRequest);
