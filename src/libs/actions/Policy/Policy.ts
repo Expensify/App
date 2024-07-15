@@ -55,6 +55,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyCategory, ReimbursementAccount, Report, ReportAction, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
@@ -1066,6 +1067,29 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         workspaceName: name,
         currency,
     };
+
+    const persistedRequests = PersistedRequests.getAll();
+
+    persistedRequests.forEach((request, index) => {
+        const {command, data} = request;
+
+        if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
+            const isPolicyNameChanged = data.policyName !== name;
+            const isCurrencyChanged = data.outputCurrency !== currency;
+
+            if (isPolicyNameChanged || isCurrencyChanged) {
+                const updatedRequest = {
+                    ...request,
+                    data: {
+                        ...data,
+                        policyName: isPolicyNameChanged ? name : data.policyName,
+                        outputCurrency: isCurrencyChanged ? currency : data.outputCurrency,
+                    },
+                };
+                PersistedRequests.update(index, updatedRequest);
+            }
+        }
+    });
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
         optimisticData,
@@ -3076,75 +3100,75 @@ function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
 }
 
 export {
-    leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
-    hasActiveChatEnabledPolicies,
-    setWorkspaceErrors,
-    clearCustomUnitErrors,
-    hideWorkspaceAlertMessage,
-    deleteWorkspace,
-    updateAddress,
-    updateWorkspaceCustomUnitAndRate,
-    updateLastAccessedWorkspace,
-    clearDeleteWorkspaceError,
-    openWorkspaceReimburseView,
-    setPolicyIDForReimburseView,
-    clearOnyxDataForReimburseView,
-    setRateForReimburseView,
-    setUnitForReimburseView,
-    generateDefaultWorkspaceName,
-    updateGeneralSettings,
-    deleteWorkspaceAvatar,
-    updateWorkspaceAvatar,
+    buildPolicyData,
     clearAvatarErrors,
-    generatePolicyID,
-    createWorkspace,
-    openPolicyTaxesPage,
-    openWorkspaceInvitePage,
-    openWorkspace,
-    removeWorkspace,
-    createWorkspaceFromIOUPayment,
+    clearCustomUnitErrors,
+    clearDeleteWorkspaceError,
     clearErrors,
-    dismissAddedWithPrimaryLoginMessages,
-    openDraftWorkspaceRequest,
+    clearNetSuiteAutoSyncErrorField,
+    clearNetSuiteErrorField,
+    clearOnyxDataForReimburseView,
+    clearPolicyErrorField,
+    clearQBOErrorField,
+    clearSageIntacctErrorField,
+    clearWorkspaceReimbursementErrors,
+    clearXeroErrorField,
     createDraftInitialWorkspace,
-    setWorkspaceInviteMessageDraft,
-    setWorkspaceApprovalMode,
-    setWorkspaceAutoReportingFrequency,
-    setWorkspaceAutoReportingMonthlyOffset,
-    updateWorkspaceDescription,
-    setWorkspacePayer,
-    setWorkspaceReimbursement,
-    openPolicyWorkflowsPage,
+    createDraftWorkspace,
+    createPolicyExpenseChats,
+    createWorkspace,
+    createWorkspaceFromIOUPayment,
+    deleteWorkspace,
+    deleteWorkspaceAvatar,
+    dismissAddedWithPrimaryLoginMessages,
+    enableDistanceRequestTax,
+    enableExpensifyCard,
     enablePolicyConnections,
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
-    enableDistanceRequestTax,
+    generateCustomUnitID,
+    generateDefaultWorkspaceName,
+    generatePolicyID,
+    getAdminPoliciesConnectedToSageIntacct,
+    getPrimaryPolicy,
+    hasActiveChatEnabledPolicies,
+    hideWorkspaceAlertMessage,
+    isCurrencySupportedForDirectReimbursement,
+    leaveWorkspace,
+    openDraftWorkspaceRequest,
+    openPolicyExpensifyCardsPage,
+    openPolicyInitialPage,
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,
-    openPolicyInitialPage,
-    generateCustomUnitID,
-    clearQBOErrorField,
-    clearXeroErrorField,
-    clearSageIntacctErrorField,
-    clearNetSuiteErrorField,
-    clearNetSuiteAutoSyncErrorField,
-    clearWorkspaceReimbursementErrors,
-    setWorkspaceCurrencyDefault,
+    openPolicyTaxesPage,
+    openPolicyWorkflowsPage,
+    openWorkspace,
+    openWorkspaceInvitePage,
+    openWorkspaceReimburseView,
+    removeWorkspace,
+    requestExpensifyCardLimitIncrease,
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
-    clearPolicyErrorField,
-    isCurrencySupportedForDirectReimbursement,
-    getPrimaryPolicy,
-    createDraftWorkspace,
-    buildPolicyData,
-    enableExpensifyCard,
-    createPolicyExpenseChats,
+    setPolicyIDForReimburseView,
+    setRateForReimburseView,
+    setUnitForReimburseView,
+    setWorkspaceApprovalMode,
+    setWorkspaceAutoReportingFrequency,
+    setWorkspaceAutoReportingMonthlyOffset,
+    setWorkspaceCurrencyDefault,
+    setWorkspaceErrors,
+    setWorkspaceInviteMessageDraft,
+    setWorkspacePayer,
+    setWorkspaceReimbursement,
+    updateAddress,
+    updateGeneralSettings,
+    updateLastAccessedWorkspace,
+    updateWorkspaceAvatar,
+    updateWorkspaceCustomUnitAndRate,
+    updateWorkspaceDescription,
     upgradeToCorporate,
-    openPolicyExpensifyCardsPage,
-    requestExpensifyCardLimitIncrease,
-    getAdminPoliciesConnectedToSageIntacct,
 };
 
 export type {NewCustomUnit};
