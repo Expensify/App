@@ -20,27 +20,27 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 
-type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GL_CODE>;
+type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE>;
 
-function CategoryGLCodePage({route}: EditCategoryPageProps) {
+function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyId = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const categoryName = route.params.categoryName;
-    const glCode = policyCategories?.[categoryName]?.['GL Code'];
+    const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const editGLCode = useCallback(
+    const editPayrollCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newGLCode = values.glCode.trim();
-            if (newGLCode !== glCode) {
-                Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
+            const newPayrollCode = values.payrollCode.trim();
+            if (newPayrollCode !== payrollCode) {
+                Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newPayrollCode);
             }
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName));
         },
-        [categoryName, glCode, route.params.policyID],
+        [categoryName, payrollCode, route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -52,16 +52,16 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={CategoryGLCodePage.displayName}
+                testID={CategoryPayrollCodePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.glCode')}
+                    title={translate('workspace.categories.payrollCode')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
-                    onSubmit={editGLCode}
+                    onSubmit={editPayrollCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
@@ -69,10 +69,10 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
-                        defaultValue={glCode}
-                        label={translate('workspace.categories.glCode')}
-                        accessibilityLabel={translate('workspace.categories.glCode')}
-                        inputID={INPUT_IDS.GL_CODE}
+                        defaultValue={payrollCode}
+                        label={translate('workspace.categories.payrollCode')}
+                        accessibilityLabel={translate('workspace.categories.payrollCode')}
+                        inputID={INPUT_IDS.PAYROLL_CODE}
                         role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.MAX_LENGTH_256}
                     />
@@ -82,6 +82,6 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     );
 }
 
-CategoryGLCodePage.displayName = 'CategoryGLCodePage';
+CategoryPayrollCodePage.displayName = 'CategoryPayrollCodePage';
 
-export default CategoryGLCodePage;
+export default CategoryPayrollCodePage;
