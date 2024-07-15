@@ -72,13 +72,13 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                     title={translate('common.share')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <ScrollView style={[themeStyles.flex1, themeStyles.pt2]}>
+                <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                     <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
-                        <View style={[themeStyles.mh5, themeStyles.mv1]}>
-                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mt2]}>{shareNote.header}</Text>
+                        <View style={[themeStyles.mh5]}>
+                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{shareNote.header}</Text>
                         </View>
-                        <View style={[themeStyles.mh5, themeStyles.mt1, themeStyles.mb9]}>
-                            <Text style={[themeStyles.textNormal, themeStyles.mt2]}>
+                        <View style={[themeStyles.mh5, themeStyles.mb9]}>
+                            <Text style={[themeStyles.textNormal]}>
                                 {shareNote.contentParts[0]}
                                 <TextLink
                                     style={themeStyles.link}
