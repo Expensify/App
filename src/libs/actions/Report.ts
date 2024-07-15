@@ -2705,7 +2705,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
 
-    // if this is the leave action from workspace room or chat thread, simply dismiss the modal, i.e: allowing user to view the room/thread and join again immediately
+    // If this is the leave action from a workspace room or chat thread, simply dismiss the modal, i.e., allow the user to view the room/thread and join again immediately.
     if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
         return;
     }
