@@ -40,11 +40,13 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>9.0.6.2</string>
+	<string>9.0.6.4</string>
 	<key>FullStory</key>
 	<dict>
 		<key>OrgId</key>
 		<string>o-1WN56P-na1</string>
+		<key>RecordOnStart</key>
+		<false/>
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
