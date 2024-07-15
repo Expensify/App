@@ -170,10 +170,6 @@ function setSidebarLoaded() {
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
-function setShouldMaskOnyxState(shouldMask: boolean) {
-    Onyx.set(ONYXKEYS.SHOULD_MASK_ONYX_STATE, shouldMask);
-}
-
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
@@ -505,7 +501,6 @@ export {
     setLocale,
     setLocaleAndNavigate,
     setSidebarLoaded,
-    setShouldMaskOnyxState,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,
     openApp,
