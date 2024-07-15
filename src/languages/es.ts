@@ -3378,6 +3378,16 @@ export default {
                 description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración Expensify + Sage Intacct. Obtén información financiera en profundidad y en tiempo real con dimensiones definidas por el usuario, así como codificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
                 onlyAvailableOnPlan: 'Nuestra integración Sage Intacct sólo está disponible en el plan Control, a partir de ',
             },
+            glCodes: {
+                title: 'GL codes',
+                description: `Add GL codes to your categories for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'GL codes are only available on the Control plan, starting at ',
+            },
+            glAndPayrollCodes: {
+                title: 'GL & Payroll codes',
+                description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
+            },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',

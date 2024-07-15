@@ -5317,6 +5317,22 @@ const CONST = {
             description: 'workspace.upgrade.sageIntacct.description',
             icon: 'IntacctSquare',
         },
+        glCodes: {
+            id: 'gLCodes',
+            alias: 'gl-codes',
+            name: 'GL codes',
+            title: 'workspace.upgrade.glCodes.title',
+            description: 'workspace.upgrade.glCodes.description',
+            icon: 'Document',
+        },
+        glAndPayrollCodes: {
+            id: 'gLAndPayrollCodes',
+            alias: 'gl-and-payroll-codes',
+            name: 'GL & Payroll codes',
+            title: 'workspace.upgrade.glAndPayrollCodes.title',
+            description: 'workspace.upgrade.glAndPayrollCodes.description',
+            icon: 'Document',
+        },
     },
     REPORT_FIELD_TYPES: {
         TEXT: 'text',
