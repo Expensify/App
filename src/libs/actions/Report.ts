@@ -3221,7 +3221,7 @@ function completeOnboarding(
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
-            undefined,
+            currentUserAccountID,
             targetChatReportID,
             task.title,
             taskDescription,
