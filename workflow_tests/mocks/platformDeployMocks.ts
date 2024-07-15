@@ -77,7 +77,7 @@ const PLATFORM_DEPLOY__DESKTOP__SETUP_NODE__STEP_MOCK = createMockStep('Setup No
 const PLATFORM_DEPLOY__DESKTOP__DECRYPT_ID__STEP_MOCK = createMockStep('Decrypt Developer ID Certificate', 'Decrypting developer id certificate', 'DESKTOP', null, [
     'DEVELOPER_ID_SECRET_PASSPHRASE',
 ]);
-const PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK = createMockStep('Build desktop app', 'DESKTOP', null, [
+const PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK = createMockStep('Build desktop app', 'Building desktop app', 'DESKTOP', null, [
     'CSC_LINK',
     'CSC_KEY_PASSWORD',
     'APPLE_ID',
