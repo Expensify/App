@@ -37,9 +37,6 @@ const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 
-// Some existing old commands (6+ years) exempted from the auth writes count check
-const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
-
 /**
  * The API commands that require the skew calculation
  */
@@ -133,7 +130,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 });
             }
 
-            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR && !exemptedCommandsWithAuthWrites.includes(response.data?.phpCommandName ?? '')) {
+            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
                 if (response.data) {
                     const {phpCommandName, authWriteCommands} = response.data;
                     // eslint-disable-next-line max-len
