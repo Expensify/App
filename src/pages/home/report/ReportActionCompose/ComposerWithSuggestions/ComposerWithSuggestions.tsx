@@ -54,7 +54,6 @@ import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -299,20 +298,9 @@ function ComposerWithSuggestions(
     const [composerHeight, setComposerHeight] = useState(0);
 
     const textInputRef = useRef<TextInput | null>(null);
-    const insertedEmojisRef = useRef<Emoji[]>([]);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
-
-    /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        // TODO: this function isn't even debounced if you look closely...
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
-        insertedEmojisRef.current = [];
-    }, []);
 
     /**
      * Set the TextInput Ref
@@ -728,6 +716,8 @@ function ComposerWithSuggestions(
     }, []);
 
     useEffect(() => {
+        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
