@@ -414,8 +414,15 @@ type OriginalMessageUnapproved = {
     expenseReportID: string;
 };
 
+/**
+ * Model of `Add payment card` report action
+ */
+type OriginalMessageAddPaymentCard = Record<string, never>;
+
 /** The map type of original message */
 type OriginalMessageMap = {
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicyChangeLog;
     /** */
