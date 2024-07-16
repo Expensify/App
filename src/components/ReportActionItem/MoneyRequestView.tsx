@@ -114,7 +114,7 @@ function MoneyRequestView({
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit, swapForTranslation} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
         selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
@@ -355,18 +355,10 @@ function MoneyRequestView({
         !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
-    const errors = useMemo(() => {
-        const combinedErrors = {
-            ...(transaction?.errorFields?.route ?? transaction?.errors),
-            ...parentReportAction?.errors,
-        };
-        return Object.fromEntries(
-            Object.entries(combinedErrors).map(([key, value]) =>
-                // swap for translation for each error message
-                [key, swapForTranslation(value as string)],
-            ),
-        );
-    }, [transaction?.errorFields?.route, transaction?.errors, parentReportAction?.errors, swapForTranslation]);
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...parentReportAction?.errors,
+    };
 
     const tagList = policyTagLists.map(({name, orderWeight}, index) => {
         const tagError = getErrorForField(

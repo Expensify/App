@@ -5,7 +5,6 @@ import Log from '@libs/Log';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
-import msgTranslationKeySwapMapping from '@src/languages/msgTranslationKeySwapMapping';
 import translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -226,19 +225,5 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-/**
- * This function match the message in the translation mapping and return the translation.
- * @param locale - The locale to translate the message to.
- * @param message - The message to translate.
- * @returns - translation of the message or the original message if no translation found
- */
-function swapForTranslation(locale: Locale, message: string): string {
-    const translationKey: string | undefined = msgTranslationKeySwapMapping[message];
-    if (translationKey) {
-        return translate(locale, translationKey as TranslationPaths);
-    }
-    return message;
-}
-
-export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale, swapForTranslation};
+export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase};
