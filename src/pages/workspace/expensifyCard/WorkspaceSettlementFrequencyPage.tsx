@@ -62,9 +62,9 @@ function WorkspaceSettlementFrequencyPage({route}: StackScreenProps<SettingsNavi
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
                 testID={WorkspaceSettlementFrequencyPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.expensifyCard.settlementFrequency')} />
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementFrequencyDescription')}</Text>

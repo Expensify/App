@@ -39,9 +39,9 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
                 testID={WorkspaceCardSettingsPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>

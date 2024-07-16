@@ -85,9 +85,9 @@ function WorkspaceSettlementAccountPage({route}: StackScreenProps<SettingsNaviga
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
                 testID={WorkspaceSettlementAccountPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.expensifyCard.settlementAccount')} />
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
