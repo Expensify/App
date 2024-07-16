@@ -106,6 +106,7 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const hideControl = useCallback(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
         controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
     }, [controlsOpacity]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 2000), [hideControl]);
