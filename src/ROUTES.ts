@@ -847,6 +847,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID',
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,

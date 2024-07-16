@@ -7,11 +7,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 
 type ShowContextMenuContextProps = {
     anchor: ContextMenuAnchor;
     report: OnyxEntry<Report>;
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
@@ -22,6 +23,7 @@ const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
     onShowContextMenu: (callback) => callback(),
     report: undefined,
+    reportNameValuePairs: undefined,
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
