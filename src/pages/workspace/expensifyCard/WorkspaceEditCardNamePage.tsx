@@ -61,7 +61,6 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
         >
             <ScreenWrapper
                 testID={WorkspaceEditCardNamePage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
