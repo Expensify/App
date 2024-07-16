@@ -50,8 +50,8 @@ const ROUTES = {
     },
 
     SEARCH_ADVANCED_FILTERS: {
-        route: '/search/:query/filters',
-        getRoute: (query: string) => `search/${query}/filters` as const,
+        route: '/search/filters',
+        getRoute: () => `search/filters` as const,
     },
 
     SEARCH_REPORT: {
