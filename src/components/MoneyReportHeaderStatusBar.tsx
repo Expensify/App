@@ -28,7 +28,9 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     }, [nextStep.message]);
 
     const iconComponent = useMemo(() => {
-        if (!nextStep.icon) return null;
+        if (!nextStep.icon) {
+            return null;
+        }
 
         const iconMap = {
             hourglass: Expensicons.Hourglass,
@@ -50,7 +52,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
-                {iconComponent || (
+                {iconComponent ?? (
                     <Badge
                         text={translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}
                         badgeStyles={styles.ml0}
