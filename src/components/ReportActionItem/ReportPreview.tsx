@@ -130,6 +130,7 @@ function ReportPreview({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
@@ -203,6 +204,18 @@ function ReportPreview({
         } else {
             IOU.approveMoneyRequest(iouReport, true);
         }
+    };
+
+    const getSettlementAmount = () => {
+        if (hasOnlyHeldExpenses) {
+            return '';
+        }
+
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+            return nonHeldAmount;
+        }
+
+        return CurrencyUtils.convertToDisplayString(reimbursableSpend, iouReport?.currency);
     };
 
     const getDisplayAmount = (): string => {
@@ -327,9 +340,8 @@ function ReportPreview({
      * Manual export
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
-    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
 
-    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
 
     return (
         <OfflineWithFeedback
@@ -415,7 +427,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
                                     <SettlementButton
-                                        formattedAmount={getDisplayAmount() ?? ''}
+                                        formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
@@ -441,6 +453,7 @@ function ReportPreview({
                                 )}
                                 {shouldShowExportIntegrationButton && (
                                     <ExportWithDropdownMenu
+                                        policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
                                     />
@@ -461,7 +474,7 @@ function ReportPreview({
             </View>
             {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}

@@ -7,31 +7,37 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyActions from '@libs/actions/Policy/Policy';
 import * as ReportActions from '@libs/actions/Report';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ExportWithDropdownMenuProps = {
+    policy: OnyxEntry<Policy>;
+
     report: OnyxEntry<Report>;
 
     connectionName: ConnectionName;
 };
 
-function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenuProps) {
+function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
-    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
+    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
-    const isExported = ReportUtils.isExported(report);
+    const isExported = ReportUtils.isExported(reportActions);
+    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
         const optionTemplate = {
@@ -57,7 +63,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
         }
         return options;
         // We do not include exportMethods not to re-render the component when the preffered export method changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
     const confirmExport = useCallback(() => {
@@ -76,13 +82,13 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
         if (!report?.policyID) {
             return;
         }
-        ReportActions.savePreferredExportMethod(report?.policyID, value);
+        PolicyActions.savePreferredExportMethod(report?.policyID, value);
     };
 
     return (
         <>
             <ButtonWithDropdownMenu<ReportExportType>
-                success
+                success={!hasIntegrationAutoSync}
                 pressOnEnter
                 shouldAlwaysShowDropdownMenu
                 anchorAlignment={{
@@ -108,17 +114,15 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
                 style={[isSmallScreenWidth && styles.flexGrow1]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
-            {!!modalStatus && (
-                <ConfirmModal
-                    title={translate('workspace.exportAgainModal.title')}
-                    onConfirm={confirmExport}
-                    onCancel={() => setModalStatus(null)}
-                    prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
-                    confirmText={translate('workspace.exportAgainModal.confirmText')}
-                    cancelText={translate('workspace.exportAgainModal.cancelText')}
-                    isVisible
-                />
-            )}
+            <ConfirmModal
+                title={translate('workspace.exportAgainModal.title')}
+                onConfirm={confirmExport}
+                onCancel={() => setModalStatus(null)}
+                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                confirmText={translate('workspace.exportAgainModal.confirmText')}
+                cancelText={translate('workspace.exportAgainModal.cancelText')}
+                isVisible={!!modalStatus}
+            />
         </>
     );
 }

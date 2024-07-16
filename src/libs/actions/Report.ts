@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
-import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -93,7 +92,6 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
-    ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
@@ -224,13 +222,6 @@ Onyx.connect({
     },
 });
 
-let reportMetadata: OnyxCollection<ReportMetadata> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-    waitForCollectionCallback: true,
-    callback: (value) => (reportMetadata = value),
-});
-
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -259,6 +250,14 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+let allReportDraftComments: Record<string, string | undefined> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportDraftComments = value),
 });
 
 registerPaginationConfig({
@@ -1328,6 +1327,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     if (report?.reportID && report.preexistingReportID) {
         let callback = () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
         };
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
@@ -1336,11 +1336,27 @@ function handleReportChanged(report: OnyxEntry<Report>) {
                 currCallback();
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? '-1'), CONST.NAVIGATION.TYPE.UP);
             };
+
+            // The report screen will listen to this event and transfer the draft comment to the existing report
+            // This will allow the newest draft comment to be transferred to the existing report
+            DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
+                preexistingReportID: report.preexistingReportID,
+                callback,
+            });
+
+            return;
         }
-        DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
-            preexistingReportID: report.preexistingReportID,
-            callback,
-        });
+
+        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+        // after that clear the optimistically created report
+        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
+        if (!draftReportComment) {
+            callback();
+            return;
+        }
+
+        saveReportDraftComment(report.preexistingReportID ?? '-1', draftReportComment, callback);
+
         return;
     }
 
@@ -2155,7 +2171,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string) {
+function deleteReport(reportID: string, shouldDeleteChildReports = false) {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
@@ -2175,20 +2191,32 @@ function deleteReport(reportID: string) {
 
     Onyx.multiSet(onyxData);
 
+    if (shouldDeleteChildReports) {
+        Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+            if (!reportAction.childReportID) {
+                return;
+            }
+            deleteReport(reportAction.childReportID, shouldDeleteChildReports);
+        });
+    }
+
     // Delete linked IOU report
     if (report?.iouReportID) {
-        deleteReport(report.iouReportID);
+        deleteReport(report.iouReportID, shouldDeleteChildReports);
     }
 }
 
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string) {
+function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack();
+    if (shouldPopToTop) {
+        Navigation.setShouldPopAllStateOnUP(true);
+    }
+    Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
-    deleteReport(reportID);
+    deleteReport(reportID, shouldDeleteChildReports);
 }
 
 /**
@@ -2583,17 +2611,7 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(
-        ReportConnection.getAllReports(),
-        false,
-        undefined,
-        false,
-        false,
-        reportMetadata,
-        undefined,
-        [],
-        currentReport?.reportID,
-    )?.reportID;
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
@@ -3854,11 +3872,6 @@ function markAsManuallyExported(reportID: string) {
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-/** Save the preferred export method for a policy */
-function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
-    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
-}
-
 export {
     searchInServer,
     addComment,
@@ -3944,6 +3957,5 @@ export {
     clearAvatarErrors,
     exportToIntegration,
     markAsManuallyExported,
-    savePreferredExportMethod,
     handleReportChanged,
 };

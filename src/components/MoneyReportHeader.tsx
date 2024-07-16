@@ -101,7 +101,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const navigateBackToAfterDelete = useRef<Route>();
@@ -111,14 +110,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // allTransactions in TransactionUtils might have stale data
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID, transactions);
 
-    const cancelPayment = useCallback(() => {
-        if (!chatReport) {
-            return;
-        }
-        IOU.cancelPayment(moneyRequestReport, chatReport);
-        setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
-
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
@@ -127,9 +118,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
 
-    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
-    // TODO: Double check the condition below
-    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && !!policy;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && !!policy;
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
 
@@ -296,6 +285,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
+                            policy={policy}
                             report={moneyRequestReport}
                             connectionName={connectedIntegration}
                         />
@@ -347,6 +337,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                     {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                         <ExportWithDropdownMenu
+                            policy={policy}
                             report={moneyRequestReport}
                             connectionName={connectedIntegration}
                         />
@@ -394,17 +385,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     transactionCount={transactionIDs.length}
                 />
             )}
-            <ConfirmModal
-                title={translate('iou.cancelPayment')}
-                isVisible={isConfirmModalVisible}
-                onConfirm={cancelPayment}
-                onCancel={() => setIsConfirmModalVisible(false)}
-                prompt={translate('iou.cancelPaymentConfirmation')}
-                confirmText={translate('iou.cancelPayment')}
-                cancelText={translate('common.dismiss')}
-                danger
-                shouldEnableNewFocusManagement
-            />
             <ConfirmModal
                 title={translate('iou.deleteExpense')}
                 isVisible={isDeleteRequestModalVisible}
