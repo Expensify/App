@@ -77,7 +77,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                             const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
                             const violation = ReportUtils.getFieldViolation(violations, reportField);
-                            const violationTranslation = ReportUtils.getFieldViolationTranslation(violation, reportField);
+                            const violationTranslation = ReportUtils.getFieldViolationTranslation(reportField, violation);
 
                             return (
                                 <OfflineWithFeedback

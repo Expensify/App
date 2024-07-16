@@ -7130,7 +7130,7 @@ function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField:
 /**
  * Returns translation for given field violation
  */
-function getFieldViolationTranslation(violation: ReportViolationName | undefined, reportField: PolicyReportField): string {
+function getFieldViolationTranslation(reportField: PolicyReportField, violation?: ReportViolationName): string {
     if (!violation) {
         return '';
     }
