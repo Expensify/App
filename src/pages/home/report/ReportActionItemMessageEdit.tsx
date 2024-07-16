@@ -50,6 +50,7 @@ import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
+import type { HandleComposerUpdateCallback } from './ReportActionCompose/ComposerWithSuggestions/types';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -403,6 +404,11 @@ function ReportActionItemMessageEdit(
         [cursorPositionValue.value, measureContainer, selection],
     );
 
+    const handleComposerUpdate: HandleComposerUpdateCallback = useCallback(
+        ({fullNewText}) => {
+            updateDraft(fullNewText);
+        }, [updateDraft])
+
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
 
@@ -535,11 +541,10 @@ function ReportActionItemMessageEdit(
                     <Suggestions
                         ref={suggestionsRef}
                         isComposerFocused={textInputRef.current?.isFocused()}
-                        updateComment={updateDraft}
+                        updateComposer={handleComposerUpdate}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                         isGroupPolicyReport={false}
                         value={draft}
-                        setValue={setDraft}
                         selection={selection}
                         setSelection={setSelection}
                     />
