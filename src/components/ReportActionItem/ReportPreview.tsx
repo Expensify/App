@@ -19,7 +19,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -129,7 +128,6 @@ function ReportPreview({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
@@ -461,7 +459,6 @@ function ReportPreview({
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={isSmallScreenWidth}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
