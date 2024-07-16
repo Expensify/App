@@ -39,8 +39,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             },
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
-            pendingAction: pendingFields?.export,
-            errorText: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
+            pendingAction: pendingFields?.exporter,
         },
         {
             description: translate('workspace.xero.exportExpenses'),
@@ -54,15 +53,14 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
-            pendingAction: pendingFields?.export,
-            errorText: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
+            pendingAction: pendingFields?.billDate,
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
+            brickRoadIndicator: errorFields?.billStatus ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
-            pendingAction: pendingFields?.export,
-            errorText: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
+            pendingAction: pendingFields?.billStatus,
         },
         {
             description: translate('workspace.xero.exportInvoices'),
@@ -83,8 +81,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.nonReimbursableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedBankAccountName,
-            pendingAction: pendingFields?.export,
-            errorText: errorFields?.nonReimbursableAccount ? translate('common.genericErrorMessage') : undefined,
+            pendingAction: pendingFields?.nonReimbursableAccount,
         },
     ];
 

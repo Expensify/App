@@ -6,6 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -36,6 +37,26 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData});
 }
 
+function createPendingFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+    pendingValue: OnyxCommon.PendingAction,
+) {
+    return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
+        acc[setting] = pendingValue;
+        return acc;
+    }, {});
+}
+
+function createErrorFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+    errorValue: OnyxCommon.Errors | null,
+) {
+    return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
+        acc[setting] = errorValue;
+        return acc;
+    }, {});
+}
+
 function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
@@ -51,12 +72,8 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
+                            pendingFields: createPendingFields(settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            errorFields: createErrorFields(settingValue, null),
                         },
                     },
                 },
@@ -73,12 +90,8 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            pendingFields: createPendingFields(settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            errorFields: createErrorFields(settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                         },
                     },
                 },
@@ -95,12 +108,8 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
+                            pendingFields: createPendingFields(settingValue, null),
+                            errorFields: createErrorFields(settingValue, null),
                         },
                     },
                 },

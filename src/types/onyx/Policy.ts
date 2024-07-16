@@ -503,96 +503,102 @@ type XeroMappingType = {
     [key in `trackingCategory_${string}`]: string;
 };
 
+/** Xero export configs */
+type XeroExportConfig = {
+    /** Current bill status */
+    billDate: BillDateValues;
+
+    /** TODO: Will be handled in another issue */
+    billStatus: {
+        /** Current status of the purchase bill */
+        purchase: BillStatusValues;
+
+        /** Current status of the sales bill */
+        sales: BillStatusValues;
+    };
+
+    /** TODO: Will be handled in another issue */
+    billable: ExpenseTypesValues;
+
+    /** The e-mail of the exporter */
+    exporter: string;
+
+    /** TODO: Will be handled in another issue */
+    nonReimbursable: ExpenseTypesValues;
+
+    /** TODO: Will be handled in another issue */
+    nonReimbursableAccount: string;
+
+    /** TODO: Will be handled in another issue */
+    reimbursable: ExpenseTypesValues;
+};
+
 /**
  * User configuration for the Xero accounting integration.
  *
  * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
-type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Xero auto synchronization configs */
-    autoSync: {
-        /** Whether data should be automatically synched between the app and Xero */
-        enabled: boolean;
+type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Xero auto synchronization configs */
+        autoSync: {
+            /** Whether data should be automatically synched between the app and Xero */
+            enabled: boolean;
 
-        /** TODO: Will be handled in another issue */
-        jobID: string;
-    };
-
-    /** TODO: Will be handled in another issue */
-    enableNewCategories: boolean;
-
-    /** Xero export configs */
-    export: {
-        /** Current bill status */
-        billDate: BillDateValues;
-
-        /** TODO: Will be handled in another issue */
-        billStatus: {
-            /** Current status of the purchase bill */
-            purchase: BillStatusValues;
-
-            /** Current status of the sales bill */
-            sales: BillStatusValues;
+            /** TODO: Will be handled in another issue */
+            jobID: string;
         };
 
         /** TODO: Will be handled in another issue */
-        billable: ExpenseTypesValues;
+        enableNewCategories: boolean;
 
-        /** The e-mail of the exporter */
-        exporter: string;
+        /** Xero export configs */
+        export: XeroExportConfig;
 
-        /** TODO: Will be handled in another issue */
-        nonReimbursable: ExpenseTypesValues;
+        /** Whether customers should be imported from Xero */
+        importCustomers: boolean;
 
-        /** TODO: Will be handled in another issue */
-        nonReimbursableAccount: string;
+        /** Whether tax rates should be imported from Xero */
+        importTaxRates: boolean;
 
-        /** TODO: Will be handled in another issue */
-        reimbursable: ExpenseTypesValues;
-    };
-
-    /** Whether customers should be imported from Xero */
-    importCustomers: boolean;
-
-    /** Whether tax rates should be imported from Xero */
-    importTaxRates: boolean;
-
-    /** Whether tracking categories should be imported from Xero */
-    importTrackingCategories: boolean;
-
-    /** TODO: Will be handled in another issue */
-    isConfigured: boolean;
-
-    /** TODO: Will be handled in another issue */
-    mappings: XeroMappingType;
-
-    /** TODO: Will be handled in another issue */
-    sync: {
-        /** TODO: Will be handled in another issue */
-        hasChosenAutoSyncOption: boolean;
+        /** Whether tracking categories should be imported from Xero */
+        importTrackingCategories: boolean;
 
         /** TODO: Will be handled in another issue */
-        hasChosenSyncReimbursedReportsOption: boolean;
+        isConfigured: boolean;
 
-        /** ID of the bank account for Xero invoice collections */
-        invoiceCollectionsAccountID: string;
+        /** TODO: Will be handled in another issue */
+        mappings: XeroMappingType;
 
-        /** ID of the bank account for Xero bill payment account */
-        reimbursementAccountID: string;
+        /** TODO: Will be handled in another issue */
+        sync: {
+            /** TODO: Will be handled in another issue */
+            hasChosenAutoSyncOption: boolean;
 
-        /** Whether the reimbursed reports should be synched */
-        syncReimbursedReports: boolean;
-    };
+            /** TODO: Will be handled in another issue */
+            hasChosenSyncReimbursedReportsOption: boolean;
 
-    /** ID of Xero organization */
-    tenantID: string;
+            /** ID of the bank account for Xero invoice collections */
+            invoiceCollectionsAccountID: string;
 
-    /** TODO: Will be handled in another issue */
-    errors?: OnyxCommon.Errors;
+            /** ID of the bank account for Xero bill payment account */
+            reimbursementAccountID: string;
 
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+            /** Whether the reimbursed reports should be synched */
+            syncReimbursedReports: boolean;
+        };
+
+        /** ID of Xero organization */
+        tenantID: string;
+
+        /** TODO: Will be handled in another issue */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof XeroExportConfig
+>;
 
 /** Data stored about subsidiaries from NetSuite  */
 type NetSuiteSubsidiary = {
