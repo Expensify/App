@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -38,8 +38,27 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         if (!isContinuousReconciliationOn) {
             Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
         }
-        // TODO: add API call when its supported https://github.com/Expensify/Expensify/issues/407834
+        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407834
     };
+
+    const navigateToAdvancedSettings = useCallback(() => {
+        switch (connection) {
+            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
+                break;
+            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+                break;
+            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+                break;
+            case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+                break;
+            default:
+                break;
+        }
+    }, [connection, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -63,13 +82,20 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         disabled={!autoSync}
                         isActive={!!isContinuousReconciliationOn}
                         onToggle={toggleContinuousReconciliation}
-                        wrapperStyle={[styles.ph5, styles.pb5]}
+                        wrapperStyle={styles.ph5}
                     />
-                    <Text style={[styles.mutedNormalTextLabel, styles.ph5]}>
-                        {translate('workspace.accounting.enableContinuousReconciliation')}
-                        <TextLink onPress={() => {}}>{translate('workspace.accounting.autoSync').toLowerCase()}</TextLink>
-                        {translate('common.conjunctionFor')} {connection}
-                    </Text>
+                    {!autoSync && (
+                        <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.mt2]}>
+                            {translate('workspace.accounting.enableContinuousReconciliation')}
+                            <TextLink
+                                style={styles.fontSizeLabel}
+                                onPress={navigateToAdvancedSettings}
+                            >
+                                {translate('workspace.accounting.autoSync').toLowerCase()}
+                            </TextLink>{' '}
+                            {translate('common.conjunctionFor')} {connection}
+                        </Text>
+                    )}
                     {!!reconciliationConnection && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
