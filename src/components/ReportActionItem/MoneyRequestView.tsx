@@ -373,7 +373,7 @@ function MoneyRequestView({
                 tagListName: name,
             },
             PolicyUtils.hasDependentTags(policy, policyTagList),
-            TransactionUtils.getTagForDisplay(transaction, index),
+            TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index),
         );
         return (
             <OfflineWithFeedback
@@ -382,7 +382,7 @@ function MoneyRequestView({
             >
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
-                    title={TransactionUtils.getTagForDisplay(transaction, index)}
+                    title={TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index)}
                     interactive={canEdit && !readonly}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}

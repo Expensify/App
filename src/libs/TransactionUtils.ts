@@ -858,7 +858,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
     const change: Record<string, any[]> = {};
 
     const fieldsToCompare: FieldsToCompare = {
-        merchant: ['merchant', 'modifiedMerchant'],
+        merchant: ['modifiedMerchant', 'merchant'],
         category: ['category'],
         tag: ['tag'],
         description: ['comment'],
@@ -931,7 +931,13 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? undefined;
     const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
 
-    return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant, comment: {comment: reviewDuplicateTransaction?.description}};
+    return {
+        ...originalTransaction,
+        ...restReviewDuplicateTransaction,
+        modifiedMerchant: reviewDuplicateTransaction?.merchant,
+        merchant: reviewDuplicateTransaction?.merchant,
+        comment: {comment: reviewDuplicateTransaction?.description},
+    };
 }
 
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
