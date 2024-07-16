@@ -149,7 +149,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
-            shouldSkipVBBACall={false}
             shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
