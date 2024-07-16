@@ -93,7 +93,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             >
                                 {translate('workspace.accounting.autoSync').toLowerCase()}
                             </TextLink>{' '}
-                            {translate('common.conjunctionFor')} {connection}
+                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]}
                         </Text>
                     )}
                     {!!reconciliationConnection && (
