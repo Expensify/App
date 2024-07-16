@@ -1062,6 +1062,8 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             return acc;
         }, []);
 
+    // Use lodash's sortBy to ensure consistency with oldDot.
+    // See: https://github.com/Expensify/App/issues/33650#issuecomment-1919599578
     return lodashSortBy(flatHierarchy(hierarchy), 'name', localeCompare) as Category[];
 }
 
