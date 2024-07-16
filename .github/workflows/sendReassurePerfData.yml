@@ -25,7 +25,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          npx reassure --baseline
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
       - name: Get merged pull request
         id: getMergedPullRequest

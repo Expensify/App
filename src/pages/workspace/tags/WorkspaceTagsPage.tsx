@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,9 +15,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -34,8 +35,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {TagListItem} from './types';
+import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
 type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
@@ -71,6 +73,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
+    const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
+        if (!policyTagList) {
+            return undefined;
+        }
+        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
+            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+            : undefined;
+    };
+
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.map((policyTagList) => ({
@@ -79,6 +90,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: PolicyUtils.getCleanedTagName(policyTagList.name),
                 keyForList: String(policyTagList.orderWeight),
                 isSelected: selectedTags[policyTagList.name],
+                pendingAction: getPendingAction(policyTagList),
                 enabled: true,
                 required: policyTagList.required,
                 rightElement: (
@@ -332,9 +344,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     />
                 )}
                 {!hasVisibleTag && !isLoading && (
-                    <WorkspaceEmptyStateSection
+                    <EmptyStateComponent
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={Illustrations.EmptyState}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                         title={translate('workspace.tags.emptyTags.title')}
-                        icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}

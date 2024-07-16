@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -22,6 +22,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -100,6 +101,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -125,6 +127,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        notNow: 'Ahora no',
         learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
@@ -161,6 +164,7 @@ export default {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
+        review: 'Revisar',
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
@@ -348,6 +352,7 @@ export default {
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
+        export: 'Exportar',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -371,8 +376,8 @@ export default {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
-        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
-        errorWhileSelectingCorruptedAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
+        errorWhileSelectingAttachment: 'Se ha producido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
+        errorWhileSelectingCorruptedAttachment: 'Se ha producido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir un archivo',
@@ -384,6 +389,8 @@ export default {
         notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
         protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
+        attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
+        attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -512,6 +519,7 @@ export default {
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
+        copyOnyxData: 'Copiar datos de Onyx',
         flagAsOffensive: 'Marcar como ofensivo',
         menu: 'Menú',
     },
@@ -597,7 +605,7 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     allSettingsScreen: {
-        subscriptions: 'Suscripciones',
+        subscription: 'Suscripcion',
         cardsAndDomains: 'Tarjetas y Dominios',
     },
     tabSelector: {
@@ -616,7 +624,13 @@ export default {
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
-        cameraErrorMessage: 'Se produjo un error al hacer una foto. Por favor, inténtalo de nuevo.',
+        locationAccessTitle: 'Permitir acceso a la ubicación',
+        locationAccessMessage:
+            'Usaremos tu ubicación para determinar con precisión la moneda y zona horaria predeterminadas. Puedes editar el acceso en la configuración de tu dispositivo en cualquier momento.',
+        locationErrorTitle: 'Habilitar ubicación en la configuración',
+        locationErrorMessage:
+            'Es necesario permitir el acceso a la ubicación para ayudar a determinar con precisión su moneda y zona horaria predeterminadas. Haz click en Configuración para actualizar los permisos.',
+        cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         flash: 'flash',
@@ -633,7 +647,7 @@ export default {
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
-        paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
+        paySomeone: (name: string) => `Pagar a ${name ?? 'alguien'}`,
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
         trackManual: 'Crear gasto',
@@ -693,8 +707,9 @@ export default {
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
             }`,
-        deleteExpense: 'Eliminar gasto',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
+
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
@@ -898,13 +913,13 @@ export default {
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
-        failedNewContact: 'Hubo un error al añadir este método de contacto.',
+        failedNewContact: 'Se ha producido un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
             validateSecondaryLogin: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
-            addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            addContactMethod: 'Se ha producido un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
             passwordRequired: 'Se requiere contraseña',
             contactMethodRequired: 'Se requiere método de contacto.',
@@ -1062,6 +1077,12 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
+        disable: 'Deshabilitar',
+        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
+        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
+        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
     recoveryCodeForm: {
         error: {
@@ -1123,7 +1144,7 @@ export default {
             addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
             addressState: 'Por favor, selecciona un estado.',
             addressCity: 'Por favor, introduce una ciudad.',
-            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
+            genericFailureMessage: 'Se ha producido un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
             password: 'Por favor, introduce tu contraseña de Expensify.',
         },
     },
@@ -1146,7 +1167,7 @@ export default {
             addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
             addressState: 'Por favor, selecciona un estado.',
             addressCity: 'Por favor, introduce una ciudad.',
-            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
+            genericFailureMessage: 'Se ha producido un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
             password: 'Por favor, introduce tu contraseña de Expensify.',
         },
     },
@@ -1157,9 +1178,9 @@ export default {
         deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
         error: {
-            notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como método de pago predeterminado.',
+            notOwnerOfBankAccount: 'Se ha producido un error al establecer esta cuenta bancaria como método de pago predeterminado.',
             invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
-            notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como método de pago predeterminado.',
+            notOwnerOfFund: 'Se ha producido un error al establecer esta tarjeta de crédito como método de pago predeterminado.',
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
@@ -1374,7 +1395,7 @@ export default {
         groupMembersListTitle: 'Directorio de los miembros del grupo.',
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
-        defaultReportName: ({displayName}: {displayName: string}) => `Chat de groupo de ${displayName}`,
+        defaultReportName: ({displayName}: {displayName: string}) => `Chat de grupo de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',
@@ -1537,7 +1558,7 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
-        startGroup: 'Grupo de inicio',
+        startGroup: 'Crear grupo',
         addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
@@ -1643,7 +1664,7 @@ export default {
         },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
-        hasBeenThrottledError: 'Se produjo un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
+        hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError:
             '¡Ups! Parece que la moneda de tu espacio de trabajo está configurada en una moneda diferente a USD. Para continuar, por favor configúrala en USD e inténtalo nuevamente.',
         error: {
@@ -1689,7 +1710,7 @@ export default {
         unknownFilename: 'Archivo desconocido',
         passwordRequired: 'Por favor, introduce tu contraseña',
         passwordIncorrect: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
-        failedToLoadPDF: 'Hubo un error al intentar cargar el PDF.',
+        failedToLoadPDF: 'Se ha producido un error al intentar cargar el PDF.',
         pdfPasswordForm: {
             title: 'PDF protegido con contraseña',
             infoText: 'Este PDF esta protegido con contraseña.',
@@ -1711,7 +1732,7 @@ export default {
         verifyIdentity: 'Verificar identidad',
         letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
         butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
-        genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
+        genericError: 'Se ha producido un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
         cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
         microphonePermissionsNotGranted: 'Permiso para acceder al micrófono',
@@ -2068,6 +2089,17 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            markAsExported: 'Marcar como introducido manualmente',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            letsDoubleCheck: 'Verifiquemos que todo esté correcto',
+            reportField: 'Campo del informe',
+            lineItemLevel: 'Nivel de partida',
+            reportLevel: 'Nivel de informe',
+            appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
+            createNewConnection: 'Crear una nueva conexión',
+            reuseExistingConnection: 'Reutilizar la conexión existente',
+            existingConnections: 'Conexiones existentes',
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2252,6 +2284,65 @@ export default {
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión.',
+        },
+
+        sageIntacct: {
+            preferredExporter: 'Exportador preferido',
+            notConfigured: 'No configurado',
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Utilice esta fecha cuando exporte informes a Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en la que se exportó el informe a Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha de presentación del informe para su aprobación.',
+                    },
+                },
+            },
+            reimbursableExpenses: {
+                label: 'Gastos reembolsables de exportación como',
+                description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            nonReimbursableExpenses: {
+                label: 'Exportar gastos no reembolsables como',
+                description:
+                    'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            creditCardAccount: 'Cuenta de tarjeta de crédito',
+            defaultVendor: 'Proveedor por defecto',
+            defaultVendorDescription: (isReimbursable: boolean): string =>
+                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
+            exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
+            exportPreferredExporterNote:
+                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Sage Intacct y sincroniza de nuevo la conexión.',
+            autoSync: 'Sincronización automática',
+            autoSyncDescription: 'Sincronice Sage Intacct y Expensify automáticamente, todos los días.',
+            inviteEmployees: 'Invitar a los empleados',
+            inviteEmployeesDescription:
+                'Importe los registros de empleados de Sage Intacct e invite a los empleados a este espacio de trabajo. Su flujo de trabajo de aprobación será por defecto la aprobación del gerente y se puede configurar aún más en la página Miembros.',
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription:
+                'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
+            paymentAccount: 'Cuenta de pago Sage Intacct',
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
@@ -2459,8 +2550,77 @@ export default {
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
-                    customSegments: 'Segmentos/registros personalizados',
-                    customLists: 'Listas personalizado',
+                    chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    requiredFieldError: (fieldName: string) => `Por favor, introduzca el ${fieldName}`,
+                    customSegments: {
+                        title: 'Segmentos/registros personalizados',
+                        addText: 'Añadir segmento/registro personalizado',
+                        recordTitle: 'Segmento personalizado',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre la configuración de segmentos/registros personalizado.',
+                        emptyTitle: 'Añadir un segmento personalizado o un registro personalizado',
+                        fields: {
+                            segmentName: 'Name',
+                            internalID: 'Identificación interna',
+                            scriptID: 'ID de guión',
+                            mapping: 'Mostrado como',
+                            customRecordScriptID: 'ID de columna de transacción',
+                        },
+                        removeTitle: 'Eliminar segmento/registro personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar este segmento/registro personalizado?',
+                        addForm: {
+                            customSegmentName: 'nombre de segmento personalizado',
+                            customRecordName: 'nombre de registro personalizado',
+                            segmentTitle: 'Segmento personalizado',
+                            customSegmentAddTitle: 'Añadir segmento personalizado',
+                            customRecordAddTitle: 'Añadir registro personalizado',
+                            recordTitle: 'Registro personalizado',
+                            segmentRecordType: '¿Desea añadir un segmento personalizado o un registro personalizado?',
+                            customSegmentNameTitle: '¿Cuál es el nombre del segmento personalizado?',
+                            customRecordNameTitle: '¿Cuál es el nombre del registro personalizado?',
+                            customSegmentNameFooter: `Puede encontrar los nombres de los segmentos personalizados en NetSuite en la página *Personalizaciones > Vínculos, registros y campos > Segmentos personalizados*.\nn_Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customRecordNameFooter: `Puede encontrar nombres de registros personalizados en NetSuite introduciendo el "Campo de columna de transacción" en la búsqueda global.\nn_Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentInternalIDTitle: '¿Cuál es la identificación interna?',
+                            customSegmentInternalIDFooter: `En primer lugar, asegúrese de que ha habilitado los ID internos en NetSuite en *Inicio > Establecer preferencias > Mostrar ID interno*. *Personalización > Listas, registros y campos > Segmentos personalizados*.\n2. Haga clic en un segmento personalizado. Haga clic en un segmento personalizado. Haga clic en el hipervínculo situado junto a *Tipo de registro personalizado*.\n4. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            customRecordInternalIDFooter: `Puede encontrar IDs internos de registros personalizados en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de línea de transacción" en la búsqueda global. Haga clic en un registro personalizado. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentScriptIDTitle: '¿Cuál es el ID del guión?',
+                            customSegmentScriptIDFooter: `Puede encontrar IDs de script de segmentos personalizados en NetSuite en: \n\n1. *Personalización > Listas, Registros y Campos > Segmentos Personalizados*.\n2. Haga clic en un segmento personalizado. a. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpestaña *Columnas de transacción* y utilice el *ID de campo*. b. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpestaña *Columnas de transacción* y utilice el *ID de campo*. Si desea mostrar el segmento personalizado como un *campo de informe* (a nivel de informe) en Expensify, haga clic en la subpestaña *Transacciones* y utilice el *ID de campo*. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            customRecordScriptIDTitle: '¿Cuál es el ID de columna de la transacción?',
+                            customRecordScriptIDFooter: `Puede encontrar IDs de script de registro personalizados en NetSuite en:\n\n1. Introduzca "Campos de línea de transacción" en la búsqueda global.\n2. Haga clic en un registro personalizado.\n3. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentMappingTitle: '¿Cómo debería mostrarse este segmento personalizado en Expensify?',
+                            customRecordMappingTitle: '¿Cómo debería mostrarse este registro de segmento personalizado en Expensify?',
+                        },
+                        errors: {
+                            uniqueFieldError: (fieldName: string) => `Ya existe un segmento/registro personalizado con este ${fieldName?.toLowerCase()}.`,
+                        },
+                    },
+                    customLists: {
+                        title: 'Listas personalizados',
+                        addText: 'Añadir lista personalizado',
+                        recordTitle: 'Lista personalizado',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre cómo configurar listas personalizado.',
+                        emptyTitle: 'Añadir una lista personalizado',
+                        fields: {
+                            listName: 'Nombre',
+                            internalID: 'Identificación interna',
+                            transactionFieldID: 'ID del campo de transacción',
+                            mapping: 'Mostrado como',
+                        },
+                        removeTitle: 'Eliminar lista personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar esta lista personalizado?',
+                        addForm: {
+                            listNameTitle: 'Elija una lista personalizada',
+                            transactionFieldIDTitle: '¿Cuál es el ID del campo de transacción?',
+                            transactionFieldIDFooter: `Puede encontrar los ID de campo de transacción en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de línea de transacción" en búsqueda global. Introduzca "Campos de línea de transacción" en la búsqueda global.\n2. Haga clic en una lista personalizada.\n3. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            mappingTitle: '¿Cómo debería mostrarse esta lista personalizada en Expensify?',
+                        },
+                        errors: {
+                            uniqueTransactionFieldIDError: `Ya existe una lista personalizada con este ID de campo de transacción.`,
+                        },
+                    },
                 },
                 importTypes: {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
@@ -2488,10 +2648,43 @@ export default {
             downloadExpensifyPackage: 'Descargar el paquete Expensify para Sage Intacct',
             followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
             enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
-            createNewConnection: 'Crear una nueva conexión',
-            reuseExistingConnection: 'Reutilizar la conexión existente',
-            existingConnections: 'Conexiones existentes',
-            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Última sincronización ${formattedDate}`,
+            entity: 'Entidad',
+            employeeDefault: 'Sage Intacct empleado por defecto',
+            employeeDefaultDescription: 'El departamento por defecto del empleado se aplicará a sus gastos en Sage Intacct si existe.',
+            displayedAsTagDescription: 'Se podrá seleccionar el departamento para cada gasto individual en el informe de un empleado.',
+            displayedAsReportFieldDescription: 'La selección de departamento se aplicará a todos los gastos que figuren en el informe de un empleado.',
+            toggleImportTitleFirstPart: 'Elija cómo gestionar Sage Intacct ',
+            toggleImportTitleSecondPart: ' en Expensify.',
+            expenseTypes: 'Tipos de gastos',
+            expenseTypesDescription: 'Los tipos de gastos de Sage Intacct se importan a Expensify como categorías.',
+            importTaxDescription: 'Importar el tipo impositivo de compra desde Sage Intacct.',
+            userDefinedDimensions: 'Dimensiones definidas por el usuario',
+            addUserDefinedDimension: 'Añadir dimensión definida por el usuario',
+            integrationName: 'Nombre de la integración',
+            dimensionExists: 'Ya existe una dimensión con ese nombre.',
+            removeDimension: 'Eliminar dimensión definida por el usuario',
+            removeDimensionPrompt: 'Está seguro de que desea eliminar esta dimensión definida por el usuario?',
+            userDefinedDimension: 'Dimensión definida por el usuario',
+            addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
+            detailedInstructionsLink: 'Ver instrucciones detalladas',
+            detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
+            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} añadido`,
+            mappingTitle: (mappingName: SageIntacctMappingName): string => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return 'departamentos';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return 'clases';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return 'lugares';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return 'clientes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return 'proyectos (empleos)';
+                    default:
+                        return 'asignaciones';
+                }
+            },
         },
         type: {
             free: 'Gratis',
@@ -2506,12 +2699,23 @@ export default {
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            cardLimit: 'Límite de la tarjeta',
             remainingLimit: 'Límite restante',
             requestLimitIncrease: 'Solicitar aumento de límite',
             remainingLimitDescription:
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
             cashBack: 'Reembolso',
             cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            issueNewCard: '',
+            finishSetup: 'Terminar configuración',
+            chooseBankAccount: 'Elegir cuenta bancaria',
+            chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
+            accountEndingIn: 'Cuenta terminada en',
+            addNewBankAccount: 'Añadir nueva cuenta bancaria',
+            cardDetails: 'Datos de la tarjeta',
+            virtual: 'Virtual',
+            physical: 'Física',
+            deactivate: 'Desactivar tarjeta',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2540,6 +2744,10 @@ export default {
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
             importedFromAccountingSoftware: 'Categorías importadas desde',
+            payrollCode: 'Código de nómina',
+            updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
         },
         moreFeatures: {
             spendSection: {
@@ -2608,8 +2816,10 @@ export default {
         },
         reportFields: {
             addField: 'Añadir campo',
-            delete: 'Eliminar campos',
-            deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
+            delete: 'Eliminar campo',
+            deleteFields: 'Eliminar campos',
+            deleteConfirmation: '¿Está seguro de que desea eliminar este campo del informe?',
+            deleteFieldsConfirmation: '¿Está seguro de que desea eliminar estos campos del informe?',
             emptyReportFields: {
                 title: 'No has creado ningún campo de informe',
                 subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
@@ -2673,8 +2883,10 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
-            genericFailureMessage: 'Se produjo un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
+            genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -2867,6 +3079,8 @@ export default {
                             return 'Actualizando empleados';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Actualizando clases';
+                        case 'jobDone':
+                            return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Sincronizando plan de cuentas';
                         case 'xeroSyncImportCategories':
@@ -2922,6 +3136,7 @@ export default {
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
@@ -2935,6 +3150,14 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
+            cardReconciliation: 'Conciliación de tarjetas',
+            reconciliationAccount: 'Cuenta de conciliación',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
+                accountMatches: 'Asegúrate de que esta cuenta coincide con ',
+                settlementAccount: 'la cuenta de liquidación de tu Tarjeta Expensify ',
+                reconciliationWorks: (lastFourPAN: string) => `(que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -2997,6 +3220,11 @@ export default {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
         },
+        export: {
+            notReadyHeading: 'No está listo para exportar',
+            notReadyDescription:
+                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
+        },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
@@ -3038,7 +3266,7 @@ export default {
             member: 'Invitar miembros',
             members: 'Invitar miembros',
             invitePeople: 'Invitar nuevos miembros',
-            genericFailureMessage: 'Se produjo un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo..',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
             user: 'miembro',
             users: 'miembros',
@@ -3053,7 +3281,7 @@ export default {
             inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
-            genericFailureMessage: 'Se produjo un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo..',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo..',
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -3086,7 +3314,7 @@ export default {
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
             save: 'Guardar',
-            genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
+            genericFailureMessage: 'Se ha producido un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
             addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
         },
@@ -3158,6 +3386,14 @@ export default {
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
+        },
+
+        exportAgainModal: {
+            title: '¡Cuidado!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
+            confirmText: 'Sí, exportar de nuevo',
+            cancelText: 'Cancelar',
         },
         upgrade: {
             reportFields: {
@@ -3283,8 +3519,8 @@ export default {
         },
         markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
-        assigneeError: 'Hubo un error al asignar esta tarea. Por favor, inténtalo con otro miembro.',
-        genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea. Por favor, inténtalo más tarde.',
+        assigneeError: 'Se ha producido un error al asignar esta tarea. Por favor, inténtalo con otro miembro.',
+        genericCreateTaskFailureMessage: 'Error inesperado al crear la tarea. Por favor, inténtalo más tarde.',
         deleteTask: 'Eliminar tarea',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
@@ -3309,6 +3545,7 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
+        selectMultiple: 'Seleccionar múltiples',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         searchResults: {
             emptyResults: {
@@ -3435,7 +3672,7 @@ export default {
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
-                managerDetachReceipt: `quitó el recibo`,
+                managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagó ${currency}${amount} mediante integración`,
                 outdatedBankAccount: `no se pudo procesar el pago debido a un problema con la cuenta bancaria del pagador`,
@@ -4141,7 +4378,19 @@ export default {
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
-        modifiedAmount: 'Importe superior al del recibo escaneado',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+            switch (type) {
+                case 'distance':
+                    return 'Importe difiere del calculado basado en distancia';
+                case 'card':
+                    return 'Importe mayor al de la transacción de la tarjeta';
+                default:
+                    if (displayPercentVariance) {
+                        return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
+                    }
+                    return 'Importe mayor al del recibo escaneado';
+            }
+        },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
@@ -4238,7 +4487,7 @@ export default {
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
     },
     listBoundary: {
-        errorMessage: 'Se produjo un error al cargar más mensajes.',
+        errorMessage: 'Se ha producido un error al cargar más mensajes.',
         tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
@@ -4303,11 +4552,15 @@ export default {
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
-                subtitle: 'Para empezar, ',
-                subtitleLink: 'completa la lista de configuración aquí.',
+                subtitle: '¡Ya casi estamos! Completa ',
+                subtitleLink: 'la lista de configuración.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            trialEnded: {
+                title: 'Tu prueba gratuita ha terminado',
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
         },
@@ -4389,7 +4642,7 @@ export default {
         },
         paymentCard: {
             addPaymentCard: 'Añade tarjeta de pago',
-            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago.',
+            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago',
             security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
             learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
         },
