@@ -1073,7 +1073,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     persistedRequests.forEach((request, index) => {
         const {command, data} = request;
 
-        if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {        
+        if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
             if (data.policyName !== name) {
                 const createWorkspaceRequest = {
                     ...request,
