@@ -774,7 +774,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         if (!navigateBackToAfterDelete.current) {
                             Navigation.dismissModal();
                         } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
