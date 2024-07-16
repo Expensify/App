@@ -79,6 +79,7 @@ import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
+import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
@@ -91,6 +92,7 @@ import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustra
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
+import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
@@ -189,6 +191,7 @@ export {
     Pencil,
     Tag,
     CarIce,
+    ReceiptLocationMarker,
     Lightbulb,
     EmptyStateTravel,
     SubscriptionAnnual,
@@ -202,4 +205,5 @@ export {
     EmptyState,
     FolderWithPapers,
     VirtualCard,
+    Tire,
 };

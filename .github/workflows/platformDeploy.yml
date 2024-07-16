@@ -84,6 +84,7 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android beta
         env:
+          RUBYOPT: '-rostruct' # TODO: Temporary fix until https://github.com/fastlane/fastlane/pull/21950 gets released
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
@@ -91,17 +92,18 @@ jobs:
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android production
         env:
+          RUBYOPT: '-rostruct' # TODO: Temporary fix until https://github.com/fastlane/fastlane/pull/21950 gets released
           VERSION: ${{ env.VERSION_CODE }}
 
       - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-sourcemap-${{ github.ref_name }}
           path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Upload Android version to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-production-release.aab
           path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
@@ -246,14 +248,14 @@ jobs:
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
       - name: Archive iOS sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemap-${{ github.ref_name }}
           path: main.jsbundle.map
 
       - name: Upload iOS version to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: New Expensify.ipa
           path: /Users/runner/work/App/App/New Expensify.ipa
