@@ -3523,7 +3523,7 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        selectMultiple: 'Seleccionar múltiples',
+        selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         searchResults: {
             emptyResults: {
@@ -3538,7 +3538,7 @@ export default {
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
-        offlinePrompt: 'No puedes realizar esta acción ahora mismo porque pareces estar desconectado.',
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo porque parece que estás desconectado.',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
