@@ -44,6 +44,9 @@ export default {
     mnh20: {
         minHeight: 80,
     },
+    mnh40: {
+        minHeight: 40,
+    },
 
     mnh0: {
         minHeight: 0,
