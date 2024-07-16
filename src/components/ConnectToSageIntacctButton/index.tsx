@@ -10,7 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
+import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -34,7 +34,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
-    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct().length;
+    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -42,7 +42,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
-            text: translate('workspace.intacct.createNewConnection'),
+            text: translate('workspace.common.createNewConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
@@ -50,7 +50,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         },
         {
             icon: Expensicons.Copy,
-            text: translate('workspace.intacct.reuseExistingConnection'),
+            text: translate('workspace.common.reuseExistingConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
