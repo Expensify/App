@@ -51,7 +51,6 @@ function BaseVideoPlayer({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
     isPreview,
-    canToggleControlOnTap = false,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {
@@ -106,14 +105,13 @@ function BaseVideoPlayer({
         }
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
-    const hideControl = useCallback(
-        () => (controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE))),
-        [controlsOpacity],
-    );
+    const hideControl = useCallback(() => {
+        controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+    }, [controlsOpacity]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 2000), [hideControl]);
 
     useEffect(() => {
-        if (!canToggleControlOnTap || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+        if (controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
         if (!isPlaying || isPopoverVisible) {
@@ -122,19 +120,16 @@ function BaseVideoPlayer({
         }
 
         debouncedHideControl();
-    }, [isPlaying, debouncedHideControl, controlStatusState, canToggleControlOnTap, isPopoverVisible]);
+    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible]);
 
     const showControl = useCallback(() => {
-        if (!canToggleControlOnTap) {
-            return;
-        }
         if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             debouncedHideControl();
             return;
         }
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.value = 1;
-    }, [canToggleControlOnTap, controlStatusState, controlsOpacity, debouncedHideControl]);
+    }, [controlStatusState, controlsOpacity, debouncedHideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
