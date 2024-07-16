@@ -603,7 +603,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof XeroAutoSyncConfig | keyof XeroExportConfig | keyof XeroSyncConfig
+    keyof XeroAutoSyncConfig | keyof XeroExportConfig | keyof XeroSyncConfig | keyof XeroMappingType
 >;
 
 /** Data stored about subsidiaries from NetSuite  */

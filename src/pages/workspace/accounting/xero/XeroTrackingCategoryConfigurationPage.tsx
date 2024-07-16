@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,9 +24,10 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const xeroConfig = policy?.connections?.xero?.config;
     const isSwitchOn = !!xeroConfig?.importTrackingCategories;
 
-    const menuItems: MenuItemProps[] = useMemo(() => {
+    const menuItems = useMemo(() => {
         const trackingCategories = getTrackingCategories(policy);
         return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => ({
+            id: category.id,
             description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
             title: translate(`workspace.xero.trackingCategoriesOptions.${category.value.toLowerCase()}` as TranslationPaths),
@@ -63,7 +63,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             />
             {xeroConfig?.importTrackingCategories && (
                 <View>
-                    {menuItems.map((menuItem: MenuItemProps) => (
+                    {menuItems.map((menuItem) => (
                         <MenuItemWithTopDescription
                             key={menuItem.description}
                             title={menuItem.title}
@@ -71,6 +71,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             shouldShowRightIcon
                             onPress={menuItem.onPress}
                             wrapperStyle={styles.sectionMenuItemTopDescription}
+                            brickRoadIndicator={xeroConfig?.errorFields?.[`trackingCategory_${menuItem.id}`] ? 'error' : undefined}
                         />
                     ))}
                 </View>
