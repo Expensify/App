@@ -77,7 +77,7 @@ function CardSection() {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (SubscriptionUtils.hasUserFreeTrialEnded() && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
+    } else if (SubscriptionUtils.hasUserFreeTrialEnded()) {
         BillingBanner = <TrialEndedBillingBanner />;
     } else if (billingStatus) {
         BillingBanner = (
