@@ -748,15 +748,6 @@ function updateSageIntacctEntity(policyID: string, entity: string) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity));
 }
 
-function reuseSageIntacctConnection(policyID: string, targetPolicyID: string, connectionName: string) {
-    const parameters = {
-        policyID,
-        targetPolicyID,
-        connectionName,
-    };
-    API.write(WRITE_COMMANDS.COPY_EXISTING_POLICY_CONNECTION, parameters, {});
-}
-
 export {
     connectToSageIntacct,
     updateSageIntacctBillable,
@@ -778,5 +769,4 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
-    reuseSageIntacctConnection,
 };
