@@ -338,8 +338,8 @@ const ROUTES = {
             `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
     },
     MONEY_REQUEST_CREATE: {
-        route: ':action/:iouType/start/:transactionID/:reportID/:iouRequestType',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, iouRequestType: IOURequestType) => `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${iouRequestType}` as const,
+        route: ':action/:iouType/start/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_SEND_FROM: {
         route: 'create/:iouType/from/:transactionID/:reportID',
