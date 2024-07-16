@@ -6,6 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
@@ -18,13 +19,11 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
-
 
 function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    
+
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const route = useRoute();
