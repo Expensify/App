@@ -1,3 +1,4 @@
+import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -38,9 +39,14 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
 }
 
 function createPendingFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    settingName: TSettingName,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
     pendingValue: OnyxCommon.PendingAction,
 ) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: pendingValue};
+    }
+
     return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
         acc[setting] = pendingValue;
         return acc;
@@ -48,9 +54,14 @@ function createPendingFields<TConnectionName extends ConnectionNameExceptNetSuit
 }
 
 function createErrorFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    settingName: TSettingName,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: errorValue};
+    }
+
     return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
         acc[setting] = errorValue;
         return acc;
@@ -72,8 +83,8 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: createPendingFields(settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
-                            errorFields: createErrorFields(settingValue, null),
+                            pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            errorFields: createErrorFields(settingName, settingValue, null),
                         },
                     },
                 },
@@ -90,8 +101,8 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: createPendingFields(settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
-                            errorFields: createErrorFields(settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
+                            pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                         },
                     },
                 },
@@ -108,8 +119,8 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: createPendingFields(settingValue, null),
-                            errorFields: createErrorFields(settingValue, null),
+                            pendingFields: createPendingFields(settingName, settingValue, null),
+                            errorFields: createErrorFields(settingName, settingValue, null),
                         },
                     },
                 },

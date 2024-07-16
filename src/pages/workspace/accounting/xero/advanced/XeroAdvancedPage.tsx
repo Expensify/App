@@ -21,7 +21,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {autoSync, pendingFields, sync} = xeroConfig ?? {};
+    const {autoSync, pendingFields, errorFields, sync} = xeroConfig ?? {};
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
 
@@ -62,9 +62,9 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         enabled: !autoSync?.enabled,
                     })
                 }
-                pendingAction={pendingFields?.autoSync}
-                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
-                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
+                pendingAction={pendingFields?.enabled}
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLED)}
+                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLED)}
             />
             <ToggleSettingOptionRow
                 key={translate('workspace.accounting.reimbursedReports')}
@@ -79,13 +79,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         syncReimbursedReports: !sync?.syncReimbursedReports,
                     })
                 }
-                pendingAction={pendingFields?.sync}
-                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC)}
-                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC)}
+                pendingAction={pendingFields?.syncReimbursedReports}
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
+                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
             />
             {sync?.syncReimbursedReports && (
                 <>
-                    <OfflineWithFeedback pendingAction={pendingFields?.sync}>
+                    <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             title={String(selectedBillPaymentAccountName)}
@@ -93,9 +93,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
+                            brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={pendingFields?.sync}>
+                    <OfflineWithFeedback pendingAction={pendingFields?.invoiceCollectionsAccountID}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             title={String(selectedBankAccountName)}
@@ -105,6 +106,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             onPress={() => {
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID));
                             }}
+                            brickRoadIndicator={errorFields?.invoiceCollectionsAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
                 </>

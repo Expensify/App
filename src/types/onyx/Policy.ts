@@ -503,6 +503,15 @@ type XeroMappingType = {
     [key in `trackingCategory_${string}`]: string;
 };
 
+/** Xero auto synchronization configs */
+type XeroAutoSyncConfig = {
+    /** Whether data should be automatically synched between the app and Xero */
+    enabled: boolean;
+
+    /** TODO: Will be handled in another issue */
+    jobID: string;
+};
+
 /** Xero export configs */
 type XeroExportConfig = {
     /** Current bill status */
@@ -533,6 +542,24 @@ type XeroExportConfig = {
     reimbursable: ExpenseTypesValues;
 };
 
+/** TODO: Will be handled in another issue */
+type XeroSyncConfig = {
+    /** TODO: Will be handled in another issue */
+    hasChosenAutoSyncOption: boolean;
+
+    /** TODO: Will be handled in another issue */
+    hasChosenSyncReimbursedReportsOption: boolean;
+
+    /** ID of the bank account for Xero invoice collections */
+    invoiceCollectionsAccountID: string;
+
+    /** ID of the bank account for Xero bill payment account */
+    reimbursementAccountID: string;
+
+    /** Whether the reimbursed reports should be synched */
+    syncReimbursedReports: boolean;
+};
+
 /**
  * User configuration for the Xero accounting integration.
  *
@@ -541,13 +568,7 @@ type XeroExportConfig = {
 type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Xero auto synchronization configs */
-        autoSync: {
-            /** Whether data should be automatically synched between the app and Xero */
-            enabled: boolean;
-
-            /** TODO: Will be handled in another issue */
-            jobID: string;
-        };
+        autoSync: XeroAutoSyncConfig;
 
         /** TODO: Will be handled in another issue */
         enableNewCategories: boolean;
@@ -571,22 +592,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         mappings: XeroMappingType;
 
         /** TODO: Will be handled in another issue */
-        sync: {
-            /** TODO: Will be handled in another issue */
-            hasChosenAutoSyncOption: boolean;
-
-            /** TODO: Will be handled in another issue */
-            hasChosenSyncReimbursedReportsOption: boolean;
-
-            /** ID of the bank account for Xero invoice collections */
-            invoiceCollectionsAccountID: string;
-
-            /** ID of the bank account for Xero bill payment account */
-            reimbursementAccountID: string;
-
-            /** Whether the reimbursed reports should be synched */
-            syncReimbursedReports: boolean;
-        };
+        sync: XeroSyncConfig;
 
         /** ID of Xero organization */
         tenantID: string;
@@ -597,7 +603,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof XeroExportConfig
+    keyof XeroAutoSyncConfig | keyof XeroExportConfig | keyof XeroSyncConfig
 >;
 
 /** Data stored about subsidiaries from NetSuite  */

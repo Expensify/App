@@ -1063,7 +1063,7 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
         RECHECK_INTERVAL_MS: 60 * 1000,
-        MAX_REQUEST_RETRIES: 10,
+        MAX_REQUEST_RETRIES: 0,
         NETWORK_STATUS: {
             ONLINE: 'online',
             OFFLINE: 'offline',
@@ -1326,7 +1326,11 @@ const CONST = {
 
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
+        ENABLED: 'enabled',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
         SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORT: 'export',
         EXPORTER: 'exporter',
