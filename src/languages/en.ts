@@ -3608,11 +3608,11 @@ export default {
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: ({label, markedManually}: ExportedToIntegrationParams) => {
+                    const friendlyLabel = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label;
                     if (markedManually) {
-                        // TODO: Verify translation - it was taken from the backend response, and it is needed here for the optimistic response
-                        return `You marked this report as manually exported to`;
+                        return `You marked this report as manually exported to ${friendlyLabel}`;
                     }
-                    return `exported this report to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}`;
+                    return `exported this report to ${friendlyLabel}`;
                 },
                 exportInProgress: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}...`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,

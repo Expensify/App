@@ -40,7 +40,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
+import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -5138,7 +5138,12 @@ function buildOptimisticTaskReport(
     };
 }
 
-// Manual export
+/**
+ * Builds an optimistic EXPORTED_TO_INTEGRATION report action
+ *
+ * @param label - The connectionName of the integration
+ * @param markedManually - Whether the integration was marked as manually exported
+ */
 function buildOptimisticExportIntegrationAction(label: ConnectionName, markedManually = false): OptimisticExportAction {
     return {
         reportActionID: NumberUtils.rand64(),

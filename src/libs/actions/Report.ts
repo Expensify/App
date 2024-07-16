@@ -24,6 +24,7 @@ import type {
     InviteToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
+    MarkAsExportedParams,
     MarkAsUnreadParams,
     OpenReportParams,
     OpenRoomMembersPageParams,
@@ -31,6 +32,7 @@ import type {
     RemoveEmojiReactionParams,
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
+    ReportExportParams,
     ResolveActionableMentionWhisperParams,
     ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
@@ -3814,19 +3816,17 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     ];
 
     const params = {
-        // TODO: Update it when backend is ready
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'reportIDList[]': reportID,
+        reportIDList: reportID,
         connectionName,
         type: 'MANUAL',
         optimisticReportActionID,
-    };
+    } satisfies ReportExportParams;
 
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData});
 }
 
-function markAsManuallyExported(reportID: string) {
-    const action = ReportUtils.buildOptimisticExportIntegrationAction(undefined, true);
+function markAsManuallyExported(reportID: string, connectionName: ConnectionName) {
+    const action = ReportUtils.buildOptimisticExportIntegrationAction(connectionName, true);
     const optimisticReportActionID = action.reportActionID;
 
     const optimisticData: OnyxUpdate[] = [
@@ -3862,12 +3862,10 @@ function markAsManuallyExported(reportID: string) {
     ];
 
     const params = {
-        // TODO: Update it when backend is ready
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'reportIDList[]': reportID,
+        reportIDList: reportID,
         markedManually: true,
         optimisticReportActionID,
-    };
+    } satisfies MarkAsExportedParams;
 
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
