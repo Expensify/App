@@ -137,6 +137,7 @@ function MoneyRequestParticipantsSelector({
             undefined,
             undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
+            action,
         );
 
         return optionList;
@@ -232,7 +233,17 @@ function MoneyRequestParticipantsSelector({
         );
 
         return [newSections, headerMessage];
-    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        debouncedSearchTerm,
+        participants,
+        chatOptions.recentReports,
+        chatOptions.personalDetails,
+        chatOptions.userToInvite,
+        personalDetails,
+        translate,
+    ]);
 
     /**
      * Adds a single participant to the expense
