@@ -886,6 +886,16 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        cardBadge: {
+            position: 'absolute',
+            top: 20,
+            left: 16,
+            marginLeft: 0,
+            paddingHorizontal: 8,
+            minHeight: 20,
+            borderColor: colors.productDark500,
+        },
+
         environmentBadge: {
             minHeight: 12,
             borderRadius: 14,
@@ -949,6 +959,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        cardBadgeText: {
+            color: colors.white,
+            fontSize: variables.fontSizeExtraSmall,
         },
 
         activeItemBadge: {
