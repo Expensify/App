@@ -480,7 +480,7 @@ function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
 
 function isExistingTaxCode(taxCode: string, taxRates: TaxRates): boolean {
     const trimmedTaxCode = taxCode.trim();
-    return !!Object.values(taxRates).find((taxRate) => taxRate.code === trimmedTaxCode);
+    return !!Object.keys(taxRates).find((taxID) => taxID === trimmedTaxCode);
 }
 
 /**
