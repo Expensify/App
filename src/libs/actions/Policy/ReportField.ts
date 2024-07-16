@@ -5,8 +5,8 @@ import * as API from '@libs/API';
 import type {
     CreateWorkspaceReportFieldListValueParams,
     CreateWorkspaceReportFieldParams,
+    DeletePolicyReportField,
     EnableWorkspaceReportFieldListValueParams,
-    PolicyReportFieldsReplace,
     RemoveWorkspaceReportFieldListValueParams,
     UpdateWorkspaceReportFieldInitialValueParams,
 } from '@libs/API/parameters';
@@ -260,7 +260,7 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
         ],
     };
 
-    const parameters: PolicyReportFieldsReplace = {
+    const parameters: DeletePolicyReportField = {
         policyID,
         reportFields: JSON.stringify(Object.values(updatedReportFields)),
     };

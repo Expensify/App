@@ -116,12 +116,11 @@ function Composer(
     }, [shouldClear, onClear]);
 
     useEffect(() => {
-        setSelection((prevSelection) => {
-            if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
-                return;
-            }
-            return selectionProp;
-        });
+        if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
+            return;
+        }
+        setSelection(selectionProp);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
