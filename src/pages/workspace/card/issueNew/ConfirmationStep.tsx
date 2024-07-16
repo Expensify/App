@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
@@ -18,19 +19,6 @@ import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
-
-function getTranslationKeyForLimitType(limitType: string | undefined) {
-    switch (limitType) {
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
-            return 'workspace.card.issueNewCard.smartLimit';
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
-            return 'workspace.card.issueNewCard.fixedAmount';
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
-            return 'workspace.card.issueNewCard.monthly';
-        default:
-            return '';
-    }
-}
 
 function ConfirmationStep() {
     const {translate} = useLocalize();
