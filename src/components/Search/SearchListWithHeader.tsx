@@ -12,7 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
 import type {SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -29,17 +29,17 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedItems: SelectedTransactions) {
-    return {...item, isSelected: !!selectedItems[item.keyForList]?.isSelected};
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
+    return {...item, isSelected: !!selectedTransactions[item.keyForList]?.isSelected};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedItems: SelectedTransactions) {
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions) {
     return SearchUtils.isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedItems)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions)
         : {
               ...item,
-              transactions: item.transactions?.map((tranaction) => mapToTransactionItemWithSelectionInfo(tranaction, selectedItems)),
-              isSelected: item.transactions.every((transaction) => !!selectedItems[transaction.keyForList]?.isSelected),
+              transactions: item.transactions?.map((tranaction) => mapToTransactionItemWithSelectionInfo(tranaction, selectedTransactions)),
+              isSelected: item.transactions.every((transaction) => !!selectedTransactions[transaction.keyForList]?.isSelected),
           };
 }
 
@@ -51,36 +51,36 @@ function SearchListWithHeader(
     const {translate} = useLocalize();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TransactionListItemType | ReportListItemType | null>(null);
-    const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
-    const [selectedItemsToDelete, setSelectedItemsToDelete] = useState<string[]>([]);
+    const [selectedTransactions, setSelectedTransactions] = useState<SelectedTransactions>({});
+    const [selectedReports, setSelectedReports] = useState<Array<SearchReport['reportID']>>([]);
+    const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [selectedReports, setSelectedReports] = useState<string[]>([]);
 
     const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
-        setSelectedItemsToDelete(itemsToDelete);
+        setSelectedTransactionsToDelete(itemsToDelete);
         setDeleteExpensesConfirmModalVisible(true);
     };
 
     const handleOnCancelConfirmModal = () => {
-        setSelectedItemsToDelete([]);
+        setSelectedTransactionsToDelete([]);
         setDeleteExpensesConfirmModalVisible(false);
     };
 
-    const clearSelectedItems = () => setSelectedItems({});
+    const clearSelectedTransactions = () => setSelectedTransactions({});
 
     const handleDeleteExpenses = () => {
-        if (selectedItemsToDelete.length === 0) {
+        if (selectedTransactionsToDelete.length === 0) {
             return;
         }
 
-        clearSelectedItems();
+        clearSelectedTransactions();
         setDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, selectedItemsToDelete);
+        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsToDelete);
     };
 
     useEffect(() => {
-        clearSelectedItems();
+        clearSelectedTransactions();
     }, [hash]);
 
     const toggleTransaction = useCallback(
@@ -90,7 +90,7 @@ function SearchListWithHeader(
                     return;
                 }
 
-                setSelectedItems((prev) => {
+                setSelectedTransactions((prev) => {
                     if (prev[item.keyForList]?.isSelected) {
                         const {[item.keyForList]: omittedTransaction, ...transactions} = prev;
                         return transactions;
@@ -101,27 +101,27 @@ function SearchListWithHeader(
                 return;
             }
 
-            if (item.transactions.every((transaction) => selectedItems[transaction.keyForList]?.isSelected)) {
-                const reducedSelectedItems: SelectedTransactions = {...selectedItems};
-                setSelectedReports([...selectedReports.filter((reportID) => reportID !== item.reportID)]);
+            if (item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                setSelectedReports((prevReports) => prevReports.filter((reportID) => reportID !== item.reportID));
 
                 item.transactions.forEach((transaction) => {
-                    delete reducedSelectedItems[transaction.keyForList];
+                    delete reducedSelectedTransactions[transaction.keyForList];
                 });
 
-                setSelectedItems(reducedSelectedItems);
+                setSelectedTransactions(reducedSelectedTransactions);
                 return;
             }
 
             if (item.reportID) {
                 setSelectedReports([...selectedReports, item.reportID]);
             }
-            setSelectedItems({
-                ...selectedItems,
+            setSelectedTransactions({
+                ...selectedTransactions,
                 ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
             });
         },
-        [selectedItems, selectedReports],
+        [selectedTransactions, selectedReports],
     );
 
     const openBottomModal = (item: TransactionListItemType | ReportListItemType | null) => {
@@ -151,35 +151,35 @@ function SearchListWithHeader(
             return;
         }
 
-        setSelectedItems({});
-    }, [setSelectedItems, isMobileSelectionModeActive]);
+        setSelectedTransactions({});
+    }, [setSelectedTransactions, isMobileSelectionModeActive]);
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchType === CONST.SEARCH.DATA_TYPES.REPORT;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
-        const isAllSelected = flattenedItems.length === Object.keys(selectedItems).length;
+        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
         if (isAllSelected) {
-            clearSelectedItems();
+            clearSelectedTransactions();
             return;
         }
 
         if (areItemsOfReportType) {
-            setSelectedItems(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))));
+            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))));
 
             return;
         }
 
-        setSelectedItems(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)));
+        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)));
     };
 
-    const sortedSelectedData = useMemo(() => data.map((item) => mapToItemWithSelectionInfo(item, selectedItems)), [data, selectedItems]);
+    const sortedSelectedData = useMemo(() => data.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions)), [data, selectedTransactions]);
 
     return (
         <>
             <SearchPageHeader
-                selectedItems={selectedItems}
-                clearSelectedItems={clearSelectedItems}
+                selectedTransactions={selectedTransactions}
+                clearSelectedTransactions={clearSelectedTransactions}
                 query={query}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
@@ -204,8 +204,8 @@ function SearchListWithHeader(
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={handleOnCancelConfirmModal}
-                title={translate('iou.deleteExpense', {count: selectedItemsToDelete.length})}
-                prompt={translate('iou.deleteConfirmation', {count: selectedItemsToDelete.length})}
+                title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
