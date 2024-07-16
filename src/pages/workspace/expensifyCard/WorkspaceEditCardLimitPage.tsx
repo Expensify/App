@@ -70,7 +70,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         Navigation.goBack();
     };
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT>) => {
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
         const currentLimit = card.nameValuePairs?.limit ?? 0;
         const currentRemainingLimit = currentLimit - card.availableSpend;
         const newRemainingLimit = Number(values[INPUT_IDS.LIMIT]) * 100 - currentRemainingLimit;
@@ -84,7 +84,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT> => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
@@ -114,7 +114,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT}
+                    formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
                     style={styles.flex1}
