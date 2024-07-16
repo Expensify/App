@@ -53,6 +53,7 @@ type TransactionListItemRowProps = {
     isDisabled: boolean;
     canSelectMultiple: boolean;
     isButtonSelected?: boolean;
+    parentAction?: string;
     shouldShowTransactionCheckbox?: boolean;
 };
 
@@ -160,7 +161,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.type);
+    const typeIcon = getTypeIcon(transactionItem.transactionType);
 
     return (
         <Icon
@@ -242,6 +243,7 @@ function TransactionListItemRow({
     containerStyle,
     isChildListItem = false,
     isButtonSelected = false,
+    parentAction = '',
     shouldShowTransactionCheckbox,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
@@ -356,6 +358,13 @@ function TransactionListItemRow({
                         showTooltip={false}
                     />
                 </View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                    <TypeCell
+                        transactionItem={item}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                        showTooltip={false}
+                    />
+                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
                         transactionItem={item}
@@ -418,18 +427,13 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
-                    <TypeCell
-                        transactionItem={item}
-                        isLargeScreenWidth
-                        showTooltip={false}
-                    />
-                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
                         transactionID={item.transactionID}
                         isSelected={isButtonSelected}
+                        isChildListItem={isChildListItem}
+                        parentAction={parentAction}
                         goToItem={onButtonPress}
                     />
                 </View>
