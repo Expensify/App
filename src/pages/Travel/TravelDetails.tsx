@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,16 +11,15 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReservationType} from '@src/types/onyx/Transaction';
 import type SCREENS from '@src/SCREENS';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { TravelNavigatorParamList } from '@libs/Navigation/types';
+import type {ReservationType} from '@src/types/onyx/Transaction';
 
 type TravelDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRAVEL_DETAILS>;
 
