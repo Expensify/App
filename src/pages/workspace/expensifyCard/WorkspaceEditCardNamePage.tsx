@@ -44,6 +44,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const card = cardsList?.[cardID] ?? mockedCard;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
         // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407832
         Navigation.goBack();
