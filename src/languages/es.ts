@@ -3662,7 +3662,13 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}`,
+                exportedToIntegration: ({label, markedManually}: ExportedToIntegrationParams) => {
+                    if (markedManually) {
+                        return `Ha marcado este informe como exportado manualmente a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}`;
+                    }
+                    return `exportó este informe a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}`;
+                },
+                exportInProgress: ({label}: ExportedToIntegrationParams) => `comenzado a exportar este informe a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}...`,
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
