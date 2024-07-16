@@ -9,7 +9,7 @@ import type {FileDownload} from './types';
  * The function downloads an attachment on web/desktop platforms.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get') => {
+const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
     if (
         // we have two file download cases that we should allow 1. dowloading attachments 2. downloading Expensify package for Sage Intacct
@@ -24,12 +24,7 @@ const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOp
         return Promise.resolve();
     }
 
-    const fetchOptions: RequestInit = {
-        method: requestType,
-        body: formData,
-    };
-
-    return fetch(url, fetchOptions)
+    return fetch(url)
         .then((response) => response.blob())
         .then((blob) => {
             // Create blob link to download
