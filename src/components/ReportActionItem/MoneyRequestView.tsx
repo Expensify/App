@@ -86,7 +86,7 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
-    /**  */
+    /** Updated transaction to show in duplicate transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
@@ -292,6 +292,10 @@ function MoneyRequestView({
 
             const {isError, translationPath} = fieldChecks[field] ?? {};
 
+            if (readonly) {
+                return '';
+            }
+
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
                 return translate(translationPath);
@@ -305,7 +309,7 @@ function MoneyRequestView({
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
     const distanceRequestFields = canUseP2PDistanceRequests ? (
