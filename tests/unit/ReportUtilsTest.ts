@@ -1011,7 +1011,7 @@ describe('ReportUtils', () => {
             );
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
-        it('should return the 1:1 chat', async () => {
+        it('should return the 1:1 chat', () => {
             const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID]);
             expect(report?.reportID).toEqual(oneOnOneChatReport.reportID);
         });
