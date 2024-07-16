@@ -4,6 +4,7 @@ import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -528,6 +529,10 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
 
 function clearNetSuiteErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
+}
+
+function clearSageIntacctErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
 function clearNetSuiteAutoSyncErrorField(policyID: string) {
@@ -2479,6 +2484,11 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
+/** Save the preferred export method for a policy */
+function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
+    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
+}
+
 function enableExpensifyCard(policyID: string, enabled: boolean) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
@@ -3067,8 +3077,8 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
-function getPoliciesConnectedToSageIntacct(): Policy[] {
-    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
+function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 }
 
 export {
@@ -3123,6 +3133,7 @@ export {
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
+    clearSageIntacctErrorField,
     clearNetSuiteErrorField,
     clearNetSuiteAutoSyncErrorField,
     clearWorkspaceReimbursementErrors,
@@ -3133,13 +3144,14 @@ export {
     isCurrencySupportedForDirectReimbursement,
     getPrimaryPolicy,
     createDraftWorkspace,
+    savePreferredExportMethod,
     buildPolicyData,
     enableExpensifyCard,
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
     requestExpensifyCardLimitIncrease,
-    getPoliciesConnectedToSageIntacct,
+    getAdminPoliciesConnectedToSageIntacct,
 };
 
 export type {NewCustomUnit};

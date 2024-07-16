@@ -322,21 +322,38 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * @param policy
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
- * @param skipConfirmation if true, skip confirmation step
  */
 function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
+
+    const currentTransaction = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`];
+
+    // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
+    // we should keep most of the existing data by using the ONYX MERGE operation
+    if (currentTransaction?.iouRequestType === iouRequestType) {
+        // so, we just need to update the reportID, isFromGlobalCreate, created, currency
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+            reportID,
+            isFromGlobalCreate,
+            created,
+            currency,
+            transactionID: newTransactionID,
+        });
+        return;
+    }
+
     const comment: Comment = {};
 
     // Add initial empty waypoints when starting a distance expense
     if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         comment.waypoints = {
-            waypoint0: {},
-            waypoint1: {},
+            waypoint0: {keyForList: 'start_waypoint'},
+            waypoint1: {keyForList: 'stop_waypoint'},
         };
         if (!isFromGlobalCreate) {
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(reportID);
@@ -350,7 +367,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         amount: 0,
         comment,
         created,
-        currency: policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+        currency,
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -2554,6 +2571,22 @@ function getUpdateMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
+            },
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            value: {
+                lastVisibleActionCreated: updatedReportAction.created,
+                lastReadTime: updatedReportAction.created,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            value: {
+                lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated,
+                lastReadTime: transactionThread?.lastReadTime,
             },
         });
         successData.push({
@@ -6169,7 +6202,8 @@ function canApproveIOU(
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
+    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
 
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport;
 }
@@ -6180,7 +6214,8 @@ function canIOUBePaid(
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
+    const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport, reportNameValuePairs);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     if (isEmptyObject(iouReport)) {
@@ -6588,7 +6623,11 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Report) {
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report) {
+    if (isEmptyObject(expenseReport)) {
+        return;
+    }
+
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
     const policy = PolicyUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
