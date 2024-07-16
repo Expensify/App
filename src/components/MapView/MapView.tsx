@@ -214,7 +214,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
-                    // scaleBarEnabled={false} will not work on iOS, top: -32 is to hide the scale bar on iOS
+                    // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
                     scaleBarPosition={{...styles.tn8, left: 0}}
                     compassEnabled
                     compassPosition={{...styles.l2, ...styles.t5}}
