@@ -4239,7 +4239,7 @@ function createSplitsAndOnyxData(
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
             shouldCreateNewOneOnOneIOUReport,
-            null,
+            PolicyUtils.getPolicy(splitChatReport.policyID),
             null,
             null,
             null,
