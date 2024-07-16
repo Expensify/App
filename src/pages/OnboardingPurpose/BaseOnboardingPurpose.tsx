@@ -105,6 +105,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                 Welcome.setOnboardingPurposeSelected(choice);
                 setErrorMessage('');
             },
+            focused: isSelected,
         };
     });
     const isFocused = useIsFocused();
