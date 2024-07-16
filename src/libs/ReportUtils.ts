@@ -2958,15 +2958,16 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return Localize.translateLocal('iou.fieldPending');
     }
 
-    const transactionDetails = getTransactionDetails(transaction);
-
-    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '';
-    const comment = (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '';
-    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-        return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
-    }
     if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(reportAction as ReportAction, transaction);
+    }
+
+    const report = getReportOrDraftReport(transaction?.reportID);
+    const amount = TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, TransactionUtils.getCurrency(transaction)) ?? '';
+    const comment = (!TransactionUtils.isMerchantMissing(transaction) ? TransactionUtils.getMerchant(transaction) : TransactionUtils.getDescription(transaction)) ?? '';
+    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+        return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
     }
     return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
