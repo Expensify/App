@@ -85,11 +85,20 @@ const PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK = createMockStep('Build desktop
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
 ]);
+const PLATFORM_DEPLOY__DESKTOP__UPLOAD_WORKFLOW__STEP_MOCK = createMockStep('Upload desktop build to GitHub Workflow', 'Uploading desktop build to GitHub Workflow', 'DESKTOP', [
+    'name',
+    'path',
+]);
+const PLATFORM_DEPLOY__DESKTOP__UPLOAD_GH_RELEASE__STEP_MOCK = createMockStep('Upload desktop build to GitHub Release', 'Uploading desktop build to GitHub Release', 'DESKTOP', null, [
+    'GITHUB_TOKEN',
+]);
 const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
     PLATFORM_DEPLOY__DESKTOP__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__DECRYPT_ID__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__UPLOAD_WORKFLOW__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__UPLOAD_GH_RELEASE__STEP_MOCK,
 ];
 
 // ios

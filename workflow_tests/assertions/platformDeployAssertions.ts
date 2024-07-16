@@ -117,7 +117,17 @@ function assertDesktopJobExecuted(workflowResult: Step[], didExecute = true, isP
             {key: 'AWS_ACCESS_KEY_ID', value: '***'},
             {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
         ]),
+        createStepAssertion('Upload desktop build to GitHub Workflow', true, null, 'DESKTOP', 'Uploading desktop build to GitHub Workflow', [
+            {key: 'name', value: 'NewExpensify.dmg'},
+            {key: 'path', value: 'desktop-build/NewExpensify.dmg'},
+        ]),
     ];
+
+    if (isProduction) {
+        steps.push(
+            createStepAssertion('Upload desktop build to GitHub Release', true, null, 'DESKTOP', 'Uploading desktop build to GitHub Release', null, [{key: 'GITHUB_TOKEN', value: '***'}]),
+        );
+    }
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
