@@ -1,6 +1,7 @@
 ---
 title: QuickBooks Online
 description: Everything you need to know about using Expensify's direct integration with QuickBooks Online.
+order: 1
 ---
 # Overview
 
