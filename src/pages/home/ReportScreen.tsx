@@ -69,9 +69,6 @@ type ReportScreenOnyxProps = {
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
-    /** Additional report details */
-    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
-
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 };
@@ -116,7 +113,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function ReportScreen({
     betas = [],
     route,
-    reportNameValuePairs,
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
@@ -369,11 +365,11 @@ function ReportScreen({
     }
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !ReportUtils.isOneTransactionThread(linkedAction?.childReportID ?? '-1', report.reportID, linkedAction)) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, report.reportID]);
 
     if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
@@ -789,7 +785,6 @@ function ReportScreen({
                                         onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
                                         reportMetadata={reportMetadata}
-                                        reportNameValuePairs={reportNameValuePairs}
                                         policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
@@ -814,10 +809,6 @@ export default withCurrentReportID(
         {
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
-            },
-            reportNameValuePairs: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getReportID(route)}`,
-                allowStaleData: true,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
