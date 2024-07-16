@@ -28,7 +28,6 @@ import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -357,7 +356,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         if (!shouldShowNotFoundPage && canAccessRoute) {
             return;
         }
-        if (CONFIG.USE_REACT_STRICT_MODE && wasRendered.current) {
+        if (wasRendered.current) {
             return;
         }
         wasRendered.current = true;
