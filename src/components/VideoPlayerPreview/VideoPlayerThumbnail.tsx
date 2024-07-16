@@ -40,7 +40,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                 </View>
             )}
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, action, checkIfContextMenuActive}) => (
+                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
                     <PressableWithoutFeedback
                         style={[styles.videoThumbnailContainer]}
                         accessibilityLabel={accessibilityLabel}
@@ -48,7 +48,9 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                         onPress={onPress}
                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                        onLongPress={(event) =>
+                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
+                        }
                         shouldUseHapticsOnLongPress
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>
