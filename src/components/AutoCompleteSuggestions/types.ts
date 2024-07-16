@@ -44,7 +44,7 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
     measureParentContainerAndReportCursor?: (props: MeasureParentContainerAndCursorCallback) => void;
 
     /** Reset the emoji suggestions */
-    resetSuggestions: () => void;
+    resetSuggestions?: () => void;
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps, MeasureParentContainerAndCursorCallback, MeasureParentContainerAndCursor};
