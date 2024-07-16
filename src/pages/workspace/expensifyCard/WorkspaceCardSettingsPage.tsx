@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -27,8 +28,6 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
 
-    console.log({cardSettings});
-
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
     const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
@@ -37,7 +36,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -50,7 +49,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
                                 description={translate('workspace.expensifyCard.settlementAccount')}
-                                title={bankAccountNumber ? `XXXXXXXXXXXX${bankAccountNumber.slice(-4)}` : ''}
+                                title={bankAccountNumber ? `XXXXXXXXXXXX${getLastFourDigits(bankAccountNumber)}` : ''}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}
                             />
@@ -59,7 +58,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                             <MenuItemWithTopDescription
                                 description={translate('workspace.expensifyCard.settlementFrequency')}
                                 title={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
-                                shouldShowRightIcon
+                                shouldShowRightIcon={settlementFrequency !== CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY}
                                 // TODO: enable after API is ready
                                 // disabled={settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
