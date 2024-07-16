@@ -852,8 +852,8 @@ const ROUTES = {
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_LIMIT: {
-        route: 'settings/workspaces/:policyID/expensify-card/:cardID/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/limit` as const,
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
