@@ -380,12 +380,25 @@ function getCombinedReportActions(
         return reportActions;
     }
 
-    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
-    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    // Usually, we filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    // However, in the case of moving track expense, the transaction thread will be created first in a track expense, thus we should keep the CREATED of the transaction thread and filter out CREATED action of the IOU
+    // This makes sense because in a combined report action list, whichever CREATED is first need to be retained.
+    const transactionThreadCreatedAction = transactionThreadReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const parentReportCreatedAction = reportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    let filteredTransactionThreadReportActions = transactionThreadReportActions;
+    let filteredParentReportActions = reportActions;
+
+    if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
+        filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    } else {
+        filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    }
+
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+    const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         if (!isMoneyRequestAction(action)) {
             return true;
         }
@@ -626,7 +639,8 @@ function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>):
  *
  */
 function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const resolution = reportAction && 'resolution' in reportAction ? reportAction?.resolution : null;
+    const originalMessage = getOriginalMessage(reportAction);
+    const resolution = originalMessage && 'resolution' in originalMessage ? originalMessage?.resolution : null;
     return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
@@ -1408,6 +1422,14 @@ function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: s
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
+/**
+ * Checks if a given report action corresponds to a add payment card action.
+ * @param reportAction
+ */
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1494,6 +1516,7 @@ export {
     isTripPreview,
     getIOUActionForReportID,
     getFilteredForOneTransactionView,
+    isActionableAddPaymentCard,
 };
 
 export type {LastVisibleMessage};

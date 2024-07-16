@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
@@ -88,6 +88,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should use the danger theme color */
     danger?: boolean;
+
+    /** Whether we should display the button as a link */
+    link?: boolean;
 
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
@@ -205,6 +208,7 @@ function Button(
         id = '',
         accessibilityLabel = '',
         isSplitButton = false,
+        link = false,
         isContentCentered = false,
         ...rest
     }: ButtonProps,
@@ -213,6 +217,7 @@ function Button(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const [isHovered, setIsHovered] = useState(false);
 
     const renderContent = () => {
         if ('children' in rest) {
@@ -233,6 +238,10 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     textStyles,
+                    link && styles.link,
+                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
+                    link && styles.fontWeightNormal,
+                    link && styles.fontSizeLabel,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -343,6 +352,7 @@ function Button(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
+                    link && styles.bgTransparent,
                 ]}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -353,6 +363,8 @@ function Button(
                 accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
             >
                 {renderContent()}
                 {isLoading && (
