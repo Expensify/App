@@ -28,6 +28,8 @@ type BaseProfilingToolMenuProps = {
     pathToBeUsed: string;
     /** Path used to display location of saved file */
     displayPath: string;
+    /** Whether to show the share button */
+    showShareButton?: boolean;
 } & BaseProfilingToolMenuOnyxProps;
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -47,7 +49,7 @@ function formatBytes(bytes: number, decimals = 2) {
 // WARNING: When changing this name make sure that the "scripts/symbolicate-profile.ts" script is still working!
 const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
 
-function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
+function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
     const styles = useThemeStyles();
     const [filePath, setFilePath] = useState('');
     const [sharePath, setSharePath] = useState('');
@@ -158,7 +160,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
-            {!!filePath && getPlatform() !== CONST.PLATFORM.WEB && (
+            {!!filePath && showShareButton && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
