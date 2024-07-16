@@ -51,9 +51,10 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 ref={buttonRef}
                 style={[styles.w100, styles.ph5]}
                 text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
-                shouldShowRightIcon
                 isContentCentered
                 iconRight={Expensicons.DownArrow}
+                isDisabled={options.length === 0}
+                shouldShowRightIcon={options.length !== 0}
             />
 
             <Modal
