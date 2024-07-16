@@ -1887,7 +1887,7 @@ PODS:
     - React-utils (= 0.74.3)
   - RNAppleAuthentication (2.2.2):
     - React-Core
-  - RNCClipboard (1.14.1):
+  - RNCClipboard (1.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2776,7 +2776,7 @@ SPEC CHECKSUMS:
   React-utils: a06061b3887c702235d2dac92dacbd93e1ea079e
   ReactCommon: f00e436b3925a7ae44dfa294b43ef360fbd8ccc4
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
-  RNCClipboard: 729f2b35c3b3c174911377e2f4c9d5904a91893a
+  RNCClipboard: c18616039db765751ddb4a85aca6ad4cb1910dd0
   RNCPicker: dfddec94003745a413e25373ae956a836d42cd54
   RNDeviceInfo: 698f8475f11b2ec301efd27f16e9026d7f1bd724
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
