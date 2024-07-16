@@ -83,8 +83,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID))}
-            // TODO: change title
-            title="workspace.xero.accountsDescription"
+            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={config?.pendingFields?.[`trackingCategory_${categoryId}`]}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, `trackingCategory_${categoryId}`)}
