@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -25,6 +24,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -47,9 +47,7 @@ type WorkspaceProfilePageOnyxProps = {
 
 type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
-const parser = new ExpensiMark();
-
-function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -57,6 +55,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
 
+    // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
+    const policy = policyDraft?.id ? policyDraft : policyProp;
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -78,7 +78,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        parser.replace(
+        Parser.replace(
             translate('workspace.common.welcomeNote', {
                 workspaceName: policy?.name ?? '',
             }),
@@ -88,8 +88,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
     const shouldShowAddress = !readOnly || formattedAddress;
 
     const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
         Policy.openPolicyProfilePage(route.params.policyID);
-    }, [route.params.policyID]);
+    }, [policyDraft?.id, route.params.policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -135,11 +138,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
-    // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
-    if (policy === undefined) {
-        return null;
-    }
-
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -150,7 +148,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
-            shouldSkipVBBACall={false}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
