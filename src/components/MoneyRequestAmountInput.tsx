@@ -28,7 +28,7 @@ type MoneyRequestAmountInputProps = {
     amount?: number;
 
     /** A callback to format the amount number */
-    onFormatAmount?: (amount: number, currency: string) => string;
+    onFormatAmount?: (amount: number, currency?: string) => string;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
