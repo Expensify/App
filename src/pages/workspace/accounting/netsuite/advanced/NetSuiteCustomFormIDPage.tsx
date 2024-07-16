@@ -18,9 +18,13 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+
 
 function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+    
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const route = useRoute();
@@ -82,6 +86,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
+                        ref={inputCallbackRef}
                         inputID={params.expenseType}
                         label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
                         aria-label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
