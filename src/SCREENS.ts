@@ -147,6 +147,7 @@ const SCREENS = {
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
+        REPORT_EXPORT: 'Report_Export',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -240,6 +241,7 @@ const SCREENS = {
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
+        EXPORT: 'Report_Details_Export',
     },
 
     WORKSPACE: {
@@ -315,6 +317,7 @@ const SCREENS = {
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
+            SAGE_INTACCT_ENTITY: 'Policy_Sage_Intacct_Entity',
             SAGE_INTACCT_IMPORT: 'Policy_Accounting_Sage_Intacct_Import',
             SAGE_INTACCT_TOGGLE_MAPPING: 'Policy_Accounting_Sage_Intacct_Toggle_Mapping',
             SAGE_INTACCT_MAPPING_TYPE: 'Policy_Accounting_Sage_Intacct_Mapping_Type',
@@ -341,6 +344,7 @@ const SCREENS = {
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
+        EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         BILLS: 'Workspace_Bills',

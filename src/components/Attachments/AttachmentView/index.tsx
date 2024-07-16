@@ -8,6 +8,7 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -26,6 +28,7 @@ import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
+import HighResolutionInfo from './HighResolutionInfo';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -70,10 +73,14 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         /** Whether the attachment is used as a chat attachment */
         isUsedAsChatAttachment?: boolean;
+
+        /* Flag indicating whether the attachment has been uploaded. */
+        isUploaded?: boolean;
     };
 
 function AttachmentView({
     source,
+    previewSource,
     file,
     isAuthTokenRequired,
     onPress,
@@ -92,6 +99,7 @@ function AttachmentView({
     isHovered,
     duration,
     isUsedAsChatAttachment,
+    isUploaded = true,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -99,6 +107,7 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
 
@@ -112,6 +121,12 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
+
+    useEffect(() => {
+        FileUtils.getFileResolution(file).then((resolution) => {
+            setIsHighResolution(FileUtils.isHighResolutionImage(resolution));
+        });
+    }, [file]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -196,35 +211,61 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    if (isImage || (file?.name && Str.isImage(file.name))) {
-        if (imageError) {
-            // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
-            if (typeof fallbackSource === 'number' || typeof fallbackSource === 'function') {
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    const isFileNameImage = file?.name && Str.isImage(file.name);
+    const isFileImage = isSourceImage || isFileNameImage;
+
+    if (isFileImage) {
+        if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
+            return (
+                <Icon
+                    src={fallbackSource}
+                    height={variables.defaultAvatarPreviewSize}
+                    width={variables.defaultAvatarPreviewSize}
+                    additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
+                    fill={theme.border}
+                />
+            );
+        }
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+
+        if (isHighResolution) {
+            if (!isUploaded) {
                 return (
-                    <Icon
-                        src={fallbackSource}
-                        height={variables.defaultAvatarPreviewSize}
-                        width={variables.defaultAvatarPreviewSize}
-                        additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
-                        fill={theme.border}
-                    />
+                    <>
+                        <View style={styles.imageModalImageCenterContainer}>
+                            <DefaultAttachmentView
+                                icon={Expensicons.Gallery}
+                                fileName={file?.name}
+                                shouldShowDownloadIcon={shouldShowDownloadIcon}
+                                shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                                containerStyles={containerStyles}
+                            />
+                        </View>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </>
                 );
             }
+            imageSource = previewSource?.toString() ?? imageSource;
         }
 
         return (
-            <AttachmentViewImage
-                url={imageError && fallbackSource ? (fallbackSource as string) : (source as string)}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                loadComplete={loadComplete}
-                isImage={isImage}
-                onPress={onPress}
-                onError={() => {
-                    setImageError(true);
-                }}
-            />
+            <>
+                <View style={styles.imageModalImageCenterContainer}>
+                    <AttachmentViewImage
+                        url={imageSource}
+                        file={file}
+                        isAuthTokenRequired={isAuthTokenRequired}
+                        loadComplete={loadComplete}
+                        isImage={isFileImage}
+                        onPress={onPress}
+                        onError={() => {
+                            setImageError(true);
+                        }}
+                    />
+                </View>
+                {isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}
+            </>
         );
     }
 
