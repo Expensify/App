@@ -3486,6 +3486,7 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        offlinePrompt: 'You can’t take this action right now because you appear to be offline.',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

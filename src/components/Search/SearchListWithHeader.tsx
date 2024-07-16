@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -53,6 +54,8 @@ function SearchListWithHeader(
     const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
     const [selectedItemsToDelete, setSelectedItemsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [selectedReports, setSelectedReports] = useState<string[]>([]);
 
     const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
         setSelectedItemsToDelete(itemsToDelete);
@@ -100,6 +103,7 @@ function SearchListWithHeader(
 
             if (item.transactions.every((transaction) => selectedItems[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedItems: SelectedTransactions = {...selectedItems};
+                setSelectedReports([...selectedReports.filter((reportID) => reportID !== item.reportID)]);
 
                 item.transactions.forEach((transaction) => {
                     delete reducedSelectedItems[transaction.keyForList];
@@ -109,12 +113,15 @@ function SearchListWithHeader(
                 return;
             }
 
+            if (item.reportID) {
+                setSelectedReports([...selectedReports, item.reportID]);
+            }
             setSelectedItems({
                 ...selectedItems,
                 ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
             });
         },
-        [selectedItems],
+        [selectedItems, selectedReports],
     );
 
     const openBottomModal = (item: TransactionListItemType | ReportListItemType | null) => {
@@ -178,6 +185,8 @@ function SearchListWithHeader(
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
                 setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
+                selectedReports={selectedReports}
+                setOfflineModalOpen={() => setOfflineModalVisible(true)}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -200,6 +209,15 @@ function SearchListWithHeader(
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('search.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
             />
             <Modal
                 isVisible={isModalVisible}

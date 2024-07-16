@@ -4,6 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,20 +22,33 @@ import type {SelectedTransactions} from './types';
 type SearchPageHeaderProps = {
     query: SearchQuery;
     selectedItems?: SelectedTransactions;
+    selectedReports?: string[];
     clearSelectedItems?: () => void;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
+    setOfflineModalOpen?: () => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchPageHeaderProps) {
+function SearchPageHeader({
+    query,
+    selectedItems = {},
+    hash,
+    clearSelectedItems,
+    onSelectDeleteOption,
+    isMobileSelectionModeActive,
+    setIsMobileSelectionModeActive,
+    setOfflineModalOpen,
+    selectedReports,
+}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
@@ -46,11 +60,26 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
     const selectedItemsKeys = Object.keys(selectedItems ?? []);
 
     const headerButtonsOptions = useMemo(() => {
-        const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-
         if (selectedItemsKeys.length === 0) {
-            return options;
+            return [];
         }
+
+        const options: Array<DropdownOption<SearchHeaderOptionValue>> = [
+            {
+                icon: Expensicons.Download,
+                text: translate('common.download'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+                    clearSelectedItems?.();
+                    SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedItemsKeys, [activeWorkspaceID ?? '']);
+                },
+            },
+        ];
 
         const itemsToDelete = Object.keys(selectedItems ?? {}).filter((id) => selectedItems[id].canDelete);
 
@@ -60,7 +89,14 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => onSelectDeleteOption?.(itemsToDelete),
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+
+                    onSelectDeleteOption?.(itemsToDelete);
+                },
             });
         }
 
@@ -71,7 +107,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+                shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+
                     clearSelectedItems?.();
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
@@ -88,7 +130,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+                shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+
                     clearSelectedItems?.();
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
@@ -129,6 +177,11 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
+        query,
+        isOffline,
+        setOfflineModalOpen,
+        activeWorkspaceID,
+        selectedReports,
     ]);
 
     if (isSmallScreenWidth) {
@@ -158,7 +211,6 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                     customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
-                    isDisabled={isOffline}
                 />
             )}
         </HeaderWithBackButton>

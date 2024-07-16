@@ -679,6 +679,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     SEARCH: 'Search',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
+    EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -732,6 +733,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
+    [READ_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.ExportSearchItemsToCSVParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
