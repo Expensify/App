@@ -27,24 +27,35 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return NextStepUtils.parseMessage(messageArray);
     }, [nextStep.message]);
 
-    const HOURGLASS_ICON = 'hourglass';
+    const iconComponent = useMemo(() => {
+        if (!nextStep.icon) return null;
+
+        const iconMap = {
+            hourglass: Expensicons.Hourglass,
+            checkmark: Expensicons.Checkmark,
+            stopwatch: Expensicons.Stopwatch,
+        };
+
+        const IconSrc = iconMap[nextStep.icon];
+        return IconSrc ? (
+            <Icon
+                src={IconSrc}
+                height={variables.iconSizeSmall}
+                width={variables.iconSizeSmall}
+                fill={theme.icon}
+            />
+        ) : null;
+    }, [nextStep.icon, theme.icon]);    
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
-                {nextStep?.icon && nextStep.icon === HOURGLASS_ICON ? (
-                    <Icon
-                        src={Expensicons.Hourglass}
-                        height={variables.iconSizeSmall}
-                        width={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
-                ) : (
-                    <Badge
-                        text={translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}
-                        badgeStyles={styles.ml0}
-                    />
-                )}
+            {iconComponent || (
+                <Badge
+                    text={translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}
+                    badgeStyles={styles.ml0}
+                />
+            )}
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />
