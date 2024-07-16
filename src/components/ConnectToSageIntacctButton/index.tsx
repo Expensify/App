@@ -9,7 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
+import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
-    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct().length;
+    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
