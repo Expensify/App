@@ -143,6 +143,8 @@ const CONST = {
 
     LOGO_MAX_SCALE: 1.5,
 
+    MAX_IMAGE_DIMENSION: 2400,
+
     BREADCRUMB_TYPE: {
         ROOT: 'root',
         STRONG: 'strong',

@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import {manipulateAsync} from 'expo-image-manipulator';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
@@ -285,6 +286,37 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
+const getImageDimensionsAfterResize = (file: FileObject) =>
+    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+        let newWidth;
+        let newHeight;
+        if (width < height) {
+            newHeight = CONST.MAX_IMAGE_DIMENSION;
+            newWidth = (newHeight * width) / height;
+        } else {
+            newWidth = CONST.MAX_IMAGE_DIMENSION;
+            newHeight = (newWidth * height) / width;
+        }
+
+        return {width: newWidth, height: newHeight};
+    });
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file).then(({width, height}) =>
+        manipulateAsync(file.uri ?? '', [{resize: {width, height}}]).then((result) =>
+            fetch(result.uri)
+                .then((res) => res.blob())
+                .then((blob) => {
+                    const resizedFile = new File([blob], `${file.name}.jpeg`, {type: 'image/jpeg'});
+                    resizedFile.uri = URL.createObjectURL(resizedFile);
+                    return resizedFile;
+                }),
+        ),
+    );
+};
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -302,4 +334,6 @@ export {
     isImage,
     getFileResolution,
     isHighResolutionImage,
+    getImageDimensionsAfterResize,
+    resizeImageIfNeeded,
 };

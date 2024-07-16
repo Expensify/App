@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -176,7 +177,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
             return false;
         }
@@ -383,22 +384,24 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
-        if (!validateReceipt(file)) {
+    const setReceiptAndNavigate = (originalFile: FileObject) => {
+        if (!validateReceipt(originalFile)) {
             return;
         }
 
-        // Store the receipt on the transaction object in Onyx
-        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-        // So, let us also save the file type in receipt for later use during blob fetch
-        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
+        FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
-            updateScanAndNavigate(file, file?.uri ?? '');
-            return;
-        }
+            if (action === CONST.IOU.ACTION.EDIT) {
+                updateScanAndNavigate(file, file?.uri ?? '');
+                return;
+            }
 
-        navigateToConfirmationStep(file, file.uri ?? '');
+            navigateToConfirmationStep(file, file.uri ?? '');
+        });
     };
 
     const capturePhoto = useCallback(() => {

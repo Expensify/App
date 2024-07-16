@@ -1,6 +1,7 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
 import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
@@ -42,44 +43,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ImageSize from 'react-native-image-size';
-import {manipulateAsync} from 'expo-image-manipulator';
-import {Str} from 'expensify-common';
-import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
-
-const MAX_IMAGE_DIMENSION = 2400;
-const getImageDimensionsAfterResize = (file: FileObject) => 
-    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
-        let newWidth;
-        let newHeight;
-        if (width < height) {
-            newHeight = MAX_IMAGE_DIMENSION;
-            newWidth = newHeight * width / height;
-        } else {
-            newWidth = MAX_IMAGE_DIMENSION;
-            newHeight = newWidth * height / width;
-        }
-
-    
-        return { width: newWidth, height: newHeight };
-    });
-
-const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        return Promise.resolve(file);
-    }
-    return getImageDimensionsAfterResize(file).then(({width, height}) => 
-        manipulateAsync(file.uri ?? '', [{resize: {width, height}}]).then((result) => fetch(result.uri)
-                .then((res) => res.blob())
-                .then((blob) => {
-                    const resizedFile = new File([blob], `${file.name}.jpeg`, {type: 'image/jpeg'});
-                    resizedFile.uri = URL.createObjectURL(resizedFile);
-                    return resizedFile;
-                }))
-    );
-}
-    
+import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
     report,
@@ -112,6 +77,7 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
@@ -128,8 +94,10 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+        return (
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+        );
+    }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -466,7 +434,7 @@ function IOURequestStepScan({
                 return;
             }
 
-            resizeImageIfNeeded(originalFile).then((file) => {
+            FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(file as Blob);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
