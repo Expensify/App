@@ -37,7 +37,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {openApp} from '@userActions/App';
+import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
@@ -950,14 +950,18 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
             return;
         }
 
-        // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-        updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+        const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
+        Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => {
+            // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
 
-        // Note: It is important to manually set the authToken that is in the store here since
-        // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
-        // enough to do the updateSessionAuthTokens() call above.
-        NetworkStore.setAuthToken(response.authToken ?? null);
-        openApp();
+            // Note: It is important to manually set the authToken that is in the store here since
+            // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
+            // enough to do the updateSessionAuthTokens() call above.
+            NetworkStore.setAuthToken(response.authToken ?? null);
+
+            openApp();
+        });
     });
 }
 
