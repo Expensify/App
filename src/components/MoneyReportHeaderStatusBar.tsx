@@ -2,15 +2,15 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import CONST from '@src/CONST';
+import variables from '@styles/variables';
 import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import Badge from './Badge';
 import RenderHTML from './RenderHTML';
-import variables from '@styles/variables';
 import Icon from './Icon';
-import useTheme from '@hooks/useTheme';
-import * as Expensicons from '@components/Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 
 type MoneyReportHeaderStatusBarProps = {
     /** The next step for the report */
