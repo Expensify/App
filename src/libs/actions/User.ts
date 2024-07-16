@@ -13,7 +13,6 @@ import type {
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     UpdateChatPriorityModeParams,
-    UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
@@ -37,7 +36,7 @@ import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -656,23 +655,6 @@ function updatePreferredSkinTone(skinTone: number) {
 }
 
 /**
- * Sync frequentlyUsedEmojis with Onyx and Server
- */
-function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[]) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-            value: frequentlyUsedEmojis,
-        },
-    ];
-
-    const parameters: UpdateFrequentlyUsedEmojisParams = {value: JSON.stringify(frequentlyUsedEmojis)};
-
-    API.write(WRITE_COMMANDS.UPDATE_FREQUENTLY_USED_EMOJIS, parameters, {optimisticData});
-}
-
-/**
  * Sync user chat priority mode with Onyx and Server
  * @param mode
  * @param [automatic] if we changed the mode automatically
@@ -783,7 +765,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'>>) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -877,23 +859,52 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
     ];
 
     Object.values(policies ?? {}).forEach((policy) => {
-        if (policy?.ownerAccountID !== currentUserAccountID) {
+        if (!policy) {
             return;
         }
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
+
+        let optimisticPolicyDataValue;
+        let failurePolicyDataValue;
+
+        if (policy.employeeList) {
+            const currentEmployee = policy.employeeList[oldDefaultContactMethod];
+            optimisticPolicyDataValue = {
+                employeeList: {
+                    [oldDefaultContactMethod]: null,
+                    [newDefaultContactMethod]: currentEmployee,
+                },
+            };
+            failurePolicyDataValue = {
+                employeeList: {
+                    [oldDefaultContactMethod]: currentEmployee,
+                    [newDefaultContactMethod]: null,
+                },
+            };
+        }
+
+        if (policy.ownerAccountID === currentUserAccountID) {
+            optimisticPolicyDataValue = {
+                ...optimisticPolicyDataValue,
                 owner: newDefaultContactMethod,
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
+            };
+            failurePolicyDataValue = {
+                ...failurePolicyDataValue,
                 owner: policy.owner,
-            },
-        });
+            };
+        }
+
+        if (optimisticPolicyDataValue && failurePolicyDataValue) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: optimisticPolicyDataValue,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: failurePolicyDataValue,
+            });
+        }
     });
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
@@ -1045,7 +1056,6 @@ export {
     setShouldUseStagingServer,
     setMuteAllSounds,
     clearUserErrorMessage,
-    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
