@@ -1,4 +1,4 @@
-name: Build and deploy apps for testing
+name: Build and deploy apps for testing 
 
 on:
   workflow_dispatch:
