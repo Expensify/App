@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
-import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -3757,11 +3756,6 @@ function markAsManuallyExported(reportID: string) {
     });
 }
 
-/** Save the preferred export method for a policy */
-function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
-    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
-}
-
 export {
     searchInServer,
     addComment,
@@ -3847,6 +3841,5 @@ export {
     clearAvatarErrors,
     exportToIntegration,
     markAsManuallyExported,
-    savePreferredExportMethod,
     handleReportChanged,
 };

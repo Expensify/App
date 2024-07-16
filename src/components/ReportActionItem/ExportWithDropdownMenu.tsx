@@ -7,6 +7,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyActions from '@libs/actions/Policy/Policy';
 import * as ReportActions from '@libs/actions/Report';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,11 +31,12 @@ function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDrop
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
-    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
+    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
-    const isExported = ReportUtils.isExported(report);
+    const isExported = ReportUtils.isExported(reportActions);
     const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
@@ -80,7 +82,7 @@ function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDrop
         if (!report?.policyID) {
             return;
         }
-        ReportActions.savePreferredExportMethod(report?.policyID, value);
+        PolicyActions.savePreferredExportMethod(report?.policyID, value);
     };
 
     return (

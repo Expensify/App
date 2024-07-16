@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
@@ -27,15 +27,18 @@ type ExportType = ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 type ExportSelectorType = SelectorType<ExportType>;
 
 function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
+    const connectionName = route?.params?.connectionName;
     const reportID = route.params.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
+
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
-    const connectionName = route?.params?.connectionName;
+
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
-    const isExported = ReportUtils.isExported(report);
+    const isExported = ReportUtils.isExported(reportActions);
 
     const confirmExport = useCallback(
         (type = modalStatus) => {
@@ -50,33 +53,30 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
         [connectionName, modalStatus, reportID],
     );
 
-    const exportSelectorOptions: ExportSelectorType[] = useMemo(
-        () => [
-            {
-                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', connectionName),
-                icons: [
-                    {
-                        source: iconToDisplay ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                isDisabled: !canBeExported,
-            },
-            {
-                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsExported'),
-                icons: [
-                    {
-                        source: iconToDisplay ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                isDisabled: !canBeExported,
-            },
-        ],
-        [translate, connectionName, iconToDisplay, canBeExported],
-    );
+    const exportSelectorOptions: ExportSelectorType[] = [
+        {
+            value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+            text: translate('workspace.common.exportIntegrationSelected', connectionName),
+            icons: [
+                {
+                    source: iconToDisplay ?? '',
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            ],
+            isDisabled: !canBeExported,
+        },
+        {
+            value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+            text: translate('workspace.common.markAsExported'),
+            icons: [
+                {
+                    source: iconToDisplay ?? '',
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            ],
+            isDisabled: !canBeExported,
+        },
+    ];
 
     if (!canBeExported) {
         return (

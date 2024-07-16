@@ -7098,12 +7098,11 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(report: OnyxEntry<Report>) {
-    if (!report) {
+function isExported(reportActions: OnyxEntry<ReportActions>) {
+    if (!reportActions) {
         return false;
     }
-    const reportActions = Object.values(ReportActionsUtils.getAllReportActions(report?.reportID));
-    return reportActions.some((action) => ReportActionsUtils.isExportIntegrationAction(action));
+    return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
 export {
