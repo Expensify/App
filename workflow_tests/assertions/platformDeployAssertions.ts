@@ -181,7 +181,9 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
         ]),
     ];
 
-    if (!isProduction) {
+    if (isProduction) {
+        steps.push(createStepAssertion('Upload iOS build to GitHub Release', true, null, 'IOS', 'Uploading iOS build to GitHub Release', null, [{key: 'GITHUB_TOKEN', value: '***'}]));
+    } else {
         steps.push(
             createStepAssertion('Upload iOS build to GitHub artifacts', true, null, 'IOS', 'Uploading iOS build to GitHub artifacts', [
                 {key: 'name', value: 'New Expensify.ipa'},

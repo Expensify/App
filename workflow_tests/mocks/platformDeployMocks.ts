@@ -125,6 +125,7 @@ const PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = createMockStep('Dec
 const PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK = createMockStep('Decrypt App Store Connect API key', 'Decrypting App Store API key', 'IOS', null, [
     'LARGE_SECRET_PASSPHRASE',
 ]);
+const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
 const PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK = createMockStep('Run Fastlane', 'Running Fastlane', 'IOS', null, [
     'APPLE_CONTACT_EMAIL',
     'APPLE_CONTACT_PHONE',
@@ -138,7 +139,7 @@ const PLATFORM_DEPLOY__IOS__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockSt
     'path',
 ]);
 const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = createMockStep('Upload iOS build to Browser Stack', 'Uploading build to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
-const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
+const PLATFORM_DEPLOY__IOS__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload iOS build to GitHub Release', 'Uploading iOS build to GitHub Release', 'IOS', null, ['GITHUB_TOKEN']);
 const PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK = createMockStep(
     'Warn deployers if iOS production deploy failed',
     'Warning developers of failed deploy',
@@ -158,11 +159,12 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__DECRYPT_APPSTORE_NSE_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__ARCHIVE_SOURCEMAPS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__UPLOAD_TO_GH_RELEASE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK,
 ];
 
