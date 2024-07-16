@@ -4,12 +4,12 @@ import InputWrapper from '@components/Form/InputWrapper';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 function CustomSegmentScriptIdStep({customSegmentType}: CustomFieldSubStepWithPolicy) {
