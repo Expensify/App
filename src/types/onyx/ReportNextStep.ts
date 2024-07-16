@@ -82,9 +82,9 @@ type ReportNextStep = {
 
     /** An array listing the buttons to be displayed alongside the next step copy */
     buttons?: Record<string, Button>;
-    
-    /** The icon asset to display to the left of the text */
-    icon?: string | null;
+
+    /** The icon asset for the next step to display to the left of the text */
+    icon?: 'hourglass' | 'checkmark' | 'stopwatch';
 };
 
 export default ReportNextStep;
