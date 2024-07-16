@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -78,6 +78,7 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -94,8 +95,8 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation]);
+        return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
+    }, [report, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -182,7 +183,7 @@ function IOURequestStepAmount({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
