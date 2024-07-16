@@ -3702,18 +3702,26 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
         return '';
     }
 
-    const dataAtrributes = `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}" ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}= "${file.uri}" data-name="${file.name}"`;
+    const dataAttributes = [
+        `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}"`,
+        `${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="${file.uri}"`,
+        `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${file.name}"`,
+        'width' in file && `${CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE}="${file.width}"`,
+        'height' in file && `${CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE}="${file.height}"`,
+    ]
+        .filter((x) => !!x)
+        .join(' ');
 
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        return `<img src="${file.uri}" alt="${file.name}" ${dataAtrributes} />`;
+        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} />`;
     }
     if (file.type?.startsWith('video')) {
-        return `<video src="${file.uri}" ${dataAtrributes}>${file.name}</video>`;
+        return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
     }
 
     // For all other types, we present a generic download link
-    return `<a href="${file.uri}" ${dataAtrributes}>${file.name}</a>`;
+    return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
 function getReportDescriptionText(report: Report): string {
