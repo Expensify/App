@@ -447,7 +447,7 @@ const ONYXKEYS = {
         SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',
 
         /** The value that indicates whether Continuous Reconciliation should be used on the domain */
-        SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'sharedNVP_expensifyCard_useReconciliationConnection_',
+        SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'sharedNVP_expensifyCard_useContinuousReconciliation_',
     },
 
     /** List of Form ids */
