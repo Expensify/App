@@ -50,7 +50,7 @@ function BaseModal(
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
-        initialFocus,
+        initialFocus = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {

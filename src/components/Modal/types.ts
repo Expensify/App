@@ -91,7 +91,7 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
     shouldUseModalPaddingStyle?: boolean;
 
-    /** Extend from focus-trap options can help to set focus element when inital */
+    /** Used to set the element that should receive the initial focus */
     initialFocus?: FocusTrapOptions['initialFocus'];
 };
 

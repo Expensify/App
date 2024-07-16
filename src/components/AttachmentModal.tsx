@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
-import viewForwardedRef from '@src/types/utils/viewForwardedRef';
+import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
@@ -549,7 +549,7 @@ function AttachmentModal({
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
-                                        ref={viewForwardedRef(submitRef)}
+                                        ref={viewRef(submitRef)}
                                         success
                                         large
                                         style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
