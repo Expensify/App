@@ -42,7 +42,7 @@ type ShareCodePageProps = ShareCodePageOnyxProps;
  */
 
 function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): ImageSourcePropType | undefined {
-    if (!policy || report?.type !== 'chat') {
+    if (!policy || !policy.id || report?.type !== 'chat') {
         return expensifyLogo;
     }
 
@@ -97,7 +97,7 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
     if (!logo && policy && !policy.avatarURL) {
         logoSVG = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
-        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
+        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id ?? '');
         logoBackground = defaultWorkspaceAvatarColors.backgroundColor?.toString();
         logoColor = defaultWorkspaceAvatarColors.fill;
     }
