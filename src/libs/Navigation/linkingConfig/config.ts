@@ -468,6 +468,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
+                        },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                         },
@@ -698,6 +701,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
                         [SCREENS.REPORT_DETAILS.SHARE_CODE]: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
+                        [SCREENS.REPORT_DETAILS.EXPORT]: ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {

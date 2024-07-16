@@ -147,6 +147,7 @@ const SCREENS = {
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
+        REPORT_EXPORT: 'Report_Export',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -240,6 +241,7 @@ const SCREENS = {
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
+        EXPORT: 'Report_Details_Export',
     },
 
     WORKSPACE: {
@@ -342,6 +344,7 @@ const SCREENS = {
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
+        EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         BILLS: 'Workspace_Bills',

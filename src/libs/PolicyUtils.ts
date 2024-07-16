@@ -11,6 +11,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     CustomUnit,
     NetSuiteAccount,
@@ -430,7 +431,12 @@ function getPersonalPolicy() {
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+    if (!policy || !policy.employeeList) {
+        return [];
+    }
+    return Object.keys(policy.employeeList)
+        .map((email) => ({...policy.employeeList?.[email], email}))
+        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -728,6 +734,14 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
+}
+
+function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
+}
+
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
@@ -748,6 +762,7 @@ export {
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,
+    getConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
@@ -769,6 +784,7 @@ export {
     hasAccountingConnections,
     hasCustomUnitsError,
     hasEmployeeListError,
+    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,
