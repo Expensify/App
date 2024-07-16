@@ -8,7 +8,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    ConnectionName,
     Connections,
     SageIntacctConnectionsConfig,
     SageIntacctDimension,
