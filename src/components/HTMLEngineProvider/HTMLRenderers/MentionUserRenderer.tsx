@@ -60,7 +60,15 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
-        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '');
+        mentionDisplayText = PersonalDetailsUtils.getDisplayNameOrDefault(user) || LocalePhoneNumber.formatPhoneNumber(user?.login ?? '');
+
+        const displayTextForShortMention = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
+        const shortMention = getShortMentionIfFound(displayTextForShortMention, htmlAttributeAccountID, user?.login ?? '');
+
+        // short mention is found
+        if (shortMention !== displayTextForShortMention) {
+            mentionDisplayText = shortMention;
+        }
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
