@@ -62,7 +62,11 @@ function assertAndroidJobExecuted(workflowResult: Step[], didExecute = true, isP
         ]),
     ];
 
-    if (!isProduction) {
+    if (isProduction) {
+        steps.push(
+            createStepAssertion('Upload Android build to GitHub Release', true, null, 'ANDROID', 'Uploading Android build to GitHub Release', null, [{key: 'GITHUB_TOKEN', value: '***'}]),
+        );
+    } else {
         steps.push(
             createStepAssertion('Upload Android build to GitHub artifacts', true, null, 'ANDROID', 'Uploading Android build to GitHub artifacts', [
                 {key: 'name', value: 'app-production-release.aab'},

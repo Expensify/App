@@ -48,6 +48,9 @@ const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMo
 const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK = createMockStep('Upload Android build to Browser Stack', 'Uploading Android build to Browser Stack', 'ANDROID', null, [
     'BROWSERSTACK',
 ]);
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload Android build to GitHub Release', 'Uploading Android build to GitHub Release', 'ANDROID', null, [
+    'GITHUB_TOKEN',
+]);
 const PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK = createMockStep(
     'Warn deployers if Android production deploy failed',
     'Warning deployers of failed production deploy',
@@ -68,6 +71,7 @@ const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
     PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GH_RELEASE__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK,
 ];
 
