@@ -105,7 +105,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
-                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal},
+                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap},
             };
 
             options.push({
@@ -129,6 +129,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
+        styles.textWrap,
     ]);
 
     if (isSmallScreenWidth) {
