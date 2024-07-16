@@ -95,6 +95,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -3777,6 +3778,21 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
+function exportToIntegration(reportID: string, connectionName: ConnectionName) {
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, {
+        reportIDList: reportID,
+        connectionName,
+        type: 'MANUAL',
+    });
+}
+
+function markAsManuallyExported(reportID: string) {
+    API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, {
+        reportIDList: reportID,
+        markedManually: true,
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -3860,5 +3876,7 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    exportToIntegration,
+    markAsManuallyExported,
     handleReportChanged,
 };
