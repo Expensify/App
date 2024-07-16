@@ -436,6 +436,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The display name of the purchaser card, if any */
         cardName?: string;
+
+        /** The masked PAN of the purchaser card, if any */
+        cardNumber?: string;
+
+        /** Whether the transaction is linked to a managed card */
+        managedCard?: boolean;
     },
     keyof Comment
 >;
