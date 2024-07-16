@@ -31,7 +31,6 @@ import type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import SearchAdvancedFiltersPage from '@pages/Search/SearchAdvancedFiltersPage';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
