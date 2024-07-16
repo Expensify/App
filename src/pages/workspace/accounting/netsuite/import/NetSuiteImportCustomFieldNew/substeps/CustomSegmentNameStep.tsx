@@ -9,11 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 function CustomSegmentNameStep({customSegmentType}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);
 
@@ -31,6 +33,7 @@ function CustomSegmentNameStep({customSegmentType}: CustomFieldSubStepWithPolicy
                 aria-label={fieldLabel}
                 role={CONST.ROLE.PRESENTATION}
                 spellCheck={false}
+                ref={inputCallbackRef}
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
                 <RenderHTML
