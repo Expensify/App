@@ -45,12 +45,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import type {HandleComposerUpdateCallback} from './ReportActionCompose/ComposerWithSuggestions/types';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
-import type { HandleComposerUpdateCallback } from './ReportActionCompose/ComposerWithSuggestions/types';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -407,7 +407,9 @@ function ReportActionItemMessageEdit(
     const handleComposerUpdate: HandleComposerUpdateCallback = useCallback(
         ({fullNewText}) => {
             updateDraft(fullNewText);
-        }, [updateDraft])
+        },
+        [updateDraft],
+    );
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
