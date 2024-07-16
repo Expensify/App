@@ -1,3 +1,4 @@
+import memoize from 'lodash/memoize';
 import React from 'react';
 import FreezeWrapper from './Navigation/FreezeWrapper';
 
@@ -13,8 +14,8 @@ function FrozenScreen<TProps extends React.JSX.IntrinsicAttributes>(WrappedCompo
 }
 
 export default function freezeScreenWithLazyLoading(lazyComponent: () => React.ComponentType) {
-    return () => {
+    return memoize(() => {
         const Component = lazyComponent();
         return FrozenScreen(Component);
-    };
+    });
 }

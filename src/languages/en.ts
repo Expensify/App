@@ -24,6 +24,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -102,6 +103,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -392,6 +394,8 @@ export default {
         notAllowedExtension: 'This file type is not allowed. Please try a different file type.',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Please try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+        attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
+        attachmentImageTooLarge: 'This image is too large to preview before uploading.',
     },
     connectionComplete: {
         title: 'Connection complete',
@@ -647,7 +651,7 @@ export default {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
+        paySomeone: (name: string) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
@@ -707,8 +711,8 @@ export default {
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
             }`,
-        deleteExpense: 'Delete expense',
-        deleteConfirmation: 'Are you sure that you want to delete this expense?',
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Delete ${Str.pluralize('expense', 'expenses', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Are you sure that you want to delete ${Str.pluralize('this expense', 'these expenses', count)}?`,
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
@@ -2587,6 +2591,7 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
+            entity: 'Entity',
             employeeDefault: 'Sage Intacct employee default',
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
@@ -2636,6 +2641,7 @@ export default {
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            cardLimit: 'Card limit',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
@@ -2648,6 +2654,10 @@ export default {
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
             accountEndingIn: 'Account ending in',
             addNewBankAccount: 'Add a new bank account',
+            cardDetails: 'Card details',
+            virtual: 'Virtual',
+            physical: 'Physical',
+            deactivate: 'Deactivate card',
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -3587,7 +3597,7 @@ export default {
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
-                managerDetachReceipt: `removed the receipt`,
+                managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `paid ${currency}${amount} via integration`,
                 outdatedBankAccount: `couldn’t process the payment due to a problem with the payer’s bank account`,
@@ -3832,7 +3842,19 @@ export default {
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
-        modifiedAmount: 'Amount greater than scanned receipt',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams): string => {
+            switch (type) {
+                case 'distance':
+                    return 'Amount differs from calculated distance';
+                case 'card':
+                    return 'Amount greater than card transaction';
+                default:
+                    if (displayPercentVariance) {
+                        return `Amount ${displayPercentVariance}% greater than scanned receipt`;
+                    }
+                    return 'Amount greater than scanned receipt';
+            }
+        },
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,
@@ -3992,8 +4014,8 @@ export default {
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             preTrial: {
                 title: 'Start a free trial',
-                subtitle: 'To get started, ',
-                subtitleLink: 'complete your setup checklist here.',
+                subtitle: 'Almost there! Just complete your ',
+                subtitleLink: 'setup checklist.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
