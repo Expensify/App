@@ -147,6 +147,7 @@ const SCREENS = {
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
+        DEBUG: 'Debug',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -469,6 +470,11 @@ const SCREENS = {
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
+    DEBUG: {
+        REPORT: 'Debug_Report',
+        REPORT_ACTION: 'Debug_Report_Action',
+        REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

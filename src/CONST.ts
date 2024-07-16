@@ -3847,6 +3847,7 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     TAB: {
+        DEBUG_TAB_ID: 'DebugTab',
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
@@ -5321,6 +5322,13 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
     },
 } as const;
 

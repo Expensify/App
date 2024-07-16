@@ -70,6 +70,9 @@ type InitialSettingsPageOnyxProps = {
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
+
+    /** User information */
+    user: OnyxEntry<OnyxTypes.User>;
 };
 
 type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -96,7 +99,7 @@ type MenuData = {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
+function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies, user}: InitialSettingsPageProps) {
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -447,6 +450,14 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             {formatPhoneNumber(session?.email ?? '')}
                         </Text>
                     )}
+                    {!!user?.isDebugModeEnabled && (
+                        <Text
+                            style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            AccountID: {session?.accountID}
+                        </Text>
+                    )}
                 </>
             )}
         </View>
@@ -532,6 +543,9 @@ export default withCurrentUserPersonalDetails(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     })(InitialSettingsPage),
 );

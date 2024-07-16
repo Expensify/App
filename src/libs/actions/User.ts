@@ -1037,6 +1037,10 @@ function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
+function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
+    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1068,4 +1072,5 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
+    setIsDebugModeEnabled,
 };

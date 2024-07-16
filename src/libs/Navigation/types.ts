@@ -1043,6 +1043,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1240,6 +1241,19 @@ type RestrictedActionParamList = {
     };
 };
 
+type DebugParamList = {
+    [SCREENS.DEBUG.REPORT]: {
+        reportID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION]: {
+        reportID: string;
+        reportActionID: string;
+    };
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
+        reportID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -1312,4 +1326,5 @@ export type {
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
     RestrictedActionParamList,
+    DebugParamList,
 };

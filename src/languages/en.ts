@@ -1000,6 +1000,7 @@ export default {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            debugMode: 'Debug mode',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -4129,5 +4130,11 @@ export default {
     },
     roomChangeLog: {
         updateRoomDescription: 'set the room description to:',
+    },
+    debug: {
+        details: 'Details',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Preview',
     },
 } satisfies TranslationBase;
