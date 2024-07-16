@@ -7087,7 +7087,7 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData)
 
     return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
         ? isSystemChat(optionOrReport)
-        : (optionOrReport as OptionData).isConciergeChat ?? isConciergeChatReport(optionOrReport);
+        : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
