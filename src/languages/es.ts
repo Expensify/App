@@ -352,6 +352,7 @@ export default {
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
+        export: 'Exportar',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -2082,6 +2083,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            markAsExported: 'Marcar como introducido manualmente',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
@@ -3211,6 +3214,11 @@ export default {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
         },
+        export: {
+            notReadyHeading: 'No está listo para exportar',
+            notReadyDescription:
+                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
+        },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
@@ -3372,6 +3380,14 @@ export default {
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
+        },
+
+        exportAgainModal: {
+            title: '¡Cuidado!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
+            confirmText: 'Sí, exportar de nuevo',
+            cancelText: 'Cancelar',
         },
         upgrade: {
             reportFields: {

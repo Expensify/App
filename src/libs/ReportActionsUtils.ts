@@ -173,6 +173,10 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
+function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
+}
+
 /**
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
@@ -1457,6 +1461,7 @@ export {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isExportIntegrationAction,
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,

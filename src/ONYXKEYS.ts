@@ -376,6 +376,9 @@ const ONYXKEYS = {
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
 
+    /** Stores the last export method for policy */
+    LAST_EXPORT_METHOD: 'lastExportMethod',
+
     /** Stores the information about the state of issuing a new card */
     ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
 
@@ -748,6 +751,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
+    [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
