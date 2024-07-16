@@ -11,6 +11,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
@@ -130,9 +131,6 @@ function SelectionScreen<T = string>({
                 {headerContent}
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
-                    errors={errors}
-                    errorRowStyles={[errorRowStyles]}
-                    onClose={onClose}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
                 >
@@ -145,7 +143,14 @@ function SelectionScreen<T = string>({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                    />
+                        sectionListStyle={[styles.flexGrow0]}
+                    >
+                        <ErrorMessageRow
+                            errors={errors}
+                            errorRowStyles={errorRowStyles}
+                            onClose={onClose}
+                        />
+                    </SelectionList>
                 </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
