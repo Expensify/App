@@ -1,4 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -56,14 +55,12 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isOnboardingFlowName} from '@libs/NavigationUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
@@ -253,6 +250,14 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+let allReportDraftComments: Record<string, string | undefined> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportDraftComments = value),
 });
 
 registerPaginationConfig({
@@ -1322,6 +1327,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     if (report?.reportID && report.preexistingReportID) {
         let callback = () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
         };
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
@@ -1330,11 +1336,27 @@ function handleReportChanged(report: OnyxEntry<Report>) {
                 currCallback();
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? '-1'), CONST.NAVIGATION.TYPE.UP);
             };
+
+            // The report screen will listen to this event and transfer the draft comment to the existing report
+            // This will allow the newest draft comment to be transferred to the existing report
+            DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
+                preexistingReportID: report.preexistingReportID,
+                callback,
+            });
+
+            return;
         }
-        DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
-            preexistingReportID: report.preexistingReportID,
-            callback,
-        });
+
+        // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
+        // after that clear the optimistically created report
+        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
+        if (!draftReportComment) {
+            callback();
+            return;
+        }
+
+        saveReportDraftComment(report.preexistingReportID ?? '-1', draftReportComment, callback);
+
         return;
     }
 
@@ -2149,7 +2171,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string) {
+function deleteReport(reportID: string, shouldDeleteChildReports = false) {
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
@@ -2169,20 +2191,32 @@ function deleteReport(reportID: string) {
 
     Onyx.multiSet(onyxData);
 
+    if (shouldDeleteChildReports) {
+        Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+            if (!reportAction.childReportID) {
+                return;
+            }
+            deleteReport(reportAction.childReportID, shouldDeleteChildReports);
+        });
+    }
+
     // Delete linked IOU report
     if (report?.iouReportID) {
-        deleteReport(report.iouReportID);
+        deleteReport(report.iouReportID, shouldDeleteChildReports);
     }
 }
 
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string) {
+function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack();
+    if (shouldPopToTop) {
+        Navigation.setShouldPopAllStateOnUP(true);
+    }
+    Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
-    deleteReport(reportID);
+    deleteReport(reportID, shouldDeleteChildReports);
 }
 
 /**
@@ -2545,47 +2579,28 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Onyx.connect({
-                key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (onboarding) => {
-                    Navigation.waitForProtectedRoutes().then(() => {
-                        if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
-                            Session.signOutAndRedirectToSignIn(true);
-                            return;
-                        }
+            Navigation.waitForProtectedRoutes().then(() => {
+                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
+                    Session.signOutAndRedirectToSignIn(true);
+                    return;
+                }
 
-                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                        // which is already called when AuthScreens mounts.
-                        if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
-                            return;
-                        }
+                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                // which is already called when AuthScreens mounts.
+                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                    return;
+                }
 
-                        if (shouldSkipDeepLinkNavigation(route)) {
-                            return;
-                        }
+                if (shouldSkipDeepLinkNavigation(route)) {
+                    return;
+                }
 
-                        const state = navigationRef.getRootState();
-                        const currentFocusedRoute = findFocusedRoute(state);
-                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
+                if (isAuthenticated) {
+                    return;
+                }
 
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        if (!hasCompletedGuidedSetupFlow) {
-                            return;
-                        }
-
-                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                            Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-                            return;
-                        }
-
-                        if (isAuthenticated) {
-                            return;
-                        }
-
-                        Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
-                    });
-                },
+                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
     });
