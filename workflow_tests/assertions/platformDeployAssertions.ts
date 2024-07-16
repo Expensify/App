@@ -225,7 +225,7 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
     });
 }
 
-function assertWebJobExecuted(workflowResult: Step[], didExecute = true, isProduction = true) {
+function assertWebJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
         createStepAssertion('Checkout', true, null, 'WEB', 'Checking out'),
         createStepAssertion('Setup Node', true, null, 'WEB', 'Setting up Node'),
