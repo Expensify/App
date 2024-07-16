@@ -929,8 +929,8 @@ type RightModalNavigatorParamList = {
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
     [SCREENS.TRAVEL.TRAVEL_DETAILS]: {
+        reportID: string;
         transactionID: string;
-        reservationID: string;
     };
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };

@@ -17,21 +17,18 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReservationType} from '@src/types/onyx/Transaction';
+import type SCREENS from '@src/SCREENS';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { TravelNavigatorParamList } from '@libs/Navigation/types';
 
-type TravelDetailsProps = {
-    /* TransactionID of the transaction the Travel Details correspond to */
-    transactionID: string;
+type TravelDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRAVEL_DETAILS>;
 
-    /* ReservationID of the reservation selected to display the details for */
-    reservationID: string;
-};
-
-function TravelDetails({transactionID, reservationID}: TravelDetailsProps) {
+function TravelDetails({route}: TravelDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`);
 
     const testDetails = {
         date: 'Thursday, Jan 18, 2024',

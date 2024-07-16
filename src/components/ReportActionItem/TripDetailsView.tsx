@@ -29,12 +29,17 @@ type TripDetailsViewProps = {
 };
 
 type ReservationViewProps = {
+    /** The reportID of the transaction and reservation */
+    reportID: string;
+
+    /** The transactionID of reservations transaction */
     transactionID: string;
 
+    /** Reservation object to be displayed in the view */
     reservation: Reservation;
 };
 
-function ReservationView({transactionID, reservation}: ReservationViewProps) {
+function ReservationView({reportID, transactionID, reservation}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -126,7 +131,7 @@ function ReservationView({transactionID, reservation}: ReservationViewProps) {
             wrapperStyle={[styles.taskDescriptionMenuItem]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
-            onPress={() => Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute(transactionID, reservation.reservationID ?? '-1'))}
+            onPress={() => Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute(reportID, transactionID))}
             interactive
             shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
@@ -165,6 +170,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                     return (
                         <OfflineWithFeedback>
                             <ReservationView
+                                reportID={tripRoomReportID ?? '-1'}
                                 transactionID={transactionID}
                                 reservation={reservation}
                             />
