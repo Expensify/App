@@ -3075,8 +3075,8 @@ function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 }
 
-function getPoliciesConnectedToNetSuite(): Policy[] {
-    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.netsuite);
+function getAdminPoliciesConnectedToNetSuite(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 }
 
 export {
@@ -3148,7 +3148,7 @@ export {
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
     requestExpensifyCardLimitIncrease,
-    getPoliciesConnectedToNetSuite,
+    getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
 };
 

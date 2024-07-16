@@ -6,7 +6,7 @@ import MenuItemList from '@components/MenuItemList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
-import {getPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
+import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -19,7 +19,7 @@ type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList,
 function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const policiesConnectedToSageNetSuite = getPoliciesConnectedToNetSuite();
+    const policiesConnectedToSageNetSuite = getAdminPoliciesConnectedToNetSuite();
     const policyID: string = route.params.policyID;
 
     const menuItems = policiesConnectedToSageNetSuite.map((policy) => {
