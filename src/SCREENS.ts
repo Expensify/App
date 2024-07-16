@@ -344,6 +344,7 @@ const SCREENS = {
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
+        EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
