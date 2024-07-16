@@ -79,6 +79,12 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
 
+type SearchNavigatorParamList = {
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: undefined;
+    [SCREENS.SEARCH.REPORT_RHP]: undefined;
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
@@ -201,6 +207,14 @@ type SettingsNavigatorParamList = {
         categoryName: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -255,6 +269,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.WORKSPACE.TAG_GL_CODE]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+    };
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
@@ -294,7 +313,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         valueIndex: number;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS]: {
+    [SCREENS.WORKSPACE.REPORT_FIELDS_SETTINGS]: {
         policyID: string;
         reportFieldID: string;
     };
@@ -428,6 +447,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {
@@ -588,6 +610,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -622,6 +652,14 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+        policyID: string;
+        cardID: string;
+        backTo?: Routes;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -1106,6 +1144,8 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
+type BottomTabScreensParamList = {[SCREENS.HOME]: undefined; [SCREENS.REPORT]: undefined} & SearchNavigatorParamList & SettingsNavigatorParamList;
+
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: {
@@ -1204,11 +1244,11 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
+type BottomTabScreenName = keyof BottomTabScreensParamList;
+
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
-
-type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -1223,6 +1263,8 @@ export type {
     CentralPaneName,
     BackToParams,
     BottomTabName,
+    BottomTabScreenName,
+    BottomTabScreensParamList,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
@@ -1240,7 +1282,6 @@ export type {
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingModalNavigatorParamList,
-    OnboardingFlowName,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -1254,6 +1295,7 @@ export type {
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
+    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     FeatureTrainingNavigatorParamList,
