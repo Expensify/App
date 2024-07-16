@@ -1,13 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {TextInput, View} from 'react-native';
+import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
-type FocusRef = View | TextInput | null;
 type UseAutoFocusInput = {
-    inputCallbackRef: (ref: FocusRef) => void;
+    inputCallbackRef: (ref: TextInput | null) => void;
 };
 
 export default function useAutoFocusInput(): UseAutoFocusInput {
@@ -16,7 +15,7 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
 
     const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
 
-    const inputRef = useRef<FocusRef>(null);
+    const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -48,7 +47,7 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         }, []),
     );
 
-    const inputCallbackRef = (ref: FocusRef) => {
+    const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
         if (isInputInitialized) {
             return;

@@ -66,7 +66,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     anchorAlignment?: AnchorAlignment;
 
     /* ref for the button */
-    buttonRef?: RefObject<View> | ((ref: View) => void);
+    buttonRef?: RefObject<View>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;

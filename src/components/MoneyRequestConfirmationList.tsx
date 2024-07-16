@@ -1,10 +1,9 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -738,7 +737,16 @@ function MoneyRequestConfirmationList({
         ],
     );
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const confirmButtonRef = useRef<View>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                confirmButtonRef.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     const footerContent = useMemo(() => {
         if (isReadOnly) {
@@ -771,7 +779,7 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
-                buttonRef={inputCallbackRef}
+                buttonRef={confirmButtonRef}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
@@ -811,7 +819,6 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         debouncedFormError,
         translate,
-        inputCallbackRef,
     ]);
 
     const listFooterContent = (
