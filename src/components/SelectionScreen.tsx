@@ -82,6 +82,9 @@ type SelectionScreenProps = {
 
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
+
+    /** Whether to debounce `onRowSelect` */
+    shouldDebounceRowSelect?: boolean;
 };
 
 function SelectionScreen({
@@ -104,6 +107,7 @@ function SelectionScreen({
     errors,
     errorRowStyles,
     onClose,
+    shouldDebounceRowSelect,
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -142,6 +146,7 @@ function SelectionScreen({
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
                         sectionListStyle={[styles.flexGrow0]}
+                        shouldDebounceRowSelect={shouldDebounceRowSelect}
                     >
                         <ErrorMessageRow
                             errors={errors}
