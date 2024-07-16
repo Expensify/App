@@ -2,7 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -235,7 +235,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
-                            titleStyle={item.titleStyle}
+                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
                             numberOfLinesDescription={item.numberOfLinesDescription}

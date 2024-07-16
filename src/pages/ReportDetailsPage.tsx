@@ -160,7 +160,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
             if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-                return null;
+                return undefined;
             }
             return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
@@ -177,6 +177,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         return report;
     }, [caseID, parentReport, report]);
+
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
     const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
     const shouldShowTaskDeleteButton =
@@ -501,9 +503,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
         : '';
 
-    const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+    const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(moneyRequestAction);
     const shouldShowHoldAction =
-        caseID !== CASES.MONEY_REPORT && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !ReportUtils.isArchivedRoom(parentReport);
+        caseID !== CASES.DEFAULT &&
+        (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
+        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
@@ -515,7 +519,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         if (isExpenseReport && shouldShowHoldAction) {
-            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: parentReportAction}));
+            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: moneyRequestAction}));
         }
 
         if (report) {
@@ -525,7 +529,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, parentReportAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
+    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -633,6 +637,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    // A flag to indicate whether the user choose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+    // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
@@ -649,11 +656,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
-            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
+            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction]);
+
+        isTransactionDeleted.current = true;
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -742,7 +751,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
+                    onModalHide={() => {
+                        // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
+                        if (!isTransactionDeleted.current) {
+                            return;
+                        }
+
+                        if (!navigateBackToAfterDelete.current) {
+                            Navigation.dismissModal();
+                        } else {
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                        }
+                    }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
