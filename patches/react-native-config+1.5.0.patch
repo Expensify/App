@@ -336,13 +336,6 @@ index 70866c4..a8f3624 100644
  
 -export const Config = NativeModules.RNCConfigModule || {}
  export default Config;
-diff --git a/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m b/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
-index 04a2f3d..59df625 100644
---- a/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
-+++ b/node_modules/react-native-config/ios/ReactNativeConfig/GeneratedDotEnv.m
-@@ -1 +1 @@
--  #define DOT_ENV @{  };
-+  #define DOT_ENV @{ @"ENV":@"dev",@"API_URL":@"http://localhost" };
 diff --git a/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h b/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
 index 755d103..5341aca 100644
 --- a/node_modules/react-native-config/ios/ReactNativeConfig/RNCConfigModule.h
