@@ -178,6 +178,7 @@ const SCREENS = {
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
+        DEBUG: 'Debug',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -551,6 +552,11 @@ const SCREENS = {
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    DEBUG: {
+        REPORT: 'Debug_Report',
+        REPORT_ACTION: 'Debug_Report_Action',
+        REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

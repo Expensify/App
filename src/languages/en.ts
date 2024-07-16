@@ -1102,6 +1102,7 @@ export default {
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
             testCrash: 'Test crash',
+            debugMode: 'Debug mode',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -4796,5 +4797,11 @@ export default {
         notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
         notAllowedMessageHyperLinked: ' limited access',
         notAllowedMessageEnd: ' copilot',
+    },
+    debug: {
+        details: 'Details',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Preview',
     },
 } satisfies TranslationBase;

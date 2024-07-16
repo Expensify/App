@@ -300,6 +300,14 @@ function ProfilePage({route}: ProfilePageProps) {
                                 })}
                             />
                         )}
+                        {!isEmptyObject(report) && report.reportID && (
+                            <MenuItem
+                                title="Debug"
+                                icon={Expensicons.Bug}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
+                            />
+                        )}
                     </ScrollView>
                     {!hasAvatar && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
                 </View>

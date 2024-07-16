@@ -1105,6 +1105,7 @@ export default {
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
             testCrash: 'Prueba de fallo',
+            debugMode: 'Modo depuración',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

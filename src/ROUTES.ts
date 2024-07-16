@@ -1483,6 +1483,38 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
+    DEBUG_REPORT: {
+        route: 'debug/report/:reportID',
+        getRoute: (reportID: string) => `debug/report/${reportID}`,
+    },
+    DEBUG_REPORT_TAB_DETAILS: {
+        route: 'debug/report/:reportID/details',
+        getRoute: (reportID: string) => `debug/report/${reportID}/details`,
+    },
+    DEBUG_REPORT_TAB_JSON: {
+        route: 'debug/report/:reportID/json',
+        getRoute: (reportID: string) => `debug/report/${reportID}/json`,
+    },
+    DEBUG_REPORT_TAB_ACTIONS: {
+        route: 'debug/report/:reportID/actions',
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions`,
+    },
+    DEBUG_REPORT_ACTION: {
+        route: 'debug/report/:reportID/actions/:reportActionID',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}`,
+    },
+    DEBUG_REPORT_ACTION_CREATE: {
+        route: 'debug/report/:reportID/actions/create',
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions/create`,
+    },
+    DEBUG_REPORT_ACTION_TAB_DETAILS: {
+        route: 'debug/report/:reportID/actions/:reportActionID/details',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/details`,
+    },
+    DEBUG_REPORT_ACTION_TAB_JSON: {
+        route: 'debug/report/:reportID/actions/:reportActionID/json',
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/json`,
+    },
 } as const;
 
 /**

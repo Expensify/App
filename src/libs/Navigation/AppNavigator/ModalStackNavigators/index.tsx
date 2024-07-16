@@ -4,6 +4,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
+    DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
@@ -572,6 +573,12 @@ const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<Miss
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
 });
 
+const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
+    [SCREENS.DEBUG.REPORT]: () => require<ReactComponentModule>('../../../../pages/debug/Report/DebugReportPage').default,
+    [SCREENS.DEBUG.REPORT_ACTION]: () => require<ReactComponentModule>('../../../../pages/debug/Report/DebugReportActionPage').default,
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: () => require<ReactComponentModule>('../../../../pages/debug/Report/DebugReportActionCreatePage').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -604,4 +611,5 @@ export {
     SearchAdvancedFiltersModalStackNavigator,
     SearchSavedSearchModalStackNavigator,
     MissingPersonalDetailsModalStackNavigator,
+    DebugModalStackNavigator,
 };
