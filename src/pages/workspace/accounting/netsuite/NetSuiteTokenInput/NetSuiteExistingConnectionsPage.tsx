@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
@@ -22,13 +22,6 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     const policiesConnectedToSageNetSuite = getPoliciesConnectedToNetSuite();
     const policyID: string = route.params.policyID;
 
-    const reuseExistingConnection = useCallback(
-        (connectedPolicyID: string) => {
-            copyExistingPolicyConnection(connectedPolicyID, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-        },
-        [policyID],
-    );
-
     const menuItems = policiesConnectedToSageNetSuite.map((policy) => {
         const lastSuccessfulSyncDate = policy.connections?.netsuite.lastSyncDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
@@ -39,7 +32,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
-                reuseExistingConnection(policy.id);
+                copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
                 Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
             },
         };
