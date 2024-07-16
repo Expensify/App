@@ -62,7 +62,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -84,6 +84,7 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android beta
         env:
+          RUBYOPT: '-rostruct'
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
@@ -91,17 +92,18 @@ jobs:
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android production
         env:
+          RUBYOPT: '-rostruct'
           VERSION: ${{ env.VERSION_CODE }}
 
       - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-sourcemap-${{ github.ref_name }}
           path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Upload Android version to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-production-release.aab
           path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
@@ -191,7 +193,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -246,14 +248,14 @@ jobs:
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
       - name: Archive iOS sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemap-${{ github.ref_name }}
           path: main.jsbundle.map
 
       - name: Upload iOS version to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: New Expensify.ipa
           path: /Users/runner/work/App/App/New Expensify.ipa
