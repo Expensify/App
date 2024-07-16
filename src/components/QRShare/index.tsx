@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {Svg} from 'react-native-svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import ImageSVG from '@components/ImageSVG';
@@ -11,7 +11,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import variables from '@styles/variables';
 import type {QRShareHandle, QRShareProps} from './types';
 
@@ -19,11 +18,8 @@ function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRSha
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const isMobilePlatform = Platform.OS === 'android' || Platform.OS === 'ios';
-    const isMobileBrowser = Browser.isMobile();
-    const isMobile = isMobilePlatform || isMobileBrowser;
     const {windowWidth} = useWindowDimensions();
-    const qrCodeContainerWidth = isMobile || isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
+    const qrCodeContainerWidth = isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg>();
