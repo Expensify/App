@@ -45,17 +45,17 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                 fill={theme.icon}
             />
         ) : null;
-    }, [nextStep.icon, theme.icon]);    
+    }, [nextStep.icon, theme.icon]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
-            {iconComponent || (
-                <Badge
-                    text={translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}
-                    badgeStyles={styles.ml0}
-                />
-            )}
+                {iconComponent || (
+                    <Badge
+                        text={translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}
+                        badgeStyles={styles.ml0}
+                    />
+                )}
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />
