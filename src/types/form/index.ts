@@ -60,5 +60,5 @@ export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
 export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
 export type {NetSuiteTokenInputForm} from './NetSuiteTokenInputForm';
 export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
-export type {EditExpensifyCardLimit} from './EditExpensifyCardLimit';
+export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as Form} from './Form';

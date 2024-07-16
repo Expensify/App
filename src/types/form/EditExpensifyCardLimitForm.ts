@@ -7,7 +7,7 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type EditExpensifyCardLimit = Form<InputID, {[INPUT_IDS.LIMIT]: string}>;
+type EditExpensifyCardLimitForm = Form<InputID, {[INPUT_IDS.LIMIT]: string}>;
 
-export type {EditExpensifyCardLimit};
+export type {EditExpensifyCardLimitForm};
 export default INPUT_IDS;
