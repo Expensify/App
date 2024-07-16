@@ -56,7 +56,7 @@ function ConciergePage({session}: ConciergePageProps) {
 
     return (
         <ScreenWrapper testID={ConciergePage.displayName}>
-            <View style={[styles.borderBottom]}>
+            <View style={[styles.borderBottom, styles.appContentHeader]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
             <ReportActionsSkeletonView />
