@@ -99,6 +99,7 @@ function RequestEarlyCancellationPage() {
                 onSubmit={handleSubmit}
                 optionRowStyles={styles.flex1}
                 footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgmentText}</Text>}
+                isNoteRequired
             />
         ),
         [acknowledgmentText, styles, translate],
