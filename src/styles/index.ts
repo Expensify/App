@@ -507,6 +507,10 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
+        textWrap: {
+            ...whiteSpace.preWrap,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
