@@ -105,7 +105,6 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         >
             <ScreenWrapper
                 testID={WorkspaceEditCardLimitPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
