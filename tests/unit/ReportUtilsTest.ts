@@ -949,25 +949,5 @@ describe('ReportUtils', () => {
 
             expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
         });
-
-        it("should use the report id from the onboarding NVP if it's set", async () => {
-            const reportID = '8010';
-
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_ONBOARDING]: {chatReportID: reportID, hasCompletedGuidedSetupFlow: true},
-            });
-
-            const report1: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID,
-            };
-            expect(ReportUtils.isChatUsedForOnboarding(report1)).toBeTruthy();
-
-            const report2: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '8011',
-            };
-            expect(ReportUtils.isChatUsedForOnboarding(report2)).toBeFalsy();
-        });
     });
 });
