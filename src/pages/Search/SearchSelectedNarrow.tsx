@@ -64,6 +64,8 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
             >
                 {options.map((option, index) => (
                     <MenuItem
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...option}
                         title={option.text}
                         titleStyle={option.titleStyle}
                         icon={option.icon}
