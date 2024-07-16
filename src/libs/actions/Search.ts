@@ -6,7 +6,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -99,16 +98,11 @@ function exportSearchItemsToCSV(query: string, reportIDList: string[] | undefine
         policyIDs,
     }) as Params;
 
-    const formData = new FormData();
+    // Convert finalParameters to a query string
+    const queryString = Object.entries(finalParameters)
+        .map(([key, value]) => `${key}=${Array.isArray(value) ? value.join(',') : String(value)}`)
+        .join('&');
 
-    Object.entries(finalParameters).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-            formData.append(key, value.join(','));
-        } else {
-            formData.append(key, String(value));
-        }
-    });
-
-    fileDownload(ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
+    fileDownload(`${ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV})}${queryString}`, fileName);
 }
 export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV};

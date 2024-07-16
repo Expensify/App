@@ -76,7 +76,7 @@ function SearchPageHeader({
                         return;
                     }
                     clearSelectedItems?.();
-                    SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedItemsKeys, [activeWorkspaceID ?? '']);
+                    SearchActions.exportSearchItemsToCSV(query, selectedReports ?? [], selectedItemsKeys, [activeWorkspaceID ?? '']);
                 },
             },
         ];
