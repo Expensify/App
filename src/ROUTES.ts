@@ -3,7 +3,7 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {AuthScreensParamList} from './libs/Navigation/types';
-import type {SageIntacctMappingName} from './types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -285,6 +285,10 @@ const ROUTES = {
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+    },
+    REPORT_WITH_ID_DETAILS_EXPORT: {
+        route: 'r/:reportID/details/export/:connectionName',
+        getRoute: (reportID: string, connectionName: ConnectionName) => `r/${reportID}/details/export/${connectionName}` as const,
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
@@ -676,9 +680,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
-    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+    WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
         getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+    },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) =>
+            `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -841,6 +850,10 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID',
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
@@ -1169,6 +1182,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',

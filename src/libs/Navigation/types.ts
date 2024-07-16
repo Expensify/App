@@ -19,7 +19,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import type {SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -449,6 +449,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {
         policyID: string;
     };
@@ -607,6 +610,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
@@ -649,6 +656,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+        policyID: string;
+        cardID: string;
+        backTo?: Routes;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -677,6 +689,11 @@ type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: undefined;
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+    };
+    [SCREENS.REPORT_DETAILS.EXPORT]: {
+        reportID: string;
+        policyID: string;
+        connectionName: ConnectionName;
     };
 };
 

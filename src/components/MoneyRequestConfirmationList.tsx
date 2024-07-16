@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -213,7 +211,6 @@ function MoneyRequestConfirmationList({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
@@ -453,9 +450,7 @@ function MoneyRequestConfirmationList({
         }
 
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
-        const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
-        const amountWidth = StyleUtils.getWidthStyle(formattedTotalAmount.length * 9 + prefixPadding);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
@@ -473,12 +468,13 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
-                    inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer, amountWidth]}
+                    inputStyle={[styles.optionRowAmountInput]}
+                    containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
+                    contentWidth={formattedTotalAmount.length * 8}
                 />
             ),
         }));
@@ -488,7 +484,6 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         currencyList,
         iouCurrencyCode,
-        StyleUtils,
         iouAmount,
         selectedParticipants,
         styles.flexWrap,
