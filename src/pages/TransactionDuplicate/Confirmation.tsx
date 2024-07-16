@@ -48,6 +48,7 @@ function Confirmation() {
             action: reportAction,
             report,
             checkIfContextMenuActive: () => {},
+            reportNameValuePairs: undefined,
             anchor: null,
         }),
         [report, reportAction],
