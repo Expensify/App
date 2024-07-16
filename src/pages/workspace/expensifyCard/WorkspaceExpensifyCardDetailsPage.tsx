@@ -24,6 +24,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 // TODO: remove when Onyx data is available
@@ -115,7 +116,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 description={translate('workspace.expensifyCard.cardLimit')}
                                 title={formattedLimit}
                                 shouldShowRightIcon
-                                onPress={() => {}} // TODO: navigate to Edit card limit page https://github.com/Expensify/App/issues/44326
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID))}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.card.issueNewCard.limitType')}

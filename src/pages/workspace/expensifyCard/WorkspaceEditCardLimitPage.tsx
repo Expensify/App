@@ -64,7 +64,10 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const updateCardLimit = (newLimit: string) => {
         setIsConfirmModalVisible(false);
+
         // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407831
+
+        Navigation.goBack();
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT>) => {
