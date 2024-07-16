@@ -143,10 +143,6 @@ function GenericPressable(
     }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
 
 
-	useEffect(() => {
-console.log('cPressable.tsx: ', ref)
-	}, [onPressHandler]);
-
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}

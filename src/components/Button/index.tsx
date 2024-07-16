@@ -295,10 +295,6 @@ function Button(
         return textComponent;
     };
 
-	React.useEffect(() => {	
-		console.log('ref at Button comp: ', JSON.stringify(ref))
-	}, []);
-
     return (
         <>
             {pressOnEnter && (

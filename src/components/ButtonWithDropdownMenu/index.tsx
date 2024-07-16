@@ -47,9 +47,6 @@ function ButtonWithDropdownMenu<IValueType>({
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
     useEffect(() => {
-	    console.log('caretButton: ', caretButton)
-	    console.log('useRef: ', buttonRef)
-	    console.log('options: ', options)
         if (!caretButton.current) {
             return;
         }
@@ -75,7 +72,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
-                        ref={(ref) => {
+                        ref={(ref) => {				
                             caretButton.current = ref;
                         }}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
@@ -142,7 +139,12 @@ function ButtonWithDropdownMenu<IValueType>({
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={caretButton}
+		    anchorRef={() => {
+			if (caretButton.current && !caretButton.current.value) {
+                            caretButton.current.value = "";
+			}
+			    return caretButton;
+		    }}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}

@@ -111,7 +111,6 @@ function PopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<number[]>([]);
-	const [alignedAnchorRef, setAlignedAnchorRef] = useState(anchorRef)
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
@@ -192,23 +191,11 @@ function PopoverMenu({
         setEnteredSubMenuIndexes([]);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
-    
-	useEffect(() => {
-		console.log('anchorRef at popover: ', anchorRef)
-		if(anchorRef.current?.value) {
-		let newAnchorRef = anchorRef
-		newAnchorRef.current.value = ""
-		console.log('newAnchorRef: ', newAnchorRef)
-			setAlignedAnchorRef(newAnchorRef)	
-		}
-    }, []);
-
 
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
-            anchorRef={alignedAnchorRef}
-	    //anchorRef={anchorRef}
+            anchorRef={anchorRef}
             anchorAlignment={anchorAlignment}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
