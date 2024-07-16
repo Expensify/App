@@ -437,8 +437,6 @@ function ComposerWithSuggestions(
                     if (suggestionsRef.current) {
                         suggestionsRef.current.resetSuggestions();
                     }
-                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
             emojisPresentBefore.current = emojis;
@@ -479,7 +477,7 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, raiseIsScrollLikelyLayoutTriggered, reportID, setValue, suggestionsRef],
+        [debouncedSaveReportComment, preferredLocale, preferredSkinTone, raiseIsScrollLikelyLayoutTriggered, reportID, setValue, suggestionsRef],
     );
 
     // This contains the previous value that we receive directly from the native text input (not our formatted value)
