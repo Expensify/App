@@ -98,7 +98,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 
     const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => {
-        const isSelected = policy?.autoReportingFrequency === frequencyKey;
+        const isSelected = PolicyUtils.getCorrectedAutoReportingFrequency(policy) === frequencyKey;
 
         return {
             text: getAutoReportingFrequencyDisplayNames(preferredLocale)[frequencyKey as AutoReportingFrequencyKey] || '',
