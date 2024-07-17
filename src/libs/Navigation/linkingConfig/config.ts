@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { LinkingOptions } from '@react-navigation/native';
-import type { RootStackParamList } from '@navigation/types';
+import type {LinkingOptions} from '@react-navigation/native';
+import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
