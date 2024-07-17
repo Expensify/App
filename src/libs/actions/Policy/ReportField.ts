@@ -21,6 +21,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+import execPolicyWriteCommand from './execPolicyWriteCommand';
 
 let listValues: string[];
 let disabledListValues: boolean[];
@@ -323,7 +324,7 @@ function updateReportFieldInitialValue(policyID: string, reportFieldID: string, 
         reportFields: JSON.stringify([updatedReportField]),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE, parameters, onyxData);
 }
 
 function updateReportFieldListValueEnabled(policyID: string, reportFieldID: string, valueIndexes: number[], enabled: boolean) {
@@ -387,7 +388,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
         reportFields: JSON.stringify([updatedReportField]),
     };
 
-    API.write(WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
 /**
@@ -531,15 +532,15 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
 export type {CreateReportFieldArguments};
 
 export {
-    setInitialCreateReportFieldsForm,
-    createReportFieldsListValue,
-    renameReportFieldsListValue,
-    setReportFieldsListValueEnabled,
-    deleteReportFieldsListValue,
+    addReportFieldListValue,
     createReportField,
+    createReportFieldsListValue,
     deleteReportFields,
+    deleteReportFieldsListValue,
+    removeReportFieldListValue,
+    renameReportFieldsListValue,
+    setInitialCreateReportFieldsForm,
+    setReportFieldsListValueEnabled,
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
-    addReportFieldListValue,
-    removeReportFieldListValue,
 };

@@ -25,6 +25,7 @@ import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Rep
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import execPolicyWriteCommand from './execPolicyWriteCommand';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -283,7 +284,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
         tagListIndex,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 
 function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
@@ -488,7 +489,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
         tagListIndex,
     };
 
-    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
 function enablePolicyTags(policyID: string, enabled: boolean) {
@@ -581,7 +582,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);
@@ -635,7 +636,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
         tagListIndex,
     };
 
-    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
 
 function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
@@ -710,7 +711,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         requiresTag,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
 function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIndex: number) {
@@ -768,7 +769,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
         requireTagList: requiresTag,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
 function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
@@ -843,24 +844,24 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
         glCode,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
 export {
     buildOptimisticPolicyRecentlyUsedTags,
-    setPolicyRequiresTag,
-    setPolicyTagsRequired,
-    createPolicyTag,
     clearPolicyTagErrors,
-    clearPolicyTagListErrors,
     clearPolicyTagListErrorField,
+    clearPolicyTagListErrors,
+    createPolicyTag,
     deletePolicyTags,
     enablePolicyTags,
     openPolicyTagsPage,
     renamePolicyTag,
     renamePolicyTaglist,
-    setWorkspaceTagEnabled,
+    setPolicyRequiresTag,
     setPolicyTagGLCode,
+    setPolicyTagsRequired,
+    setWorkspaceTagEnabled,
 };
 
 export type {NewCustomUnit};

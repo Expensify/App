@@ -21,6 +21,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import execPolicyWriteCommand from './execPolicyWriteCommand';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -161,7 +162,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+    execPolicyWriteCommand(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         navigateWhenEnableFeature(policyID);
@@ -334,7 +335,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
         customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
 }
 
 function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
@@ -405,7 +406,7 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
@@ -476,7 +477,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
 }
 
 function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
@@ -550,7 +551,7 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
         customUnitRateID: rateIDsToDelete,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
 }
 
 function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
@@ -621,7 +622,7 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_DISTANCE_TAX_CLAIMABLE_VALUE, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_DISTANCE_TAX_CLAIMABLE_VALUE, params, {optimisticData, successData, failureData});
 }
 
 function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
@@ -692,23 +693,23 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_TAX_RATE_VALUE, params, {optimisticData, successData, failureData});
+    execPolicyWriteCommand(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_TAX_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
 export {
-    enablePolicyDistanceRates,
-    openPolicyDistanceRatesPage,
-    createPolicyDistanceRate,
     clearCreateDistanceRateItemAndError,
     clearDeleteDistanceRateError,
-    setPolicyDistanceRatesUnit,
-    clearPolicyDistanceRatesErrorFields,
     clearPolicyDistanceRateErrorFields,
-    updatePolicyDistanceRateValue,
-    setPolicyDistanceRatesEnabled,
+    clearPolicyDistanceRatesErrorFields,
+    createPolicyDistanceRate,
     deletePolicyDistanceRates,
+    enablePolicyDistanceRates,
+    openPolicyDistanceRatesPage,
+    setPolicyDistanceRatesEnabled,
+    setPolicyDistanceRatesUnit,
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
+    updatePolicyDistanceRateValue,
 };
 
 export type {NewCustomUnit};
