@@ -1228,9 +1228,7 @@ type SearchReportParamList = {
 };
 
 type SearchAdvancedFiltersParamList = {
-    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: {
-        query: string;
-    };
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
 };
 
 type RestrictedActionParamList = {
