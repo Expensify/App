@@ -153,7 +153,7 @@ function SearchPageHeader({
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
-                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal},
+                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap},
             };
 
             options.push({
@@ -182,6 +182,7 @@ function SearchPageHeader({
         setOfflineModalOpen,
         activeWorkspaceID,
         selectedReports,
+        styles.textWrap,
     ]);
 
     if (isSmallScreenWidth) {
