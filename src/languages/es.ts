@@ -3151,6 +3151,9 @@ export default {
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
             cardReconciliation: 'Conciliación de tarjetas',
+            continuousReconciliation: 'Conciliación Continua',
+            continuousReconciliationDescription:
+                'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
             reconciliationAccount: 'Cuenta de conciliación',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',

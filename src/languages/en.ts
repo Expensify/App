@@ -3161,6 +3161,9 @@ export default {
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
             cardReconciliation: 'Card reconciliation',
+            continuousReconciliation: 'Continuous Reconciliation',
+            continuousReconciliationDescription:
+                'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             reconciliationAccount: 'Reconciliation account',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',

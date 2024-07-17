@@ -207,6 +207,43 @@ function clearIssueNewCardFlow() {
     });
 }
 
+function toggleCardReconciliation(value: boolean, policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`, value);
+
+    // TODO: uncomment this code when the API is ready
+    // const optimisticData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`,
+    //         value,
+    //     },
+    // ];
+    //
+    // const successData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`,
+    //         value,
+    //     },
+    // ];
+    //
+    // const failureData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`,
+    //         value: !value,
+    //     },
+    // ];
+    //
+    // const parameters = {
+    //     workspaceAccountID: policyID,
+    //     shouldUseContinuousReconciliation: value,
+    //     reconciliationSettings: value ? {} : undefined
+    // };
+    //
+    // API.write(WRITE_COMMANDS.TOGGLE_CONTINUOUS_RECONCILIATION, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -215,5 +252,6 @@ export {
     revealVirtualCardDetails,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
+    toggleCardReconciliation,
 };
 export type {ReplacementReason};
