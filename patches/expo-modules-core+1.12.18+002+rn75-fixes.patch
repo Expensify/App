@@ -11,6 +11,19 @@ index 11aa072..c872541 100644
      mHybridData = initHybrid()
      registerComponentsRegistry(componentNames.toTypedArray())
    }
+diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java b/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java
+index c873ec0..98628e6 100644
+--- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java
++++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java
+@@ -20,7 +20,7 @@ public class ModuleRegistryReadyNotifier extends BaseJavaModule {
+ 
+   @Override
+   public String getName() {
+-    return null;
++    return "ModuleRegistryReadyNotifier";
+   }
+ 
+   @Override
 diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt
 index 7f1b5e6..c942080 100644
 --- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt
