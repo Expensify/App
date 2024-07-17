@@ -428,7 +428,7 @@ function MoneyRequestView({
                             }
 
                             const isCreateChatErrored = !!report?.errorFields?.createChat;
-                            if ((isCreateChatErrored || !!report.isOptimisticReport) && parentReportAction) {
+                            if ((isCreateChatErrored || !!report?.isOptimisticReport) && parentReportAction) {
                                 const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction.transactionID, parentReportAction, true);
                                 Navigation.goBack(urlToNavigateBack);
                                 return;
