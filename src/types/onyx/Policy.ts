@@ -130,6 +130,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates if the tax rate is selected. */
     isSelected?: boolean;
 
+    /** The old tax code of the tax rate when we edit the tax code */
+    previousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 

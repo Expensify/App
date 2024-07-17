@@ -2849,6 +2849,7 @@ export default {
             taxRate: 'Tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
+                taxCodeAlreadyExists: 'This tax code is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
                 customNameRequired: 'Custom tax name is required.',
                 deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
@@ -2867,6 +2868,8 @@ export default {
                 enableMultiple: 'Enable rates',
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
+            taxCode: 'Tax code',
+            updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

@@ -2899,6 +2899,7 @@ export default {
             taxReclaimableOn: 'Impuesto recuperable en',
             error: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre.',
+                taxCodeAlreadyExists: 'Ya existe un código de impuesto con este nombre.',
                 customNameRequired: 'El nombre del impuesto es obligatorio.',
                 valuePercentageRange: 'Por favor, introduce un porcentaje entre 0 y 100.',
                 deleteFailureMessage: 'Se ha producido un error al intentar eliminar la tasa de impuesto. Por favor, inténtalo más tarde.',
@@ -2917,6 +2918,8 @@ export default {
                 enableMultiple: 'Activar tasas',
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
+            taxCode: 'Código de impuesto',
+            updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
