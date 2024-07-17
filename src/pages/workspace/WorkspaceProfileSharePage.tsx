@@ -26,8 +26,6 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
-const adminsRoomMentionText = '#admins';
-
 function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,16 +47,6 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
         return ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
     }, [policy?.id]);
 
-    const shareNote = useMemo(() => {
-        const header = translate('workspace.common.shareNote.header');
-        const content = translate('workspace.common.shareNote.content');
-        const adminRoomMentionIndex = content.indexOf(adminsRoomMentionText);
-        return {
-            header,
-            contentParts: [content.slice(0, adminRoomMentionIndex), content.slice(adminRoomMentionIndex + adminsRoomMentionText.length)],
-        };
-    }, [translate]);
-
     return (
         <AccessOrNotFoundWrapper
             policyID={id}
@@ -75,11 +63,11 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                 <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                     <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
                         <View style={[themeStyles.mh5]}>
-                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{shareNote.header}</Text>
+                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
                         </View>
                         <View style={[themeStyles.mh5, themeStyles.mb9]}>
                             <Text style={[themeStyles.textNormal]}>
-                                {shareNote.contentParts[0]}
+                                {translate('workspace.common.shareNote.content.firstPart')}{' '}
                                 <TextLink
                                     style={themeStyles.link}
                                     onPress={() => {
@@ -89,9 +77,9 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID));
                                     }}
                                 >
-                                    #admins
-                                </TextLink>
-                                {shareNote.contentParts[1]}
+                                    {CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
+                                </TextLink>{' '}
+                                {translate('workspace.common.shareNote.content.secondPart')}
                             </Text>
                         </View>
 
