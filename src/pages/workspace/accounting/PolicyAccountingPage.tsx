@@ -107,7 +107,7 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
-                hasImportError: PolicyUtils.areSettingsInErrorFields(
+                hasImportError: PolicyUtils.areXeroSettingsInErrorFields(
                     [
                         CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
                         CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
@@ -118,13 +118,13 @@ function accountingIntegrationData(
                     policy?.connections?.xero?.config?.errorFields ?? {},
                 ),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
-                hasExportError: PolicyUtils.areSettingsInErrorFields(
+                hasExportError: PolicyUtils.areXeroSettingsInErrorFields(
                     [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
                     policy?.connections?.xero?.config?.errorFields ?? {},
                 ),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
-                hasAdvancedError: PolicyUtils.areSettingsInErrorFields(
+                hasAdvancedError: PolicyUtils.areXeroSettingsInErrorFields(
                     [CONST.XERO_CONFIG.ENABLED, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID],
                     policy?.connections?.xero?.config?.errorFields ?? {},
                 ),

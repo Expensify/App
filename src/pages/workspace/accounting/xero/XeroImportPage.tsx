@@ -29,13 +29,13 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.accounting.accounts'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
                 title: translate('workspace.accounting.importAsCategory'),
-                hasError: PolicyUtils.areSettingsInErrorFields([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], errorFields),
+                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], errorFields),
                 pendingAction: pendingFields?.enableNewCategories,
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
-                hasError: PolicyUtils.areSettingsInErrorFields(
+                hasError: PolicyUtils.areXeroSettingsInErrorFields(
                     [CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES, ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`)],
                     errorFields,
                 ),
@@ -47,14 +47,14 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 action: () => {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
                 },
-                hasError: PolicyUtils.areSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], errorFields),
+                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], errorFields),
                 title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importCustomers,
             },
             {
                 description: translate('workspace.accounting.taxes'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
-                hasError: PolicyUtils.areSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_TAX_RATES], errorFields),
+                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_TAX_RATES], errorFields),
                 title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTaxRates,
             },

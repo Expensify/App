@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {Except, LiteralUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -498,7 +498,10 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function areSettingsInErrorFields(settings: string[], errorFields?: ErrorFields) {
+function areXeroSettingsInErrorFields(
+    settings: Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>,
+    errorFields?: ErrorFields,
+) {
     if (errorFields === undefined) {
         return false;
     }
@@ -847,7 +850,7 @@ export {
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
-    areSettingsInErrorFields,
+    areXeroSettingsInErrorFields,
 };
 
 export type {MemberEmailsToAccountIDs};
