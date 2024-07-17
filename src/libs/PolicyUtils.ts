@@ -359,7 +359,7 @@ function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): V
         return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
     }
 
-    // "manual" is really just "daily" with harvesting disabled
+    // "manual" is really just "immediate" (aka "daily") with harvesting disabled
     return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 }
 
