@@ -1287,11 +1287,10 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
  * Whether the provided report is an archived room
  */
 function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    if (reportNameValuePairs) {
-        return reportNameValuePairs.private_isArchived;
+    if (report?.private_isArchived) {
+        return true;
     }
-
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+    return false;
 }
 
 /**
