@@ -1257,7 +1257,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-geolocation (3.2.1):
+  - react-native-geolocation (3.3.0):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2562,7 +2562,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: f373bebbe9f6b7c3fd2a6f97c5171cda574cf957
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
-  react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
+  react-native-geolocation: 580c86eb531c0aaf7a14bc76fd2983ce47ca58aa
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 28ccfa09520e7d7e30739480dea4df003493bfe8
   react-native-keyboard-controller: 47c01b0741ae5fc84e53cf282e61cfa5c2edb19b
