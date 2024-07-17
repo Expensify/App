@@ -1,18 +1,17 @@
 ---
-title: Report Currency
-description: Understanding expense and report currency
+title: Setting Up Report Currency
+description: Define a currency in your workspace's settings
 ---
 
 # Overview
 As a workspace admin, you can choose a default currency for your employees' expense reports, and we’ll automatically convert any expenses into that currency. 
 
-Here are a few essential things to remember:
-
+Here are a few things to remember:
 - Currency settings for a workspace apply to all expenses under that workspace. If you need different default currencies for certain employees, creating separate workspaces and configuring the currency settings is best.
 - As an admin, the currency settings you establish in the workspace will take precedence over any currency settings individual users may have in their accounts.
 - Currency is a workspace-level setting, meaning the currency you set will determine the currency for all expenses submitted on that workspace. 
 
-# How to select the currency on a workspace
+# Select the currency on a workspace
 
 ## As an admin on a group workspace
 
@@ -28,11 +27,9 @@ Here are a few essential things to remember:
 
 Please note the currency setting on an individual workspace is overridden when you submit a report on a group workspace.
 
-# Deep Dive 
-
 ## Conversion Rates
 
-Using data from Open Exchange Rates, Expensify takes the average rate on the day the expense occurred to convert an expense from one currency to another. The conversion rate can vary depending on when the expense happened since the rate is determined after the market closes on that specific date.
+Using data from Open Exchange Rates, Expensify converts expenses from one currency to another using the average rate on the day the expense occurred. The conversion rate can vary depending on when the expense occurred since it is determined after the market closes on that specific date.
 
 If the markets aren’t open on the day the expense takes place (i.e., on a Saturday), Expensify will use the daily average rate from the last available market day before the purchase took place. 
 
@@ -40,7 +37,7 @@ When an expense is logged for a future date, possibly to anticipate a purchase t
 
 ## Managing expenses for employees in several different countries 
 
-Suppose you have employees scattered across the globe who submit expense reports in various currencies. The best way to manage those expenses is to create separate group workspaces for each location or region where your employees are based. 
+If you have employees scattered across the globe who submit expense reports in various currencies, the best way to manage those expenses is to create separate group workspaces for each location or region where your employees are based. 
 
 Then, set the default currency for that workspace to match the currency in which the employees are reimbursed. 
 
