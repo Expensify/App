@@ -7,10 +7,7 @@ function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, user: O
 }
 
 function getLastFourDigits(bankAccountNumber: string): string {
-    if (!bankAccountNumber) {
-        return '';
-    }
-    return bankAccountNumber.slice(-4);
+    return bankAccountNumber ? bankAccountNumber.slice(-4) : '';
 }
 
 export {getDefaultCompanyWebsite, getLastFourDigits};
