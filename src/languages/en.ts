@@ -3347,12 +3347,12 @@ export default {
                 description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
                 onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
             },
-            netSuite: {
+            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + NetSuite integration. Gain in-depth, realtime financial insights with native and custom segment support, including project and customer mapping.`,
                 onlyAvailableOnPlan: 'Our NetSuite integration is only available on the Control plan, starting at ',
             },
-            sageIntacct: {
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
                 title: 'Sage Intacct',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
                 onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',

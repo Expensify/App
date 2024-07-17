@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import Icon from '@components/Icon';
 import * as Expensicon from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
@@ -12,8 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type Props = {
@@ -33,10 +32,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
         <View style={styles.p5}>
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    <Icon
-                        src={iconSrc}
-                        width={variables.iconSizeExtraLarge}
-                        height={variables.iconSizeExtraLarge}
+                    <Avatar
+                        type={CONST.ICON_TYPE_AVATAR}
+                        source={iconSrc}
                     />
                     <Badge
                         icon={Expensicon.Unlock}
@@ -49,7 +47,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.themeTextColor, styles.textBold]}>{translate(`workspace.upgrade.pricing.amount`)}</Text>
+                        <Text style={[styles.textSupporting, styles.textBold]}>{translate(`workspace.upgrade.pricing.amount`)}</Text>
                         {translate(`workspace.upgrade.pricing.perActiveMember`)}
                     </Text>
                 </View>
