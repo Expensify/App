@@ -4,6 +4,7 @@ import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -47,6 +48,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
@@ -55,6 +57,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyCategory, ReimbursementAccount, Report, ReportAction, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
@@ -530,12 +533,12 @@ function clearNetSuiteErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
 }
 
-function clearNetSuiteAutoSyncErrorField(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
-}
-
 function clearSageIntacctErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[fieldName]: null}}}}});
+}
+
+function clearNetSuiteAutoSyncErrorField(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
@@ -1067,6 +1070,25 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         currency,
     };
 
+    const persistedRequests = PersistedRequests.getAll();
+
+    persistedRequests.forEach((request, index) => {
+        const {command, data} = request;
+
+        if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
+            if (data.policyName !== name) {
+                const createWorkspaceRequest = {
+                    ...request,
+                    data: {
+                        ...data,
+                        policyName: name,
+                    },
+                };
+                PersistedRequests.update(index, createWorkspaceRequest);
+            }
+        }
+    });
+
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
         optimisticData,
         finallyData,
@@ -1305,11 +1327,17 @@ function generateDefaultWorkspaceName(email = ''): string {
     }
     const username = emailParts[0];
     const domain = emailParts[1];
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
+    const displayName = userDetails?.displayName?.trim();
 
-    if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
+    if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
+    } else if (displayName) {
+        defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
+    } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
     } else {
-        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
+        defaultWorkspaceName = userDetails?.phoneNumber ?? '';
     }
 
     if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
@@ -2483,6 +2511,11 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
+/** Save the preferred export method for a policy */
+function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
+    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
+}
+
 function enableExpensifyCard(policyID: string, enabled: boolean) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
@@ -3071,8 +3104,12 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
-function getPoliciesConnectedToSageIntacct(): Policy[] {
-    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
+function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
+}
+
+function getAdminPoliciesConnectedToNetSuite(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 }
 
 export {
@@ -3127,6 +3164,7 @@ export {
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
+    clearSageIntacctErrorField,
     clearNetSuiteErrorField,
     clearNetSuiteAutoSyncErrorField,
     clearWorkspaceReimbursementErrors,
@@ -3137,14 +3175,15 @@ export {
     isCurrencySupportedForDirectReimbursement,
     getPrimaryPolicy,
     createDraftWorkspace,
+    savePreferredExportMethod,
     buildPolicyData,
     enableExpensifyCard,
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
     requestExpensifyCardLimitIncrease,
-    getPoliciesConnectedToSageIntacct,
-    clearSageIntacctErrorField,
+    getAdminPoliciesConnectedToNetSuite,
+    getAdminPoliciesConnectedToSageIntacct,
 };
 
 export type {NewCustomUnit};

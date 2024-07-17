@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -16,6 +16,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
+import getBase62ReportID from './getBase62ReportID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
@@ -83,6 +84,27 @@ Onyx.connect({
 
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
+
+/*
+ * Url to the Xero non reimbursable expenses list
+ */
+const XERO_NON_REIMBURSABLE_EXPENSES_URL = 'https://go.xero.com/Bank/BankAccounts.aspx';
+
+/*
+ * Url to the NetSuite global search, which should be suffixed with the reportID.
+ */
+const NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX =
+    'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
+
+/*
+ * Url prefix to any Salesforce transaction or transaction list.
+ */
+const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
+
+/*
+ * Url to the QBO expenses list
+ */
+const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -173,6 +195,10 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
         return reportAction?.message ?? reportAction?.originalMessage;
     }
     return reportAction.originalMessage;
+}
+
+function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
 
 /**
@@ -382,12 +408,25 @@ function getCombinedReportActions(
         return reportActions;
     }
 
-    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
-    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    // Usually, we filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    // However, in the case of moving track expense, the transaction thread will be created first in a track expense, thus we should keep the CREATED of the transaction thread and filter out CREATED action of the IOU
+    // This makes sense because in a combined report action list, whichever CREATED is first need to be retained.
+    const transactionThreadCreatedAction = transactionThreadReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const parentReportCreatedAction = reportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    let filteredTransactionThreadReportActions = transactionThreadReportActions;
+    let filteredParentReportActions = reportActions;
+
+    if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
+        filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    } else {
+        filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    }
+
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+    const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         if (!isMoneyRequestAction(action)) {
             return true;
         }
@@ -628,7 +667,8 @@ function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>):
  *
  */
 function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const resolution = reportAction && 'resolution' in reportAction ? reportAction?.resolution : null;
+    const originalMessage = getOriginalMessage(reportAction);
+    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
     return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
@@ -1140,7 +1180,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
-        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
         CONST.REPORT.ACTIONS.TYPE.FORWARDED,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
@@ -1204,8 +1243,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return Localize.translateLocal('report.actions.type.exportedToCSV');
-        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
-            return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
@@ -1427,6 +1464,94 @@ function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: s
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
+/**
+ * Checks if a given report action corresponds to a add payment card action.
+ * @param reportAction
+ */
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
+}
+
+function getExportIntegrationLastMessageText(reportAction: OnyxEntry<ReportAction>): string {
+    const fragments = getExportIntegrationActionFragments(reportAction);
+    return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
+}
+
+function getExportIntegrationMessageHTML(reportAction: OnyxEntry<ReportAction>): string {
+    const fragments = getExportIntegrationActionFragments(reportAction);
+    const htmlFragments = fragments.map((fragment) => (fragment.url ? `<a href="${fragment.url}">${fragment.text}</a>` : fragment.text));
+    return htmlFragments.join(' ');
+}
+
+function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportAction>): Array<{text: string; url: string}> {
+    if (reportAction?.actionName !== 'EXPORTINTEGRATION') {
+        throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
+    }
+
+    const isPending = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const originalMessage = (getOriginalMessage(reportAction) ?? {}) as OriginalMessageExportIntegration;
+    const {label, markedManually} = originalMessage;
+    const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
+    const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
+    const reportID = reportAction?.reportID ?? '';
+    const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
+    const base62ReportID = getBase62ReportID(Number(reportID));
+
+    const result: Array<{text: string; url: string}> = [];
+    if (isPending) {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.pending', {label}),
+            url: '',
+        });
+    } else if (markedManually) {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
+            url: '',
+        });
+    } else {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            url: '',
+        });
+    }
+
+    if (reimbursableUrls.length === 1) {
+        result.push({
+            text: Localize.translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            url: reimbursableUrls[0],
+        });
+    }
+
+    if (nonReimbursableUrls.length) {
+        const text = Localize.translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
+        let url = '';
+
+        if (nonReimbursableUrls.length === 1) {
+            url = nonReimbursableUrls[0];
+        } else {
+            switch (label) {
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
+                    url = XERO_NON_REIMBURSABLE_EXPENSES_URL;
+                    break;
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite:
+                    url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
+                    url += wasExportedAfterBase62 ? base62ReportID : reportID;
+                    break;
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
+                    // The first three characters in a Salesforce ID is the expense type
+                    url = nonReimbursableUrls[0].substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3);
+                    break;
+                default:
+                    url = QBO_EXPENSES_URL;
+            }
+        }
+
+        result.push({text, url});
+    }
+
+    return result;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1454,6 +1579,7 @@ export {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isExportIntegrationAction,
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -1514,6 +1640,10 @@ export {
     isTripPreview,
     getIOUActionForReportID,
     getFilteredForOneTransactionView,
+    isActionableAddPaymentCard,
+    getExportIntegrationActionFragments,
+    getExportIntegrationLastMessageText,
+    getExportIntegrationMessageHTML,
 };
 
 export type {LastVisibleMessage};
