@@ -95,7 +95,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
                             brickRoadIndicator={
-                                PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                                PolicyUtils.areSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                             }
                         />
                     </OfflineWithFeedback>
@@ -110,9 +110,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID));
                             }}
                             brickRoadIndicator={
-                                PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined
+                                PolicyUtils.areSettingsInErrorFields([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                             }
                         />
                     </OfflineWithFeedback>
