@@ -17,6 +17,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import * as Category from '@userActions/Policy/Category';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import * as Policy from '@userActions/Policy/Policy';
@@ -85,14 +86,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
+    const isSyncTaxEnabled =
+        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
+        !!policy?.connections?.xero?.config?.importTaxRates ||
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id ?? '';
     // @ts-expect-error a new props will be added during feed api implementation
-    const workspaceAccountID = policy?.workspaceAccountID ?? '';
-    // @ts-expect-error onyx key will be available after this PR https://github.com/Expensify/App/pull/44469
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${workspaceAccountID}_Expensify Card`);
+    const workspaceAccountID = (policy?.workspaceAccountID as string) ?? '';
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     // Uncomment this line for testing disabled toggle feature - for c+
-    // const [cardsList = mockedCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${workspaceAccountID}_Expensify Card`);
+    // const [cardsList = mockedCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
@@ -202,6 +205,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 if (isEnabled) {
+                    if (!isControlPolicy(policy)) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                        );
+                        return;
+                    }
+
                     Policy.enablePolicyReportFields(policyID, true);
                     return;
                 }

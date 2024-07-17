@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -109,16 +109,18 @@ function PopoverMenu({
     const selectedItemIndex = useRef<number | null>(null);
 
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
-    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<number[]>([]);
+    const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems[index];
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
-            setFocusedIndex(-1);
+            const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
+            setFocusedIndex(selectedSubMenuItemIndex);
         } else {
             selectedItemIndex.current = index;
             onItemSelected(selectedItem, index);
@@ -156,10 +158,17 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    enteredSubMenuIndexes.splice(-1);
+                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
                 }}
             />
         );
+    };
+
+    const renderHeaderText = () => {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
+            return;
+        }
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -186,7 +195,7 @@ function PopoverMenu({
         if (menuItems.length === 0) {
             return;
         }
-        setEnteredSubMenuIndexes([]);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
@@ -197,7 +206,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes([]);
+                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
             isVisible={isVisible}
@@ -213,7 +222,7 @@ function PopoverMenu({
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
+                    {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
@@ -225,6 +234,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
+                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
                             numberOfLinesDescription={item.numberOfLinesDescription}
@@ -247,6 +257,8 @@ function PopoverMenu({
                             shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
                             tooltipWrapperStyle={item.tooltipWrapperStyle}
                             renderTooltipContent={item.renderTooltipContent}
+                            numberOfLinesTitle={item.numberOfLinesTitle}
+                            interactive={item.interactive}
                         />
                     ))}
                 </View>

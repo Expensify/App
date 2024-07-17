@@ -1,6 +1,8 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+// eslint-disable-next-line no-restricted-imports
+import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -58,6 +60,12 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -78,6 +86,9 @@ type ListItem = {
 
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
 
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
@@ -131,6 +142,9 @@ type ListItem = {
 
     /** Whether item pressable wrapper should be focusable */
     tabIndex?: 0 | -1;
+
+    /** The style to override the cursor appearance */
+    cursorStyle?: CursorStyles[keyof CursorStyles];
 };
 
 type TransactionListItemType = ListItem &
@@ -172,10 +186,19 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /** Key used internally by React */
+        keyForList: string;
     };
 
 type ReportListItemType = ListItem &
     SearchReport & {
+        /** The personal details of the user requesting money */
+        from: SearchAccountDetails;
+
+        /** The personal details of the user paying the request */
+        to: SearchAccountDetails;
+
         transactions: TransactionListItemType[];
     };
 
@@ -390,6 +413,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Styles to apply to SectionList component */
+    sectionListStyle?: StyleProp<ViewStyle>;
+
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
@@ -448,6 +474,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

@@ -1,32 +1,28 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type * as NativeNavigation from '@react-navigation/native';
+import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
-import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import {AppState, DeviceEventEmitter} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type Animated from 'react-native-reanimated';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as Pusher from '@libs/Pusher/pusher';
-import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportActionText} from '@libs/ReportActionsUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import App from '@src/App';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import appSetup from '@src/setup';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,104 +31,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
 
+jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
-// Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
-jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    __esModule: true,
-    default: {
-        ignoreLogs: jest.fn(),
-        ignoreAllLogs: jest.fn(),
-    },
-}));
-
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
-    createAnimatedPropAdapter: jest.fn,
-    useReducedMotion: jest.fn,
-}));
-
-/**
- * We need to keep track of the transitionEnd callback so we can trigger it in our tests
- */
-let transitionEndCB: () => void;
-
-type ListenerMock = {
-    triggerTransitionEnd: () => void;
-    addListener: jest.Mock;
-};
-
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = (): ListenerMock => {
-    const transitionEndListeners: Array<() => void> = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
-jest.mock('@react-navigation/native', () => {
-    const actualNav: jest.Mocked<typeof NativeNavigation> = jest.requireActual('@react-navigation/native');
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
-    transitionEndCB = triggerTransitionEnd;
-
-    const useNavigation = () => ({
-        ...actualNav.useNavigation(),
-        navigate: jest.fn(),
-        getState: () => ({
-            routes: [],
-        }),
-        addListener,
-    });
-
-    return {
-        ...actualNav,
-        useNavigation,
-        getState: () => ({
-            routes: [],
-        }),
-    } as typeof NativeNavigation;
-});
-
-beforeAll(() => {
-    // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
-    // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
-    // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
-    // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
-    // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    global.fetch = TestHelper.getGlobalFetchMock();
-
-    Linking.setInitialURL('https://new.expensify.com/');
-    appSetup();
-
-    // Connect to Pusher
-    PusherConnectionManager.init();
-    Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
-        cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-    });
-});
+TestHelper.setupApp();
+TestHelper.setupGlobalFetchMock();
 
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
@@ -200,103 +105,80 @@ let reportAction9CreatedDate: string;
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
  */
-async function signInAndGetAppWithUnreadChat() {
+function signInAndGetAppWithUnreadChat(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
-    await waitForBatchedUpdatesWithAct();
-    await waitForBatchedUpdatesWithAct();
+    return waitForBatchedUpdatesWithAct()
+        .then(async () => {
+            await waitForBatchedUpdatesWithAct();
+            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const loginForm = screen.queryAllByLabelText(hintText);
+            expect(loginForm).toHaveLength(1);
 
-    const hintText = Localize.translateLocal('loginForm.loginForm');
-    const loginForm = screen.queryAllByLabelText(hintText);
-    expect(loginForm).toHaveLength(1);
+            await act(async () => {
+                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+            });
+            return waitForBatchedUpdatesWithAct();
+        })
+        .then(() => {
+            User.subscribeToUserEvents();
+            return waitForBatchedUpdates();
+        })
+        .then(async () => {
+            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-    await act(async () => {
-        await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-    });
-    await waitForBatchedUpdatesWithAct();
-
-    User.subscribeToUserEvents();
-    await waitForBatchedUpdates();
-
-    const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-    reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
-    reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-    // Simulate setting an unread report and personal details
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-        reportID: REPORT_ID,
-        reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-        lastReadTime: reportAction3CreatedDate,
-        lastVisibleActionCreated: reportAction9CreatedDate,
-        lastMessageText: 'Test',
-        participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
-        lastActorAccountID: USER_B_ACCOUNT_ID,
-        type: CONST.REPORT.TYPE.CHAT,
-    });
-    const createdReportActionID = NumberUtils.rand64().toString();
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-        [createdReportActionID]: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            automatic: false,
-            created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
-            reportActionID: createdReportActionID,
-            message: [
-                {
-                    style: 'strong',
-                    text: '__FAKE__',
-                    type: 'TEXT',
+            // Simulate setting an unread report and personal details
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                lastReadTime: reportAction3CreatedDate,
+                lastVisibleActionCreated: reportAction9CreatedDate,
+                lastMessageText: 'Test',
+                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+                lastActorAccountID: USER_B_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            const createdReportActionID = NumberUtils.rand64().toString();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [createdReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    automatic: false,
+                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
+                    reportActionID: createdReportActionID,
+                    message: [
+                        {
+                            style: 'strong',
+                            text: '__FAKE__',
+                            type: 'TEXT',
+                        },
+                        {
+                            style: 'normal',
+                            text: 'created this report',
+                            type: 'TEXT',
+                        },
+                    ],
                 },
-                {
-                    style: 'normal',
-                    text: 'created this report',
-                    type: 'TEXT',
-                },
-            ],
-        },
-        1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1', createdReportActionID),
-        2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2', '1'),
-        3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3', '2'),
-        4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4', '3'),
-        5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5', '4'),
-        6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6', '5'),
-        7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7', '6'),
-        8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8', '7'),
-        9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9', '8'),
-    });
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-    });
+                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+            });
 
-    // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-    AppActions.setSidebarLoaded();
-
-    await waitForBatchedUpdatesWithAct();
+            // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
+            AppActions.setSidebarLoaded();
+            return waitForBatchedUpdatesWithAct();
+        });
 }
-
-let lastComment = 'Current User Comment 1';
-async function addComment() {
-    const num = Number.parseInt(lastComment.slice(-1), 10);
-    lastComment = `${lastComment.slice(0, -1)}${num + 1}`;
-    const comment = lastComment;
-    const reportActionsBefore = (await TestHelper.onyxGet(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)) as Record<string, ReportAction>;
-    Report.addComment(REPORT_ID, comment);
-    const reportActionsAfter = (await TestHelper.onyxGet(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)) as Record<string, ReportAction>;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const newReportActionID = Object.keys(reportActionsAfter).find((reportActionID) => !reportActionsBefore[reportActionID])!;
-    await act(() =>
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-            [newReportActionID]: {
-                previousReportActionID: '9',
-            },
-        }),
-    );
-    await waitForBatchedUpdatesWithAct();
-
-    // Verify the comment is visible (it will appear twice, once in the LHN and once on the report screen)
-    expect(screen.getAllByText(comment)[0]).toBeOnTheScreen();
-}
-
-const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
 
 describe('Unread Indicators', () => {
     afterEach(() => {
@@ -331,7 +213,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -342,9 +224,10 @@ describe('Unread Indicators', () => {
                 expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('4');
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -355,8 +238,9 @@ describe('Unread Indicators', () => {
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             })
@@ -379,6 +263,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 // Tap on the chat again
@@ -386,6 +271,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
@@ -472,7 +358,7 @@ describe('Unread Indicators', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -495,9 +381,10 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the indicator appears above the last action
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('3');
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -529,6 +416,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -537,23 +425,30 @@ describe('Unread Indicators', () => {
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             }));
 
-    it('Keep showing the new line indicator when a new message is created by the current user', async () => {
-        await signInAndGetAppWithUnreadChat();
+    it('Keep showing the new line indicator when a new message is created by the current user', () =>
+        signInAndGetAppWithUnreadChat()
+            .then(() => {
+                // Verify we are on the LHN and that the chat shows as unread in the LHN
+                expect(areYouOnChatListScreen()).toBe(true);
 
-        // Verify we are on the LHN and that the chat shows as unread in the LHN
-        expect(areYouOnChatListScreen()).toBe(true);
+                // Navigate to the report and verify the indicator is present
+                return navigateToSidebarOption(0);
+            })
+            .then(async () => {
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
 
-        // Navigate to the report and verify the indicator is present
-        await navigateToSidebarOption(0);
-        await act(() => transitionEndCB?.());
-        let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-        expect(unreadIndicator).toHaveLength(1);
-
-        // Leave a comment as the current user and verify the indicator is not removed
-        await addComment();
-        unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-        expect(unreadIndicator).toHaveLength(1);
-    });
+                // Leave a comment as the current user and verify the indicator is removed
+                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
+            }));
 
     xit('Keeps the new line indicator when the user moves the App to the background', () =>
         signInAndGetAppWithUnreadChat()
@@ -565,6 +460,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -573,6 +469,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => navigateToSidebarOption(0))
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -581,6 +478,7 @@ describe('Unread Indicators', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -604,10 +502,11 @@ describe('Unread Indicators', () => {
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOption(0))
-                .then(() =>
+                .then(() => {
                     // Leave a comment as the current user
-                    addComment(),
-                )
+                    Report.addComment(REPORT_ID, 'Current User Comment 1');
+                    return waitForBatchedUpdates();
+                })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
@@ -625,7 +524,7 @@ describe('Unread Indicators', () => {
                     expect(alternateText).toHaveLength(1);
 
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
-                    expect(screen.getAllByText(lastComment)[0]).toBeOnTheScreen();
+                    expect(screen.getAllByText('Current User Comment 1')[0]).toBeOnTheScreen();
 
                     if (lastReportAction) {
                         Report.deleteReportComment(REPORT_ID, lastReportAction);

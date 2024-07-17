@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -40,9 +41,18 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const shouldDisablePayrollCode = !isControlPolicy(policy);
 
     const policyCategory =
         policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
+
+    const navigateBack = () => {
+        if (backTo) {
+            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
+            return;
+        }
+        Navigation.goBack();
+    };
 
     useEffect(() => {
         if (policyCategory?.name === route.params.categoryName || !policyCategory) {
@@ -70,7 +80,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const deleteCategory = () => {
         Category.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
-        Navigation.dismissModal();
+        navigateBack();
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -88,7 +98,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
             >
                 <HeaderWithBackButton
                     title={route.params.categoryName}
-                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
+                    onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}
@@ -124,6 +134,35 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             description={translate(`workspace.categories.categoryName`)}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory['GL Code']}
+                            description={translate(`workspace.categories.glCode`)}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory['Payroll Code']}
+                            description={translate(`workspace.categories.payrollCode`)}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                            disabled={shouldDisablePayrollCode}
                         />
                     </OfflineWithFeedback>
                     {!isThereAnyAccountingConnection && (

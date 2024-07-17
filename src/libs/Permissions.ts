@@ -15,10 +15,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
-}
-
 function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
@@ -42,6 +38,10 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+}
+
+function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
@@ -69,11 +69,11 @@ export default {
     canUseLinkPreviews,
     canUseViolations,
     canUseDupeDetection,
-    canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
     canUseSpotnanaTravel,
     canUseNetSuiteIntegration,
+    canUseSageIntacctIntegration,
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,

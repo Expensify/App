@@ -24,6 +24,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -66,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
+        sectionListStyle,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
@@ -92,6 +94,8 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        onLongPressRow,
+        isMobileSelectionModeActive,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -165,7 +169,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
-                if (item.isSelected) {
+                if (item.isSelected && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
                     selectedOptions.push(item);
                 }
             });
@@ -221,7 +225,7 @@ function BaseSelectionList<TItem extends ListItem>(
         return [processedSections, showMoreButton];
         // we don't need to add styles here as they change
         // we don't need to add flattendedSections here as they will change along with sections
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
@@ -247,7 +251,7 @@ function BaseSelectionList<TItem extends ListItem>(
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
         },
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [flattenedSections.allOptions],
     );
 
@@ -258,7 +262,7 @@ function BaseSelectionList<TItem extends ListItem>(
         }
 
         setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
@@ -277,7 +281,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onChangeText?.('');
     }, [onChangeText]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
@@ -336,7 +340,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
     // enter presses runs the debounced function again.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
@@ -431,6 +435,13 @@ function BaseSelectionList<TItem extends ListItem>(
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
+        const handleOnCheckboxPress = () => {
+            if (SearchUtils.isReportListItemType(item)) {
+                return onCheckboxPress;
+            }
+            return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        };
+
         return (
             <>
                 <ListItem
@@ -439,8 +450,10 @@ function BaseSelectionList<TItem extends ListItem>(
                     isDisabled={isDisabled}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
+                    onLongPressRow={onLongPressRow}
+                    isMobileSelectionModeActive={isMobileSelectionModeActive}
                     onSelectRow={() => selectRow(item)}
-                    onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
+                    onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
@@ -717,7 +730,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
-                                style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
                                 ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 ListEmptyComponent={listEmptyContent}

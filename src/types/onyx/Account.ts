@@ -29,6 +29,9 @@ type Account = {
     /** Whether this account has 2FA enabled or not */
     requiresTwoFactorAuth?: boolean;
 
+    /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
+    needsTwoFactorAuthSetup?: boolean;
+
     /** Whether the account is validated */
     validated?: boolean;
 
@@ -79,6 +82,9 @@ type Account = {
 
     /** Indicates whether the user can downgrade current subscription plan */
     canDowngrade?: boolean;
+
+    /** Indicates whether the user can downgrade current subscription plan */
+    isEligibleForRefund?: boolean;
 
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
