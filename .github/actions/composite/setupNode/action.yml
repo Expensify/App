@@ -30,7 +30,6 @@ runs:
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}
 
     - name: Install root project node packages
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -38,7 +37,6 @@ runs:
         command: npm ci
 
     - name: Install node packages for desktop submodule
-      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
