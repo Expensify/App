@@ -17,7 +17,8 @@ type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep;
 };
 
-type IconMap = Record<ValueOf<typeof CONST.NEXT_STEP.ICONS>, IconAsset>;
+type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+type IconMap = Record<IconName, IconAsset>;
 const iconMap: IconMap = {
     [CONST.NEXT_STEP.ICONS.HOURGLASS]: Expensicons.Hourglass,
     [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
@@ -36,7 +37,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
-                    src={iconMap[nextStep?.icon || 0]}
+                    src={Object.values(CONST.NEXT_STEP.ICONS).includes(nextStep?.icon) ? iconMap[nextStep.icon] : iconMap[CONST.NEXT_STEP.ICONS.HOURGLASS]}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
                     fill={theme.icon}
