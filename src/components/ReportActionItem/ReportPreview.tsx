@@ -37,7 +37,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
@@ -46,6 +46,8 @@ import ReportActionItemImages from './ReportActionItemImages';
 type ReportPreviewOnyxProps = {
     /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
+
+    session: OnyxEntry<Session>;
 
     /** ChatReport associated with iouReport */
     chatReport: OnyxEntry<Report>;
@@ -96,6 +98,7 @@ function ReportPreview({
     iouReport,
     policy,
     iouReportID,
+    session,
     policyID,
     chatReportID,
     chatReport,
@@ -115,6 +118,7 @@ function ReportPreview({
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
 
+    const currentUserAccountID = session?.accountID;
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
@@ -341,7 +345,9 @@ function ReportPreview({
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+    const isManager = currentUserAccountID === iouReport?.managerID;
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && (isManager || isAdmin);
 
     return (
         <OfflineWithFeedback
@@ -510,5 +516,8 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(ReportPreview);
