@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-native-community/netinfo/android/build.gradle b/node_modules/@react-native-community/netinfo/android/build.gradle
-index 0d617ed..e93d64a 100644
+index 0d617ed..97439e6 100644
 --- a/node_modules/@react-native-community/netinfo/android/build.gradle
 +++ b/node_modules/@react-native-community/netinfo/android/build.gradle
 @@ -3,9 +3,10 @@ buildscript {
@@ -105,7 +105,6 @@ index 0d617ed..e93d64a 100644
 +    implementation 'com.facebook.react:react-native:+'
 +  }
  }
-\ No newline at end of file
 diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
 index 2c3280b..296bbfd 100644
 --- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
@@ -1609,10 +1608,10 @@ index 095dd3b..596ace1 100644
 +{"version":3,"names":["NetInfoStateType","exports","NetInfoCellularGeneration"],"sources":["types.ts"],"sourcesContent":["/**\n * Copyright (c) Facebook, Inc. and its affiliates.\n *\n * This source code is licensed under the MIT license found in the\n * LICENSE file in the root directory of this source tree.\n *\n * @format\n */\n\nexport enum NetInfoStateType {\n  unknown = 'unknown',\n  none = 'none',\n  cellular = 'cellular',\n  wifi = 'wifi',\n  bluetooth = 'bluetooth',\n  ethernet = 'ethernet',\n  wimax = 'wimax',\n  vpn = 'vpn',\n  other = 'other',\n}\n\nexport type NetInfoMethodType = 'HEAD' | 'GET';\n\nexport enum NetInfoCellularGeneration {\n  '2g' = '2g',\n  '3g' = '3g',\n  '4g' = '4g',\n  '5g' = '5g',\n}\n\nexport interface NetInfoConnectedDetails {\n  isConnectionExpensive: boolean;\n}\n\ninterface NetInfoConnectedState<\n  T extends NetInfoStateType,\n  D extends Record<string, unknown> = Record<string, unknown>,\n> {\n  type: T;\n  isConnected: true;\n  isInternetReachable: boolean | null;\n  details: D & NetInfoConnectedDetails;\n  isWifiEnabled?: boolean;\n}\n\ninterface NetInfoDisconnectedState<T extends NetInfoStateType> {\n  type: T;\n  isConnected: false;\n  isInternetReachable: false;\n  details: null;\n  isWifiEnabled?: boolean;\n}\n\nexport interface NetInfoUnknownState {\n  type: NetInfoStateType.unknown;\n  isConnected: boolean | null;\n  isInternetReachable: null;\n  details: null;\n  isWifiEnabled?: boolean;\n}\n\nexport type NetInfoNoConnectionState =\n  NetInfoDisconnectedState<NetInfoStateType.none>;\nexport type NetInfoDisconnectedStates =\n  | NetInfoUnknownState\n  | NetInfoNoConnectionState;\n\nexport type NetInfoCellularState = NetInfoConnectedState<\n  NetInfoStateType.cellular,\n  {\n    cellularGeneration: NetInfoCellularGeneration | null;\n    carrier: string | null;\n  }\n>;\nexport type NetInfoWifiState = NetInfoConnectedState<\n  NetInfoStateType.wifi,\n  {\n    ssid: string | null;\n    bssid: string | null;\n    strength: number | null;\n    ipAddress: string | null;\n    subnet: string | null;\n    frequency: number | null;\n    linkSpeed: number | null;\n    rxLinkSpeed: number | null;\n    txLinkSpeed: number | null;\n  }\n>;\nexport type NetInfoBluetoothState =\n  NetInfoConnectedState<NetInfoStateType.bluetooth>;\nexport type NetInfoEthernetState = NetInfoConnectedState<\n  NetInfoStateType.ethernet,\n  {\n    ipAddress: string | null;\n    subnet: string | null;\n  }\n>;\nexport type NetInfoWimaxState = NetInfoConnectedState<NetInfoStateType.wimax>;\nexport type NetInfoVpnState = NetInfoConnectedState<NetInfoStateType.vpn>;\nexport type NetInfoOtherState = NetInfoConnectedState<NetInfoStateType.other>;\nexport type NetInfoConnectedStates =\n  | NetInfoCellularState\n  | NetInfoWifiState\n  | NetInfoBluetoothState\n  | NetInfoEthernetState\n  | NetInfoWimaxState\n  | NetInfoVpnState\n  | NetInfoOtherState;\n\nexport type NetInfoState = NetInfoDisconnectedStates | NetInfoConnectedStates;\n\nexport type NetInfoChangeHandler = (state: NetInfoState) => void;\nexport type NetInfoSubscription = () => void;\n\nexport interface NetInfoConfiguration {\n  reachabilityUrl: string;\n  reachabilityMethod?: NetInfoMethodType;\n  reachabilityHeaders?: Record<string, string>;\n  reachabilityTest: (response: Response) => Promise<boolean>;\n  reachabilityLongTimeout: number;\n  reachabilityShortTimeout: number;\n  reachabilityRequestTimeout: number;\n  reachabilityShouldRun: () => boolean;\n  shouldFetchWiFiSSID: boolean;\n  useNativeReachability: boolean;\n}\n"],"mappings":";;;;;;AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AAPA,IASYA,gBAAgB,GAAAC,OAAA,CAAAD,gBAAA,0BAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAhBA,gBAAgB;EAAA,OAAhBA,gBAAgB;AAAA;AAAA,IAchBE,yBAAyB,GAAAD,OAAA,CAAAC,yBAAA,0BAAzBA,yBAAyB;EAAzBA,yBAAyB;EAAzBA,yBAAyB;EAAzBA,yBAAyB;EAAzBA,yBAAyB;EAAA,OAAzBA,yBAAyB;AAAA"}
 \ No newline at end of file
 diff --git a/node_modules/@react-native-community/netinfo/lib/module/index.js b/node_modules/@react-native-community/netinfo/lib/module/index.js
-index 147c72e..02aa0db 100644
+index 147c72e..5de4e7c 100644
 --- a/node_modules/@react-native-community/netinfo/lib/module/index.js
 +++ b/node_modules/@react-native-community/netinfo/lib/module/index.js
-@@ -6,20 +6,23 @@
+@@ -6,20 +6,26 @@
   *
   * @format
   */
@@ -1636,10 +1635,13 @@ index 147c72e..02aa0db 100644
    return new State(_configuration);
  };
 +
++// Track ongoing requests
++let isRequestInProgress = false;
++
  /**
   * Configures the library with the given configuration. Note that calling this will stop all
   * previously added listeners from being called again. It is best to call this right when your
-@@ -27,23 +30,20 @@ const createState = () => {
+@@ -27,23 +33,20 @@ const createState = () => {
   *
   * @param configuration The new configuration to set.
   */
@@ -1666,7 +1668,7 @@ index 147c72e..02aa0db 100644
  /**
   * Returns a `Promise` that resolves to a `NetInfoState` object.
   * This function operates on the global singleton instance configured using `configure()`
-@@ -52,27 +52,25 @@ export function configure(configuration) {
+@@ -52,27 +55,33 @@ export function configure(configuration) {
   *
   * @returns A Promise which contains the current connection state.
   */
@@ -1689,14 +1691,22 @@ index 147c72e..02aa0db 100644
    if (!_state) {
      _state = createState();
    }
--
-   return _state._fetchCurrentState();
+ 
+-  return _state._fetchCurrentState();
++  if (isRequestInProgress) {
++    return _state.latest(); // Return the latest state if a request is already in progress
++  }
++
++  isRequestInProgress = true;
++  return _state._fetchCurrentState().finally(() => {
++    isRequestInProgress = false;
++  });
  }
 +
  /**
   * Subscribe to the global singleton's connection information. The callback is called with a parameter of type
   * [`NetInfoState`](README.md#netinfostate) whenever the connection state changes. Your listener
-@@ -84,18 +82,16 @@ export function refresh() {
+@@ -84,18 +93,16 @@ export function refresh() {
   *
   * @returns A function which can be called to unsubscribe.
   */
@@ -1716,7 +1726,7 @@ index 147c72e..02aa0db 100644
  /**
   * A React Hook into this library's singleton which updates when the connection state changes.
   *
-@@ -103,12 +99,10 @@ export function addEventListener(listener) {
+@@ -103,12 +110,10 @@ export function addEventListener(listener) {
   *
   * @returns The connection state.
   */
@@ -1729,7 +1739,7 @@ index 147c72e..02aa0db 100644
    const [netInfo, setNetInfo] = useState({
      type: Types.NetInfoStateType.unknown,
      isConnected: null,
-@@ -120,6 +114,7 @@ export function useNetInfo(configuration) {
+@@ -120,6 +125,7 @@ export function useNetInfo(configuration) {
    }, []);
    return netInfo;
  }
@@ -1737,7 +1747,7 @@ index 147c72e..02aa0db 100644
  /**
   * A React Hook which manages an isolated instance of the network info manager.
   * This is not a hook into a singleton shared state. NetInfo.configure, NetInfo.addEventListener,
-@@ -129,7 +124,6 @@ export function useNetInfo(configuration) {
+@@ -129,7 +135,6 @@ export function useNetInfo(configuration) {
   *
   * @returns the netInfo state and a refresh function
   */
@@ -1745,7 +1755,7 @@ index 147c72e..02aa0db 100644
  export function useNetInfoInstance(isPaused = false, configuration) {
    const [networkInfoManager, setNetworkInfoManager] = useState();
    const [netInfo, setNetInfo] = useState({
-@@ -142,8 +136,8 @@ export function useNetInfoInstance(isPaused = false, configuration) {
+@@ -142,8 +147,8 @@ export function useNetInfoInstance(isPaused = false, configuration) {
      if (isPaused) {
        return;
      }
@@ -2610,22 +2620,13 @@ index 6982220..b515270 100644
  };
  export default _default;
 diff --git a/node_modules/@react-native-community/netinfo/package.json b/node_modules/@react-native-community/netinfo/package.json
-index 3c80db2..61e6564 100644
+index 3c80db2..15d214d 100644
 --- a/node_modules/@react-native-community/netinfo/package.json
 +++ b/node_modules/@react-native-community/netinfo/package.json
-@@ -48,6 +48,7 @@
-     "network info"
-   ],
-   "peerDependencies": {
-+    "react": "*",
-     "react-native": ">=0.59"
+@@ -97,6 +97,14 @@
+     "webpack-cli": "^3.3.10",
+     "webpack-dev-server": "^3.11.3"
    },
-   "dependencies": {},
-@@ -121,5 +122,13 @@
-       "yarn eslint --fix",
-       "git add"
-     ]
-+  },
 +  "codegenConfig": {
 +    "name": "RNCNetInfoSpec",
 +    "type": "modules",
@@ -2633,8 +2634,10 @@ index 3c80db2..61e6564 100644
 +    "android": {
 +      "javaPackageName": "com.reactnativecommunity.netinfo"
 +    }
-   }
- }
++  },
+   "repository": {
+     "type": "git",
+     "url": "https://github.com/react-native-netinfo/react-native-netinfo.git"
 diff --git a/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec b/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec
 index e34e728..9090eb1 100644
 --- a/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec
