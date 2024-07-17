@@ -203,16 +203,19 @@ function MoneyRequestPreviewContent({
 
                 return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
-
-            const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
-            const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
-            if (isAmountMissing && isMerchantMissing) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
-            } else if (isAmountMissing) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
-            } else if (isMerchantMissing) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
-            } else if (shouldShowHoldMessage) {
+            if (hasFieldErrors) {
+                const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
+                const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
+                if (isAmountMissing && isMerchantMissing) {
+                    message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
+                } else if (isAmountMissing) {
+                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
+                } else if (isMerchantMissing) {
+                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
+                }
+                return message;
+            }
+            if (shouldShowHoldMessage) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
         } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {

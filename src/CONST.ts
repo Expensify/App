@@ -897,6 +897,10 @@ const CONST = {
             INDIVIDUAL: 'individual',
             BUSINESS: 'policy',
         },
+        EXPORT_OPTIONS: {
+            EXPORT_TO_INTEGRATION: 'exportToIntegration',
+            MARK_AS_EXPORTED: 'markAsExported',
+        },
     },
     NEXT_STEP: {
         FINISHED: 'Finished!',
@@ -1383,6 +1387,7 @@ const CONST = {
         SYNC: 'sync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        ENTITY: 'entity',
     },
 
     SAGE_INTACCT: {
@@ -2088,8 +2093,12 @@ const CONST = {
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
+                quickbooksDesktop: 'Quickbooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
+                financialForce: 'FinancialForce',
+                billCom: 'Bill.com',
+                zenefits: 'Zenefits',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2396,7 +2405,7 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
-        ];
+        ].filter((id) => id !== -1);
     },
 
     // Emails that profile view is prohibited
@@ -2455,6 +2464,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
@@ -4012,6 +4022,15 @@ const CONST = {
         VIOLATION: 'violation',
         NOTICE: 'notice',
         WARNING: 'warning',
+    },
+
+    /**
+     * Constants with different types for the modifiedAmount violation
+     */
+    MODIFIED_AMOUNT_VIOLATION_DATA: {
+        DISTANCE: 'distance',
+        CARD: 'card',
+        SMARTSCAN: 'smartscan',
     },
 
     /**

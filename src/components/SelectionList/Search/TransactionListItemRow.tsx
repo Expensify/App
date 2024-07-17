@@ -304,7 +304,7 @@ function TransactionListItemRow({
                             showTooltip={showTooltip}
                             isLargeScreenWidth={false}
                         />
-                        {item.category ? (
+                        {!!item.category && (
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
                                 <CategoryCell
                                     isLargeScreenWidth={false}
@@ -312,7 +312,7 @@ function TransactionListItemRow({
                                     transactionItem={item}
                                 />
                             </View>
-                        ) : null}
+                        )}
                     </View>
                     <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
                         <TotalCell
