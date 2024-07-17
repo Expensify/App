@@ -421,6 +421,8 @@ describe('GithubUtils', () => {
             'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
         // eslint-disable-next-line max-len
         const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
+        // eslint-disable-next-line max-len
+        const verifyCompleteStagingDeploys = 'I checked that all [staging deploys](https://github.com/Expensify/App/actions/workflows/platformDeploy.yml) are complete.';
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput =
@@ -448,6 +450,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
@@ -471,6 +474,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
@@ -489,6 +493,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
@@ -510,6 +515,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}${lineBreak}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}${lineBreak}` +
                         `${lineBreak}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
@@ -531,6 +537,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
@@ -556,6 +563,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual([]);
@@ -582,6 +590,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual(['octocat']);
@@ -608,6 +617,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
+                        `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
                 expect(issue.issueAssignees).toEqual(['octocat']);

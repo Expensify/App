@@ -130,6 +130,7 @@ const firebaseVerification =
     'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
 // eslint-disable-next-line max-len
 const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
+const verifyCompleteStagingDeploys = 'I checked that all [staging deploys](https://github.com/Expensify/App/actions/workflows/platformDeploy.yml) are complete.';
 const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
 const deployBlockerHeader = '**Deploy Blockers:**';
 const lineBreak = '\r\n';
@@ -201,6 +202,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                 `${lineBreak}${openCheckbox}${firebaseVerification}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
+                `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
         });
     });
@@ -225,6 +227,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
                 `${lineBreak}${closedCheckbox}${firebaseVerification}` +
                 `${lineBreak}${closedCheckbox}${ghVerification}` +
+                `${lineBreak}${closedCheckbox}${verifyCompleteStagingDeploys}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
@@ -325,6 +328,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                     `${lineBreak}${openCheckbox}${firebaseVerification}` +
                     `${lineBreak}${openCheckbox}${ghVerification}` +
+                    `${lineBreak}${openCheckbox}${verifyCompleteStagingDeploys}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
@@ -398,6 +402,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${closedCheckbox}${timingDashboardVerification}` +
                     `${lineBreak}${closedCheckbox}${firebaseVerification}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
+                    `${lineBreak}${closedCheckbox}${verifyCompleteStagingDeploys}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });

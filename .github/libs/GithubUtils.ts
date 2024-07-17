@@ -56,6 +56,7 @@ type StagingDeployCashData = {
     isTimingDashboardChecked: boolean;
     isFirebaseChecked: boolean;
     isGHStatusChecked: boolean;
+    isStagingDeployChecked: boolean;
     tag?: string;
 };
 
@@ -191,6 +192,7 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
+                isStagingDeployChecked: issue.body ? /-\s\[x]\sI checked that all \[staging deploys]/.test(issue.body) : false,
                 tag,
             };
         } catch (exception) {
@@ -275,6 +277,7 @@ class GithubUtils {
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
         isGHStatusChecked = false,
+        isStagingDeployChecked = false,
     ): Promise<void | StagingDeployCashBody> {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
@@ -353,6 +356,7 @@ class GithubUtils {
                     }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
+                    issueBody += `\r\n- [${isStagingDeployChecked ? 'x' : ''}] I checked that all [staging deploys](https://github.com/Expensify/App/actions/workflows/platformDeploy.yml) are complete.`
 
                     issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                     const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
