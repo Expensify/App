@@ -303,14 +303,14 @@ function MoneyRequestConfirmationList({
         if (ReportUtils.isDraftReport(participant.reportID)) {
             return true;
         }
-    
+
         if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
             return true;
         }
-    
+
         return false;
     };
-    
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -488,9 +488,10 @@ function MoneyRequestConfirmationList({
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
-                    maxLength={formattedTotalAmount.length}shouldResetAmount={shouldResetAmount}
+                    maxLength={formattedTotalAmount.length}
+                    shouldResetAmount={shouldResetAmount}
                     onResetAmount={(resetValue) => setShouldResetAmount(resetValue)}
-                    contentWidth={formattedTotalAmount.length * 8}                    
+                    contentWidth={formattedTotalAmount.length * 8}
                 />
             ),
         }));
