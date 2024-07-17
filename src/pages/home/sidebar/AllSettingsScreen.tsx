@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -32,6 +31,8 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+
     /**
      * Retuns a list of menu items data for All workspaces settings
      * @returns {Object} object with translationKey, style and items
@@ -49,10 +50,10 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                 focused: !isSmallScreenWidth,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
-            ...(shouldShowSubscriptionsMenu
+            ...(privateSubscription
                 ? [
                       {
-                          translationKey: 'allSettingsScreen.subscriptions',
+                          translationKey: 'allSettingsScreen.subscription',
                           icon: Expensicons.MoneyBag,
                           action: () => {
                               Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
@@ -89,7 +90,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies]);
+    }, [isSmallScreenWidth, policies, privateSubscription, waitForNavigate, translate, styles]);
 
     return (
         <ScreenWrapper
