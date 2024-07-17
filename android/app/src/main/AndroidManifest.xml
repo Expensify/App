@@ -73,6 +73,8 @@
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/send"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/pay"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/money2020"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/track-expense"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/submit-expense"/>
 
                 <!-- Staging URLs -->
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
@@ -94,6 +96,8 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/send"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/pay"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/money2020"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/track-expense"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/submit-expense"/>
             </intent-filter>
         </activity>
 
