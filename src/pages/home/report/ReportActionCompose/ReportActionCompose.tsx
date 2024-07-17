@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import {forceClearInput} from '@libs/ComponentUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
@@ -40,7 +41,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { forceClearInput } from '@libs/ComponentUtils';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
@@ -367,7 +367,7 @@ function ReportActionCompose({
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        forceClearInput(animatedRef)
+        forceClearInput(animatedRef);
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
