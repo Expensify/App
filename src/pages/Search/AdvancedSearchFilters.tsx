@@ -10,12 +10,12 @@ const advancedFilters = [
     {
         fieldName: 'type',
         description: 'common.type' as const,
-        route: '/search/filter/type' as Route,
+        route: '/search/filters/type' as Route,
     },
     {
         fieldName: 'date',
         description: 'common.date' as const,
-        route: '/search/filter/date' as Route,
+        route: '/search/filters/date' as Route,
     },
 ];
 
@@ -33,7 +33,10 @@ function AdvancedSearchFilters() {
         <View style={[]}>
             {advancedFilters.map((item) => {
                 const filterValue = getFilterDisplayTitle({}, item.fieldName);
-                const onPress = singleExecution(() => Navigation.navigate(item.route));
+                const onPress = singleExecution(() => {
+                    console.log(`navigating to: ${item.route}`);
+                    Navigation.navigate(item.route);
+                });
 
                 return (
                     <MenuItemWithTopDescription

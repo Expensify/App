@@ -7,26 +7,26 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Text from '@src/components/Text';
 
-function SearchFiltersDatePage() {
+function SearchFiltersTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersDatePage.displayName}
+            testID={SearchFiltersTypePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.date')} />
+                <HeaderWithBackButton title={translate('common.type')} />
                 <View style={[styles.flex1, styles.ph3]}>
-                    <Text>Advanced filters Date form</Text>
+                    <Text>Advanced filters Type form</Text>
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
 
-SearchFiltersDatePage.displayName = 'SearchFiltersDatePage';
+SearchFiltersTypePage.displayName = 'SearchFiltersTypePage';
 
-export default SearchFiltersDatePage;
+export default SearchFiltersTypePage;
