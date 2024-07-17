@@ -53,7 +53,7 @@ if (argsMap.platform === undefined) {
 
 const githubToken = argsMap.ghToken ?? process.env.GITHUB_TOKEN;
 if (githubToken === undefined) {
-    Logger.error('No GitHub token provided. Either set a GITHUB_TOKEN environment variable or pass it using --gh-token');
+    Logger.error('No GitHub token provided. Either set a GITHUB_TOKEN environment variable or pass it using --ghToken');
     process.exit(1);
 }
 
