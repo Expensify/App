@@ -1,5 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
+import React, {useEffect, useState} from 'react';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -8,6 +7,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -22,7 +22,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const threeDotsMenuContainerRef = useRef<View>(null);
+    const {ref: threeDotsMenuContainerRef} = useAccountingContext();
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
@@ -83,7 +83,6 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
                 }}
                 anchorPosition={reuseConnectionPopoverPosition}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                // TODO: Add anchorRef
                 anchorRef={threeDotsMenuContainerRef}
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (

@@ -1,4 +1,6 @@
-import React from 'react';
+import type {RefObject} from 'react';
+import React, {useRef} from 'react';
+import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -14,11 +16,13 @@ type ActiveIntegration = {
 type AccountingContextType = {
     activeIntegration?: ActiveIntegration;
     startIntegrationFlow: (activeIntegration: ActiveIntegration) => void;
+    ref: RefObject<View>;
 };
 
 const defaultAccountingContext = {
     activeIntegration: undefined,
     startIntegrationFlow: () => {},
+    ref: {current: null},
 };
 
 const AccountingContext = React.createContext<AccountingContextType>(defaultAccountingContext);
@@ -28,6 +32,7 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
+    const ref = useRef<View>(null);
     const [activeIntegration, startIntegrationFlow] = React.useState<ActiveIntegration>();
     const {translate} = useLocalize();
     const policyID = policy.id;
@@ -36,6 +41,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         () => ({
             activeIntegration,
             startIntegrationFlow,
+            ref,
         }),
         [activeIntegration],
     );

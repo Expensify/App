@@ -49,7 +49,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {startIntegrationFlow} = useAccountingContext();
+    const {startIntegrationFlow, ref: netSuiteIntegrationRef} = useAccountingContext();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -179,6 +179,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return accountingIntegrations.map((integration) => {
                 const integrationData = accountingIntegrationData(integration, policyID, translate);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+                const ref = integration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE ? netSuiteIntegrationRef : undefined;
                 return {
                     ...iconProps,
                     interactive: false,
@@ -192,6 +193,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             style={styles.justifyContentCenter}
                             small
                             isDisabled={isOffline}
+                            ref={ref}
                         />
                     ),
                 };
@@ -298,6 +300,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         threeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
+        netSuiteIntegrationRef,
         isOffline,
         startIntegrationFlow,
     ]);
@@ -312,6 +315,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         return otherIntegrations.map((integration) => {
             const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
             const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+            const ref = integration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE ? netSuiteIntegrationRef : undefined;
             return {
                 ...iconProps,
                 title: integrationData?.title,
@@ -322,6 +326,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         style={styles.justifyContentCenter}
                         small
                         isDisabled={isOffline}
+                        ref={ref}
                     />
                 ),
                 interactive: false,
@@ -337,6 +342,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration,
         policyID,
         translate,
+        netSuiteIntegrationRef,
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,
         isOffline,
