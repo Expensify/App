@@ -4681,7 +4681,7 @@ function buildOptimisticGroupChatReport(
         undefined,
         undefined,
         notificationPreference,
-        '-1',
+        undefined,
         undefined,
         undefined,
         avatarUri,
