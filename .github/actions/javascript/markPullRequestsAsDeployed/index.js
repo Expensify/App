@@ -11875,7 +11875,6 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                isStagingDeployChecked: issue.body ? /-\s\[x]\sI checked that all \[staging deploys]/.test(issue.body) : false,
                 tag,
             };
         }
@@ -11942,7 +11941,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false, isStagingDeployChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12005,8 +12004,6 @@ class GithubUtils {
                 issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isStagingDeployChecked ? 'x' : ' '}] I checked that all [staging deploys](https://github.com/Expensify/App/actions/workflows/platformDeploy.yml) are complete.`;
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
                 const issue = { issueBody, issueAssignees };
