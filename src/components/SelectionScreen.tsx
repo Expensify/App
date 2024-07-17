@@ -21,13 +21,11 @@ import type TableListItem from './SelectionList/TableListItem';
 import type {ListItem, SectionListDataType} from './SelectionList/types';
 import type UserListItem from './SelectionList/UserListItem';
 
-type SelectorType<T = string> = ListItem & {
-    value: T;
-
-    onPress?: () => void;
+type SelectorType = ListItem & {
+    value: string;
 };
 
-type SelectionScreenProps<T = string> = {
+type SelectionScreenProps = {
     /** Used to set the testID for tests */
     displayName: string;
 
@@ -44,7 +42,7 @@ type SelectionScreenProps<T = string> = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType<T>>>;
+    sections: Array<SectionListDataType<SelectorType>>;
 
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -53,7 +51,7 @@ type SelectionScreenProps<T = string> = {
     initiallyFocusedOptionKey?: string | null | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType<T>) => void;
+    onSelectRow: (selection: SelectorType) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress: () => void;
@@ -86,7 +84,7 @@ type SelectionScreenProps<T = string> = {
     onClose?: () => void;
 };
 
-function SelectionScreen<T = string>({
+function SelectionScreen({
     displayName,
     title,
     headerContent,
@@ -106,7 +104,7 @@ function SelectionScreen<T = string>({
     errors,
     errorRowStyles,
     onClose,
-}: SelectionScreenProps<T>) {
+}: SelectionScreenProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

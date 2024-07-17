@@ -24,7 +24,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -39,7 +38,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -336,14 +334,6 @@ function ReportPreview({
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
-    /*
-     * Manual export
-     */
-    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
-
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
-
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -426,7 +416,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
+                                {shouldShowSettlementButton && (
                                     <SettlementButton
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -450,13 +440,6 @@ function ReportPreview({
                                         }}
                                         isDisabled={isOffline && !canAllowSettlement}
                                         isLoading={!isOffline && !canAllowSettlement}
-                                    />
-                                )}
-                                {shouldShowExportIntegrationButton && (
-                                    <ExportWithDropdownMenu
-                                        policy={policy}
-                                        report={iouReport}
-                                        connectionName={connectedIntegration}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

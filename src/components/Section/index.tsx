@@ -13,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
@@ -91,6 +90,14 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Banner to display at the top of the section */
     banner?: ReactNode;
 };
+
+function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
+    if (typeof illustration === 'number' || !illustration) {
+        return false;
+    }
+
+    return 'file' in illustration && 'w' in illustration && 'h' in illustration;
+}
 
 function Section({
     children,

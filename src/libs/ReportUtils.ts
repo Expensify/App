@@ -11,7 +11,7 @@ import Onyx from 'react-native-onyx';
 import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -44,7 +44,6 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -7107,31 +7106,6 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(ReportConnection.getAllReports() ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
-function getIntegrationIcon(connectionName?: ConnectionName) {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return XeroSquare;
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return QBOSquare;
-    }
-    return undefined;
-}
-
-function canBeExported(report: OnyxEntry<Report>) {
-    if (!report?.statusNum) {
-        return false;
-    }
-    const isCorrectState = [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED, CONST.REPORT.STATUS_NUM.REIMBURSED].some((status) => status === report.statusNum);
-    return isExpenseReport(report) && isCorrectState;
-}
-
-function isExported(reportActions: OnyxEntry<ReportActions>) {
-    if (!reportActions) {
-        return false;
-    }
-    return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
-}
-
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7410,9 +7384,6 @@ export {
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
-    getIntegrationIcon,
-    canBeExported,
-    isExported,
     hasOnlyNonReimbursableTransactions,
     getMostRecentlyVisitedReport,
     getReport,

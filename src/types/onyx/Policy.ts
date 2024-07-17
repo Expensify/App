@@ -1514,7 +1514,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 
 /** Names of policy connection services */
-type PolicyConnectionName = ConnectionName;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 
 /** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {
@@ -1522,7 +1522,7 @@ type PolicyConnectionSyncProgress = {
     stageInProgress: PolicyConnectionSyncStage;
 
     /** Name of the connected service */
-    connectionName: ConnectionName;
+    connectionName: PolicyConnectionName;
 
     /** Timestamp of the connection */
     timestamp: string;

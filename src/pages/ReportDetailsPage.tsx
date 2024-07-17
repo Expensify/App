@@ -138,7 +138,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
         return ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
     }, [report, isGroupChat, isSystemChat]);
-    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -392,18 +391,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
-                translationKey: 'common.export',
-                icon: Expensicons.Upload,
-                isAnonymousAction: false,
-                action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
-                },
-            });
-        }
-
         if (canUnapproveRequest) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
@@ -424,20 +411,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isUserCreatedPolicyRoom,
         participants.length,
         report,
+        canModifyTask,
         isSystemChat,
         isPolicyExpenseChat,
+        shouldShowMenuItem,
         isMoneyRequestReport,
         isInvoiceReport,
-        policy,
-        connectedIntegration,
-        isPolicyAdmin,
-        canModifyTask,
-        shouldShowMenuItem,
         isTaskReport,
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
         shouldShowCancelPaymentButton,
+        isPolicyAdmin,
         session,
         leaveChat,
         canUnapproveRequest,
@@ -461,6 +446,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
+    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
     const unapproveWarningText = (
         <Text>

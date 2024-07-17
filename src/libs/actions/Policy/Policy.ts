@@ -4,7 +4,6 @@ import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -2531,11 +2530,6 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
-/** Save the preferred export method for a policy */
-function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
-    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
-}
-
 function enableExpensifyCard(policyID: string, enabled: boolean) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
@@ -3199,7 +3193,6 @@ export {
     isCurrencySupportedForDirectReimbursement,
     getPrimaryPolicy,
     createDraftWorkspace,
-    savePreferredExportMethod,
     buildPolicyData,
     enableExpensifyCard,
     createPolicyExpenseChats,

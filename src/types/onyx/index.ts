@@ -22,7 +22,6 @@ import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
-import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
@@ -119,7 +118,6 @@ export type {
     IntroSelected,
     IOU,
     IssueNewCard,
-    LastExportMethod,
     Locale,
     Login,
     LoginList,

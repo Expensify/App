@@ -31,7 +31,7 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
             }}
         >
             <ConfirmationPage
-                illustration={LottieAnimations.Fireworks}
+                animation={LottieAnimations.Fireworks}
                 heading={translate('twoFactorAuth.enabled')}
                 description={translate('twoFactorAuth.congrats')}
                 shouldShowButton

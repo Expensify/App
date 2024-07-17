@@ -39,7 +39,7 @@ function ActivateStep({userWallet, walletTerms}: ActivateStepProps) {
         <>
             <HeaderWithBackButton title={translate('activateStep.headerTitle')} />
             <ConfirmationPage
-                illustration={animation}
+                animation={animation}
                 heading={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
                 description={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
                 shouldShowButton={isActivatedWallet}
