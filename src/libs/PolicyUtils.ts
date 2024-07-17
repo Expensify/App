@@ -344,8 +344,8 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
  * This gets a "corrected" value for autoReportingFrequency. The purpose of this function is to encapsulate some logic around the "immediate" frequency.
  *
  * - "immediate" is actually not immediate. For that you want "instant".
- * - immediate & harvesting.enabled === daily
- * - immediate & !harvesting.enabled === manual
+ * - (immediate && harvesting.enabled) === daily
+ * - (immediate && !harvesting.enabled) === manual
  *
  * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
