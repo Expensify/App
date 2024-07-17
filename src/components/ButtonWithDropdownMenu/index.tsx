@@ -139,12 +139,12 @@ function ButtonWithDropdownMenu<IValueType>({
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-		    anchorRef={() => {
-			if (caretButton.current && !caretButton.current.value) {
-                            caretButton.current.value = "";
-			}
-			    return caretButton;
-		    }}
+                    anchorRef={() => {
+                        if (caretButton === null) {
+                            return;
+                        }
+                        return caretButton;
+                    }}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
