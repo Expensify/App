@@ -158,10 +158,17 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    setEnteredSubMenuIndexes(enteredSubMenuIndexes.slice(0, -1));
+                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
                 }}
             />
         );
+    };
+
+    const renderHeaderText = () => {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
+            return;
+        }
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -215,7 +222,7 @@ function PopoverMenu({
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
+                    {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
