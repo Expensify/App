@@ -426,6 +426,14 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
+
+                            const isCreateChatErrored = !!report?.errorFields?.createChat;
+                            if ((isCreateChatErrored || !!report.isOptimisticReport) && parentReportAction) {
+                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction.transactionID, parentReportAction, true);
+                                Navigation.goBack(urlToNavigateBack);
+                                return;
+                            }
+
                             if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                                 if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
                                     Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);

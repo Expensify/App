@@ -2108,8 +2108,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatFooterFullCompose: {
-            height: '100%',
-            paddingTop: 20,
+            flex: 1,
         },
 
         chatItemDraft: {
