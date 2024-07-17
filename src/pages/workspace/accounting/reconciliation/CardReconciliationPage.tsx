@@ -53,13 +53,15 @@ function CardReconciliationPage({policy, route}: WithPolicyConnectionsProps) {
                         shouldPlaceSubtitleBelowSwitch
                     />
                 </View>
-                <MenuItemWithTopDescription
-                    // TODO: get a proper bank account title
-                    title="Checking 1111"
-                    description={translate('workspace.accounting.reconciliationAccount')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
-                    shouldShowRightIcon
-                />
+                {!!isUsedContinuousReconciliation && (
+                    <MenuItemWithTopDescription
+                        // TODO: get a proper bank account title
+                        title="Checking 1111"
+                        description={translate('workspace.accounting.reconciliationAccount')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
+                        shouldShowRightIcon
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
