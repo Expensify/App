@@ -29,6 +29,9 @@ type Account = {
     /** Whether this account has 2FA enabled or not */
     requiresTwoFactorAuth?: boolean;
 
+    /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
+    needsTwoFactorAuthSetup?: boolean;
+
     /** Whether the account is validated */
     validated?: boolean;
 

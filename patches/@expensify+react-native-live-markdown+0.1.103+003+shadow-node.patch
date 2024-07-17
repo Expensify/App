@@ -1,5 +1,5 @@
 diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp b/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
-index 104363d..509b3ef 100644
+index 104363d..9240e9e 100644
 --- a/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
 +++ b/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
 @@ -11,7 +11,7 @@ namespace react {
@@ -27,7 +27,7 @@ index 104363d..509b3ef 100644
  
  } // namespace react
 diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.h b/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.h
-index 294e0d3..89eafa8 100644
+index 294e0d3..597752c 100644
 --- a/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.h
 +++ b/node_modules/@expensify/react-native-live-markdown/cpp/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.h
 @@ -11,6 +11,20 @@
