@@ -322,7 +322,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     </View>
                 ),
             },
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError ? [] : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isSyncInProgress ? [] : [integrationSpecificMenuItems]),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
