@@ -100,6 +100,9 @@ type MoneyRequestAmountInputProps = {
      * @param resetValue - A boolean indicating whether the amount should be reset.
      */
     onResetAmount?: (resetValue: boolean) => void;
+
+    /** The width of inner content */
+    contentWidth?: number;
 };
 
 type Selection = {
@@ -137,6 +140,7 @@ function MoneyRequestAmountInput(
         autoGrow = true,
         shouldResetAmount,
         onResetAmount,
+        contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -350,6 +354,7 @@ function MoneyRequestAmountInput(
             hideFocusedState={hideFocusedState}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            contentWidth={contentWidth}
         />
     );
 }
