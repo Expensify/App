@@ -132,7 +132,6 @@ function SettlementButton({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     style,
-    shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
