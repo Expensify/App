@@ -3562,7 +3562,7 @@ export default {
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
-        offlinePrompt: 'No puedes realizar esta acción ahora mismo porque parece que estás desconectado.',
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
