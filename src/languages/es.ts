@@ -2285,7 +2285,7 @@ export default {
             },
             reimbursableExpenses: {
                 label: 'Exportar gastos de bolsillo como',
-                description: 'Establezca cómo se exportan los gastos de bolsillo a Sage Intacct.',
+                description: 'Establece cómo se exportan los gastos por cuenta propia a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
