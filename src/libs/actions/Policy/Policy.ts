@@ -342,7 +342,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
     const policy = getPolicy(policyID);
 
-    const wasPolicyManuallyReported = PolicyUtils.getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    const wasPolicyOnManualReporting = PolicyUtils.getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -360,9 +360,9 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
                     },
                 }),
 
-                // If the policy was manually reported before, and now will be auto-reported,
+                // If the policy was on manual reporting before, and now will be auto-reported,
                 // then we must re-enable harvesting
-                ...(wasPolicyManuallyReported &&
+                ...(wasPolicyOnManualReporting &&
                     frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && {
                         harvesting: {
                             enabled: true,

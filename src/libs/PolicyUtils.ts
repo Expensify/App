@@ -355,7 +355,7 @@ function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): V
     }
 
     if (policy?.harvesting?.enabled) {
-        // this is actually not really "immediate". It's "daily". Surprise!
+        // This is actually not really "immediate". It's "daily". Surprise!
         return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
     }
 
