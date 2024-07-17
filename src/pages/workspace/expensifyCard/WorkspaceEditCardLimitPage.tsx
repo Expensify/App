@@ -108,10 +108,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.expensifyCard.cardLimit')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate('workspace.expensifyCard.cardLimit')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM}
                     submitButtonText={translate('common.save')}
