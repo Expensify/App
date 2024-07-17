@@ -194,7 +194,7 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations)?.sort((a, b) =>
+            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations)?.sort((a) =>
                 a.type === CONST.VIOLATION_TYPES.VIOLATION ? -1 : 0,
             );
             if (violations?.[0]) {
