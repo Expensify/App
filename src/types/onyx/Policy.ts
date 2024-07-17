@@ -130,6 +130,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates if the tax rate is selected. */
     isSelected?: boolean;
 
+    /** The old tax code of the tax rate when we edit the tax code */
+    previousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -1507,7 +1510,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 
 /** Names of policy connection services */
-type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionName = ConnectionName;
 
 /** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {
@@ -1515,7 +1518,7 @@ type PolicyConnectionSyncProgress = {
     stageInProgress: PolicyConnectionSyncStage;
 
     /** Name of the connected service */
-    connectionName: PolicyConnectionName;
+    connectionName: ConnectionName;
 
     /** Timestamp of the connection */
     timestamp: string;
