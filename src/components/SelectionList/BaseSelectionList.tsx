@@ -80,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>(
         customListHeaderHeight = 0,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
+        isAlternateTextMultilineSupported = false,
         textInputRef,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
@@ -461,6 +462,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     rightHandSideComponent={rightHandSideComponent}
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
+                    isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                     onFocus={() => {
                         if (isDisabled) {
                             return;

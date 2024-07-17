@@ -58,6 +58,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
 
@@ -127,6 +130,9 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** The search value from the selection list */
     searchText?: string | null;
@@ -436,6 +442,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);

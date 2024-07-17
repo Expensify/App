@@ -661,6 +661,10 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+        policyID: string;
+        cardID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {

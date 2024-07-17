@@ -16,6 +16,7 @@ function RadioListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     isMultilineSupported = false,
+    isAlternateTextMultilineSupported = false,
     onFocus,
     shouldSyncFocus,
 }: RadioListItemProps<TItem>) {
@@ -61,7 +62,8 @@ function RadioListItem<TItem extends ListItem>({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            style={[styles.textLabelSupporting, styles.lh16, isAlternateTextMultilineSupported ? styles.preWrap : styles.pre]}
+                            numberOfLines={isAlternateTextMultilineSupported ? 2 : 1}
                         />
                     )}
                 </View>
