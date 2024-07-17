@@ -216,7 +216,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const currentURL = getCurrentUrl();
         if (currentURL) {
-            initialReportID = new URL(currentURL).pathname.match(/\/r\/(\d+)/)?.at(1);
+            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
         }
 
         if (!initialReportID) {
