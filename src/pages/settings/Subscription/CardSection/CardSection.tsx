@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -30,7 +31,6 @@ import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
-import { getPaymentMethodDescription } from '@libs/PaymentUtils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
