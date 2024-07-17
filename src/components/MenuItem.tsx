@@ -307,6 +307,7 @@ type MenuItemBaseProps = {
 
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
+    
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
