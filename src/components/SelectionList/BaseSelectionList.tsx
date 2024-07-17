@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
