@@ -3047,8 +3047,11 @@ function upgradeToCorporate(policyID: string, featureName: string) {
                 glCodes: true,
                 ...(PolicyUtils.isInstantSubmitEnabled(policy) && {
                     autoReporting: true,
-                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
                 }),
+                harvesting: {
+                    enabled: false,
+                },
             },
         },
     ];
@@ -3076,6 +3079,7 @@ function upgradeToCorporate(policyID: string, featureName: string) {
                 glCodes: policy?.glCodes ?? null,
                 autoReporting: policy?.autoReporting ?? null,
                 autoReportingFrequency: policy?.autoReportingFrequency ?? null,
+                harvesting: policy?.harvesting ?? null,
             },
         },
     ];
