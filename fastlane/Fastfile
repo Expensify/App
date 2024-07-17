@@ -10,6 +10,8 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
+require 'ostruct'
+
 skip_docs
 opt_out_usage
 
@@ -239,35 +241,27 @@ platform :ios do
         }
     )
 
-    begin
-      upload_to_testflight(
-          api_key_path: "./ios/ios-fastlane-json-key.json",
-          distribute_external: true,
-          notify_external_testers: true,
-          changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
-          groups: ["Beta"],
-          demo_account_required: true,
-          beta_app_review_info: {
-              contact_email: ENV["APPLE_CONTACT_EMAIL"],
-              contact_first_name: "Andrew",
-              contact_last_name: "Gable",
-              contact_phone: ENV["APPLE_CONTACT_PHONE"],
-              demo_account_name: ENV["APPLE_DEMO_EMAIL"],
-              demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-              notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'
-                      2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
-                      3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
-                      4. Open the email and copy the 6-digit sign-in code provided within
-                      5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
-          }
-      )
-    rescue Exception => e
-      if e.message.include? "Another build is in review"
-        UI.important("Another build is already in external beta review. Skipping external beta review submission")
-      else
-        raise
-      end
-    end
+    upload_to_testflight(
+      api_key_path: "./ios/ios-fastlane-json-key.json",
+      distribute_external: true,
+      notify_external_testers: true,
+      changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
+      groups: ["Beta"],
+      demo_account_required: true,
+      beta_app_review_info: {
+          contact_email: ENV["APPLE_CONTACT_EMAIL"],
+          contact_first_name: "Andrew",
+          contact_last_name: "Gable",
+          contact_phone: ENV["APPLE_CONTACT_PHONE"],
+          demo_account_name: ENV["APPLE_DEMO_EMAIL"],
+          demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
+          notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'
+                  2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
+                  3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
+                  4. Open the email and copy the 6-digit sign-in code provided within
+                  5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
+      }
+    )
 
     upload_symbols_to_crashlytics(
       app_id: "1:921154746561:ios:216bd10ccc947659027c40",

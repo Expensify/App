@@ -25,7 +25,7 @@ import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+    ({accessToken, style, mapPadding, userLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -34,9 +34,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
         const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
+        const currentPosition = userLocation ?? initialLocation;
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);
+        const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
 
         // Determines if map can be panned to user's detected
         // location without bothering the user. It will return
@@ -50,7 +51,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition(initialLocation);
             },
             [initialLocation],
         );
@@ -74,7 +74,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
                     UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
@@ -140,7 +139,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [navigation]);
 
         useEffect(() => {
-            setAccessToken(accessToken);
+            setAccessToken(accessToken).then((token) => {
+                if (!token) {
+                    return;
+                }
+                setIsAccessTokenSet(true);
+            });
         }, [accessToken]);
 
         const setMapIdle = (e: MapState) => {
@@ -200,7 +204,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
         const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
-        return !isOffline && !!accessToken && !!defaultSettings ? (
+        return !isOffline && isAccessTokenSet && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     style={{flex: 1}}
@@ -210,6 +214,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
+                    // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
+                    scaleBarPosition={{...styles.tn8, left: 0}}
+                    compassEnabled
+                    compassPosition={{...styles.l2, ...styles.t5}}
                     logoPosition={{...styles.l2, ...styles.b2}}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...responder.panHandlers}

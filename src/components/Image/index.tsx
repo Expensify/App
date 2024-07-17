@@ -58,7 +58,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
     /**

@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -92,7 +93,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
             return adaptedState;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -118,10 +119,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             firstRenderRef.current = false;
             return;
         }
-        if (!isSmallScreenWidth) {
-            return;
-        }
-        Navigation.setShouldPopAllStateOnUP();
+
+        Navigation.setShouldPopAllStateOnUP(!isSmallScreenWidth);
     }, [isSmallScreenWidth]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
@@ -152,7 +151,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={authenticated} />
+            {/* HybridAppMiddleware needs to have access to navigation ref and SplashScreenHidden context */}
+            <HybridAppMiddleware authenticated={authenticated}>
+                <AppNavigator authenticated={authenticated} />
+            </HybridAppMiddleware>
         </NavigationContainer>
     );
 }

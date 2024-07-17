@@ -1,5 +1,6 @@
 import React from 'react';
 import {Linking, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -9,7 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const tripsFeatures: FeatureListItem[] = [
@@ -27,6 +30,10 @@ function ManageTrips() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
@@ -42,7 +49,11 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        Navigation.navigate(ROUTES.TRAVEL_TCS);
+                        if (!hasAcceptedTravelTerms) {
+                            Navigation.navigate(ROUTES.TRAVEL_TCS);
+                            return;
+                        }
+                        Link.openTravelDotLink(activePolicyID);
                     }}
                     illustration={Illustrations.EmptyStateTravel}
                     illustrationStyle={[styles.mv4, styles.tripIllustrationSize]}

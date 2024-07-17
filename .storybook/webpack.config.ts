@@ -21,6 +21,10 @@ type CustomWebpackConfig = {
 
 type CustomWebpackFunction = ({file, platform}: Environment) => CustomWebpackConfig;
 
+type WebpackModule = {
+    default: CustomWebpackFunction;
+};
+
 let envFile: string;
 switch (process.env.ENV) {
     case 'production':
@@ -34,7 +38,7 @@ switch (process.env.ENV) {
 }
 
 const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
-const customFunction: CustomWebpackFunction = require('../config/webpack/webpack.common').default;
+const customFunction = require<WebpackModule>('../config/webpack/webpack.common').default;
 
 const custom: CustomWebpackConfig = customFunction({file: envFile});
 
@@ -95,6 +99,11 @@ const webpackConfig = ({config}: {config: Configuration}) => {
             __DEV__: process.env.NODE_ENV === 'development',
         }),
     );
+
+    config.module.rules?.push({
+        test: /\.lottie$/,
+        type: 'asset/resource',
+    });
 
     return config;
 };

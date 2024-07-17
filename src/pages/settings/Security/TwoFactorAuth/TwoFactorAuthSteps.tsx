@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
@@ -23,30 +23,23 @@ type TwoFactorAuthStepProps = BaseTwoFactorAuthFormOnyxProps;
 function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
     const backTo = route.params?.backTo ?? '';
-    const [currentStep, setCurrentStep] = useState<TwoFactorAuthStep>(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
+    const forwardTo = route.params?.forwardTo ?? '';
+
+    const currentStep = useMemo(() => {
+        if (account?.twoFactorAuthStep) {
+            return account.twoFactorAuthStep;
+        }
+        return account?.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
+    }, [account?.requiresTwoFactorAuth, account?.twoFactorAuthStep]);
 
     const {setAnimationDirection} = useAnimatedStepContext();
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
 
-    useEffect(() => {
-        if (account?.twoFactorAuthStep) {
-            setCurrentStep(account?.twoFactorAuthStep);
-            return;
-        }
-
-        if (account?.requiresTwoFactorAuth) {
-            setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
-        } else {
-            setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
-        }
-    }, [account?.requiresTwoFactorAuth, account?.twoFactorAuthStep]);
-
     const handleSetStep = useCallback(
         (step: TwoFactorAuthStep, animationDirection: AnimationDirection = CONST.ANIMATION_DIRECTION.IN) => {
             setAnimationDirection(animationDirection);
             TwoFactorAuthActions.setTwoFactorAuthStep(step);
-            setCurrentStep(step);
         },
         [setAnimationDirection],
     );
@@ -59,7 +52,12 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep backTo={backTo} />;
+                return (
+                    <SuccessStep
+                        backTo={backTo}
+                        forwardTo={forwardTo}
+                    />
+                );
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:

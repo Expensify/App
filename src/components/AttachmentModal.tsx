@@ -26,7 +26,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
@@ -99,7 +98,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     headerTitle?: string;
 
     /** The report that has this attachment */
-    report?: OnyxEntry<OnyxTypes.Report> | EmptyObject;
+    report?: OnyxEntry<OnyxTypes.Report>;
 
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -266,7 +265,7 @@ function AttachmentModal({
         }
 
         setIsModalOpen(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isModalOpen, isConfirmButtonDisabled, onConfirm, file, sourceState]);
 
     /**
@@ -305,7 +304,7 @@ function AttachmentModal({
     }, []);
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
-        if ('webkitGetAsEntry' in data && typeof data.webkitGetAsEntry === 'function' && data.webkitGetAsEntry().isDirectory) {
+        if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
@@ -321,7 +320,7 @@ function AttachmentModal({
             }
             let fileObject = data;
             if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile();
+                fileObject = data.getAsFile() as FileObject;
             }
             if (!fileObject) {
                 return;
@@ -368,7 +367,7 @@ function AttachmentModal({
             onModalClose();
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [onModalClose]);
 
     /**
@@ -429,7 +428,7 @@ function AttachmentModal({
             });
         }
         return menuItems;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
@@ -530,6 +529,7 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
+                                            isUploaded={!isEmptyObject(report)}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )

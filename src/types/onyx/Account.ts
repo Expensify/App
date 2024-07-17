@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
-import type {TravelSettings} from './TravelSettings';
 
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
@@ -29,6 +28,9 @@ type Account = {
 
     /** Whether this account has 2FA enabled or not */
     requiresTwoFactorAuth?: boolean;
+
+    /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
+    needsTwoFactorAuthSetup?: boolean;
 
     /** Whether the account is validated */
     validated?: boolean;
@@ -72,9 +74,6 @@ type Account = {
     /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
 
-    /** Object containing all account information necessary to connect with Spontana */
-    travelSettings?: TravelSettings;
-
     /** Indicates whether the user is an approved accountant */
     isApprovedAccountant?: boolean;
 
@@ -83,6 +82,12 @@ type Account = {
 
     /** Indicates whether the user can downgrade current subscription plan */
     canDowngrade?: boolean;
+
+    /** Indicates whether the user can downgrade current subscription plan */
+    isEligibleForRefund?: boolean;
+
+    /** Indicates whether the user has at least one previous purchase */
+    hasPurchases?: boolean;
 };
 
 export default Account;

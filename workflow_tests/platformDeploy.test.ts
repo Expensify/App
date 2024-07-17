@@ -1,4 +1,4 @@
-import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {MockStep} from '@kie/act-js';
 import {MockGithub} from '@kie/mock-github';
 import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';
@@ -44,6 +44,7 @@ describe('test workflow platformDeploy', () => {
     afterEach(async () => {
         await mockGithub.teardown();
     });
+
     describe('push', () => {
         describe('tag', () => {
             it('as team member - platform deploy executes on staging', async () => {
@@ -124,7 +125,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
-                assertions.assertWebJobExecuted(result, true, false);
+                assertions.assertWebJobExecuted(result, true);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
@@ -208,7 +209,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
-                assertions.assertWebJobExecuted(result, true, false);
+                assertions.assertWebJobExecuted(result, true);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
