@@ -147,6 +147,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
+        SEARCH_ADVANCES_FILTER_DATE: 'SearchAdvancedFilterDate',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
     },

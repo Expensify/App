@@ -959,6 +959,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.route,
+                        [SCREENS.RIGHT_MODAL.SEARCH_ADVANCES_FILTER_DATE]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
