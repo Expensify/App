@@ -56,6 +56,7 @@ function SearchListWithHeader(
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
 
     const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
         setSelectedTransactionsToDelete(itemsToDelete);
@@ -190,6 +191,7 @@ function SearchListWithHeader(
                 setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                 selectedReports={selectedReports}
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
+                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -221,6 +223,15 @@ function SearchListWithHeader(
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
             />
             <Modal
                 isVisible={isModalVisible}

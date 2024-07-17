@@ -89,7 +89,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, string | string[]>;
 
-function exportSearchItemsToCSV(query: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[]) {
+function exportSearchItemsToCSV(query: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[], onDownloadFailed: () => void) {
     const fileName = `Expensify_${query}.csv`;
 
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
@@ -108,6 +108,6 @@ function exportSearchItemsToCSV(query: string, reportIDList: Array<string | unde
         }
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV};

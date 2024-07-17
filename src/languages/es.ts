@@ -356,6 +356,8 @@ export default {
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
+        downloadFailedTitle: 'Error en la descarga',
+        downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
     },
     connectionComplete: {
         title: 'Conexión completa',
