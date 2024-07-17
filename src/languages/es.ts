@@ -3530,6 +3530,12 @@ export default {
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
+        filters: {
+            date: {
+                before: 'Antes',
+                after: 'Después',
+            },
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

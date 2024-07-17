@@ -31,6 +31,7 @@ const SCREENS = {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
+        ADVANCED_FILTERS_DATE_RHP: 'SearchFiltersDatePage',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },

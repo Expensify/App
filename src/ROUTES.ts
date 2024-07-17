@@ -54,6 +54,11 @@ const ROUTES = {
         getRoute: () => `search/filters` as const,
     },
 
+    SEARCH_ADVANCED_FILTERS_DATE: {
+        route: '/search/filters/date',
+        getRoute: () => `search/filters/date` as const,
+    },
+
     SEARCH_REPORT: {
         route: '/search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
