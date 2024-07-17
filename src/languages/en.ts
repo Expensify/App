@@ -362,6 +362,7 @@ export default {
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
+        export: 'Export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -1069,6 +1070,11 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
+        disable: 'Disable',
+        enableTwoFactorAuth: 'Enable two-factor authentication',
+        pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
+        twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },
     recoveryCodeForm: {
         error: {
@@ -2050,10 +2056,16 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            markAsExported: 'Mark as manually entered',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
+            createNewConnection: 'Create new connection',
+            reuseExistingConnection: 'Reuse existing connection',
+            existingConnections: 'Existing connections',
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2588,10 +2600,6 @@ export default {
             downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
             followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
             enterCredentials: 'Enter your Sage Intacct credentials',
-            createNewConnection: 'Create new connection',
-            reuseExistingConnection: 'Reuse existing connection',
-            existingConnections: 'Existing connections',
-            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
             entity: 'Entity',
             employeeDefault: 'Sage Intacct employee default',
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
@@ -3162,6 +3170,10 @@ export default {
                 reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
+        export: {
+            notReadyHeading: 'Not ready to export',
+            notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system. Please approve or pay these expenses before exporting them.',
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
@@ -3322,6 +3334,13 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        exportAgainModal: {
+            title: 'Careful!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
+            confirmText: 'Yes, export again',
+            cancelText: 'Cancel',
         },
         upgrade: {
             reportFields: {
@@ -3594,7 +3613,13 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
+                exportedToIntegration: {
+                    automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
+                    manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
+                    reimburseableLink: 'View out of pocket expenses.',
+                    nonReimbursableLink: 'View company card expenses.',
+                    pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
+                },
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
