@@ -1,5 +1,5 @@
-import type {LayoutEvent, LayoutRectangle} from 'react-native';
+import type {LayoutChangeEvent, LayoutRectangle} from 'react-native';
 
-type GetBounds = (layoutEvent: LayoutEvent) => LayoutRectangle;
+type GetBounds = (event: LayoutChangeEvent) => LayoutRectangle;
 
 export default GetBounds;
