@@ -3727,7 +3727,7 @@ function buildOptimisticAddCommentReportAction(
     }
 
     const isAttachment = !text && file !== undefined;
-    const attachmentInfo = file ?? {};
+    const attachmentInfo = file ? {...file} : {};
     const accountID = actorAccountID ?? currentUserAccountID;
 
     // Remove HTML from text when applying optimistic offline comment
