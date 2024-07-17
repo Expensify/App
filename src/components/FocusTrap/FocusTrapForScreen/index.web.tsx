@@ -6,6 +6,7 @@ import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
@@ -43,7 +44,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 delayInitialFocus: CONST.ANIMATED_TRANSITION,
                 initialFocus: (focusTrapContainers) => {
                     const isFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
-                    if (isFocusedElementInsideContainer) {
+                    if (!canFocusInputOnScreenFocus() || isFocusedElementInsideContainer) {
                         return false;
                     }
                     return undefined;
