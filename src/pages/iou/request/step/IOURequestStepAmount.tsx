@@ -143,7 +143,7 @@ function IOURequestStepAmount({
                 backTo ? 'confirm' : '',
                 currency,
                 Navigation.getActiveRouteWithoutParams(),
-                policy?.id || PolicyUtils.getPersonalPolicy()?.id,
+                policy?.id ?? PolicyUtils.getPersonalPolicy()?.id,
             ),
         );
     };
