@@ -350,6 +350,11 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
                 // Recall that the "daily" and "manual" frequencies don't actually exist in Onyx or the DB (see PolicyUtils.getCorrectedAutoReportingFrequency)
                 autoReportingFrequency: frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : frequency,
                 pendingFields: {autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                ...(frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && {
+                    harvesting: {
+                        enabled: false,
+                    },
+                }),
             },
         },
     ];
@@ -360,6 +365,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingFrequency: policy?.autoReportingFrequency ?? null,
+                harvesting: policy?.harvesting ?? null,
                 pendingFields: {autoReportingFrequency: null},
                 errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
