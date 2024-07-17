@@ -805,7 +805,7 @@ export default {
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmApprovalAmount: "Approve only compliant expenses, or approve the entire report.",
         confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
         confirmPay: 'Confirm payment amount',
