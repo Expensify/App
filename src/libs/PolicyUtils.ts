@@ -426,7 +426,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
 }
 
 /**
- * Returns the accountID of the policy reimburser and if not available fallback to the policy owner.
+ * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
