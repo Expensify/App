@@ -195,7 +195,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
             const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-            if (waypointCoordinates.length > 1 || ((directionCoordinates ?? []).length) > 1) {
+            if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
                 const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 const map = mapRef?.getMap();
                 map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME});
