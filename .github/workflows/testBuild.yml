@@ -88,7 +88,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -162,7 +162,7 @@ jobs:
         run: sudo xcode-select -switch /Applications/Xcode_15.0.1.app
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
