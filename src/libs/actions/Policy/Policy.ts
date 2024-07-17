@@ -342,6 +342,8 @@ function deleteWorkspace(policyID: string, policyName: string) {
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
     const policy = getPolicy(policyID);
 
+    const wasPolicyManuallyReported = PolicyUtils.getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -355,6 +357,12 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
                         enabled: false,
                     },
                 }),
+                ...(wasPolicyManuallyReported &&
+                    frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && {
+                        harvesting: {
+                            enabled: true,
+                        },
+                    }),
             },
         },
     ];
