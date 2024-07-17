@@ -239,6 +239,8 @@ export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscri
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
+export type {default as ReportExportParams} from './ReportExportParams';
+export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
@@ -257,3 +259,4 @@ export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteG
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
+export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';

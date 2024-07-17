@@ -24,6 +24,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -102,6 +103,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -360,6 +362,7 @@ export default {
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
+        export: 'Export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -392,6 +395,8 @@ export default {
         notAllowedExtension: 'This file type is not allowed. Please try a different file type.',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Please try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+        attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
+        attachmentImageTooLarge: 'This image is too large to preview before uploading.',
     },
     connectionComplete: {
         title: 'Connection complete',
@@ -647,7 +652,7 @@ export default {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
+        paySomeone: (name: string) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
@@ -707,8 +712,8 @@ export default {
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
             }`,
-        deleteExpense: 'Delete expense',
-        deleteConfirmation: 'Are you sure that you want to delete this expense?',
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Delete ${Str.pluralize('expense', 'expenses', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Are you sure that you want to delete ${Str.pluralize('this expense', 'these expenses', count)}?`,
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
@@ -1064,6 +1069,11 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
+        disable: 'Disable',
+        enableTwoFactorAuth: 'Enable two-factor authentication',
+        pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
+        twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },
     recoveryCodeForm: {
         error: {
@@ -2045,10 +2055,16 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            markAsExported: 'Mark as manually entered',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
+            createNewConnection: 'Create new connection',
+            reuseExistingConnection: 'Reuse existing connection',
+            existingConnections: 'Existing connections',
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2583,10 +2599,7 @@ export default {
             downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
             followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
             enterCredentials: 'Enter your Sage Intacct credentials',
-            createNewConnection: 'Create new connection',
-            reuseExistingConnection: 'Reuse existing connection',
-            existingConnections: 'Existing connections',
-            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
+            entity: 'Entity',
             employeeDefault: 'Sage Intacct employee default',
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
@@ -2636,6 +2649,7 @@ export default {
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            cardLimit: 'Card limit',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
@@ -2648,6 +2662,10 @@ export default {
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
             accountEndingIn: 'Account ending in',
             addNewBankAccount: 'Add a new bank account',
+            cardDetails: 'Card details',
+            virtual: 'Virtual',
+            physical: 'Physical',
+            deactivate: 'Deactivate card',
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -3151,6 +3169,10 @@ export default {
                 reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
+        export: {
+            notReadyHeading: 'Not ready to export',
+            notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system. Please approve or pay these expenses before exporting them.',
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
@@ -3311,6 +3333,13 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        exportAgainModal: {
+            title: 'Careful!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
+            confirmText: 'Yes, export again',
+            cancelText: 'Cancel',
         },
         upgrade: {
             reportFields: {
@@ -3583,11 +3612,17 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
+                exportedToIntegration: {
+                    automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
+                    manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
+                    reimburseableLink: 'View out of pocket expenses.',
+                    nonReimbursableLink: 'View company card expenses.',
+                    pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
+                },
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
-                managerDetachReceipt: `removed the receipt`,
+                managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `paid ${currency}${amount} via integration`,
                 outdatedBankAccount: `couldn’t process the payment due to a problem with the payer’s bank account`,
@@ -3832,7 +3867,19 @@ export default {
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
-        modifiedAmount: 'Amount greater than scanned receipt',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams): string => {
+            switch (type) {
+                case 'distance':
+                    return 'Amount differs from calculated distance';
+                case 'card':
+                    return 'Amount greater than card transaction';
+                default:
+                    if (displayPercentVariance) {
+                        return `Amount ${displayPercentVariance}% greater than scanned receipt`;
+                    }
+                    return 'Amount greater than scanned receipt';
+            }
+        },
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,
@@ -3990,8 +4037,8 @@ export default {
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             preTrial: {
                 title: 'Start a free trial',
-                subtitle: 'To get started, ',
-                subtitleLink: 'complete your setup checklist here.',
+                subtitle: 'Almost there! Just complete your ',
+                subtitleLink: 'setup checklist.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
