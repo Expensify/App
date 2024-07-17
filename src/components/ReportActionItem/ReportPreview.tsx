@@ -47,8 +47,6 @@ type ReportPreviewOnyxProps = {
     /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
 
-    session: OnyxEntry<Session>;
-
     /** ChatReport associated with iouReport */
     chatReport: OnyxEntry<Report>;
 
@@ -98,7 +96,6 @@ function ReportPreview({
     iouReport,
     policy,
     iouReportID,
-    session,
     policyID,
     chatReportID,
     chatReport,
@@ -118,7 +115,6 @@ function ReportPreview({
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
 
-    const currentUserAccountID = session?.accountID;
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
@@ -345,9 +341,8 @@ function ReportPreview({
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
-    const isManager = currentUserAccountID === iouReport?.managerID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && (isManager || isAdmin);
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
 
     return (
         <OfflineWithFeedback
@@ -516,8 +511,5 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
     },
 })(ReportPreview);

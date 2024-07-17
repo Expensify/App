@@ -55,22 +55,11 @@ type MoneyReportHeaderProps = {
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
 
-    /** The accountID of the current user */
-    currentUserAccountID: number;
-
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({
-    policy,
-    report: moneyRequestReport,
-    transactionThreadReportID,
-    reportActions,
-    shouldUseNarrowLayout = false,
-    onBackButtonPress,
-    currentUserAccountID,
-}: MoneyReportHeaderProps) {
+function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyReportHeaderProps) {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.chatReportID}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport.reportID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -129,9 +118,8 @@ function MoneyReportHeader({
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
 
-    const isManager = currentUserAccountID === moneyRequestReport?.managerID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && (isManager || isAdmin);
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
 
