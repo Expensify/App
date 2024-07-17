@@ -271,7 +271,9 @@ function ReportActionsList({
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
-                Navigation.setParams({referrer: undefined});
+                if (isFromNotification) {
+                    Navigation.setParams({referrer: undefined});
+                }
             } else {
                 readActionSkipped.current = true;
             }
@@ -686,7 +688,7 @@ function ReportActionsList({
                 isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
+            <Animated.View style={[animatedStyles, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
