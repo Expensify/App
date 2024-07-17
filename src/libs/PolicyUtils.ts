@@ -10,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
     ConnectionName,
@@ -510,6 +511,18 @@ function areXeroSettingsInErrorFields(
     return settings.some((setting) => keys.includes(setting));
 }
 
+function xeroSettingsPendingAction(
+    settings: Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>,
+    pendingFields?: Record<string, OnyxCommon.PendingAction>,
+): OnyxCommon.PendingAction {
+    if (pendingFields === undefined) {
+        return null;
+    }
+
+    const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
+    return pendingFields[key ?? '-1'];
+}
+
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
     const vendors = policy?.connections?.netsuite.options.data.vendors ?? [];
 
@@ -851,6 +864,7 @@ export {
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
     areXeroSettingsInErrorFields,
+    xeroSettingsPendingAction,
 };
 
 export type {MemberEmailsToAccountIDs};
