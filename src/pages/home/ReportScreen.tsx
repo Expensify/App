@@ -587,6 +587,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         prevReport,
         reportIDFromRoute,
         isFocused,
+        isDeletedParentAction,
+        prevIsDeletedParentAction,
     ]);
 
     useEffect(() => {
