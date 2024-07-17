@@ -173,6 +173,7 @@ function ReportPreview({
 
     const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0 && !showRTERViolationMessage;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
+    const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -395,7 +396,7 @@ function ReportPreview({
                                     <View style={styles.reportPreviewAmountSubtitleContainer}>
                                         <View style={styles.flexRow}>
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
+                                                <Text style={[styles.textHeadlineH1, isDeleted && styles.lineThrough]}>{getDisplayAmount()}</Text>
                                                 {iouSettled && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
