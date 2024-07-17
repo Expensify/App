@@ -38,7 +38,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
         ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions)
         : {
               ...item,
-              transactions: item.transactions?.map((tranaction) => mapToTransactionItemWithSelectionInfo(tranaction, selectedTransactions)),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions)),
               isSelected: item.transactions.every((transaction) => !!selectedTransactions[transaction.keyForList]?.isSelected),
           };
 }
@@ -67,20 +67,23 @@ function SearchListWithHeader(
         setDeleteExpensesConfirmModalVisible(false);
     };
 
-    const clearSelectedTransactions = () => setSelectedTransactions({});
+    const clearSelectedItems = () => {
+        setSelectedTransactions({});
+        setSelectedReports([]);
+    };
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsToDelete.length === 0) {
             return;
         }
 
-        clearSelectedTransactions();
+        clearSelectedItems();
         setDeleteExpensesConfirmModalVisible(false);
         SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsToDelete);
     };
 
     useEffect(() => {
-        clearSelectedTransactions();
+        clearSelectedItems();
     }, [hash]);
 
     const toggleTransaction = useCallback(
@@ -160,7 +163,7 @@ function SearchListWithHeader(
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
         if (isAllSelected) {
-            clearSelectedTransactions();
+            clearSelectedItems();
             return;
         }
 
@@ -179,7 +182,7 @@ function SearchListWithHeader(
         <>
             <SearchPageHeader
                 selectedTransactions={selectedTransactions}
-                clearSelectedTransactions={clearSelectedTransactions}
+                clearSelectedItems={clearSelectedItems}
                 query={query}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}

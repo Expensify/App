@@ -23,7 +23,7 @@ type SearchPageHeaderProps = {
     query: SearchQuery;
     selectedTransactions?: SelectedTransactions;
     selectedReports?: Array<SearchReport['reportID']>;
-    clearSelectedTransactions?: () => void;
+    clearSelectedItems?: () => void;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isMobileSelectionModeActive?: boolean;
@@ -37,7 +37,7 @@ function SearchPageHeader({
     query,
     selectedTransactions = {},
     hash,
-    clearSelectedTransactions,
+    clearSelectedItems,
     onSelectDeleteOption,
     isMobileSelectionModeActive,
     setIsMobileSelectionModeActive,
@@ -75,7 +75,7 @@ function SearchPageHeader({
                         setOfflineModalOpen?.();
                         return;
                     }
-                    clearSelectedTransactions?.();
+
                     SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? '']);
                 },
             },
@@ -114,7 +114,7 @@ function SearchPageHeader({
                         return;
                     }
 
-                    clearSelectedTransactions?.();
+                    clearSelectedItems?.();
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
@@ -137,7 +137,7 @@ function SearchPageHeader({
                         return;
                     }
 
-                    clearSelectedTransactions?.();
+                    clearSelectedItems?.();
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
@@ -170,7 +170,7 @@ function SearchPageHeader({
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedTransactions,
+        clearSelectedItems,
         isMobileSelectionModeActive,
         hash,
         setIsMobileSelectionModeActive,
