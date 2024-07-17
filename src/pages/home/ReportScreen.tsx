@@ -358,6 +358,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 reportActions={reportActions}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
+                currentUserAccountID={currentUserAccountID}
             />
         );
     }
