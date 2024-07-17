@@ -73,12 +73,9 @@ function ReportListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
-        styles.pv3,
-        styles.pb0,
+        styles.reportListItemWrapper,
         item.isSelected && styles.activeComponentBG,
         isFocused && styles.sidebarLinkActive,
-        styles.ph0,
-        styles.overflowHidden,
     ];
 
     const handleOnButtonPress = () => {
@@ -155,7 +152,7 @@ function ReportListItem<TItem extends ListItem>({
                         containerStyle={styles.ph3}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40, styles.ph3, styles.pb3]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40, styles.ph3, styles.pv3]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
