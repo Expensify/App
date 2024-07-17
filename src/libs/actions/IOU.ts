@@ -6813,13 +6813,12 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
             },
         },
     ];
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                receipt: oldReceipt,
+                receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                 filename: transaction?.filename,
                 errors: getReceiptError(receiptOptimistic, file.name),
             },
@@ -7060,6 +7059,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
  */
 function unholdRequest(transactionID: string, reportID: string) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -7078,6 +7078,11 @@ function unholdRequest(transactionID: string, reportID: string) {
                     hold: null,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
         },
     ];
 
@@ -7102,6 +7107,11 @@ function unholdRequest(transactionID: string, reportID: string) {
                 pendingAction: null,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations ?? null,
         },
     ];
 
