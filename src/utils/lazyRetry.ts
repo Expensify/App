@@ -1,6 +1,6 @@
-import type {ComponentType, LazyExoticComponent} from 'react';
+import type {ComponentType} from 'react';
 
-type ComponentImport = () => Promise<{default: LazyExoticComponent<ComponentType>}>;
+type ComponentImport<T> = () => Promise<{default: ComponentType<T>}>;
 
 /**
  * Attempts to lazily import a React component with a retry mechanism on failure.
@@ -10,7 +10,7 @@ type ComponentImport = () => Promise<{default: LazyExoticComponent<ComponentType
  * @param componentImport - A function that returns a promise resolving to a lazily imported React component.
  * @returns A promise that resolves to the imported component or rejects with an error after a retry attempt.
  */
-const lazyRetry = function (componentImport: ComponentImport): Promise<{default: LazyExoticComponent<ComponentType>}> {
+const lazyRetry = function <T>(componentImport: ComponentImport<T>): Promise<{default: ComponentType<T>}> {
     return new Promise((resolve, reject) => {
         // Retrieve the retry status from sessionStorage, defaulting to 'false' if not set
         const hasRefreshed: unknown = JSON.parse(sessionStorage.getItem('retry-lazy-refreshed') ?? 'false');
