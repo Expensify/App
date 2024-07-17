@@ -4,7 +4,7 @@ import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFo
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
+import {dispatchCommand, runOnJS, useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -366,7 +366,8 @@ function ReportActionCompose({
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
+        // TODO: does this work on web?
+        dispatchCommand(animatedRef, "clear") // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
