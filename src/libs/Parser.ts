@@ -2,6 +2,8 @@
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getEffectiveDisplayName} from '@libs/PersonalDetailsUtils'
+import * as Localize from './Localize';
 import Log from './Log';
 import * as ReportConnection from './ReportConnection';
 
@@ -15,7 +17,7 @@ Onyx.connect({
                 return;
             }
 
-            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? String(personalDetails.accountID);
+            accountIDToNameMap[personalDetails.accountID] = getEffectiveDisplayName(personalDetails) ?? Localize.translateLocal('common.hidden');
         });
     },
 });
