@@ -346,6 +346,8 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
  * - "immediate" is actually not immediate. For that you want "instant".
  * - immediate & harvesting.enabled === daily
  * - immediate & !harvesting.enabled === manual
+ *
+ * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
 function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
