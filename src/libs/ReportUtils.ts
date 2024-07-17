@@ -5146,10 +5146,11 @@ function buildOptimisticTaskReport(
 /**
  * Builds an optimistic EXPORTED_TO_INTEGRATION report action
  *
- * @param label - The connectionName of the integration
+ * @param integration - The connectionName of the integration
  * @param markedManually - Whether the integration was marked as manually exported
  */
-function buildOptimisticExportIntegrationAction(label: ConnectionName, markedManually = false): OptimisticExportAction {
+function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportAction {
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
