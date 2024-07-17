@@ -116,9 +116,9 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         );
     }
 
-    const shouldShowEmptyState = searchResults && SearchUtils.isSearchResultsEmpty(searchResults);
+    const shouldShowEmptyState = SearchUtils.isSearchResultsEmpty(searchResults);
 
-    if (shouldShowEmptyState ?? !searchResults) {
+    if (shouldShowEmptyState) {
         return (
             <>
                 <SearchPageHeader

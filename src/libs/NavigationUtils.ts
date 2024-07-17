@@ -1,6 +1,4 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {TupleToUnion} from 'type-fest';
-import {flattenObject} from '@src/languages/translations';
 import SCREENS from '@src/SCREENS';
 import getTopmostBottomTabRoute from './Navigation/getTopmostBottomTabRoute';
 import type {CentralPaneName, RootStackParamList, State} from './Navigation/types';
@@ -19,14 +17,6 @@ const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.REPORT,
 ]);
 
-function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
-    if (!screen) {
-        return false;
-    }
-
-    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
-}
-
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = cloneDeep(state);
     const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
@@ -36,43 +26,28 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     return stateCopy;
 };
 
-const SETTINGS_SCREENS = Object.values(flattenObject(SCREENS.SETTINGS));
-const SEARCH_SCREENS = Object.values(flattenObject(SCREENS.SEARCH));
-const HOME_SCREENS = [SCREENS.HOME, SCREENS.REPORT];
-const BOTTOM_TAB_SCREEN_NAMES = new Set([...SETTINGS_SCREENS, ...SEARCH_SCREENS, ...HOME_SCREENS]);
+const TAB_SETTINGS_SCREENS = [SCREENS.SETTINGS.ROOT];
+const TAB_SEARCH_SCREENS = [SCREENS.SEARCH.BOTTOM_TAB, SCREENS.SEARCH.CENTRAL_PANE];
+const TAB_CHAT_SCREENS = [SCREENS.HOME];
 
-const SETTINGS_TAB_SCREEN_NAMES = new Set(SETTINGS_SCREENS);
+const TAB_SCREEN_NAMES = new Set([...TAB_SETTINGS_SCREENS, ...TAB_SEARCH_SCREENS, ...TAB_CHAT_SCREENS]);
+const TAB_SETTINGS_SCREEN_NAMES = new Set(TAB_SETTINGS_SCREENS);
+const TAB_SEARCH_SCREEN_NAMES = new Set(TAB_SEARCH_SCREENS);
+const TAB_CHAT_SCREEN_NAMES = new Set(TAB_CHAT_SCREENS);
 
-const SEARCH_TAB_SCREEN_NAMES = new Set(SEARCH_SCREENS);
-
-const HOME_SCREEN_NAMES = new Set(HOME_SCREENS);
-
-function isBottomTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefined) {
-    if (!screen) {
-        return false;
-    }
-    return BOTTOM_TAB_SCREEN_NAMES.has(screen);
+function createScreenNameChecker<ScreenName extends string>(screenNames: Set<string>) {
+    return function (screen: string | undefined): screen is ScreenName {
+        if (!screen) {
+            return false;
+        }
+        return screenNames.has(screen);
+    };
 }
 
-function isSettingTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefined) {
-    if (!screen) {
-        return false;
-    }
-    return SETTINGS_TAB_SCREEN_NAMES.has(screen);
-}
+const isTabScreenName = createScreenNameChecker(TAB_SCREEN_NAMES);
+const isSettingsTab = createScreenNameChecker(TAB_SETTINGS_SCREEN_NAMES);
+const isSearchTab = createScreenNameChecker(TAB_SEARCH_SCREEN_NAMES);
+const isHomeTab = createScreenNameChecker(TAB_CHAT_SCREEN_NAMES);
+const isCentralPaneName = createScreenNameChecker<CentralPaneName>(CENTRAL_PANE_SCREEN_NAMES);
 
-function isSearchTabName(screen: TupleToUnion<typeof SEARCH_SCREENS> | undefined) {
-    if (!screen) {
-        return false;
-    }
-    return SEARCH_TAB_SCREEN_NAMES.has(screen);
-}
-
-function isHomeTabName(screen: TupleToUnion<typeof HOME_SCREENS> | undefined) {
-    if (!screen) {
-        return false;
-    }
-    return HOME_SCREEN_NAMES.has(screen);
-}
-
-export {isCentralPaneName, isBottomTabName, isSearchTabName, isSettingTabName, isHomeTabName, removePolicyIDParamFromState};
+export {isTabScreenName, isCentralPaneName, isSearchTab, isHomeTab, isSettingsTab, removePolicyIDParamFromState};

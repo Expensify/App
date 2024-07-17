@@ -5,7 +5,7 @@ import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/create
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import type {BottomTabNavigatorParamList, BottomTabScreensParamList, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
-import {isBottomTabName} from '@libs/NavigationUtils';
+import {isTabScreenName} from '@libs/NavigationUtils';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
@@ -28,7 +28,7 @@ function BottomTabNavigator() {
         let route: NavigationPartialRoute<keyof BottomTabScreensParamList> | undefined;
         for (const selector of [getTopmostBottomTabRoute, getTopmostCentralPaneRoute]) {
             const selectedRoute = selector(state);
-            if (isBottomTabName(selectedRoute?.name)) {
+            if (isTabScreenName(selectedRoute?.name)) {
                 route = selectedRoute as NavigationPartialRoute<keyof BottomTabScreensParamList>;
             }
         }
