@@ -6,6 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -88,21 +89,25 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, string | string[]>;
 
-function exportSearchItemsToCSV(query: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[]) {
+function exportSearchItemsToCSV(query: string, reportIDList: string[] | undefined, transactionIDList: string[], policyIDs: string[]) {
     const fileName = `Expensify_${query}.csv`;
 
-    const finalParameters = enhanceParameters(READ_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         reportIDList,
         transactionIDList,
         policyIDs,
     }) as Params;
 
-    // Convert finalParameters to a query string
-    const queryString = Object.entries(finalParameters)
-        .map(([key, value]) => `${key}=${Array.isArray(value) ? value.join(',') : String(value)}`)
-        .join('&');
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            formData.append(key, value.join(','));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
 
-    fileDownload(`${ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV})}${queryString}`, fileName);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST);
 }
 export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV};
