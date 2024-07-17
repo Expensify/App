@@ -195,15 +195,15 @@ function AvatarWithImagePicker({
     /**
      * Check if the attachment extension is allowed.
      */
-    const isValidExtension = (image: FileObject): boolean => {
+    const isValidExtension = useCallback((image: FileObject): boolean => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(image?.name ?? '');
         return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
-    };
+    }, []);
 
     /**
      * Check if the attachment size is less than allowed size.
      */
-    const isValidSize = (image: FileObject): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+    const isValidSize = useCallback((image: FileObject): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE, []);
 
     /**
      * Check if the attachment resolution matches constraints.
@@ -216,37 +216,40 @@ function AvatarWithImagePicker({
     /**
      * Validates if an image has a valid resolution and opens an avatar crop modal
      */
-    const showAvatarCropModal = (image: FileObject) => {
-        if (!isValidExtension(image)) {
-            setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
-            return;
-        }
-        if (!isValidSize(image)) {
-            setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
-            return;
-        }
-
-        isValidResolution(image).then((isValid) => {
-            if (!isValid) {
-                setError('avatarWithImagePicker.resolutionConstraints', {
-                    minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                    minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                    maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                    maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                });
+    const showAvatarCropModal = useCallback(
+        (image: FileObject) => {
+            if (!isValidExtension(image)) {
+                setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
+                return;
+            }
+            if (!isValidSize(image)) {
+                setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
                 return;
             }
 
-            setIsAvatarCropModalOpen(true);
-            setError(null, {});
-            setIsMenuVisible(false);
-            setImageData({
-                uri: image.uri ?? '',
-                name: image.name ?? '',
-                type: image.type ?? '',
+            isValidResolution(image).then((isValid) => {
+                if (!isValid) {
+                    setError('avatarWithImagePicker.resolutionConstraints', {
+                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                    });
+                    return;
+                }
+
+                setIsAvatarCropModalOpen(true);
+                setError(null, {});
+                setIsMenuVisible(false);
+                setImageData({
+                    uri: image.uri ?? '',
+                    name: image.name ?? '',
+                    type: image.type ?? '',
+                });
             });
-        });
-    };
+        },
+        [isValidExtension, isValidSize],
+    );
 
     const hideAvatarCropModal = () => {
         setIsAvatarCropModalOpen(false);
