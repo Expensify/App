@@ -10,6 +10,7 @@ import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -134,7 +135,16 @@ function IOURequestStepAmount({
 
     const navigateToCurrencySelectionPage = () => {
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams(), policy?.id),
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                backTo ? 'confirm' : '',
+                currency,
+                Navigation.getActiveRouteWithoutParams(),
+                policy?.id || PolicyUtils.getPersonalPolicy()?.id,
+            ),
         );
     };
 
