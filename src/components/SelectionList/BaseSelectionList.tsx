@@ -20,6 +20,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
@@ -115,6 +116,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const isEmptyList = sections.length === 0;
+    const {singleExecution} = useSingleExecution();
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -442,7 +444,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
                     isMobileSelectionModeActive={isMobileSelectionModeActive}
-                    onSelectRow={() => selectRow(item)}
+                    onSelectRow={singleExecution(() => selectRow(item))}
                     onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
