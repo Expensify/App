@@ -245,7 +245,12 @@ function ProfilePage({route}: ProfilePageProps) {
                                     </Text>
                                     <CommunicationsLink value={phoneOrEmail ?? ''}>
                                         <UserDetailsTooltip accountID={details?.accountID ?? -1}>
-                                            <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={styles.w100}
+                                            >
+                                                {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                            </Text>
                                         </UserDetailsTooltip>
                                     </CommunicationsLink>
                                 </View>
