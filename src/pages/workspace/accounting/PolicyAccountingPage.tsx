@@ -37,6 +37,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
+import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,8 +63,11 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
+    hasImportError?: boolean;
     onExportPagePress: () => void;
+    hasExportError?: boolean;
     onAdvancedPagePress: () => void;
+    hasAdvancedError?: boolean;
     onCardReconciliationPagePress: () => void;
 };
 function accountingIntegrationData(
@@ -72,6 +76,7 @@ function accountingIntegrationData(
     translate: LocaleContextProps['translate'],
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
+    policy?: Policy,
 ): AccountingIntegration | undefined {
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -102,9 +107,27 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
+                hasImportError: PolicyUtils.areXeroSettingsInErrorFields(
+                    [
+                        CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
+                        CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+                        CONST.XERO_CONFIG.IMPORT_CUSTOMERS,
+                        CONST.XERO_CONFIG.IMPORT_TAX_RATES,
+                        ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
+                    ],
+                    policy?.connections?.xero?.config?.errorFields ?? {},
+                ),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
+                hasExportError: PolicyUtils.areXeroSettingsInErrorFields(
+                    [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
+                    policy?.connections?.xero?.config?.errorFields ?? {},
+                ),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
+                hasAdvancedError: PolicyUtils.areXeroSettingsInErrorFields(
+                    [CONST.XERO_CONFIG.ENABLED, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID],
+                    policy?.connections?.xero?.config?.errorFields ?? {},
+                ),
             };
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
@@ -284,7 +307,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -333,6 +356,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
+                          brickRoadIndicator: integrationData?.hasImportError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                       {
                           icon: Expensicons.Send,
@@ -341,6 +365,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
+                          brickRoadIndicator: integrationData?.hasExportError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -358,6 +383,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
+                          brickRoadIndicator: integrationData?.hasAdvancedError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                   ]),
         ];

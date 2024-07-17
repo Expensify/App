@@ -71,7 +71,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             shouldShowRightIcon
                             onPress={menuItem.onPress}
                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                            brickRoadIndicator={xeroConfig?.errorFields?.[`trackingCategory_${menuItem.id}`] ? 'error' : undefined}
+                            brickRoadIndicator={xeroConfig?.errorFields?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`] ? 'error' : undefined}
                         />
                     ))}
                 </View>

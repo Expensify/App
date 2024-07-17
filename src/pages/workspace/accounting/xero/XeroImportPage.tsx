@@ -7,8 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -27,13 +29,16 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.accounting.accounts'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
                 title: translate('workspace.accounting.importAsCategory'),
-                hasError: !!errorFields?.enableNewCategories,
+                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], errorFields),
                 pendingAction: pendingFields?.enableNewCategories,
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
-                hasError: !!errorFields?.importTrackingCategories,
+                hasError: PolicyUtils.areXeroSettingsInErrorFields(
+                    [CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES, ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`)],
+                    errorFields,
+                ),
                 title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTrackingCategories,
             },
@@ -42,24 +47,21 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 action: () => {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
                 },
-                hasError: !!errorFields?.importCustomers,
+                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], errorFields),
                 title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importCustomers,
             },
             {
                 description: translate('workspace.accounting.taxes'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
-                hasError: !!errorFields?.importTaxRates,
+                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_TAX_RATES], errorFields),
                 title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTaxRates,
             },
         ],
         [
             translate,
-            errorFields?.enableNewCategories,
-            errorFields?.importTrackingCategories,
-            errorFields?.importCustomers,
-            errorFields?.importTaxRates,
+            errorFields,
             pendingFields?.enableNewCategories,
             pendingFields?.importTrackingCategories,
             pendingFields?.importCustomers,
@@ -68,6 +70,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             importCustomers,
             importTaxRates,
             policyID,
+            policy,
         ],
     );
 

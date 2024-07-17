@@ -8,6 +8,7 @@ import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -93,7 +94,9 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
-                            brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={
+                                PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                            }
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={pendingFields?.invoiceCollectionsAccountID}>
@@ -106,7 +109,11 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             onPress={() => {
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID));
                             }}
-                            brickRoadIndicator={errorFields?.invoiceCollectionsAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={
+                                PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], errorFields)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined
+                            }
                         />
                     </OfflineWithFeedback>
                 </>

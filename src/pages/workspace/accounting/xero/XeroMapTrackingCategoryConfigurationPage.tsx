@@ -61,14 +61,16 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const updateMapping = useCallback(
         (option: {value: string}) => {
             if (option.value !== categoryName) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
-                    ...(policy?.connections?.xero?.config?.mappings ?? {}),
-                    ...(categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {}),
-                });
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.MAPPINGS,
+                    categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, policyID, policy?.connections?.xero?.config?.mappings],
+        [categoryId, categoryName, policyID],
     );
 
     return (

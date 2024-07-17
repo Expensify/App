@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {Except, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
     ConnectionName,
@@ -497,6 +498,18 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+function areXeroSettingsInErrorFields(
+    settings: Array<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>>,
+    errorFields?: ErrorFields,
+) {
+    if (errorFields === undefined) {
+        return false;
+    }
+
+    const keys = Object.keys(errorFields);
+    return settings.some((setting) => keys.includes(setting));
+}
+
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
     const vendors = policy?.connections?.netsuite.options.data.vendors ?? [];
 
@@ -837,6 +850,7 @@ export {
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
+    areXeroSettingsInErrorFields,
 };
 
 export type {MemberEmailsToAccountIDs};
