@@ -89,7 +89,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, string | string[]>;
 
-function exportSearchItemsToCSV(query: string, reportIDList: string[] | undefined, transactionIDList: string[], policyIDs: string[]) {
+function exportSearchItemsToCSV(query: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[]) {
     const fileName = `Expensify_${query}.csv`;
 
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
