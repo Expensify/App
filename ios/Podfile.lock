@@ -311,7 +311,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Plaid (5.2.1)
+  - Plaid (5.6.0)
   - PromisesObjC (2.4.0)
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1639,7 +1639,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-geolocation (3.2.1):
+  - react-native-geolocation (3.3.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1818,11 +1818,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-plaid-link-sdk (11.5.0):
+  - react-native-plaid-link-sdk (11.11.0):
     - DoubleConversion
     - glog
     - hermes-engine
-    - Plaid (~> 5.2.0)
+    - Plaid (~> 5.6.0)
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1861,7 +1861,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-release-profiler (0.2.0):
+  - react-native-release-profiler (0.2.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3086,7 +3086,7 @@ SPEC CHECKSUMS:
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
-  Plaid: 7829e84db6d766a751c91a402702946d2977ddcb
+  Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 3c7e2ec22d9faa9ea271c60232b197f871d033d8
@@ -3123,7 +3123,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 2789e41dc92aa3256455aa54639a42f4dc4ee824
-  react-native-geolocation: 37598eecf62af8166770943843ec5271ad5e26a7
+  react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
   react-native-keyboard-controller: 190769ec98e421b97afd8db28fccc3c707b153d7
@@ -3132,9 +3132,9 @@ SPEC CHECKSUMS:
   react-native-pager-view: 4ad3e72d936c18896f5c1cbeba32f63c4790b002
   react-native-pdf: dd6ae39a93607a80919bef9f3499e840c693989d
   react-native-performance: 3c608307be10964f8a97d3af462f37125b6d8fa5
-  react-native-plaid-link-sdk: 666aec5e4093edce2b1a94b663f89fdd0ec65d8b
+  react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
   react-native-quick-sqlite: cc2939134fbd404ac7d51d3dc8d69219eff242a8
-  react-native-release-profiler: 6e6d7f00dea310112a7493c69997e67daa0edb45
+  react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
   react-native-safe-area-context: 99c581aab5411c047b2116e29ea12d8ca3059593
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: ad29375839c9aa0409ce8e8693291b42bdc067a4
