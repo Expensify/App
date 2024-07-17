@@ -7060,6 +7060,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
  */
 function unholdRequest(transactionID: string, reportID: string) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -7078,6 +7079,11 @@ function unholdRequest(transactionID: string, reportID: string) {
                     hold: null,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
         },
     ];
 
@@ -7102,6 +7108,11 @@ function unholdRequest(transactionID: string, reportID: string) {
                 pendingAction: null,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations ?? null,
         },
     ];
 
