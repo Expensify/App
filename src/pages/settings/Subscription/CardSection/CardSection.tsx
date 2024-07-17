@@ -30,6 +30,7 @@ import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
+import { getPaymentMethodDescription } from '@libs/PaymentUtils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
@@ -113,7 +114,7 @@ function CardSection() {
                                 medium
                             />
                             <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
+                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName,
