@@ -1,8 +1,7 @@
-import * as Expensicons from "@components/Icon/Expensicons";
-import CONST from "@src/CONST";
-import type {DropdownOption} from "@components/ButtonWithDropdownMenu/types";
-import {SearchHeaderOptionValue} from "@components/Search/SearchPageHeader";
-
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import * as Expensicons from '@components/Icon/Expensicons';
+import CONST from '@src/CONST';
+import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 function getDownloadOption(text: string, onSelected?: () => void): DropdownOption<SearchHeaderOptionValue> {
     return {
@@ -10,8 +9,8 @@ function getDownloadOption(text: string, onSelected?: () => void): DropdownOptio
         text,
         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
         shouldCloseModalOnSelect: true,
-        onSelected
-    }
+        onSelected,
+    };
 }
 
 export default getDownloadOption;

@@ -77,9 +77,9 @@ function SearchPageHeader({
             }
 
             SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
-                setDownloadErrorModalOpen?.()
+                setDownloadErrorModalOpen?.();
             });
-        })
+        });
 
         if (downloadOption) {
             options.push(downloadOption);
@@ -184,6 +184,7 @@ function SearchPageHeader({
         query,
         isOffline,
         setOfflineModalOpen,
+        setDownloadErrorModalOpen,
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,

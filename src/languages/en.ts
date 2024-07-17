@@ -367,7 +367,7 @@ export default {
         currentDate: 'Current date',
         value: 'Value',
         downloadFailedTitle: 'Download failed',
-        downloadFailedDescription: 'Your download couldn\'t be completed. Please try again later.',
+        downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
     },
     location: {
         useCurrent: 'Use current location',

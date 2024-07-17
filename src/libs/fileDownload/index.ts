@@ -56,7 +56,7 @@ const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOp
         })
         .catch(() => {
             if (onDownloadFailed) {
-                onDownloadFailed()
+                onDownloadFailed();
             } else {
                 // file could not be downloaded, open sourceURL in new tab
                 Link.openExternalLink(url);
