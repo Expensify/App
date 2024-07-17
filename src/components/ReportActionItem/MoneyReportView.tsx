@@ -97,8 +97,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                 const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
                                 const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
-                              const violation = ReportUtils.getFieldViolation(violations, reportField);
-                              const violationTranslation = ReportUtils.getFieldViolationTranslation(reportField, violation);
+                                const violation = ReportUtils.getFieldViolation(violations, reportField);
+                                const violationTranslation = ReportUtils.getFieldViolationTranslation(reportField, violation);
 
                                 return (
                                     <OfflineWithFeedback
