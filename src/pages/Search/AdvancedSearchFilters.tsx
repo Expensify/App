@@ -30,7 +30,7 @@ function AdvancedSearchFilters() {
     const {translate} = useLocalize();
 
     return (
-        <View style={[]}>
+        <View>
             {advancedFilters.map((item) => {
                 const filterValue = getFilterDisplayTitle({}, item.fieldName);
                 const onPress = singleExecution(() => Navigation.navigate(item.route));
