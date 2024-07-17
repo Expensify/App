@@ -57,6 +57,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyCategory, ReimbursementAccount, Report, ReportAction, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
@@ -1068,6 +1069,25 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         workspaceName: name,
         currency,
     };
+
+    const persistedRequests = PersistedRequests.getAll();
+
+    persistedRequests.forEach((request, index) => {
+        const {command, data} = request;
+
+        if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
+            if (data.policyName !== name) {
+                const createWorkspaceRequest = {
+                    ...request,
+                    data: {
+                        ...data,
+                        policyName: name,
+                    },
+                };
+                PersistedRequests.update(index, createWorkspaceRequest);
+            }
+        }
+    });
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
         optimisticData,

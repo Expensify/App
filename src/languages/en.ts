@@ -2849,6 +2849,7 @@ export default {
             taxRate: 'Tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
+                taxCodeAlreadyExists: 'This tax code is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
                 customNameRequired: 'Custom tax name is required.',
                 deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
@@ -2867,6 +2868,8 @@ export default {
                 enableMultiple: 'Enable rates',
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
+            taxCode: 'Tax code',
+            updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -3345,11 +3348,31 @@ export default {
             reportFields: {
                 title: 'Report fields',
                 description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
-                pricing: {
-                    onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
-                    amount: '$9 ',
-                    perActiveMember: 'per active member per month.',
-                },
+                onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                title: 'NetSuite',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + NetSuite integration. Gain in-depth, realtime financial insights with native and custom segment support, including project and customer mapping.`,
+                onlyAvailableOnPlan: 'Our NetSuite integration is only available on the Control plan, starting at ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                title: 'Sage Intacct',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
+                onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',
+            },
+            glCodes: {
+                title: 'GL codes',
+                description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'GL codes are only available on the Control plan, starting at ',
+            },
+            glAndPayrollCodes: {
+                title: 'GL & Payroll codes',
+                description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
+            },
+            pricing: {
+                amount: '$9 ',
+                perActiveMember: 'per active member per month.',
             },
             note: {
                 upgradeWorkspace: 'Upgrade your workspace to access this feature, or',
