@@ -40,8 +40,6 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 
-// Just to trigger the action
-
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
