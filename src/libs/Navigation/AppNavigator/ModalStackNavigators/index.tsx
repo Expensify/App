@@ -493,7 +493,7 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
 
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
-    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCES_FILTER_DATE]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFilterDate').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchFiltersDatePage').default,
 });
 
 const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({

@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {LinkingOptions} from '@react-navigation/native';
-import type {RootStackParamList} from '@navigation/types';
+import type { LinkingOptions } from '@react-navigation/native';
+import type { RootStackParamList } from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
@@ -959,7 +960,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.route,
-                        [SCREENS.RIGHT_MODAL.SEARCH_ADVANCES_FILTER_DATE]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE.route,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {

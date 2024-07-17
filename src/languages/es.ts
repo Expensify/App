@@ -3532,7 +3532,6 @@ export default {
         filtersHeader: 'Filtros',
         filters: {
             date: {
-                header: 'Fecha',
                 before: 'Antes',
                 after: 'Después',
             },
