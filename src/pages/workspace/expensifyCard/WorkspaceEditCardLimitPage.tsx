@@ -72,10 +72,11 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
         const currentLimit = card.nameValuePairs?.limit ?? 0;
-        const currentRemainingLimit = currentLimit - card.availableSpend;
-        const newRemainingLimit = Number(values[INPUT_IDS.LIMIT]) * 100 - currentRemainingLimit;
+        const currentSpend = currentLimit - card.availableSpend;
+        const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
+        const newAvailableSpend = newLimit - currentSpend;
 
-        if (newRemainingLimit <= 0) {
+        if (newAvailableSpend <= 0) {
             setIsConfirmModalVisible(true);
             return;
         }
