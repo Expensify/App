@@ -2293,8 +2293,7 @@ export default {
             },
             nonReimbursableExpenses: {
                 label: 'Exportar tarjetas de empresa como',
-                description:
-                    'Establece cómo se exportan las compras con tarjeta de empresa a Sage Intacct.',
+                description: 'Establece cómo se exportan las compras con tarjeta de empresa a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Tarjetas de crédito',
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
