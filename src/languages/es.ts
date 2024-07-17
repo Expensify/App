@@ -22,6 +22,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -100,6 +101,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -350,6 +352,7 @@ export default {
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
+        export: 'Exportar',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -386,6 +389,8 @@ export default {
         notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
         protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
+        attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
+        attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -642,7 +647,7 @@ export default {
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
-        paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
+        paySomeone: (name: string) => `Pagar a ${name ?? 'alguien'}`,
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
         trackManual: 'Crear gasto',
@@ -702,8 +707,9 @@ export default {
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
             }`,
-        deleteExpense: 'Eliminar gasto',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
+
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
@@ -1071,6 +1077,12 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
+        disable: 'Deshabilitar',
+        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
+        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
+        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
     recoveryCodeForm: {
         error: {
@@ -2077,6 +2089,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            markAsExported: 'Marcar como introducido manualmente',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
@@ -2087,6 +2101,10 @@ export default {
                 content:
                     'Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala #admins para tu revisión.',
             },
+            createNewConnection: 'Crear una nueva conexión',
+            reuseExistingConnection: 'Reutilizar la conexión existente',
+            existingConnections: 'Conexiones existentes',
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2635,10 +2653,7 @@ export default {
             downloadExpensifyPackage: 'Descargar el paquete Expensify para Sage Intacct',
             followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
             enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
-            createNewConnection: 'Crear una nueva conexión',
-            reuseExistingConnection: 'Reutilizar la conexión existente',
-            existingConnections: 'Conexiones existentes',
-            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Última sincronización ${formattedDate}`,
+            entity: 'Entidad',
             employeeDefault: 'Sage Intacct empleado por defecto',
             employeeDefaultDescription: 'El departamento por defecto del empleado se aplicará a sus gastos en Sage Intacct si existe.',
             displayedAsTagDescription: 'Se podrá seleccionar el departamento para cada gasto individual en el informe de un empleado.',
@@ -2689,6 +2704,7 @@ export default {
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            cardLimit: 'Límite de la tarjeta',
             remainingLimit: 'Límite restante',
             requestLimitIncrease: 'Solicitar aumento de límite',
             remainingLimitDescription:
@@ -2701,6 +2717,10 @@ export default {
             chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
             accountEndingIn: 'Cuenta terminada en',
             addNewBankAccount: 'Añadir nueva cuenta bancaria',
+            cardDetails: 'Datos de la tarjeta',
+            virtual: 'Virtual',
+            physical: 'Física',
+            deactivate: 'Desactivar tarjeta',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2731,8 +2751,8 @@ export default {
             importedFromAccountingSoftware: 'Categorías importadas desde',
             payrollCode: 'Código de nómina',
             updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
-            glCode: 'Código GL',
-            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código GL. Inténtelo nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
         },
         moreFeatures: {
             spendSection: {
@@ -2844,7 +2864,7 @@ export default {
             reportFieldNameRequiredError: 'Ingresa un nombre de campo de informe',
             reportFieldTypeRequiredError: 'Elige un tipo de campo de informe',
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
-            genericFailureMessage: 'Se ha producido un error al actualizar el campo del informe. Por favor, inténtalo de nuevo.',
+            genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2870,8 +2890,8 @@ export default {
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
-            glCode: 'Código GL',
-            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código GL. Por favor, inténtelo nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -3205,6 +3225,11 @@ export default {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
         },
+        export: {
+            notReadyHeading: 'No está listo para exportar',
+            notReadyDescription:
+                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
+        },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
@@ -3246,7 +3271,7 @@ export default {
             member: 'Invitar miembros',
             members: 'Invitar miembros',
             invitePeople: 'Invitar nuevos miembros',
-            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo..',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo.',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
             user: 'miembro',
             users: 'miembros',
@@ -3261,7 +3286,7 @@ export default {
             inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
-            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo..',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -3366,6 +3391,14 @@ export default {
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
+        },
+
+        exportAgainModal: {
+            title: '¡Cuidado!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
+            confirmText: 'Sí, exportar de nuevo',
+            cancelText: 'Cancelar',
         },
         upgrade: {
             reportFields: {
@@ -3492,7 +3525,7 @@ export default {
         markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Se ha producido un error al asignar esta tarea. Por favor, inténtalo con otro miembro.',
-        genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea. Por favor, inténtalo más tarde.',
+        genericCreateTaskFailureMessage: 'Error inesperado al crear la tarea. Por favor, inténtalo más tarde.',
         deleteTask: 'Eliminar tarea',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
@@ -3640,11 +3673,17 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}`,
+                exportedToIntegration: {
+                    automatic: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}.`,
+                    manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
+                    reimburseableLink: 'Ver los gastos por cuenta propia.',
+                    nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
+                    pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
+                },
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
-                managerDetachReceipt: `quitó el recibo`,
+                managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagó ${currency}${amount} mediante integración`,
                 outdatedBankAccount: `no se pudo procesar el pago debido a un problema con la cuenta bancaria del pagador`,
@@ -4350,7 +4389,19 @@ export default {
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
-        modifiedAmount: 'Importe superior al del recibo escaneado',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+            switch (type) {
+                case 'distance':
+                    return 'Importe difiere del calculado basado en distancia';
+                case 'card':
+                    return 'Importe mayor al de la transacción de la tarjeta';
+                default:
+                    if (displayPercentVariance) {
+                        return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
+                    }
+                    return 'Importe mayor al del recibo escaneado';
+            }
+        },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
@@ -4512,8 +4563,8 @@ export default {
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
-                subtitle: 'Para empezar, ',
-                subtitleLink: 'completa la lista de configuración aquí.',
+                subtitle: '¡Ya casi estamos! Completa ',
+                subtitleLink: 'la lista de configuración.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
