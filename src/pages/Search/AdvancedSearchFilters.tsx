@@ -33,10 +33,7 @@ function AdvancedSearchFilters() {
         <View style={[]}>
             {advancedFilters.map((item) => {
                 const filterValue = getFilterDisplayTitle({}, item.fieldName);
-                const onPress = singleExecution(() => {
-                    console.log(`navigating to: ${item.route}`);
-                    Navigation.navigate(item.route);
-                });
+                const onPress = singleExecution(() => Navigation.navigate(item.route));
 
                 return (
                     <MenuItemWithTopDescription
