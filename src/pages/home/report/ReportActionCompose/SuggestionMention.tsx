@@ -3,8 +3,8 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -14,7 +14,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import localeCompare from '@libs/LocaleCompare';
+import compareUserInList from '@libs/compareUserInList';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -273,26 +273,16 @@ function SuggestionMention(
                 return true;
             }) as Array<PersonalDetails & {weight: number}>; // at this point we are sure that the details are not null
 
-            const sortedPersonalDetails = filteredPersonalDetails.sort((first, second) => {
-                // first, we should sort by weight
-                if (first.weight !== second.weight) {
-                    return first.weight - second.weight;
-                }
-
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const firstDisplayName = ReportUtils.getDisplayNameForParticipant(first.accountID) || first?.login || '';
-
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const secondDisplayName = ReportUtils.getDisplayNameForParticipant(second.accountID) || second?.login || '';
-
-                const displayNameLoginOrder = localeCompare(firstDisplayName, secondDisplayName);
-                if (displayNameLoginOrder !== 0) {
-                    return displayNameLoginOrder;
-                }
-
-                // Then fallback on accountID as the final sorting criteria.
-                return first.accountID - second.accountID;
-            });
+            const sortedPersonalDetails = filteredPersonalDetails
+                .map((user) => ({
+                    originalDetail: user,
+                    weight: user.weight,
+                    accountID: user.accountID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    displayName: ReportUtils.getDisplayNameForParticipant(user.accountID) || user.login || '',
+                }))
+                .sort((first, second) => compareUserInList(first, second))
+                .map((userAfterCompare) => userAfterCompare.originalDetail);
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
