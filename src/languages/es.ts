@@ -2308,19 +2308,18 @@ export default {
                 },
             },
             reimbursableExpenses: {
-                label: 'Gastos reembolsables de exportación como',
-                description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
+                label: 'Exportar gastos por cuenta propia como',
+                description: 'Establece cómo se exportan los gastos por cuenta propia a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
                 },
             },
             nonReimbursableExpenses: {
-                label: 'Exportar gastos no reembolsables como',
-                description:
-                    'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
+                label: 'Exportar tarjetas de empresa como',
+                description: 'Establece cómo se exportan las compras con tarjeta de empresa a Sage Intacct.',
                 values: {
-                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Tarjetas de crédito',
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
                 },
             },

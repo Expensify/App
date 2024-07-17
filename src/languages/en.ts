@@ -2192,7 +2192,7 @@ export default {
             exportDescription: 'Configure how Expensify data exports to Xero.',
             exportCompanyCard: 'Export company card expenses as',
             purchaseBill: 'Purchase bill',
-            exportDeepDiveCompanyCard: 'Each exported expense posts as a bank transaction to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
+            exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
@@ -2239,7 +2239,7 @@ export default {
                 },
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
+            noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again.',
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
@@ -2263,19 +2263,18 @@ export default {
                 },
             },
             reimbursableExpenses: {
-                label: 'Export reimbursable expenses as',
-                description: 'Reimbursable expenses will export as expense reports to Sage Intacct. Bills will export as vendor bills.',
+                label: 'Export out-of-pocket expenses as',
+                description: 'Set how out-of-pocket expenses export to Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Expense reports',
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
             nonReimbursableExpenses: {
-                label: 'Export non-reimbursable expenses as',
-                description:
-                    'Non-reimbursable expenses will export to Sage Intacct as either credit card transactions or vendor bills and credit the account selected below. Learn more about assigning cards to individual accounts.',
+                label: 'Export company cards as',
+                description: 'Set how company card purchases export to Sage Intacct.',
                 values: {
-                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit card transactions',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit cards',
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
@@ -2283,19 +2282,19 @@ export default {
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean): string =>
                 `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
-            exportDescription: 'Configure how data in Expensify gets exported to Sage Intacct.',
+            exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: `Add the account in Sage Intacct and sync the connection again.`,
+            noAccountsFoundDescription: `Please add the account in Sage Intacct and sync the connection again.`,
             autoSync: 'Auto-sync',
-            autoSyncDescription: 'Sync Sage Intacct and Expensify automatically, every day.',
+            autoSyncDescription: 'Expensify will automatically sync with Sage Intacct every day.',
             inviteEmployees: 'Invite employees',
             inviteEmployeesDescription:
                 'Import Sage Intacct employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be furthered configured on the Members page.',
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
+            syncReimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Sage Intacct account below.',
             paymentAccount: 'Sage Intacct payment account',
         },
         netsuite: {
@@ -2474,7 +2473,7 @@ export default {
             },
             import: {
                 expenseCategories: 'Expense categories',
-                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                expenseCategoriesDescription: 'Your NetSuite expense categories will import into Expensify as categories.',
                 crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
                 importFields: {
                     departments: {
@@ -2607,7 +2606,7 @@ export default {
             toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
             toggleImportTitleSecondPart: ' in Expensify.',
             expenseTypes: 'Expense types',
-            expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
+            expenseTypesDescription: 'Your Sage Intacct expense types will import into Expensify as categories.',
             importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
             userDefinedDimensions: 'User-defined dimensions',
             addUserDefinedDimension: 'Add user-defined dimension',
