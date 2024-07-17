@@ -149,7 +149,7 @@ function ReportListItem<TItem extends ListItem>({
                         participantToDisplayName={participantToDisplayName}
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
-                        containerStyle={styles.ph3}
+                        containerStyle={[styles.ph3, {paddingTop: 6}]}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40, styles.ph3, styles.pv3]}>
