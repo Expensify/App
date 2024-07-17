@@ -282,7 +282,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [onChangeText]);
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
+    // const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -309,11 +309,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        if (shouldDebounceRowSelect) {
-            debouncedOnSelectRow(item);
-        } else {
-            onSelectRow(item);
-        }
+        onSelectRow(item);
 
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
@@ -337,11 +333,6 @@ function BaseSelectionList<TItem extends ListItem>(
 
         selectRow(focusedOption);
     };
-
-    // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
-    // enter presses runs the debounced function again.
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -507,26 +498,6 @@ function BaseSelectionList<TItem extends ListItem>(
         [scrollToIndex, setFocusedIndex],
     );
 
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedOnSelectRow.cancel();
-        };
-    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
-
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedSelectFocusedOption.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedSelectFocusedOption.cancel();
-        };
-    }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
-
     /** Function to focus text input */
     const focusTextInput = useCallback(() => {
         if (!innerTextInputRef.current) {
@@ -621,7 +592,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
@@ -681,7 +652,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 selectTextOnFocus
                                 spellCheck={false}
                                 iconLeft={textInputIconLeft}
-                                onSubmitEditing={shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption}
+                                onSubmitEditing={selectFocusedOption}
                                 blurOnSubmit={!!flattenedSections.allOptions.length}
                                 isLoading={isLoadingNewOptions}
                                 testID="selection-list-text-input"
