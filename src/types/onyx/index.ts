@@ -22,6 +22,7 @@ import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
@@ -34,6 +35,7 @@ import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
+import type Pages from './Pages';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -117,6 +119,7 @@ export type {
     IntroSelected,
     IOU,
     IssueNewCard,
+    LastExportMethod,
     Locale,
     Login,
     LoginList,
@@ -126,6 +129,7 @@ export type {
     OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
+    Pages,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
