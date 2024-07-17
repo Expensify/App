@@ -352,11 +352,16 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
                 // Recall that the "daily" and "manual" frequencies don't actually exist in Onyx or the DB (see PolicyUtils.getCorrectedAutoReportingFrequency)
                 autoReportingFrequency: frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : frequency,
                 pendingFields: {autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+
+                // To set the frequency to "manual", we really must set it to "immediate" with harvesting disabled
                 ...(frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && {
                     harvesting: {
                         enabled: false,
                     },
                 }),
+
+                // If the policy was manually reported before, and now will be auto-reported,
+                // then we must re-enable harvesting
                 ...(wasPolicyManuallyReported &&
                     frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && {
                         harvesting: {
