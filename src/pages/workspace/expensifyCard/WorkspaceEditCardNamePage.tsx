@@ -64,10 +64,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.card.issueNewCard.cardName')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate('workspace.card.issueNewCard.cardName')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
