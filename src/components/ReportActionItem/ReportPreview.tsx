@@ -157,7 +157,7 @@ function ReportPreview({
         hasMissingSmartscanFields ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
-        ReportUtils.hasReportViolations(iouReportID) ||
+        (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));

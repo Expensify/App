@@ -3,7 +3,6 @@ import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
-import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
@@ -37,10 +36,7 @@ function OptionRowLHNData({
     const optionItemRef = useRef<OptionData>();
 
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
-    const isReportParticipant = Object.keys(fullReport?.participants ?? {})
-        .map(Number)
-        .some((participantID) => participantID === getCurrentUserAccountID());
-    const shouldDisplayReportViolations = isReportParticipant && ReportUtils.hasReportViolations(reportID);
+    const shouldDisplayReportViolations = ReportUtils.isReportOwner(fullReport) && ReportUtils.hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
