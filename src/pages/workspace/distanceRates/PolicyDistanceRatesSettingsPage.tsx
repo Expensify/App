@@ -14,7 +14,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,7 +43,6 @@ type PolicyDistanceRatesSettingsPageOnyxProps = {
 type PolicyDistanceRatesSettingsPageProps = PolicyDistanceRatesSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
 function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: PolicyDistanceRatesSettingsPageProps) {
-    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
@@ -57,6 +55,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
     const defaultUnit = customUnits[customUnitID]?.attributes.unit;
     const errorFields = customUnits[customUnitID]?.errorFields;
+
+    const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const setNewUnit = (unit: UnitItemType) => {
         const attributes = {...customUnits[customUnitID].attributes, unit: unit.value};
@@ -83,75 +83,6 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
         Policy.enableDistanceRequestTax(policyID, customUnit?.name, customUnitID, attributes);
     };
 
-    const getDistanceRatesSetting = () => (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <View>
-                <OfflineWithFeedback
-                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
-                    pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
-                    errorRowStyles={styles.mh5}
-                    onClose={() => clearErrorFields('attributes')}
-                >
-                    <UnitSelector
-                        label={translate('workspace.distanceRates.unit')}
-                        defaultValue={defaultUnit}
-                        wrapperStyle={[styles.ph5, styles.mt3]}
-                        setNewUnit={setNewUnit}
-                    />
-                </OfflineWithFeedback>
-                {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
-                    <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
-                        pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
-                        errorRowStyles={styles.mh5}
-                        onClose={() => clearErrorFields('defaultCategory')}
-                    >
-                        <CategorySelector
-                            policyID={policyID}
-                            label={translate('workspace.distanceRates.defaultCategory')}
-                            defaultValue={defaultCategory}
-                            wrapperStyle={[styles.ph5, styles.mt3]}
-                            setNewCategory={setNewCategory}
-                        />
-                    </OfflineWithFeedback>
-                )}
-                <OfflineWithFeedback
-                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
-                    errorRowStyles={styles.mh5}
-                    pendingAction={customUnits[customUnitID]?.pendingFields?.taxEnabled}
-                >
-                    <View style={[styles.mt2, styles.mh5]}>
-                        <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
-                            <Switch
-                                isOn={isDistanceTrackTaxEnabled}
-                                accessibilityLabel={translate('workspace.distanceRates.trackTax')}
-                                onToggle={onToggleTrackTax}
-                                disabled={!isPolicyTrackTaxEnabled}
-                            />
-                        </View>
-                    </View>
-                    {!isPolicyTrackTaxEnabled && (
-                        <View style={[styles.mh5]}>
-                            <Text style={styles.colorMuted}>
-                                {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                <TextLink
-                                    onPress={() => {
-                                        Navigation.dismissModal();
-                                        Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-                                    }}
-                                >
-                                    {translate('workspace.common.moreFeatures')}
-                                </TextLink>
-                                {translate('workspace.distanceRates.changePromptMessage')}
-                            </Text>
-                        </View>
-                    )}
-                </OfflineWithFeedback>
-            </View>
-        </ScrollView>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -164,7 +95,74 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                {!customUnit && isOffline ? <FullPageOfflineBlockingView>{getDistanceRatesSetting()}</FullPageOfflineBlockingView> : getDistanceRatesSetting()}
+                <FullPageBlockingView>
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
+                        <View>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
+                                pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('attributes')}
+                            >
+                                <UnitSelector
+                                    label={translate('workspace.distanceRates.unit')}
+                                    defaultValue={defaultUnit}
+                                    wrapperStyle={[styles.ph5, styles.mt3]}
+                                    setNewUnit={setNewUnit}
+                                />
+                            </OfflineWithFeedback>
+                            {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
+                                <OfflineWithFeedback
+                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
+                                    pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearErrorFields('defaultCategory')}
+                                >
+                                    <CategorySelector
+                                        policyID={policyID}
+                                        label={translate('workspace.distanceRates.defaultCategory')}
+                                        defaultValue={defaultCategory}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
+                                        setNewCategory={setNewCategory}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
+                                errorRowStyles={styles.mh5}
+                                pendingAction={customUnits[customUnitID]?.pendingFields?.taxEnabled}
+                            >
+                                <View style={[styles.mt2, styles.mh5]}>
+                                    <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
+                                        <Switch
+                                            isOn={isDistanceTrackTaxEnabled}
+                                            accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                            onToggle={onToggleTrackTax}
+                                            disabled={!isPolicyTrackTaxEnabled}
+                                        />
+                                    </View>
+                                </View>
+                                {!isPolicyTrackTaxEnabled && (
+                                    <View style={[styles.mh5]}>
+                                        <Text style={styles.colorMuted}>
+                                            {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
+                                            <TextLink
+                                                onPress={() => {
+                                                    Navigation.dismissModal();
+                                                    Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                                }}
+                                            >
+                                                {translate('workspace.common.moreFeatures')}
+                                            </TextLink>
+                                            {translate('workspace.distanceRates.changePromptMessage')}
+                                        </Text>
+                                    </View>
+                                )}
+                            </OfflineWithFeedback>
+                        </View>
+                    </ScrollView>
+                </FullPageBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
