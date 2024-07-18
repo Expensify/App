@@ -110,7 +110,7 @@ function PopoverMenu({
 
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
-    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<number[]>([]);
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
@@ -158,7 +158,7 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    enteredSubMenuIndexes.splice(-1);
+                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
                 }}
             />
         );
@@ -195,7 +195,7 @@ function PopoverMenu({
         if (menuItems.length === 0) {
             return;
         }
-        setEnteredSubMenuIndexes([]);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
@@ -206,7 +206,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes([]);
+                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
             isVisible={isVisible}
