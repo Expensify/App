@@ -80,7 +80,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         <>
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
-                {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
+                {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && policy?.areReportFieldsEnabled && (
                     <>
                         {ReportUtils.isPaidGroupPolicyExpenseReport(report) &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
