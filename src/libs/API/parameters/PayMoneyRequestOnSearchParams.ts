@@ -1,6 +1,6 @@
 type PayMoneyRequestOnSearchParams = {
     hash: number;
-    reportIDList: string[];
+    reportsAndAmounts: Record<string, number>;
 };
 
 export default PayMoneyRequestOnSearchParams;

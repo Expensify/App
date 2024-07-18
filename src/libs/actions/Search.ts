@@ -94,10 +94,10 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
-function payMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
+function payMoneyRequestOnSearch(hash: number, reportsAndAmounts: Record<string, number>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, reportsAndAmounts}, {optimisticData, finallyData});
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
