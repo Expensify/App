@@ -420,6 +420,7 @@ describe('ReportUtils', () => {
 
             const report: Report = {
                 ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+                hasReceivedFreeTrialEndMessage: true,
             };
 
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
