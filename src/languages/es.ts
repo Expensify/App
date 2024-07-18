@@ -356,6 +356,8 @@ export default {
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
+        downloadFailedTitle: 'Error en la descarga',
+        downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -1077,12 +1079,6 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
-        disable: 'Deshabilitar',
-        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
-        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
-        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
     recoveryCodeForm: {
         error: {
@@ -2308,19 +2304,18 @@ export default {
                 },
             },
             reimbursableExpenses: {
-                label: 'Gastos reembolsables de exportación como',
-                description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
+                label: 'Exportar gastos por cuenta propia como',
+                description: 'Establece cómo se exportan los gastos por cuenta propia a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
                 },
             },
             nonReimbursableExpenses: {
-                label: 'Exportar gastos no reembolsables como',
-                description:
-                    'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
+                label: 'Exportar tarjetas de empresa como',
+                description: 'Establece cómo se exportan las compras con tarjeta de empresa a Sage Intacct.',
                 values: {
-                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Tarjetas de crédito',
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
                 },
             },
@@ -3568,7 +3563,7 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        selectMultiple: 'Seleccionar múltiples',
+        selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         searchResults: {
             emptyResults: {
@@ -3583,6 +3578,7 @@ export default {
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -4595,7 +4591,7 @@ export default {
         },
         cardSection: {
             title: 'Pago',
-            subtitle: 'Añade una tarjeta de pago para abonar tu suscripción a Expensify',
+            subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
             cardNextPayment: ({nextPaymentDate}) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Tarjeta terminada en ${cardNumber}`,
