@@ -3525,6 +3525,13 @@ export default {
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         offlinePrompt: "You can't take this action right now.",
+        filtersHeader: 'Filters',
+        filters: {
+            date: {
+                before: 'Before',
+                after: 'After',
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
