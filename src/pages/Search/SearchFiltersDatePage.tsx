@@ -20,6 +20,7 @@ function SearchFiltersDatePage() {
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton title={translate('common.date')} />
                 <View style={[styles.flex1, styles.ph3]}>
+                    {/* temporary placeholder, will be implemented in https://github.com/Expensify/App/issues/45026 */}
                     <Text>Advanced filters Date form</Text>
                 </View>
             </FullPageNotFoundView>

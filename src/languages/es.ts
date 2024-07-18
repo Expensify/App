@@ -3563,8 +3563,8 @@ export default {
         filtersHeader: 'Filtros',
         filters: {
             date: {
-                before: 'Antes',
-                after: 'Después',
+                before: 'Antes de',
+                after: 'Después de',
             },
         },
     },

@@ -49,28 +49,19 @@ const ROUTES = {
         },
     },
 
-    SEARCH_ADVANCED_FILTERS: {
-        route: '/search/filters',
-        getRoute: () => `search/filters` as const,
-    },
+    SEARCH_ADVANCED_FILTERS: 'search/filters',
 
-    SEARCH_ADVANCED_FILTERS_DATE: {
-        route: '/search/filters/date',
-        getRoute: () => `search/filters/date` as const,
-    },
+    SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
 
-    SEARCH_ADVANCED_FILTERS_TYPE: {
-        route: '/search/filters/type',
-        getRoute: () => `search/filters/type` as const,
-    },
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
 
     SEARCH_REPORT: {
-        route: '/search/:query/view/:reportID',
+        route: 'search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
     TRANSACTION_HOLD_REASON_RHP: {
-        route: '/search/:query/hold/:transactionID',
+        route: 'search/:query/hold/:transactionID',
         getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
     },
 
