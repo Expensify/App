@@ -288,6 +288,13 @@ xdescribe('Sidebar', () => {
             const report2: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.BILL,
+                errorFields: {
+                    "notFound": {
+                        "1721083106781482": "Report not found",
+                        "1721140343800206": "Report not found",
+                        "1721149017870362": "Report not found"
+                    }
+                },
             };
             const report3: Report = LHNTestUtils.getFakeReport();
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
