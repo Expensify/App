@@ -10,12 +10,12 @@ const advancedFilters = [
     {
         fieldName: 'type',
         description: 'common.type' as const,
-        route: '/search/filters/type' as Route,
+        route: 'search/filters/type' as Route,
     },
     {
         fieldName: 'date',
         description: 'common.date' as const,
-        route: '/search/filters/date' as Route,
+        route: 'search/filters/date' as Route,
     },
 ];
 
