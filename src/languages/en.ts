@@ -2658,6 +2658,12 @@ export default {
             virtual: 'Virtual',
             physical: 'Physical',
             deactivate: 'Deactivate card',
+            changeCardLimitType: 'Change card limit type',
+            changeLimitType: 'Change limit type',
+            changeCardSmartLimitTypeWarning: (limit: string) =>
+                `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
+            changeCardMonthlyLimitTypeWarning: (limit: string) =>
+                `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
