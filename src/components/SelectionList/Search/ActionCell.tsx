@@ -62,7 +62,6 @@ function ActionCell({
 
         if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
             SearchActions.approveMoneyRequestOnSearch(currentSearchHash, [reportID]);
-            return;
         }
     }, [action, currentSearchHash, reportID]);
 

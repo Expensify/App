@@ -9,6 +9,12 @@ type SelectedTransactionInfo = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be put on hold */
+    canHold: boolean;
+
+    /** If the transaction can be removed from hold */
+    canUnhold: boolean;
+
     /** The action that can be performed for the transaction */
     action: string;
 };

@@ -104,7 +104,7 @@ function SearchPageHeader({
             });
         }
 
-        const itemsToHold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].action === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+        const itemsToHold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].canHold);
 
         if (itemsToHold.length > 0) {
             options.push({
@@ -127,7 +127,7 @@ function SearchPageHeader({
             });
         }
 
-        const itemsToUnhold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].action === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        const itemsToUnhold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].canUnhold);
 
         if (itemsToUnhold.length > 0) {
             options.push({
