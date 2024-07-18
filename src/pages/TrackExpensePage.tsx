@@ -1,20 +1,20 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import * as ReportUtils from '@libs/ReportUtils';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useNetwork from '@hooks/useNetwork';
-import { useOnyx } from "react-native-onyx";
 
 /*
  * This is a "utility page", that does this:
@@ -37,8 +37,9 @@ function TrackExpensePage() {
                 Navigation.goBack();
                 IOU.startMoneyRequest(
                     CONST.IOU.TYPE.TRACK,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                )
+                );
 
                 if (!hasSeenTrackTraining && !isOffline) {
                     setTimeout(() => {
