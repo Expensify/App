@@ -942,7 +942,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
 
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
-        amount: originalTransaction?.modifiedAmount ?? 0,
+        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
         reportID: originalTransaction?.reportID ?? '',
         receiptID: originalTransaction?.receipt?.receiptID ?? 0,
         currency: originalTransaction?.currency ?? '',
