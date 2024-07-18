@@ -661,6 +661,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CODE]: {
+        policyID: string;
+        taxID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };
