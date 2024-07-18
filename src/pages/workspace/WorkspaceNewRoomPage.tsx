@@ -64,7 +64,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
@@ -241,7 +241,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
             />
-            {shouldUseNarrowLayout && <OfflineIndicator />}
+            {isSmallScreenWidth && <OfflineIndicator />}
         </>
     );
 
@@ -334,7 +334,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 />
                             </View>
                         </FormProvider>
-                        {shouldUseNarrowLayout && <OfflineIndicator />}
+                        {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )
             }

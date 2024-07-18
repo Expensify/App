@@ -147,7 +147,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
 function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {insets} = useStyledSafeAreaInsets();
@@ -347,7 +347,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
                 />
-                {shouldUseNarrowLayout && <OfflineIndicator />}
+                {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
         </ScreenWrapper>
     );
