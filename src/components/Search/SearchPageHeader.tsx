@@ -85,9 +85,9 @@ function SearchPageHeader({
             options.push(downloadOption);
         }
 
-        const itemsToHold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
-        if (itemsToHold.length > 0) {
+        if (shouldShowHoldOption) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
@@ -103,14 +103,14 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
-                    SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
+                    SearchActions.holdMoneyRequestOnSearch(hash, selectedTransactionsKeys, '');
                 },
             });
         }
 
-        const itemsToUnhold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
-        if (itemsToUnhold.length > 0) {
+        if (shouldShowUnholdOption) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
@@ -126,14 +126,14 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
-                    SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+                    SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
         }
 
-        const itemsToDelete = Object.keys(selectedTransactions ?? {}).filter((id) => selectedTransactions[id].canDelete);
+        const shouldShowDeleteOption = Object.keys(selectedTransactions ?? {}).every((id) => selectedTransactions[id].canDelete);
 
-        if (itemsToDelete.length > 0) {
+        if (shouldShowDeleteOption) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate('search.bulkActions.delete'),
@@ -145,7 +145,7 @@ function SearchPageHeader({
                         return;
                     }
 
-                    onSelectDeleteOption?.(itemsToDelete);
+                    onSelectDeleteOption?.(selectedTransactionsKeys);
                 },
             });
         }
