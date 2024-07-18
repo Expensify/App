@@ -1,6 +1,7 @@
 ---
 title: NetSuite
 description: Connect and configure NetSuite directly to Expensify.
+order: 1
 ---
 # Overview
 Expensify's seamless integration with NetSuite enables you to streamline your expense reporting process. This integration allows you to automate the export of reports, tailor your coding preferences, and tap into NetSuite's array of advanced features. By correctly configuring your NetSuite settings in Expensify, you can leverage the connection's settings to automate most of the tasks, making your workflow more efficient.
