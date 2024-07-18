@@ -101,10 +101,11 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoadingItems = !isOffline && searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const isDataLoaded = searchResults?.data !== undefined;
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
-    if (isLoadingItems) {
+    if (shouldShowLoadingState) {
         return (
             <>
                 <SearchPageHeader
@@ -116,7 +117,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         );
     }
 
-    const shouldShowEmptyState = SearchUtils.isSearchResultsEmpty(searchResults);
+    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (shouldShowEmptyState) {
         return (
@@ -147,7 +148,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
     };
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults || isLoadingItems || isLoadingMoreItems) {
+        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
@@ -224,7 +225,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
             setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
             isMobileSelectionModeActive={isMobileSelectionModeActive}
             listFooterContent={
-                isLoadingMoreItems ? (
+                shouldShowLoadingMoreItems ? (
                     <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
