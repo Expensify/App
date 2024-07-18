@@ -4071,7 +4071,7 @@ export default {
         },
         cardSection: {
             title: 'Payment',
-            subtitle: 'Add a payment card to pay for your Expensify subscription.',
+            subtitle: 'Add a card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
             cardNextPayment: ({nextPaymentDate}) => `Your next payment date is ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,
