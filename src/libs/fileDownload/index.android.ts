@@ -96,7 +96,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string)
     });
 }
 
-const postDownloadFile = (url: string, fileName?: string, formData?: FormData) => {
+const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -119,20 +119,23 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData) =
             FileUtils.showSuccessAlert();
         })
         .catch(() => {
-            FileUtils.showGeneralErrorAlert();
+            if (!onDownloadFailed) {
+                FileUtils.showGeneralErrorAlert();
+            }
+            onDownloadFailed?.();
         });
 };
 
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType) =>
+const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
                     if (requestType === CONST.NETWORK.METHOD.POST) {
-                        return postDownloadFile(url, fileName, formData);
+                        return postDownloadFile(url, fileName, formData, onDownloadFailed);
                     }
                     return handleDownload(url, fileName, successMessage);
                 }

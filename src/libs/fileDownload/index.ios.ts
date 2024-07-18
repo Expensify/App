@@ -27,7 +27,7 @@ function downloadFile(fileUrl: string, fileName: string) {
     }).fetch('GET', fileUrl);
 }
 
-const postDownloadFile = (url: string, fileName?: string, formData?: FormData) => {
+const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -53,7 +53,10 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData) =
             FileUtils.showSuccessAlert();
         })
         .catch(() => {
-            FileUtils.showGeneralErrorAlert();
+            if (!onDownloadFailed) {
+                FileUtils.showGeneralErrorAlert();
+            }
+            onDownloadFailed?.();
         });
 };
 
@@ -98,7 +101,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
 /**
  * Download the file based on type(image, video, other file types)for iOS
  */
-const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formData, requestType) =>
+const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = FileUtils.getFileType(fileUrl);
@@ -114,7 +117,7 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formDa
                 break;
             default:
                 if (requestType === CONST.NETWORK.METHOD.POST) {
-                    fileDownloadPromise = postDownloadFile(fileUrl, fileName, formData);
+                    fileDownloadPromise = postDownloadFile(fileUrl, fileName, formData, onDownloadFailed);
                     break;
                 }
 
