@@ -74,6 +74,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
             <View style={[styles.imageModalImageCenterContainer]}>
                 <AttachmentView
                     source={item.source}
+                    previewSource={item.previewSource}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     onPress={onPress}
