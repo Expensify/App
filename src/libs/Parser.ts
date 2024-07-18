@@ -44,7 +44,7 @@ class ExpensiMarkWithContext extends ExpensiMark {
         });
     }
 
-    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: boolean}): string {
+    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {
         return super.truncateHTML(htmlString, limit, extras);
     }
 }

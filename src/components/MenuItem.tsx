@@ -660,7 +660,7 @@ function MenuItem(
                                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
-                                                                        <RenderHTML html={Parser.truncateHTML(processedTitle, limit, {ellipsis: true})} />
+                                                                        <RenderHTML html={Parser.truncateHTML(processedTitle, limit, {ellipsis: '...'})} />
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
