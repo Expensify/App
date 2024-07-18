@@ -26,28 +26,11 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     return stateCopy;
 };
 
-const TAB_SETTINGS_SCREENS = [SCREENS.SETTINGS.ROOT];
-const TAB_SEARCH_SCREENS = [SCREENS.SEARCH.BOTTOM_TAB, SCREENS.SEARCH.CENTRAL_PANE];
-const TAB_CHAT_SCREENS = [SCREENS.HOME];
-
-const TAB_SCREEN_NAMES = new Set([...TAB_SETTINGS_SCREENS, ...TAB_SEARCH_SCREENS, ...TAB_CHAT_SCREENS]);
-const TAB_SETTINGS_SCREEN_NAMES = new Set(TAB_SETTINGS_SCREENS);
-const TAB_SEARCH_SCREEN_NAMES = new Set(TAB_SEARCH_SCREENS);
-const TAB_CHAT_SCREEN_NAMES = new Set(TAB_CHAT_SCREENS);
-
-function createScreenNameChecker<ScreenName extends string>(screenNames: Set<string>) {
-    return function (screen: string | undefined): screen is ScreenName {
-        if (!screen) {
-            return false;
-        }
-        return screenNames.has(screen);
-    };
+function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
+    if (!screen) {
+        return false;
+    }
+    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
 }
 
-const isTabScreenName = createScreenNameChecker(TAB_SCREEN_NAMES);
-const isSettingsTab = createScreenNameChecker(TAB_SETTINGS_SCREEN_NAMES);
-const isSearchTab = createScreenNameChecker(TAB_SEARCH_SCREEN_NAMES);
-const isHomeTab = createScreenNameChecker(TAB_CHAT_SCREEN_NAMES);
-const isCentralPaneName = createScreenNameChecker<CentralPaneName>(CENTRAL_PANE_SCREEN_NAMES);
-
-export {isTabScreenName, isCentralPaneName, isSearchTab, isHomeTab, isSettingsTab, removePolicyIDParamFromState};
+export {isCentralPaneName, removePolicyIDParamFromState};
