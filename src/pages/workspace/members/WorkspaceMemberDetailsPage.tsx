@@ -296,7 +296,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                         />
                         {policy?.areExpensifyCardsEnabled && (
                             <>
-                                <View style={[styles.ph5]}>
+                                <View style={styles.ph5}>
                                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
                                         {translate('walletPage.assignedCards')}
                                     </Text>
