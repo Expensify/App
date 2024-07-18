@@ -20,6 +20,7 @@ import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getDownloadOption from './SearchActionOptionsUtils';
+import {useSearchContext} from './SearchContext';
 import type {SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
@@ -55,6 +56,8 @@ function SearchPageHeader({
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {setSelectedTransactionIDs} = useSearchContext();
+
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
         shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
@@ -105,6 +108,7 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
+                    setSelectedTransactionIDs(selectedTransactionsKeys);
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(query));
                 },
             });
