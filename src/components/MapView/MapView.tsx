@@ -157,8 +157,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
         };
         const centerMap = useCallback(() => {
-            const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-            if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
+            if (directionCoordinates && directionCoordinates.length > 1) {
                 const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
                 return;
