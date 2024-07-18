@@ -3,7 +3,6 @@ import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type CardRowSkeletonProps = {
@@ -12,26 +11,18 @@ type CardRowSkeletonProps = {
     gradientOpacityEnabled?: boolean;
 };
 
-const barHeight = 8;
+const barHeight = 7;
 const longBarWidth = 120;
 const shortBarWidth = 60;
 const leftPaneWidth = variables.sideBarWidth;
-
-// 12 is the gap between the element and the right button
 const gapWidth = 12;
-
-// 80 is the width of the element itself
 const rightSideElementWidth = 50;
-
-// 24 is the padding of the central pane summing two sides
 const centralPanePadding = 50;
-
-// 80 is the width of the button on the right side
 const rightButtonWidth = 20;
 
 function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: CardRowSkeletonProps) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <ItemListSkeletonView
@@ -42,22 +33,22 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
             renderSkeletonItem={() => (
                 <>
                     <Circle
-                        cx="36"
-                        cy="32"
-                        r="20"
+                        cx={36}
+                        cy={32}
+                        r={20}
                     />
                     <Rect
                         x={66}
                         y={22}
                         width={longBarWidth}
-                        height={7}
+                        height={barHeight}
                     />
 
                     <Rect
                         x={66}
                         y={36}
                         width={shortBarWidth}
-                        height={7}
+                        height={barHeight}
                     />
 
                     {!isSmallScreenWidth && (
