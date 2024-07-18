@@ -103,7 +103,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         return options;
-    }, [translate, typeSelected]);
+    }, [translate, typeSelected, areApprovalsConfigured]);
 
     return (
         <AccessOrNotFoundWrapper
