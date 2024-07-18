@@ -32,7 +32,9 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
     const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? true;
     const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    // TODO: replace this line with the following line
+    const isSettlementFrequencyBlocked = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    // const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
 
     return (
@@ -62,18 +64,20 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 description={translate('workspace.expensifyCard.settlementFrequency')}
                                 title={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
                                 shouldShowRightIcon={settlementFrequency !== CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY}
-                                interactive={!isSettlementFrequencyBlocked}
+                                // interactive={!isSettlementFrequencyBlocked}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
                                 hintText={
-                                    <>
-                                        {translate('workspace.expensifyCard.settlementFrequencyInfo')}{' '}
-                                        <TextLink
-                                            href=""
-                                            style={styles.label}
-                                        >
-                                            {translate('common.learnMore')}
-                                        </TextLink>
-                                    </>
+                                    isSettlementFrequencyBlocked ? (
+                                        <>
+                                            {translate('workspace.expensifyCard.settlementFrequencyInfo')}{' '}
+                                            <TextLink
+                                                href=""
+                                                style={styles.label}
+                                            >
+                                                {translate('common.learnMore')}
+                                            </TextLink>
+                                        </>
+                                    ) : undefined
                                 }
                             />
                         </OfflineWithFeedback>
