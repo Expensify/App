@@ -1,10 +1,15 @@
 import React from 'react';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import BillingBanner from './BillingBanner';
 
 function TrialEndedBillingBanner() {
     const {translate} = useLocalize();
+
+    if (SubscriptionUtils.doesUserHavePaymentCardAdded()) {
+        return null;
+    }
 
     return (
         <BillingBanner

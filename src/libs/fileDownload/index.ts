@@ -9,7 +9,7 @@ import type {FileDownload} from './types';
  * The function downloads an attachment on web/desktop platforms.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false) => {
+const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get', onDownloadFailed?: () => void) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
     if (
         // we have two file download cases that we should allow 1. dowloading attachments 2. downloading Expensify package for Sage Intacct
@@ -24,7 +24,12 @@ const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOp
         return Promise.resolve();
     }
 
-    return fetch(url)
+    const fetchOptions: RequestInit = {
+        method: requestType,
+        body: formData,
+    };
+
+    return fetch(url, fetchOptions)
         .then((response) => response.blob())
         .then((blob) => {
             // Create blob link to download
@@ -50,8 +55,12 @@ const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOp
             link.parentNode?.removeChild(link);
         })
         .catch(() => {
-            // file could not be downloaded, open sourceURL in new tab
-            Link.openExternalLink(url);
+            if (onDownloadFailed) {
+                onDownloadFailed();
+            } else {
+                // file could not be downloaded, open sourceURL in new tab
+                Link.openExternalLink(url);
+            }
         });
 };
 

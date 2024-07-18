@@ -84,11 +84,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const styles = useThemeStyles();
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -137,6 +138,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
         return ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
     }, [report, isGroupChat, isSystemChat]);
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -390,6 +392,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
+        if (policy && connectedIntegration && isPolicyAdmin) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
+                translationKey: 'common.export',
+                icon: Expensicons.Upload,
+                isAnonymousAction: false,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
+                },
+            });
+        }
+
         if (canUnapproveRequest) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
@@ -410,18 +424,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isUserCreatedPolicyRoom,
         participants.length,
         report,
-        canModifyTask,
         isSystemChat,
         isPolicyExpenseChat,
-        shouldShowMenuItem,
         isMoneyRequestReport,
         isInvoiceReport,
+        policy,
+        connectedIntegration,
+        isPolicyAdmin,
+        canModifyTask,
+        shouldShowMenuItem,
         isTaskReport,
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
         shouldShowCancelPaymentButton,
-        isPolicyAdmin,
         session,
         leaveChat,
         canUnapproveRequest,
@@ -445,7 +461,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
     const unapproveWarningText = (
         <Text>
@@ -760,7 +775,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         if (!navigateBackToAfterDelete.current) {
                             Navigation.dismissModal();
                         } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
