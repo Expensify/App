@@ -22,6 +22,7 @@ import type {
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
+    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
     DistanceRateOperationsParams,
     EditActionParams,
@@ -100,6 +101,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -125,6 +127,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        notNow: 'Ahora no',
         learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
@@ -349,6 +352,7 @@ export default {
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
+        export: 'Exportar',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -385,6 +389,8 @@ export default {
         notAllowedExtension: 'Este tipo de archivo no es compatible',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
         protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
+        attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
+        attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -599,7 +605,7 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     allSettingsScreen: {
-        subscriptions: 'Suscripciones',
+        subscription: 'Suscripcion',
         cardsAndDomains: 'Tarjetas y Dominios',
     },
     tabSelector: {
@@ -618,6 +624,12 @@ export default {
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
+        locationAccessTitle: 'Permitir acceso a la ubicación',
+        locationAccessMessage:
+            'Usaremos tu ubicación para determinar con precisión la moneda y zona horaria predeterminadas. Puedes editar el acceso en la configuración de tu dispositivo en cualquier momento.',
+        locationErrorTitle: 'Habilitar ubicación en la configuración',
+        locationErrorMessage:
+            'Es necesario permitir el acceso a la ubicación para ayudar a determinar con precisión su moneda y zona horaria predeterminadas. Haz click en Configuración para actualizar los permisos.',
         cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -635,7 +647,7 @@ export default {
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
-        paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
+        paySomeone: (name: string) => `Pagar a ${name ?? 'alguien'}`,
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
         trackManual: 'Crear gasto',
@@ -695,8 +707,9 @@ export default {
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
             }`,
-        deleteExpense: 'Eliminar gasto',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
+
+        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
+        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
@@ -788,7 +801,7 @@ export default {
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
-        confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
+        confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
         confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
                 'aprobar',
@@ -1064,6 +1077,12 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
+        disable: 'Deshabilitar',
+        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
+        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
+        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
     recoveryCodeForm: {
         error: {
@@ -1376,7 +1395,7 @@ export default {
         groupMembersListTitle: 'Directorio de los miembros del grupo.',
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
-        defaultReportName: ({displayName}: {displayName: string}) => `Chat de groupo de ${displayName}`,
+        defaultReportName: ({displayName}: {displayName: string}) => `Chat de grupo de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',
@@ -1472,7 +1491,6 @@ export default {
             title: '¿Qué quieres hacer hoy?',
             errorSelection: 'Por favor selecciona una opción para continuar.',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
-            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -1540,7 +1558,7 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
-        startGroup: 'Grupo de inicio',
+        startGroup: 'Crear grupo',
         addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
@@ -2071,11 +2089,17 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            markAsExported: 'Marcar como introducido manualmente',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
             reportLevel: 'Nivel de informe',
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
+            createNewConnection: 'Crear una nueva conexión',
+            reuseExistingConnection: 'Reutilizar la conexión existente',
+            existingConnections: 'Conexiones existentes',
+            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2284,8 +2308,8 @@ export default {
                 },
             },
             reimbursableExpenses: {
-                label: 'Exportar gastos de bolsillo como',
-                description: 'Establezca cómo se exportan los gastos de bolsillo a Sage Intacct.',
+                label: 'Exportar gastos por cuenta propia como',
+                description: 'Establece cómo se exportan los gastos por cuenta propia a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
@@ -2623,10 +2647,7 @@ export default {
             downloadExpensifyPackage: 'Descargar el paquete Expensify para Sage Intacct',
             followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
             enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
-            createNewConnection: 'Crear una nueva conexión',
-            reuseExistingConnection: 'Reutilizar la conexión existente',
-            existingConnections: 'Conexiones existentes',
-            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Última sincronización ${formattedDate}`,
+            entity: 'Entidad',
             employeeDefault: 'Sage Intacct empleado por defecto',
             employeeDefaultDescription: 'El departamento por defecto del empleado se aplicará a sus gastos en Sage Intacct si existe.',
             displayedAsTagDescription: 'Se podrá seleccionar el departamento para cada gasto individual en el informe de un empleado.',
@@ -2677,12 +2698,23 @@ export default {
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            cardLimit: 'Límite de la tarjeta',
             remainingLimit: 'Límite restante',
             requestLimitIncrease: 'Solicitar aumento de límite',
             remainingLimitDescription:
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
             cashBack: 'Reembolso',
             cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            issueNewCard: '',
+            finishSetup: 'Terminar configuración',
+            chooseBankAccount: 'Elegir cuenta bancaria',
+            chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
+            accountEndingIn: 'Cuenta terminada en',
+            addNewBankAccount: 'Añadir nueva cuenta bancaria',
+            cardDetails: 'Datos de la tarjeta',
+            virtual: 'Virtual',
+            physical: 'Física',
+            deactivate: 'Desactivar tarjeta',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2711,6 +2743,10 @@ export default {
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
             importedFromAccountingSoftware: 'Categorías importadas desde',
+            payrollCode: 'Código de nómina',
+            updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
         },
         moreFeatures: {
             spendSection: {
@@ -2822,7 +2858,7 @@ export default {
             reportFieldNameRequiredError: 'Ingresa un nombre de campo de informe',
             reportFieldTypeRequiredError: 'Elige un tipo de campo de informe',
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
-            genericFailureMessage: 'Se ha producido un error al actualizar el campo del informe. Por favor, inténtalo de nuevo.',
+            genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2848,6 +2884,8 @@ export default {
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -2860,6 +2898,7 @@ export default {
             taxReclaimableOn: 'Impuesto recuperable en',
             error: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre.',
+                taxCodeAlreadyExists: 'Ya existe un código de impuesto con este nombre.',
                 customNameRequired: 'El nombre del impuesto es obligatorio.',
                 valuePercentageRange: 'Por favor, introduce un porcentaje entre 0 y 100.',
                 deleteFailureMessage: 'Se ha producido un error al intentar eliminar la tasa de impuesto. Por favor, inténtalo más tarde.',
@@ -2878,6 +2917,8 @@ export default {
                 enableMultiple: 'Activar tasas',
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
+            taxCode: 'Código de impuesto',
+            updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -3111,6 +3152,7 @@ export default {
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
+            cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
@@ -3180,6 +3222,11 @@ export default {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
         },
+        export: {
+            notReadyHeading: 'No está listo para exportar',
+            notReadyDescription:
+                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
+        },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
@@ -3221,7 +3268,7 @@ export default {
             member: 'Invitar miembros',
             members: 'Invitar miembros',
             invitePeople: 'Invitar nuevos miembros',
-            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo..',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo.',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
             user: 'miembro',
             users: 'miembros',
@@ -3236,7 +3283,7 @@ export default {
             inviteMessagePrompt: 'Añadir un mensaje para hacer tu invitación destacar',
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
-            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo..',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -3342,20 +3389,48 @@ export default {
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
         },
+
+        exportAgainModal: {
+            title: '¡Cuidado!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
+            confirmText: 'Sí, exportar de nuevo',
+            cancelText: 'Cancelar',
+        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
                 description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
-                pricing: {
-                    onlyAvailableOnPlan: 'Los campos de informe sólo están disponibles en el plan Control, a partir de ',
-                    amount: '$9 ',
-                    perActiveMember: 'por miembro activo al mes.',
-                },
+                onlyAvailableOnPlan: 'Los campos de informe sólo están disponibles en el plan Control, a partir de ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                title: 'NetSuite',
+                description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración Expensify + NetSuite. Obtén información financiera en profundidad y en tiempo real con la compatibilidad nativa y personalizada con segmentos, incluida la asignación de proyectos y clientes.`,
+                onlyAvailableOnPlan: 'Nuestra integración NetSuite sólo está disponible en el plan Control, a partir de ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                title: 'Sage Intacct',
+                description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración Expensify + Sage Intacct. Obtén información financiera en profundidad y en tiempo real con dimensiones definidas por el usuario, así como codificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
+                onlyAvailableOnPlan: 'Nuestra integración Sage Intacct sólo está disponible en el plan Control, a partir de ',
+            },
+            glCodes: {
+                title: 'Códigos de libro mayor',
+                description: `Añada códigos de libro mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los códigos de libro mayor solo están disponibles en el plan Control, a partir de ',
+            },
+            glAndPayrollCodes: {
+                title: 'Códigos de libro mayor y nómina',
+                description: `Añada códigos de libro mayor y nómina a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los códigos de libro mayor y nómina solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',
                 aboutOurPlans: 'sobre nuestros planes y precios.',
+            },
+            pricing: {
+                amount: '$9 ',
+                perActiveMember: 'por miembro activo al mes.',
             },
             upgradeToUnlock: 'Desbloquear esta función',
             completed: {
@@ -3467,7 +3542,7 @@ export default {
         markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Se ha producido un error al asignar esta tarea. Por favor, inténtalo con otro miembro.',
-        genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea. Por favor, inténtalo más tarde.',
+        genericCreateTaskFailureMessage: 'Error inesperado al crear la tarea. Por favor, inténtalo más tarde.',
         deleteTask: 'Eliminar tarea',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
@@ -3615,11 +3690,17 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}`,
+                exportedToIntegration: {
+                    automatic: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}.`,
+                    manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
+                    reimburseableLink: 'Ver los gastos por cuenta propia.',
+                    nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
+                    pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
+                },
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
-                managerDetachReceipt: `quitó el recibo`,
+                managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagó ${currency}${amount} mediante integración`,
                 outdatedBankAccount: `no se pudo procesar el pago debido a un problema con la cuenta bancaria del pagador`,
@@ -4325,7 +4406,19 @@ export default {
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
-        modifiedAmount: 'Importe superior al del recibo escaneado',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+            switch (type) {
+                case 'distance':
+                    return 'Importe difiere del calculado basado en distancia';
+                case 'card':
+                    return 'Importe mayor al de la transacción de la tarjeta';
+                default:
+                    if (displayPercentVariance) {
+                        return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
+                    }
+                    return 'Importe mayor al del recibo escaneado';
+            }
+        },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
@@ -4487,11 +4580,15 @@ export default {
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
-                subtitle: 'Para empezar, ',
-                subtitleLink: 'completa la lista de configuración aquí.',
+                subtitle: '¡Ya casi estamos! Completa ',
+                subtitleLink: 'la lista de configuración.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            trialEnded: {
+                title: 'Tu prueba gratuita ha terminado',
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
         },
