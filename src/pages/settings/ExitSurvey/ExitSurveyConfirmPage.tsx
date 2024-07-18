@@ -88,9 +88,10 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                             if (NativeModules.HybridAppModule) {
                                 Navigation.resetToHome();
                                 NativeModules.HybridAppModule.closeReactNativeApp();
-                                return;
+                            } else {
+                                Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                             }
-                            Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            Navigation.dismissModal();
                         });
                     }}
                     isLoading={isLoading ?? false}
