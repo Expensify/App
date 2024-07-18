@@ -113,6 +113,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM}
                     submitButtonText={translate('common.save')}
+                    shouldHideFixErrorsAlert
                     onSubmit={submit}
                     style={styles.flex1}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
