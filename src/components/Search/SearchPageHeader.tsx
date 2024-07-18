@@ -90,7 +90,7 @@ function SearchPageHeader({
             options.push(downloadOption);
         }
 
-        const shouldShowHoldOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
             options.push({
@@ -114,7 +114,7 @@ function SearchPageHeader({
             });
         }
 
-        const shouldShowUnholdOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -137,7 +137,7 @@ function SearchPageHeader({
             });
         }
 
-        const shouldShowDeleteOption = Object.keys(selectedTransactions ?? {}).every((id) => selectedTransactions[id].canDelete);
+        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
             options.push({
