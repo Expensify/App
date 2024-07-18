@@ -197,7 +197,7 @@ function ReportListItem<TItem extends ListItem>({
                         }}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
-                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv2]}
+                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
                         isChildListItem
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
