@@ -2382,7 +2382,7 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    if (isChatUsedForOnboarding(optionOrReport) && optionOrReport?.hasReceivedFreeTrialEndMessage && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
+    if (optionOrReport?.hasReceivedFreeTrialEndMessage && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
         return true;
     }
 
