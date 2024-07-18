@@ -61,6 +61,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card.nameValuePairs?.limitType);
 
+    const deactivateCard = () => {
+        setIsDeactivateModalVisible(false);
+
+        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407841
+
+        Navigation.goBack();
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -141,7 +149,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             <ConfirmModal
                                 title={translate('workspace.card.deactivateCard.deactivateCard')}
                                 isVisible={isDeactivateModalVisible}
-                                onConfirm={() => {}}
+                                onConfirm={deactivateCard}
                                 onCancel={() => setIsDeactivateModalVisible(false)}
                                 shouldSetModalVisibility={false}
                                 prompt={translate('workspace.card.deactivateCard.deactivateConfirmation')}
