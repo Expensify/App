@@ -2194,6 +2194,7 @@ PODS:
   - RNSound/Core (0.11.2):
     - React-Core
   - RNSVG (15.4.0):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2215,6 +2216,7 @@ PODS:
     - RNSVG/common (= 15.4.0)
     - Yoga
   - RNSVG/common (15.4.0):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2795,9 +2797,9 @@ SPEC CHECKSUMS:
   RNScreens: d3d50aa84db4541eee00fbb1f32151030f56c510
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 8c067e7203053d4c82f456cbeab1fe509ac797dd
-  SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
-  SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
+  RNSVG: 59c26dfc3de7a1c6a27a6e17d45c5e8957461943
+  SDWebImage: 066c47b573f408f18caa467d71deace7c0f8280d
+  SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
