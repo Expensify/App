@@ -43,8 +43,12 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 fallbackFocus: document.body,
                 delayInitialFocus: CONST.ANIMATED_TRANSITION,
                 initialFocus: (focusTrapContainers) => {
+                    if (!canFocusInputOnScreenFocus()) {
+                        return false;
+                    }
+
                     const isFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
-                    if (!canFocusInputOnScreenFocus() || isFocusedElementInsideContainer) {
+                    if (isFocusedElementInsideContainer) {
                         return false;
                     }
                     return undefined;
