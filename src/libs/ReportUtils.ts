@@ -3378,6 +3378,13 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
             return formatReportLastMessageText(formattedName);
         }
 
+        if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isIntergrationAction(parentReportAction)) {
+            const {originalMessage, actionName} = parentReportAction;
+            const {result, label} = originalMessage;
+            const errorMessage = result?.messages?.join(', ') ?? '';
+            return Localize.translateLocal('report.actions.type.integrationsMessage', errorMessage, label);
+        }
+
         if (ReportActionsUtils.getReportActionMessage(parentReportAction)?.isDeletedParentAction) {
             return Localize.translateLocal('parentReportAction.deletedMessage');
         }

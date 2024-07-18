@@ -179,6 +179,10 @@ function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW);
 }
 
+function isIntergrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE);
+}
+
 function isActionOfType<T extends ReportActionName[]>(
     action: OnyxInputOrEntry<ReportAction>,
     ...actionNames: T
@@ -1626,6 +1630,7 @@ export {
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
+    isIntergrationAction,
 };
 
 export type {LastVisibleMessage};
