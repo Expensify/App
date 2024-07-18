@@ -65,7 +65,7 @@ function IOURequestStepScan({
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
 
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
 
@@ -634,12 +634,12 @@ function IOURequestStepScan({
             >
                 <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
                 <Text style={[styles.subTextReceiptUpload]}>
-                    {shouldUseNarrowLayout ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                    {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
                         textStyles={[styles.textBlue]}
                     />
-                    {shouldUseNarrowLayout ? null : translate('receipt.dragReceiptAfterEmail')}
+                    {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
                 </Text>
             </View>
 
@@ -670,7 +670,7 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(shouldUseNarrowLayout)]}>
+                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
                     {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                     <ReceiptDropUI
                         onDrop={(e) => {
