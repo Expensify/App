@@ -53,7 +53,7 @@ runs:
         distribution: "oracle"
         java-version: "17"
 
-    - uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+    - uses: ruby/setup-ruby@v1.187.0
       with:
         ruby-version: "2.7"
         bundler-cache: true
@@ -74,7 +74,7 @@ runs:
       shell: bash
 
     - name: Upload APK
-      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.ARTIFACT_NAME }}
         path: ${{ inputs.APP_OUTPUT_PATH }}

@@ -64,7 +64,6 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
-export type {default as UpdateFrequentlyUsedEmojisParams} from './UpdateFrequentlyUsedEmojisParams';
 export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
@@ -170,6 +169,8 @@ export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspace
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
+export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
+export type {default as UpdatePolicyCategoryGLCodeParams} from './UpdatePolicyCategoryGLCodeParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
@@ -211,6 +212,7 @@ export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
 export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
+export type {default as UpdatePolicyTagGLCodeParams} from './UpdatePolicyTagGLCodeParams';
 export type {default as AddSubscriptionPaymentCardParams} from './AddSubscriptionPaymentCardParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
@@ -219,6 +221,7 @@ export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicy
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
@@ -237,12 +240,14 @@ export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscri
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
+export type {default as ReportExportParams} from './ReportExportParams';
+export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
-export type {default as PolicyReportFieldsReplace} from './PolicyReportFieldsReplace';
+export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
@@ -254,3 +259,6 @@ export type {default as RequestExpensifyCardLimitIncreaseParams} from './Request
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
+export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
+export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
+export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
