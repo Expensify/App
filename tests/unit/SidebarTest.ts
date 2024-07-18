@@ -5,6 +5,7 @@ import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import DateUtils from '@libs/DateUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -42,6 +43,8 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };
 
@@ -95,6 +98,8 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };
             const action = {

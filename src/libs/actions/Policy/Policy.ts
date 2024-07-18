@@ -271,6 +271,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
                 policyName: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: currentTime,
             },
         });

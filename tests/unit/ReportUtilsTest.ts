@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import DateUtils from '@libs/DateUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -166,6 +167,8 @@ describe('ReportUtils', () => {
                     ...baseAdminsRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime()
                 };
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
@@ -190,6 +193,8 @@ describe('ReportUtils', () => {
                     ...baseUserCreatedRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime()
                 };
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
@@ -234,6 +239,8 @@ describe('ReportUtils', () => {
                     oldPolicyName: policy.name,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime()
                 };
 
                 test('as member', () => {
