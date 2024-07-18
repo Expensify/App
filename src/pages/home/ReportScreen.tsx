@@ -203,6 +203,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             visibility: reportOnyx?.visibility,
             oldPolicyName: reportOnyx?.oldPolicyName,
             policyName: reportOnyx?.policyName,
+            private_isArchived: reportOnyx?.private_isArchived,
             isOptimisticReport: reportOnyx?.isOptimisticReport,
             lastMentionedTime: reportOnyx?.lastMentionedTime,
             avatarUrl: reportOnyx?.avatarUrl,
