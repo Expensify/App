@@ -42,10 +42,12 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData) =
         })
         .then((fileData) => {
             const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
-            // TODO - check why file path can't include Expensify folder name
-            const localPath = `${RNFS.DocumentDirectoryPath}/${finalFileName}`;
+            const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
 
-            return RNFS.writeFile(localPath, fileData, 'utf8').then(() => localPath);
+            return RNFS.mkdir(expensifyDir).then(() => {
+                const localPath = `${expensifyDir}/${finalFileName}`;
+                return RNFS.writeFile(localPath, fileData, 'utf8').then(() => localPath);
+            });
         })
         .then(() => {
             FileUtils.showSuccessAlert();
