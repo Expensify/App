@@ -247,7 +247,7 @@ function MoneyRequestAmountInput(
 
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [amount, currency, formatAmountOnBlur, shouldKeepUserInput, onFormatAmount, shouldResetAmount, onResetAmount]);
+    }, [amount, formatAmountOnBlur, shouldKeepUserInput, onFormatAmount, shouldResetAmount, onResetAmount]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
