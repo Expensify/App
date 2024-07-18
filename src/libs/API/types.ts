@@ -78,7 +78,6 @@ const WRITE_COMMANDS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
-    TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     ADD_COMMENT: 'AddComment',
     ADD_ATTACHMENT: 'AddAttachment',
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
@@ -381,7 +380,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: null;
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: null;
-    [WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
     [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachementParams;
     [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
@@ -754,6 +752,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     ADD_PAYMENT_CARD_GBR: 'AddPaymentCardGBP',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
+    TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -769,6 +768,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBR]: Parameters.AddPaymentCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: null;
+    [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
