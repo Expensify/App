@@ -111,13 +111,16 @@ type SearchReport = {
     currency?: string;
 
     /** The report type */
-    type?: string;
+    type?: ValueOf<typeof CONST.REPORT.TYPE>;
 
     /** The accountID of the report manager */
     managerID?: number;
 
     /** The accountID of the user who created the report  */
     accountID?: number;
+
+    /** The policyID of the report */
+    policyID?: string;
 
     /** The date the report was created */
     created?: string;
@@ -180,7 +183,7 @@ type SearchTransaction = {
     category: string;
 
     /** The type of request */
-    type: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The type of report the transaction is associated with */
     reportType: string;

@@ -4,7 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
+import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +28,7 @@ const defaultSearchProps = {
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const activeBottomTabRoute = useActiveBottomTabRoute();
+    const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
@@ -38,11 +38,11 @@ function SearchPageBottomTab() {
         sortBy,
         sortOrder,
     } = useMemo(() => {
-        if (activeBottomTabRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeBottomTabRoute.params) {
+        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeCentralPaneRoute.params) {
             return defaultSearchProps;
         }
-        return {...defaultSearchProps, ...activeBottomTabRoute.params} as SearchPageProps['route']['params'];
-    }, [activeBottomTabRoute]);
+        return {...defaultSearchProps, ...activeCentralPaneRoute.params} as SearchPageProps['route']['params'];
+    }, [activeCentralPaneRoute]);
 
     const query = rawQuery as SearchQuery;
 
