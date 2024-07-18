@@ -88,6 +88,9 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
+
+    /** The width of inner content */
+    contentWidth?: number;
 };
 
 type Selection = {
@@ -103,7 +106,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmountAsString(amount);
+const defaultOnFormatAmount = (amount: number, currency?: string) => CurrencyUtils.convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
 
 function MoneyRequestAmountInput(
     {
@@ -123,6 +126,7 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
+        contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -218,7 +222,7 @@ function MoneyRequestAmountInput(
         }
 
         // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
 
     // Modifies the amount to match the decimals for changed currency.
@@ -232,7 +236,7 @@ function MoneyRequestAmountInput(
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [setNewAmount]);
 
     /**
@@ -295,6 +299,7 @@ function MoneyRequestAmountInput(
                     // eslint-disable-next-line no-param-reassign
                     forwardedRef.current = ref;
                 }
+                // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = ref;
             }}
             selectedCurrencyCode={currency}
@@ -325,6 +330,7 @@ function MoneyRequestAmountInput(
             hideFocusedState={hideFocusedState}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            contentWidth={contentWidth}
         />
     );
 }

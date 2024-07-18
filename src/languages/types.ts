@@ -1,5 +1,6 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
 type AddressLineParams = {
@@ -223,6 +224,8 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
+type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
+
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
 type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
@@ -342,6 +345,10 @@ type RemoveMembersWarningPrompt = {
     ownerName: string;
 };
 
+type DeleteExpenseTranslationParams = {
+    count: number;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -432,6 +439,7 @@ export type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -461,4 +469,5 @@ export type {
     StripePaidParams,
     UnapprovedParams,
     RemoveMembersWarningPrompt,
+    DeleteExpenseTranslationParams,
 };
