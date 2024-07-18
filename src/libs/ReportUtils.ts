@@ -3660,6 +3660,9 @@ function addDomainToShortMention(mention: string): string | undefined {
     return undefined;
 }
 
+/**
+ * Replaces all valid short mention found in a text to a full mention
+ */
 function completeShortMention(text: string): string {
     return text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
         if (!Str.isValidMention(match)) {
