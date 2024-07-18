@@ -64,9 +64,8 @@ Onyx.connect({
         frequentlyUsedEmojis = Array.from(emojiMap.values()).sort((a, b) => {
             if (a.count !== b.count) {
                 return b.count - a.count;
-            } else {
-                return b.lastUpdatedAt - a.lastUpdatedAt;
             }
+            return b.lastUpdatedAt - a.lastUpdatedAt;
         });
     },
 });
