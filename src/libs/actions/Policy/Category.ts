@@ -17,8 +17,6 @@ import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import execPolicyWriteCommand from './execPolicyWriteCommand';
 
-;
-
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
