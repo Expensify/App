@@ -294,27 +294,31 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             onRoleChange={changeRole}
                             onClose={() => setIsRoleSelectionModalVisible(false)}
                         />
-                        <View style={[styles.ph5]}>
-                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                {translate('walletPage.assignedCards')}
-                            </Text>
-                        </View>
-                        {Object.values(cardList ?? {}).map((card) => (
-                            <MenuItem
-                                title={card.nameValuePairs?.cardTitle}
-                                badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
-                                icon={ExpensifyCardImage}
-                                iconWidth={variables.iconSizeExtraLarge}
-                                iconHeight={variables.iconSizeExtraLarge}
-                                onPress={() => navigateToDetails(card.cardID.toString())}
-                                shouldShowRightIcon
-                            />
-                        ))}
-                        <MenuItem
-                            title={translate('workspace.expensifyCard.newCard')}
-                            icon={Expensicons.Plus}
-                            onPress={navigateToIssueNewCard}
-                        />
+                        {policy?.areExpensifyCardsEnabled && (
+                            <>
+                                <View style={[styles.ph5]}>
+                                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                        {translate('walletPage.assignedCards')}
+                                    </Text>
+                                </View>
+                                {Object.values(cardList ?? {}).map((card) => (
+                                    <MenuItem
+                                        title={card.nameValuePairs?.cardTitle}
+                                        badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
+                                        icon={ExpensifyCardImage}
+                                        iconWidth={variables.iconSizeExtraLarge}
+                                        iconHeight={variables.iconSizeExtraLarge}
+                                        onPress={() => navigateToDetails(card.cardID.toString())}
+                                        shouldShowRightIcon
+                                    />
+                                ))}
+                                <MenuItem
+                                    title={translate('workspace.expensifyCard.newCard')}
+                                    icon={Expensicons.Plus}
+                                    onPress={navigateToIssueNewCard}
+                                />
+                            </>
+                        )}
                     </View>
                 </View>
             </ScreenWrapper>
