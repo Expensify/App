@@ -283,11 +283,11 @@ xdescribe('Sidebar', () => {
         it('filter paycheck and bill report', () => {
             const report1: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.UNSUPPORTED.PAYCHECK,
+                type: CONST.REPORT.UNSUPPORTED.PAYCHECK,
             };
             const report2: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.UNSUPPORTED.BILL,
+                type: CONST.REPORT.UNSUPPORTED.BILL,
                 errorFields: {
                     notFound: {
                         1721083106781482: 'Report not found',
