@@ -44,7 +44,7 @@ const getFakeReportAction = (index: number, actionName?: ReportActionName): Repo
         reportActionID: index.toString(),
         sequenceNumber: 0,
         shouldShow: true,
-    }) as ReportAction;
+    } as ReportAction);
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
