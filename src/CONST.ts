@@ -5220,6 +5220,7 @@ const CONST = {
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
+            EXPORT: 'export',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
