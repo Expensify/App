@@ -40,8 +40,6 @@ function AssigneeStep({policy}: AssigneeStepProps) {
 
     const isEditing = issueNewCard?.isEditing;
 
-    console.log(policy);
-
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const submit = (assignee: ListItem) => {
@@ -59,7 +57,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
         Card.clearIssueNewCardFlow();
     };
 
