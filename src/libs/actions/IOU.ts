@@ -1853,7 +1853,6 @@ function getSendInvoiceInformation(
             undefined,
             false,
             false,
-            receiptObject,
             false,
         );
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
@@ -2033,7 +2032,6 @@ function getMoneyRequestInformation(
             undefined,
             false,
             false,
-            receiptObject,
             false,
             undefined,
             linkedTrackedExpenseReportAction?.childReportID,
@@ -2259,7 +2257,6 @@ function getTrackExpenseInformation(
         undefined,
         false,
         false,
-        receiptObject,
         false,
         !shouldUseMoneyReport,
         linkedTrackedExpenseReportAction?.childReportID,
@@ -3923,7 +3920,6 @@ function createSplitsAndOnyxData(
         '',
         false,
         false,
-        {},
         isOwnPolicyExpenseChat,
     );
 
@@ -4504,7 +4500,6 @@ function startSplitBill({
         '',
         false,
         false,
-        receiptObject,
         isOwnPolicyExpenseChat,
     );
 

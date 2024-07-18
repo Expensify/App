@@ -48,7 +48,7 @@ import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccountUtils from './AccountUtils';
@@ -4118,7 +4118,6 @@ function buildOptimisticIOUReportAction(
     iouReportID = '',
     isSettlingUp = false,
     isSendMoneyFlow = false,
-    receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
     created = DateUtils.getDBTime(),
     linkedExpenseReportAction?: OnyxEntry<ReportAction>,
@@ -4132,7 +4131,6 @@ function buildOptimisticIOUReportAction(
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
-        whisperedTo: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID ?? -1] : [],
     };
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -4343,7 +4341,6 @@ function buildOptimisticReportPreview(
     childReportID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
     return {
@@ -4353,7 +4350,6 @@ function buildOptimisticReportPreview(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
             linkedReportID: iouReport?.reportID,
-            whisperedTo: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
         },
         message: [
             {
@@ -5203,7 +5199,6 @@ function buildOptimisticMoneyRequestEntities(
     paymentType?: PaymentMethodType,
     isSettlingUp = false,
     isSendMoneyFlow = false,
-    receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
     isPersonalTrackingExpense?: boolean,
     existingTransactionThreadReportID?: string,
@@ -5226,7 +5221,6 @@ function buildOptimisticMoneyRequestEntities(
         isPersonalTrackingExpense ? '0' : iouReport.reportID,
         isSettlingUp,
         isSendMoneyFlow,
-        receipt,
         isOwnPolicyExpenseChat,
         iouActionCreationTime,
         linkedTrackedExpenseReportAction,
