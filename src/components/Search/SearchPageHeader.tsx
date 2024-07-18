@@ -11,11 +11,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import Navigation from '@libs/Navigation/Navigation';
 import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -194,6 +194,7 @@ function SearchPageHeader({
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
+        setSelectedTransactionIDs,
     ]);
 
     if (isSmallScreenWidth) {
