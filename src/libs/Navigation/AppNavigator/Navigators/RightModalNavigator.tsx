@@ -54,10 +54,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     screenOptions={screenOptions}
                     screenListeners={{
                         blur: () => {
-                            if (route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                            if (
+                                // @ts-expect-error There is something wrong with a types here and it's don't see the params list
+                                navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen ===
+                                    SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
+                                route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
+                            ) {
                                 return;
                             }
-
                             abandonReviewDuplicateTransactions();
                         },
                     }}
