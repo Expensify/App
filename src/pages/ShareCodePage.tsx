@@ -90,16 +90,16 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
     const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
-    let logoSVG: React.FC<SvgProps> | undefined;
-    let logoBackground: string | undefined;
-    let logoColor: string | undefined;
+    let svgLogo: React.FC<SvgProps> | undefined;
+    let logoBackgroundColor: string | undefined;
+    let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        logoSVG = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id ?? '');
-        logoBackground = defaultWorkspaceAvatarColors.backgroundColor?.toString();
-        logoColor = defaultWorkspaceAvatarColors.fill;
+        logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
+        svgLogoFillColor = defaultWorkspaceAvatarColors.fill;
     }
 
     return (
@@ -124,9 +124,9 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
                         title={title}
                         subtitle={subtitle}
                         logo={logo}
-                        logoSVG={logoSVG}
-                        logoBackground={logoBackground}
-                        logoColor={logoColor}
+                        svgLogo={svgLogo}
+                        logoBackgroundColor={logoBackgroundColor}
+                        svgLogoFillColor={svgLogoFillColor}
                         logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                         logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                     />

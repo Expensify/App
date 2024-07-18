@@ -23,7 +23,7 @@ type QRShareProps = {
      * If the logo to be displayed in the middle of the QR code is an SVG, then this prop needs to be used
      * instead of standard `logo`
      */
-    logoSVG?: React.FC<SvgProps>;
+    svgLogo?: React.FC<SvgProps>;
 
     /**
      * The logo which will be display in the middle of the QR code
@@ -31,14 +31,14 @@ type QRShareProps = {
     logo?: ImageSourcePropType;
 
     /**
-     * Background color to be used for logo, we set background only for SVG logos
+     * Background color to be used for logo.
      */
-    logoBackground?: string;
+    logoBackgroundColor?: string;
 
     /**
      * Fill color to be used for logos of type SVG
      */
-    logoColor?: string;
+    svgLogoFillColor?: string;
 
     /**
      * The size ratio of logo to QR code

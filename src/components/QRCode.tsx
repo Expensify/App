@@ -21,19 +21,19 @@ type QRCodeProps = {
 
     /**
      * If the logo to be displayed in the middle of the QR code is an SVG, then this prop needs to be used
-     * instead of standard `logo`
+     * instead of standard `logo`.
      */
-    logoSVG?: React.FC<SvgProps>;
+    svgLogo?: React.FC<SvgProps>;
 
     /**
-     * Background color to be used for logo, we set background only for SVG logos
+     * Background color to be used for logo.
      */
     logoBackgroundColor?: string;
 
     /**
-     * Fill color to be used for logos of type SVG
+     * Fill color to be used for logos of type SVG.
      */
-    logoColor?: string;
+    svgLogoFillColor?: string;
 
     /** The size ratio of logo to QR code */
     logoRatio?: QRCodeLogoRatio;
@@ -51,7 +51,7 @@ type QRCodeProps = {
     backgroundColor?: string;
 
     /**
-     * Function to retrieve the internal component ref and be able to call it's
+     * Function to retrieve the internal component ref and be able to call its
      * methods
      */
     getRef?: (ref: Svg) => Svg;
@@ -60,8 +60,8 @@ type QRCodeProps = {
 function QRCode({
     url,
     logo,
-    logoSVG,
-    logoColor,
+    svgLogo,
+    svgLogoFillColor,
     logoBackgroundColor,
     getRef,
     size = 120,
@@ -78,8 +78,8 @@ function QRCode({
             value={url}
             size={size}
             logo={logo}
-            logoSVG={logoSVG}
-            logoColor={logoColor}
+            logoSVG={svgLogo}
+            logoColor={svgLogoFillColor}
             logoBackgroundColor={logoBackgroundColor ?? theme.highlightBG}
             logoSize={size * logoRatio}
             logoMargin={size * logoMarginRatio}

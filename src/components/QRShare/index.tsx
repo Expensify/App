@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {QRShareHandle, QRShareProps} from './types';
 
-function QRShare({url, title, subtitle, logo, logoSVG, logoBackground, logoColor, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
+function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -48,9 +48,9 @@ function QRShare({url, title, subtitle, logo, logoSVG, logoBackground, logoColor
             <QRCode
                 getRef={(svg) => (svgRef.current = svg)}
                 url={url}
-                logoSVG={logoSVG}
-                logoColor={logoColor}
-                logoBackgroundColor={logoBackground}
+                svgLogo={svgLogo}
+                svgLogoFillColor={svgLogoFillColor}
+                logoBackgroundColor={logoBackgroundColor}
                 logo={logo}
                 size={qrCodeSize}
                 logoRatio={logoRatio}

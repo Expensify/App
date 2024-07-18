@@ -46,9 +46,9 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const defaultWorkspaceAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
     const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID);
 
-    const logoSVG = !hasAvatar ? defaultWorkspaceAvatar : undefined;
-    const logoBackground = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
-    const logoColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
+    const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
+    const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
+    const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -78,9 +78,9 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                 url={url}
                                 title={policyName}
                                 logo={logo}
-                                logoSVG={logoSVG}
-                                logoBackground={logoBackground}
-                                logoColor={logoColor}
+                                svgLogo={svgLogo}
+                                logoBackgroundColor={logoBackgroundColor}
+                                svgLogoFillColor={svgLogoFillColor}
                                 logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                                 logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                             />
