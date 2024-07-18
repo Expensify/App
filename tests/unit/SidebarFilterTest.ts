@@ -283,16 +283,16 @@ xdescribe('Sidebar', () => {
         it('filter paycheck and bill report', () => {
             const report1: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.PAYCHECK,
+                type: CONST.REPORT.TYPE.UNSUPPORTED.PAYCHECK,
             };
             const report2: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.BILL,
+                type: CONST.REPORT.TYPE.UNSUPPORTED.BILL,
                 errorFields: {
                     notFound: {
-                        '1721083106781482': 'Report not found',
-                        '1721140343800206': 'Report not found',
-                        '1721149017870362': 'Report not found',
+                        1721083106781482: 'Report not found',
+                        1721140343800206: 'Report not found',
+                        1721149017870362: 'Report not found',
                     },
                 },
             };

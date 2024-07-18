@@ -105,7 +105,7 @@ function getOrderedReportIDs(
         if (!report) {
             return;
         }
-        if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
+        if ((Object.values(CONST.REPORT.TYPE.UNSUPPORTED) as string[]).includes(report?.type ?? '')) {
             return;
         }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
