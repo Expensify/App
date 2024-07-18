@@ -1,9 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -44,6 +45,7 @@ type WorkspaceExpensifyCardDetailsPageProps = StackScreenProps<SettingsNavigator
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
 
+    const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -134,7 +136,18 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 iconFill={theme.icon}
                                 title={translate('workspace.expensifyCard.deactivate')}
                                 style={styles.mv1}
-                                onPress={() => {}} // TODO: create Deactivate card logic https://github.com/Expensify/App/issues/44320
+                                onPress={() => setIsDeactivateModalVisible(true)}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.card.deactivateCard.deactivateCard')}
+                                isVisible={isDeactivateModalVisible}
+                                onConfirm={() => {}}
+                                onCancel={() => setIsDeactivateModalVisible(false)}
+                                shouldSetModalVisibility={false}
+                                prompt={translate('workspace.card.deactivateCard.deactivateConfirmation')}
+                                confirmText={translate('workspace.card.deactivateCard.deactivate')}
+                                cancelText={translate('common.cancel')}
+                                danger
                             />
                         </ScrollView>
                     </>
