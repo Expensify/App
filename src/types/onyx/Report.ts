@@ -289,6 +289,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The trip ID in spotnana */
             tripID: string;
         };
+
+        /** Whether the report has received a free trial end message or not */
+        hasReceivedFreeTrialEndMessage?: boolean;
     },
     PolicyReportField['fieldID']
 >;
