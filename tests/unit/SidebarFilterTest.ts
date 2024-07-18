@@ -290,9 +290,7 @@ xdescribe('Sidebar', () => {
                 type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
                 errorFields: {
                     notFound: {
-                        1721083106781482: 'Report not found',
-                        1721140343800206: 'Report not found',
-                        1721149017870362: 'Report not found',
+                        error: 'Report not found',
                     },
                 },
             };
