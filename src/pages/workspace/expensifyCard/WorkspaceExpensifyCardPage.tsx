@@ -29,15 +29,16 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
-            <>
-                <SearchPageHeader
-                    query={''}
-                    hash={''}
-                />
-                <EmptyCardView />
-            </>
+            {/*<>*/}
+            {/*    <SearchPageHeader*/}
+            {/*        query={''}*/}
+            {/*        hash={''}*/}
+            {/*    />*/}
+            {/*    <EmptyCardView />*/}
+            {/*</>*/}
             {/*{isEmptyObject(cardsList) && <WorkspaceExpensifyCardPageEmptyState route={route} />}*/}
-            {/*{!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}*/}
+            {!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}
+            <WorkspaceExpensifyCardListPage route={route} />
         </AccessOrNotFoundWrapper>
     );
 }

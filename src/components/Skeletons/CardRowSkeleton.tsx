@@ -14,103 +14,24 @@ type CardRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
+const shortBarWidth = 60;
 const leftPaneWidth = variables.sideBarWidth;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
 
 // 80 is the width of the element itself
-const rightSideElementWidth = 80;
+const rightSideElementWidth = 50;
 
 // 24 is the padding of the central pane summing two sides
-const centralPanePadding = 40;
+const centralPanePadding = 50;
 
 // 80 is the width of the button on the right side
-const rightButtonWidth = 80;
+const rightButtonWidth = 20;
 
 function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: CardRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
-    if (isSmallScreenWidth) {
-        return (
-            <ItemListSkeletonView
-                itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
-                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
-                gradientOpacityEnabled={gradientOpacityEnabled}
-                shouldAnimate={shouldAnimate}
-                fixedNumItems={fixedNumItems}
-                renderSkeletonItem={() => (
-                    <>
-                        <Circle
-                            cx={24}
-                            cy={26}
-                            r={8}
-                        />
-
-                        <Rect
-                            x={40}
-                            y={24}
-                            width={40}
-                            height={4}
-                        />
-                        <Circle
-                            cx={96}
-                            cy={26}
-                            r={8}
-                        />
-
-                        <Rect
-                            x={112}
-                            y={24}
-                            width={40}
-                            height={4}
-                        />
-                        <Rect
-                            x={windowWidth - 130}
-                            y={12}
-                            width={80}
-                            height={28}
-                            rx={14}
-                            ry={14}
-                        />
-
-                        <Rect
-                            x={16}
-                            y={56}
-                            width={36}
-                            height={40}
-                            rx={4}
-                            ry={4}
-                        />
-                        <Rect
-                            x={64}
-                            y={65}
-                            width={124}
-                            height={8}
-                        />
-                        <Rect
-                            x={64}
-                            y={79}
-                            width={60}
-                            height={8}
-                        />
-                        <Rect
-                            x={windowWidth - 130}
-                            y={65}
-                            width={80}
-                            height={8}
-                        />
-                        <Rect
-                            x={windowWidth - 110}
-                            y={79}
-                            width={60}
-                            height={8}
-                        />
-                    </>
-                )}
-            />
-        );
-    }
 
     return (
         <ItemListSkeletonView
@@ -121,40 +42,43 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
             renderSkeletonItem={() => (
                 <>
                     <Circle
-                        cx={30}
-                        cy={30}
-                        r={20}
+                        cx="36"
+                        cy="32"
+                        r="20"
                     />
                     <Rect
-                        x={60}
-                        y={28}
-                        width={30}
-                        height={barHeight}
-                    />
-                    <Rect
-                        x={102}
-                        y={28}
+                        x={66}
+                        y={22}
                         width={longBarWidth}
-                        height={barHeight}
+                        height={7}
                     />
 
                     <Rect
-                        // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                        x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
-                        y={28}
-                        width={80}
-                        height={barHeight}
+                        x={66}
+                        y={36}
+                        width={shortBarWidth}
+                        height={7}
                     />
 
-                    <Rect
-                        // We have to calculate this value to make sure the element is aligned to the right border.
-                        x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
-                        y={18}
-                        rx={15}
-                        ry={15}
-                        width={80}
-                        height={28}
-                    />
+                    {!isSmallScreenWidth && (
+                        <>
+                            <Rect
+                                // We have to calculate this value to make sure the element is aligned to the button on the right side.
+                                x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
+                                y={28}
+                                width={20}
+                                height={barHeight}
+                            />
+
+                            <Rect
+                                // We have to calculate this value to make sure the element is aligned to the right border.
+                                x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
+                                y={28}
+                                width={50}
+                                height={barHeight}
+                            />
+                        </>
+                    )}
                 </>
             )}
         />
