@@ -389,6 +389,7 @@ describe('ReportUtils', () => {
 
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
+                hasReceivedFreeTrialEndMessage: true,
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
@@ -403,6 +404,7 @@ describe('ReportUtils', () => {
 
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
+                hasReceivedFreeTrialEndMessage: true,
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
