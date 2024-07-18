@@ -215,10 +215,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
-                    // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
-                    scaleBarPosition={{...styles.tn8, left: 0}}
-                    compassEnabled
-                    compassPosition={{...styles.l2, ...styles.t5}}
                     logoPosition={{...styles.l2, ...styles.b2}}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...responder.panHandlers}
