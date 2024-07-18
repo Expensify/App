@@ -64,10 +64,6 @@ function ActionCell({
             SearchActions.approveMoneyRequestOnSearch(currentSearchHash, [reportID]);
             return;
         }
-
-        if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
-            SearchActions.payMoneyRequestOnSearch(currentSearchHash, [reportID]);
-        }
     }, [action, currentSearchHash, reportID]);
 
     const text = translate(actionTranslationsMap[action]);
