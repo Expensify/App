@@ -307,7 +307,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
-    console.log('report actions', reportActions, reportMetadata);
     const onBackButtonPress = useCallback(() => {
         if (isReportOpenInRHP) {
             Navigation.dismissModal();
