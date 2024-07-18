@@ -119,11 +119,11 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName} `,
+                        text: `${ownerDisplayName}`,
                         type: 'strong',
                     },
                     {
-                        text: '%expenses to ',
+                        text: "'s %expenses to ",
                     },
                 ];
                 let harvestingSuffix = '';
