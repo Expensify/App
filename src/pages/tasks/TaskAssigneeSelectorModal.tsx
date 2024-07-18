@@ -171,18 +171,19 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             if (report) {
                 Navigation.dismissModal(report.reportID);
                 waitForNavigation(() => {
-                    if (option.accountID !== report.managerID) {
-                        const assigneeChatReport = TaskActions.setAssigneeValue(
-                            option?.login ?? '',
-                            option?.accountID ?? -1,
-                            report.reportID,
-                            undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
-                            OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
-                        );
-
-                        // Pass through the selected assignee
-                        TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    if (option.accountID === report.managerID) {
+                        return;
                     }
+                    const assigneeChatReport = TaskActions.setAssigneeValue(
+                        option?.login ?? '',
+                        option?.accountID ?? -1,
+                        report.reportID,
+                        undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
+                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
+                    );
+
+                    // Pass through the selected assignee
+                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
                 })();
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
