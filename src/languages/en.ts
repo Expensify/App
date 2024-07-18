@@ -3162,6 +3162,10 @@ export default {
             reimbursedReports: 'Sync reimbursed reports',
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
+            continuousReconciliation: 'Continuous Reconciliation',
+            saveHoursOnReconciliation:
+                'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
+            enableContinuousReconciliation: 'In order to enable Continuous Reconciliation, please enable ',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 accountMatches: 'Make sure this account matches your ',
