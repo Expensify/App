@@ -29,7 +29,7 @@ type SearchContext = {
     currentSearchHash: number;
     selectedTransactionIDs: string[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIds: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
 };
 
 type ASTNode = {
