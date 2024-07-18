@@ -85,25 +85,6 @@ function SearchPageHeader({
             options.push(downloadOption);
         }
 
-        const itemsToDelete = Object.keys(selectedTransactions ?? {}).filter((id) => selectedTransactions[id].canDelete);
-
-        if (itemsToDelete.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate('search.bulkActions.delete'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setOfflineModalOpen?.();
-                        return;
-                    }
-
-                    onSelectDeleteOption?.(itemsToDelete);
-                },
-            });
-        }
-
         const itemsToHold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].canHold);
 
         if (itemsToHold.length > 0) {
@@ -146,6 +127,25 @@ function SearchPageHeader({
                         setIsMobileSelectionModeActive?.(false);
                     }
                     SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+                },
+            });
+        }
+
+        const itemsToDelete = Object.keys(selectedTransactions ?? {}).filter((id) => selectedTransactions[id].canDelete);
+
+        if (itemsToDelete.length > 0) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate('search.bulkActions.delete'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+
+                    onSelectDeleteOption?.(itemsToDelete);
                 },
             });
         }
