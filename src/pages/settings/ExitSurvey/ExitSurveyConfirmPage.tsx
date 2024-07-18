@@ -89,7 +89,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                                 Navigation.resetToHome();
                                 NativeModules.HybridAppModule.closeReactNativeApp();
                                 return;
-                            } 
+                            }
                             Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                             Navigation.dismissModal();
                         });
