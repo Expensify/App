@@ -105,7 +105,7 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(query));
                 },
             });
         }
