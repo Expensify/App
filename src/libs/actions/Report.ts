@@ -95,6 +95,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -2743,6 +2744,12 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
+
+    // If this is the leave action from a workspace room or chat thread, simply dismiss the modal, i.e., allow the user to view the room/thread and join again immediately.
+    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
+        return;
+    }
+    // In other cases, the report is deleted and we should move the user to another report.
     navigateToMostRecentReport(report);
 }
 
@@ -3223,7 +3230,7 @@ function completeOnboarding(
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
-            undefined,
+            currentUserAccountID,
             targetChatReportID,
             task.title,
             taskDescription,
@@ -3779,6 +3786,21 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
+function exportToIntegration(reportID: string, connectionName: ConnectionName) {
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, {
+        reportIDList: reportID,
+        connectionName,
+        type: 'MANUAL',
+    });
+}
+
+function markAsManuallyExported(reportID: string) {
+    API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, {
+        reportIDList: reportID,
+        markedManually: true,
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -3862,5 +3884,7 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    exportToIntegration,
+    markAsManuallyExported,
     handleReportChanged,
 };
