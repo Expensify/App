@@ -52,10 +52,22 @@ function SearchListWithHeader(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TransactionListItemType | ReportListItemType | null>(null);
     const [selectedTransactions, setSelectedTransactions] = useState<SelectedTransactions>({});
-    const [selectedReports, setSelectedReports] = useState<Array<SearchReport['reportID']>>([]);
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+
+    const selectedReports: Array<SearchReport['reportID']> = useMemo(() => {
+        if (searchType !== CONST.SEARCH.DATA_TYPES.REPORT) {
+            return [];
+        }
+
+        return data
+            .filter(
+                (item) => !SearchUtils.isTransactionListItemType(item) && item.reportID && item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
+            )
+            .map((item) => item.reportID);
+    }, [selectedTransactions, data, searchType]);
 
     const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
         setSelectedTransactionsToDelete(itemsToDelete);
@@ -67,10 +79,7 @@ function SearchListWithHeader(
         setDeleteExpensesConfirmModalVisible(false);
     };
 
-    const clearSelectedItems = () => {
-        setSelectedTransactions({});
-        setSelectedReports([]);
-    };
+    const clearSelectedItems = () => setSelectedTransactions({});
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsToDelete.length === 0) {
@@ -106,7 +115,6 @@ function SearchListWithHeader(
 
             if (item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
-                setSelectedReports((prevReports) => prevReports.filter((reportID) => reportID !== item.reportID));
 
                 item.transactions.forEach((transaction) => {
                     delete reducedSelectedTransactions[transaction.keyForList];
@@ -116,15 +124,12 @@ function SearchListWithHeader(
                 return;
             }
 
-            if (item.reportID) {
-                setSelectedReports([...selectedReports, item.reportID]);
-            }
             setSelectedTransactions({
                 ...selectedTransactions,
                 ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
             });
         },
-        [selectedTransactions, selectedReports],
+        [selectedTransactions],
     );
 
     const openBottomModal = (item: TransactionListItemType | ReportListItemType | null) => {
@@ -190,6 +195,7 @@ function SearchListWithHeader(
                 setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                 selectedReports={selectedReports}
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
+                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -221,6 +227,15 @@ function SearchListWithHeader(
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
             />
             <Modal
                 isVisible={isModalVisible}

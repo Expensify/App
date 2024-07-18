@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
+import getDownloadOption from './SearchActionOptionsUtils';
 import type {SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
@@ -29,6 +30,7 @@ type SearchPageHeaderProps = {
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
     setOfflineModalOpen?: () => void;
+    setDownloadErrorModalOpen?: () => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -42,6 +44,7 @@ function SearchPageHeader({
     isMobileSelectionModeActive,
     setIsMobileSelectionModeActive,
     setOfflineModalOpen,
+    setDownloadErrorModalOpen,
     selectedReports,
 }: SearchPageHeaderProps) {
     const {translate} = useLocalize();
@@ -64,22 +67,23 @@ function SearchPageHeader({
             return [];
         }
 
-        const options: Array<DropdownOption<SearchHeaderOptionValue>> = [
-            {
-                icon: Expensicons.Download,
-                text: translate('common.download'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setOfflineModalOpen?.();
-                        return;
-                    }
+        const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
 
-                    SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? '']);
-                },
-            },
-        ];
+        // Because of some problems with the lib we use for download on native we are only enabling download for web, we should remove the SearchActionOptionsUtils files when https://github.com/Expensify/App/issues/45511 is done
+        const downloadOption = getDownloadOption(translate('common.download'), () => {
+            if (isOffline) {
+                setOfflineModalOpen?.();
+                return;
+            }
+
+            SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
+                setDownloadErrorModalOpen?.();
+            });
+        });
+
+        if (downloadOption) {
+            options.push(downloadOption);
+        }
 
         const itemsToDelete = Object.keys(selectedTransactions ?? {}).filter((id) => selectedTransactions[id].canDelete);
 
@@ -180,6 +184,7 @@ function SearchPageHeader({
         query,
         isOffline,
         setOfflineModalOpen,
+        setDownloadErrorModalOpen,
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
