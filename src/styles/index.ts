@@ -5107,6 +5107,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        reportListItemHeaderInner: {
+            minHeight: 40,
+        },
+
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

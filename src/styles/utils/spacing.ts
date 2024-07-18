@@ -401,6 +401,10 @@ export default {
         paddingVertical: 4,
     },
 
+    pv1half: {
+        paddingVertical: 6,
+    },
+
     pv2: {
         paddingVertical: 8,
     },

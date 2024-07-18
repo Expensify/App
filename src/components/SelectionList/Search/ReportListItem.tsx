@@ -152,8 +152,8 @@ function ReportListItem<TItem extends ListItem>({
                         containerStyle={[styles.ph3, {paddingTop: 6}]}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40, styles.ph3, styles.pv3]}>
-                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40, styles.ph3, styles.pv1half]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.reportListItemHeaderInner]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
                                 <Checkbox
