@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -8,8 +9,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
@@ -21,6 +24,8 @@ type ConnectToSageIntacctFlowProps = {
 
 function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToSageIntacctFlowProps) {
     const {translate} = useLocalize();
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -49,6 +54,11 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
     ];
 
     useEffect(() => {
+        if (!isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
+            return;
+        }
+
         if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
             setIsDisconnectModalOpen(true);
             return;

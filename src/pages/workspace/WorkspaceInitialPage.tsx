@@ -285,6 +285,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.reportFields',
+            icon: Expensicons.Pencil,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
+    }
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
@@ -292,15 +301,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
             brickRoadIndicator: hasPolicyAccountingError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.reportFields',
-            icon: Expensicons.Pencil,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
         });
     }
 

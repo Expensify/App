@@ -1,6 +1,7 @@
 ---
 title: Sage Intacct
 description: Connect your Expensify workspace with Sage Intacct
+order: 1
 ---
 # Overview
 Expensify’s seamless integration with Sage Intacct allows you to connect using either Role-based permissions or User-based permissions. 

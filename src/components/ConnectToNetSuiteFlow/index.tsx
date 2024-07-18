@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -7,14 +8,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToNetSuiteFlowProps} from './types';
 
 function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToNetSuiteFlowProps) {
     const {translate} = useLocalize();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -43,6 +47,11 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
     ];
 
     useEffect(() => {
+        if (!isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias));
+            return;
+        }
+
         if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
             setIsDisconnectModalOpen(true);
             return;
