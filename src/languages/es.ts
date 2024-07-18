@@ -3198,6 +3198,11 @@ export default {
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
             },
+            deactivateCard: {
+                deactivate: 'Desactivar',
+                deactivateCard: 'Desactivar tarjeta',
+                deleteConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
+            },
         },
         reimburse: {
             captureReceipts: 'Captura recibos',

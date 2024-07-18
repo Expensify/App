@@ -2951,6 +2951,11 @@ export default {
                 limitType: 'Limit type',
                 name: 'Name',
             },
+            deactivateCard: {
+                deactivate: 'Deactivate',
+                deactivateCard: 'Deactivate card',
+                deleteConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
+            },
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
