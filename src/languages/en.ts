@@ -366,6 +366,8 @@ export default {
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
+        downloadFailedTitle: 'Download failed',
+        downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
     },
     location: {
         useCurrent: 'Use current location',
@@ -805,7 +807,7 @@ export default {
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
         confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
         confirmPay: 'Confirm payment amount',
@@ -1069,11 +1071,6 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
-        disable: 'Disable',
-        enableTwoFactorAuth: 'Enable two-factor authentication',
-        pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
-        twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },
     recoveryCodeForm: {
         error: {
@@ -3527,6 +3524,14 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        offlinePrompt: "You can't take this action right now.",
+        filtersHeader: 'Filters',
+        filters: {
+            date: {
+                before: 'Before',
+                after: 'After',
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -4075,7 +4080,7 @@ export default {
         },
         cardSection: {
             title: 'Payment',
-            subtitle: 'Add a payment card to pay for your Expensify subscription.',
+            subtitle: 'Add a card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
             cardNextPayment: ({nextPaymentDate}) => `Your next payment date is ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,

@@ -146,6 +146,9 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
                             action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
+                            onToggleBillable={(billable) => {
+                                IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {billable});
+                            }}
                         />
                     )}
                 </View>
