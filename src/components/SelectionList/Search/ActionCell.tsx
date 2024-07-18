@@ -8,12 +8,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
@@ -28,7 +26,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    transactionID?: string;
+    reportID?: string;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
@@ -38,7 +36,7 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    transactionID,
+    reportID,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -53,24 +51,24 @@ function ActionCell({
     const {currentSearchHash} = useSearchContext();
 
     const onButtonPress = useCallback(() => {
-        if (!transactionID) {
+        if (!reportID) {
             return;
         }
 
         if (action === CONST.SEARCH.ACTION_TYPES.SUBMIT) {
-            SearchActions.submitMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+            SearchActions.submitMoneyRequestOnSearch(currentSearchHash, [reportID]);
             return;
         }
 
         if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
-            SearchActions.approveMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+            SearchActions.approveMoneyRequestOnSearch(currentSearchHash, [reportID]);
             return;
         }
 
         if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
-            SearchActions.payMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+            SearchActions.payMoneyRequestOnSearch(currentSearchHash, [reportID]);
         }
-    }, [action, currentSearchHash, transactionID]);
+    }, [action, currentSearchHash, reportID]);
 
     const text = translate(actionTranslationsMap[action]);
 
