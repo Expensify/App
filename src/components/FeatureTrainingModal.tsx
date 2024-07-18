@@ -85,7 +85,7 @@ function FeatureTrainingModal({
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
@@ -178,14 +178,14 @@ function FeatureTrainingModal({
             {({safeAreaPaddingBottomStyle}) => (
                 <Modal
                     isVisible={isModalVisible}
-                    type={isMediumScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    type={isMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
                     innerContainerStyle={{
                         boxShadow: 'none',
                         borderRadius: 16,
                         paddingBottom: 20,
-                        paddingTop: isMediumScreenWidth ? undefined : MODAL_PADDING,
-                        ...(isMediumScreenWidth
+                        paddingTop: isMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
+                        ...(isMediumOrLargerScreenWidth
                             ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                               // To make it take as little space as possible.
                               {
@@ -196,11 +196,11 @@ function FeatureTrainingModal({
                     }}
                 >
                     <GestureHandlerRootView>
-                        <View style={[styles.mh100, isMediumScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                            <View style={isMediumScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                            <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
                             <View style={[styles.mt5, styles.mh5]}>
                                 {title && description && (
-                                    <View style={[isMediumScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                         <Text style={styles.textSupporting}>{description}</Text>
                                         {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}

@@ -31,7 +31,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumScreenWidth} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
 
     useDisableModalDismissOnEscape();
 
@@ -83,7 +83,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 behavior="padding"
             >
                 <FormProvider
-                    style={[styles.flexGrow1, isMediumScreenWidth && styles.mt5, styles.mb5, isMediumScreenWidth ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, styles.mb5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
                     footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
@@ -95,7 +95,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     shouldValidateOnChange
                     shouldTrimValues={false}
                 >
-                    <View style={[isMediumScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
                     </View>
                     <View style={styles.mb4}>
