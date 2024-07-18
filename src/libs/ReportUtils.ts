@@ -440,6 +440,7 @@ type OptionData = {
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
     isConciergeChat?: boolean;
+    hasReceivedFreeTrialEndMessage?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
