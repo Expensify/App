@@ -22,6 +22,7 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
@@ -38,6 +39,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const isEditing = issueNewCard?.isEditing;
+
+    console.log(policy);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
@@ -56,7 +59,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
         Card.clearIssueNewCardFlow();
     };
 
