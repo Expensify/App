@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
@@ -40,11 +41,12 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
+    shouldMaskOnyxState: boolean;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -52,7 +54,6 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
-    const [shouldMaskOnyxState, setShouldMaskOnyxState] = useState(true);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -182,5 +183,9 @@ TroubleshootPage.displayName = 'TroubleshootPage';
 export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldStoreLogs: {
         key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+    shouldMaskOnyxState: {
+        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
+        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
     },
 })(TroubleshootPage);

@@ -60,6 +60,7 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    getIsSuggestionsMenuVisible: () => boolean;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -383,6 +384,7 @@ function ReportActionCompose({
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
+                    shouldDisableOpacity
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
