@@ -155,6 +155,8 @@ function ReportScreen({
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const wasLoadingApp = usePrevious(isLoadingApp);
     const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
+    const prevIsDeletedParentAction = usePrevious(isDeletedParentAction);
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
@@ -556,7 +558,8 @@ function ReportScreen({
             (!prevUserLeavingStatus && !!userLeavingStatus) ||
             didReportClose ||
             isRemovalExpectedForReportType ||
-            isClosedTopLevelPolicyRoom
+            isClosedTopLevelPolicyRoom ||
+            (prevIsDeletedParentAction && !isDeletedParentAction)
         ) {
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
@@ -606,6 +609,8 @@ function ReportScreen({
         prevReport,
         reportIDFromRoute,
         isFocused,
+        isDeletedParentAction,
+        prevIsDeletedParentAction,
     ]);
 
     useEffect(() => {

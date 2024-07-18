@@ -807,7 +807,7 @@ export default {
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
         confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
         confirmPay: 'Confirm payment amount',
@@ -3525,6 +3525,13 @@ export default {
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         offlinePrompt: "You can't take this action right now.",
+        filtersHeader: 'Filters',
+        filters: {
+            date: {
+                before: 'Before',
+                after: 'After',
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
