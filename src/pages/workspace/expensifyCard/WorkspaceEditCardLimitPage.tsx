@@ -16,6 +16,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -61,11 +62,10 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         }
     }, [card.nameValuePairs?.limitType]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const updateCardLimit = (newLimit: string) => {
         setIsConfirmModalVisible(false);
 
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407831
+        Card.updateExpensifyCardLimit(policyID, Number(cardID), Number(newLimit) * 100, card.nameValuePairs?.limit);
 
         Navigation.goBack();
     };
