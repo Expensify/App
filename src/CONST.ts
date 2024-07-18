@@ -843,7 +843,7 @@ const CONST = {
             TASK: 'task',
             INVOICE: 'invoice',
         },
-        UNSUPPORTED: {
+        UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
             BILL: 'bill',
         },
