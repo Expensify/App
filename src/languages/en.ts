@@ -366,6 +366,8 @@ export default {
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
+        downloadFailedTitle: 'Download failed',
+        downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
     },
     location: {
         useCurrent: 'Use current location',
@@ -3527,6 +3529,7 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
+        offlinePrompt: "You can't take this action right now.",
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
