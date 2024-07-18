@@ -10,6 +10,7 @@ import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Clipboard from '@libs/Clipboard';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type {ComposerProps} from './types';
@@ -21,6 +22,7 @@ function Composer(
     {
         shouldClear = false,
         onClear = () => {},
+        onPasteFile = () => {},
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -64,6 +66,15 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const pasteImage = useCallback(() => {
+        Clipboard.getImage().then((image) => {
+            if (!image) {
+                return;
+            }
+            onPasteFile(image);
+        });
+    }, [onPasteFile]);
+
     useEffect(() => {
         if (!shouldClear) {
             return;
@@ -92,6 +103,7 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onPaste={pasteImage}
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
