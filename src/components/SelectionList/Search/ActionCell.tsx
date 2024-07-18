@@ -129,7 +129,6 @@ function ActionCell({
             success
             pressOnEnter
             style={[styles.w100]}
-            innerStyles={buttonInnerStyles}
         />
     );
 }
