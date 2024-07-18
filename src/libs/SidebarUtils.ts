@@ -106,7 +106,7 @@ function getOrderedReportIDs(
             return;
         }
         if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
-            return; 
+            return;
         }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
