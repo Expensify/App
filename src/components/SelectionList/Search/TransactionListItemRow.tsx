@@ -268,7 +268,6 @@ function TransactionListItemRow({
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
-                        transactionID={item.transactionID}
                     />
                 )}
 

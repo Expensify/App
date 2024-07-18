@@ -19,7 +19,6 @@ type ExpenseItemHeaderNarrowProps = {
     participantFromDisplayName: string;
     participantToDisplayName: string;
     action?: SearchTransactionAction;
-    transactionID?: string;
     onButtonPress: () => void;
     canSelectMultiple?: boolean;
     isSelected?: boolean;
@@ -41,7 +40,6 @@ function ExpenseItemHeaderNarrow({
     isDisabled,
     handleCheckboxPress,
     text,
-    transactionID,
 }: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
