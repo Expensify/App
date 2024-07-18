@@ -19,11 +19,13 @@ import localeCompare from '@libs/LocaleCompare';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
+import EmptyCardView from '@pages/workspace/expensifyCard/EmptyCardView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
@@ -160,14 +162,16 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
             >
                 {!shouldUseNarrowLayout && getHeaderButtons()}
             </HeaderWithBackButton>
-
             {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-
-            <FlatList
-                data={sortedCards}
-                renderItem={renderItem}
-                ListHeaderComponent={WorkspaceCardListHeader}
-            />
+            {!isEmptyObject(cardsList) ? (
+                <EmptyCardView />
+            ) : (
+                <FlatList
+                    data={sortedCards}
+                    renderItem={renderItem}
+                    ListHeaderComponent={WorkspaceCardListHeader}
+                />
+            )}
         </ScreenWrapper>
     );
 }

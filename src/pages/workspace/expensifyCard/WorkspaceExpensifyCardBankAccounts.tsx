@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,7 +33,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
-    const handleSelectBankAccount = () => {
+    const handleSelectBankAccount = (value: number) => {
+        Card.updateSettlementAccount(policyID, value);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
@@ -47,6 +49,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+            // TODO: change 1 to 0 - applied for testing purposes, as sometimes accountData lacks fundID
+            const bankAccountID = bankAccount.accountData?.fundID ?? 1;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
@@ -54,7 +58,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 <MenuItem
                     title={bankName}
                     description={`${translate('workspace.expensifyCard.accountEndingIn')} ${bankAccountNumber.slice(-4)}`}
-                    onPress={handleSelectBankAccount}
+                    onPress={() => handleSelectBankAccount(bankAccountID)}
                     icon={icon}
                     iconHeight={iconSize}
                     iconWidth={iconSize}

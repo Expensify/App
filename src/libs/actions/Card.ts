@@ -207,6 +207,14 @@ function clearIssueNewCardFlow() {
     });
 }
 
+// TODO: remove this function, a proper implementation will be added in https://github.com/Expensify/App/pull/45415
+function updateSettlementAccount(policyID: string, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+        // @ts-expect-error this error should no longer occur after is merged
+        paymentBankAccountID: accountID,
+    });
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -215,5 +223,6 @@ export {
     revealVirtualCardDetails,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
+    updateSettlementAccount,
 };
 export type {ReplacementReason};

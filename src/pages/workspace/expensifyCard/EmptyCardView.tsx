@@ -1,27 +1,42 @@
 import React from 'react';
+import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+
+const HEADER_HEIGHT = 80;
+const BUTTON_HEIGHT = 40;
+const BUTTON_MARGIN = 12;
 
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+
+    const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN : HEADER_HEIGHT;
 
     return (
-        <EmptyStateComponent
-            SkeletonComponent={CardRowSkeleton}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-            headerMedia={Illustrations.EmptyCardState}
-            headerStyles={{backgroundColor: theme.buttonHoveredBG, overflow: 'hidden'}}
-            title={translate('workspace.expensifyCard.issueAndManageCards')}
-            subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
-        />
+        <ScrollView>
+            <View style={{height: windowHeight - headerHeight}}>
+                <EmptyStateComponent
+                    SkeletonComponent={CardRowSkeleton}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                    headerMedia={Illustrations.EmptyCardState}
+                    headerStyles={{backgroundColor: theme.buttonHoveredBG, overflow: 'hidden'}}
+                    title={translate('workspace.expensifyCard.issueAndManageCards')}
+                    subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
+                />
+            </View>
+            <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+        </ScrollView>
     );
 }
 
