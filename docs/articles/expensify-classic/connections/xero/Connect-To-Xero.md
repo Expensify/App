@@ -1,6 +1,7 @@
 ---
 title: The Xero Integration
 description: Everything you need to know about Expensify's direct integration with Xero
+order: 1
 ---
 
 # About
