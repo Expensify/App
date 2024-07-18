@@ -63,6 +63,14 @@ type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof
 
 type ReportScreenProps = CurrentReportIDContextValue & ReportScreenNavigationProps;
 
+const defaultReportMetadata = {
+    isLoadingInitialReportActions: true,
+    isLoadingOlderReportActions: false,
+    hasLoadingOlderReportActionsError: false,
+    isLoadingNewerReportActions: false,
+    hasLoadingNewerReportActionsError: false,
+};
+
 /** Get the currently viewed report ID as number */
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
@@ -113,15 +121,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        initialValue: {
-            isLoadingInitialReportActions: true,
-            isLoadingOlderReportActions: false,
-            hasLoadingOlderReportActionsError: false,
-            isLoadingNewerReportActions: false,
-            hasLoadingNewerReportActionsError: false,
-        },
-    });
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {initialValue: defaultReportMetadata});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -307,6 +307,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
+    console.log('report actions', reportActions, reportMetadata);
     const onBackButtonPress = useCallback(() => {
         if (isReportOpenInRHP) {
             Navigation.dismissModal();
