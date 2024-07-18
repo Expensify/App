@@ -273,16 +273,22 @@ function SuggestionMention(
                 return true;
             }) as Array<PersonalDetails & {weight: number}>; // at this point we are sure that the details are not null
 
-            const sortedPersonalDetails = filteredPersonalDetails
-                .map((user) => ({
-                    originalDetail: user,
-                    weight: user.weight,
-                    accountID: user.accountID,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    displayName: ReportUtils.getDisplayNameForParticipant(user.accountID) || user.login || '',
-                }))
-                .sort((first, second) => compareUserInList(first, second))
-                .map((userAfterCompare) => userAfterCompare.originalDetail);
+            const sortedPersonalDetails = filteredPersonalDetails.sort((first, second) =>
+                compareUserInList(
+                    {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        displayName: ReportUtils.getDisplayNameForParticipant(first.accountID) || first.login || '',
+                        weight: first.weight,
+                        accountID: first.accountID,
+                    },
+                    {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        displayName: ReportUtils.getDisplayNameForParticipant(second.accountID) || second.login || '',
+                        weight: second.weight,
+                        accountID: second.accountID,
+                    },
+                ),
+            );
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({

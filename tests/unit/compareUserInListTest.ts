@@ -1,7 +1,7 @@
 import compareUserInList from '@libs/compareUserInList';
 
 describe('compareUserInList', () => {
-    it('should compare the weight if the weight is difference', () => {
+    it('Should compare the weight if the weight is different', () => {
         const first = {displayName: 'John Doe', weight: 1, accountID: 1};
         const second = {displayName: 'Jane Doe', weight: 2, accountID: 2};
         expect(compareUserInList(first, second)).toBe(-1);
