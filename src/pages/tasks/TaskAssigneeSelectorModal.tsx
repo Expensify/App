@@ -183,7 +183,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         // Pass through the selected assignee
                         TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
                     }
-                });
+                })();
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 Navigation.goBack(ROUTES.NEW_TASK);
@@ -198,10 +198,10 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         undefined, // passing null as report is null in this condition
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                     );
-                });
+                })();
             }
         },
-        [session?.accountID, task?.shareDestination, report],
+        [session?.accountID, task?.shareDestination, report, waitForNavigation],
     );
 
     const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
