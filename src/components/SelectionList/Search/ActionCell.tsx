@@ -17,16 +17,12 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
     review: 'common.review',
-    submit: 'common.submit',
-    approve: 'iou.approve',
-    pay: 'iou.pay',
     done: 'common.done',
     paid: 'iou.settledExpensify',
 };
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    reportID?: string;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
@@ -36,7 +32,6 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    reportID,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -47,23 +42,6 @@ function ActionCell({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
-    const {currentSearchHash} = useSearchContext();
-
-    const onButtonPress = useCallback(() => {
-        if (!reportID) {
-            return;
-        }
-
-        if (action === CONST.SEARCH.ACTION_TYPES.SUBMIT) {
-            SearchActions.submitMoneyRequestOnSearch(currentSearchHash, [reportID]);
-            return;
-        }
-
-        if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
-            SearchActions.approveMoneyRequestOnSearch(currentSearchHash, [reportID]);
-        }
-    }, [action, currentSearchHash, reportID]);
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -121,16 +99,6 @@ function ActionCell({
             />
         );
     }
-    return (
-        <Button
-            text={text}
-            onPress={onButtonPress}
-            small
-            success
-            pressOnEnter
-            style={[styles.w100]}
-        />
-    );
 }
 
 ActionCell.displayName = 'ActionCell';

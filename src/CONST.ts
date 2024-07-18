@@ -5190,20 +5190,14 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
-            DELETE: 'delete',
+            EXPORT: 'export',
             HOLD: 'hold',
             UNHOLD: 'unhold',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
-            EXPORT: 'export',
+            DELETE: 'delete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
