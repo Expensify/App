@@ -82,6 +82,24 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function submitMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.SUBMIT_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
+}
+
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
+}
+
+function payMoneyRequestOnSearch(hash: number, reportIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
+}
+
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
@@ -108,4 +126,4 @@ function exportSearchItemsToCSV(query: string, reportIDList: Array<string | unde
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
-export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV};
+export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, submitMoneyRequestOnSearch, approveMoneyRequestOnSearch, payMoneyRequestOnSearch, exportSearchItemsToCSV};

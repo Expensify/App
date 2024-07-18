@@ -19,10 +19,11 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
     review: 'common.review',
+    submit: 'common.submit',
+    approve: 'iou.approve',
+    pay: 'iou.pay',
     done: 'common.done',
     paid: 'iou.settledExpensify',
-    hold: 'iou.hold',
-    unhold: 'iou.unhold',
 };
 
 type ActionCellProps = {
@@ -56,10 +57,18 @@ function ActionCell({
             return;
         }
 
-        if (action === CONST.SEARCH.ACTION_TYPES.HOLD) {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(CONST.SEARCH.TAB.ALL, transactionID));
-        } else if (action === CONST.SEARCH.ACTION_TYPES.UNHOLD) {
-            SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+        if (action === CONST.SEARCH.ACTION_TYPES.SUBMIT) {
+            SearchActions.submitMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+            return;
+        }
+
+        if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
+            SearchActions.approveMoneyRequestOnSearch(currentSearchHash, [transactionID]);
+            return;
+        }
+
+        if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
+            SearchActions.payMoneyRequestOnSearch(currentSearchHash, [transactionID]);
         }
     }, [action, currentSearchHash, transactionID]);
 
@@ -124,6 +133,7 @@ function ActionCell({
             text={text}
             onPress={onButtonPress}
             small
+            success
             pressOnEnter
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
