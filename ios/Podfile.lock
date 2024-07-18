@@ -19,7 +19,7 @@ PODS:
     - Airship/Core
   - AirshipFrameworkProxy (5.1.1):
     - Airship (= 17.7.3)
-  - AirshipServiceExtension (18.5.0)
+  - AirshipServiceExtension (18.6.0)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
     - AppAuth/ExternalUserAgent (= 1.7.5)
@@ -1323,6 +1323,7 @@ PODS:
     - React-Core
     - ReactCommon/turbomodule/core
   - react-native-geolocation (3.3.0):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -1416,26 +1417,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-pager-view (6.3.3):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - react-native-pager-view/common (= 6.3.3)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-pager-view/common (6.3.3):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -1520,10 +1502,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-plaid-link-sdk (11.11.0):
+    - DoubleConversion
     - glog
     - hermes-engine
     - Plaid (~> 5.6.0)
-    - RCT-Folly (= 2022.05.16.00)
+    - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
     - React-Codegen
@@ -1562,6 +1545,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-release-profiler (0.2.1):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2033,6 +2017,7 @@ PODS:
     - GoogleSignIn (~> 7.0)
     - React-Core
   - RNLiveMarkdown (0.1.105):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2054,6 +2039,7 @@ PODS:
     - RNLiveMarkdown/common (= 0.1.105)
     - Yoga
   - RNLiveMarkdown/common (0.1.105):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2674,7 +2660,7 @@ CHECKOUT OPTIONS:
 SPEC CHECKSUMS:
   Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
   AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
-  AirshipServiceExtension: b3dc262db467632dac6bd2c9f5f30efb2a751fb2
+  AirshipServiceExtension: 74cd5af1c80924bbaa7886fad8609c048210cba3
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -2718,7 +2704,7 @@ SPEC CHECKSUMS:
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
-  onfido-react-native-sdk: 3e3b0dd70afa97410fb318d54c6a415137968ef2
+  onfido-react-native-sdk: 9ac8a56253f0962f73430e55dd723a6ada046788
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 02617c592a293bd6d418e0a88ff4ee1f88329b47
@@ -2750,18 +2736,18 @@ SPEC CHECKSUMS:
   react-native-cameraroll: b39afffe89b01a67076b4eb37d606d42766e7f26
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
-  react-native-geolocation: 580c86eb531c0aaf7a14bc76fd2983ce47ca58aa
+  react-native-geolocation: eb908ac9d7130f5aff33d98e6ce43c7bd3dd1584
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 3590e297f678952408e949388cfea5f8a6334e5a
   react-native-keyboard-controller: 2267e3fccc2cf407d8dc671000f53bca0da181f6
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
-  react-native-netinfo: 02d31de0e08ab043d48f2a1a8baade109d7b6ca5
-  react-native-pager-view: c7372cab7caef173f7f81d78520fe21f08805020
-  react-native-pdf: 762369633665ec02ac227aefe2f4558b92475c23
-  react-native-performance: fb21ff0c9bd7a10789c69d948f25b0067d29f7a9
-  react-native-plaid-link-sdk: ba40d1b13cca4b946974fafd9ae278e0fb697d87
-  react-native-quick-sqlite: e3ab3e0a29d8c705f47a60aaa6ceaa42eb6a9ec1
-  react-native-release-profiler: a77d4f291b92e48d3d4a574deed19bd1b513ac98
+  react-native-netinfo: c6a690d71ddcef41a3f852e50b83b0e442d2b5f7
+  react-native-pager-view: b082c41ed422d67f20fdff729a982865a973e292
+  react-native-pdf: 14b2da67d900fa6480cc4ea0c50f166a0ea7d985
+  react-native-performance: b0fbe5a6f07abba144600ca39c231204be6371e8
+  react-native-plaid-link-sdk: 79a7f130762fe9834f58f9621e8ef09b39776107
+  react-native-quick-sqlite: 31975de368a0b72ad74af19b43f5b865984c7d4d
+  react-native-release-profiler: db7b9573d0414d2408d0fc5808dfc9d95bc75754
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: fad48266ac1ec47fd1374b624697216e16875f77
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
@@ -2802,7 +2788,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9265c3b902cd8408ba4376b1a34d9708a6da4ac3
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: bae86068a0b80cda3d4875ac2a5a398955a94922
+  RNLiveMarkdown: 149d2844b1f2334ed00d958a79de379fd7561309
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: eeb7640075061acf3cfea37fed31620732b6f848
   RNPermissions: 4bab204ff52610898246b0e09e21b5628ef81c7d
