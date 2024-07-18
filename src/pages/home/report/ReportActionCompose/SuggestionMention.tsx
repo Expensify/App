@@ -408,6 +408,7 @@ function SuggestionMention(
     );
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(
         ref,
@@ -417,8 +418,9 @@ function SuggestionMention(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            getIsSuggestionsMenuVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -433,6 +435,7 @@ function SuggestionMention(
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }

@@ -2,6 +2,7 @@ import type React from 'react';
 import {useContext, useEffect, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import useExitTo from '@hooks/useExitTo';
 import useSplashScreen from '@hooks/useSplashScreen';
@@ -13,10 +14,21 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
+import type {TryNewDot} from '@src/types/onyx';
 
 type HybridAppMiddlewareProps = {
     authenticated: boolean;
     children: React.ReactNode;
+};
+
+const onboardingStatusSelector = (tryNewDot: OnyxEntry<TryNewDot>) => {
+    let completedHybridAppOnboarding = tryNewDot?.classicRedirect?.completedHybridAppOnboarding;
+
+    if (typeof completedHybridAppOnboarding === 'string') {
+        completedHybridAppOnboarding = completedHybridAppOnboarding === 'true';
+    }
+
+    return completedHybridAppOnboarding;
 };
 
 /*
@@ -35,6 +47,20 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
 
     const [isAccountLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading ?? false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [completedHybridAppOnboarding] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {selector: onboardingStatusSelector});
+
+    /**
+     * This useEffect tracks changes of `nvp_tryNewDot` value.
+     * We propagate it from OldDot to NewDot with native method due to limitations of old app.
+     */
+    useEffect(() => {
+        if (completedHybridAppOnboarding === undefined || !NativeModules.HybridAppModule) {
+            return;
+        }
+
+        Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding});
+        NativeModules.HybridAppModule.completeOnboarding(completedHybridAppOnboarding);
+    }, [completedHybridAppOnboarding]);
 
     // Save `exitTo` when we reach /transition route.
     // `exitTo` should always exist during OldDot -> NewDot transitions.

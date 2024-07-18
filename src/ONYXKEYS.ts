@@ -320,9 +320,6 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
-    /** Onboarding error message to be displayed to the user */
-    ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
-
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
 
@@ -350,6 +347,9 @@ const ONYXKEYS = {
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
 
+    /** Indicates whether we should mask fragile user data while exporting onyx state or not */
+    SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
+
     /** Stores new group chat draft */
     NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
 
@@ -375,6 +375,9 @@ const ONYXKEYS = {
 
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
+
+    /** Stores the last export method for policy */
+    LAST_EXPORT_METHOD: 'lastExportMethod',
 
     /** Stores the information about the state of issuing a new card */
     ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
@@ -445,6 +448,9 @@ const ONYXKEYS = {
          * So for example: card_12345_Expensify Card
          */
         WORKSPACE_CARDS_LIST: 'card_',
+
+        /** The bank account that Expensify Card payments will be reconciled against */
+        SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',
     },
 
     /** List of Form ids */
@@ -552,6 +558,8 @@ const ONYXKEYS = {
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
         WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
+        WORKSPACE_TAX_CODE_FORM: 'workspaceTaxCodeForm',
+        WORKSPACE_TAX_CODE_FORM_DRAFT: 'workspaceTaxCodeFormDraft',
         WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
         WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
@@ -633,6 +641,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM]: FormTypes.PolicyDistanceRateTaxReclaimableOnEditForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM]: FormTypes.WorkspaceTaxCodeForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
@@ -692,6 +701,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.BankAccount;
 };
 
 type OnyxValuesMapping = {
@@ -744,6 +754,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
+    [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
@@ -797,7 +808,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
-    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
@@ -808,6 +818,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
