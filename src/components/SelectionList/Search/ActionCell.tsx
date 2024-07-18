@@ -1,15 +1,13 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -30,14 +28,7 @@ type ActionCellProps = {
     parentAction?: string;
 };
 
-function ActionCell({
-    action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    isLargeScreenWidth = true,
-    isSelected = false,
-    goToItem,
-    isChildListItem = false,
-    parentAction = '',
-}: ActionCellProps) {
+function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, goToItem, isChildListItem = false, parentAction = ''}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();

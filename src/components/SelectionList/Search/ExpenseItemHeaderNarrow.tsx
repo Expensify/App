@@ -92,7 +92,6 @@ function ExpenseItemHeaderNarrow({
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
                     action={action}
-                    transactionID={transactionID}
                     goToItem={onButtonPress}
                     isLargeScreenWidth={false}
                 />
