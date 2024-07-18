@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -19,19 +20,68 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
+import * as Card from '@userActions/Card';
 import * as Member from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
+
+// TODO: remove when Onyx data is available
+const mockedCards: OnyxEntry<WorkspaceCardsList> = {
+    test1: {
+        accountID: 885646,
+        cardID: 1,
+        nameValuePairs: {
+            limit: 1000,
+            cardTitle: 'Test 1',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+    test2: {
+        accountID: 885646,
+        cardID: 2,
+        nameValuePairs: {
+            limit: 2000,
+            cardTitle: 'Test 2',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+    test3: {
+        accountID: 885646,
+        cardID: 3,
+        nameValuePairs: {
+            limit: 3000,
+            cardTitle: 'Test 3',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+};
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -54,6 +104,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
+    // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
+    // const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const cardList = mockedCards;
 
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -113,6 +166,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
+
+    const navigateToDetails = useCallback(
+        (cardID: number) => {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID, Navigation.getActiveRoute()));
+        },
+        [policyID],
+    );
+
+    const navigateToIssueNewCard = useCallback(() => {
+        Card.setIssueNewCardStepAndData({
+            step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
+            data: {
+                assigneeEmail: memberLogin,
+            },
+            isEditing: false,
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+    }, [memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
@@ -222,6 +293,27 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             items={roleItems}
                             onRoleChange={changeRole}
                             onClose={() => setIsRoleSelectionModalVisible(false)}
+                        />
+                        <View style={[styles.ph5]}>
+                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                {translate('walletPage.assignedCards')}
+                            </Text>
+                        </View>
+                        {Object.values(cardList ?? {}).map((card) => (
+                            <MenuItem
+                                title={card.nameValuePairs?.cardTitle}
+                                badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
+                                icon={ExpensifyCardImage}
+                                iconWidth={variables.iconSizeExtraLarge}
+                                iconHeight={variables.iconSizeExtraLarge}
+                                onPress={() => navigateToDetails(card.cardID)}
+                                shouldShowRightIcon
+                            />
+                        ))}
+                        <MenuItem
+                            title={translate('workspace.expensifyCard.newCard')}
+                            icon={Expensicons.Plus}
+                            onPress={navigateToIssueNewCard}
                         />
                     </View>
                 </View>
