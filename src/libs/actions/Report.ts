@@ -2597,6 +2597,7 @@ function openReportFromDeepLink(url: string) {
                 }
 
                 if (isAuthenticated) {
+                    Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
                     return;
                 }
 
