@@ -63,7 +63,7 @@ function Checkbox(
         caretSize = 14,
         onPress,
         accessibilityLabel,
-        shouldStopMouseDownPropagation
+        shouldStopMouseDownPropagation,
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
@@ -94,7 +94,7 @@ function Checkbox(
             disabled={disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={(e) => {
-                if(shouldStopMouseDownPropagation) {
+                if (shouldStopMouseDownPropagation) {
                     e.stopPropagation();
                 }
                 onMouseDown?.(e);
