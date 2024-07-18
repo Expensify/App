@@ -14,6 +14,8 @@ import * as SearchActions from '@libs/actions/Search';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -103,7 +105,7 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
-                    SearchActions.holdMoneyRequestOnSearch(hash, selectedTransactionsKeys, '');
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
         }
