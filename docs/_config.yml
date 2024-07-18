@@ -6,6 +6,7 @@ author: Expensify
 logo: /assets/images/expensify-help.svg
 repository: Expensify/App
 open_url: true
+main_style: /assets/css/styles.css
 
 defaults:
   - scope:
