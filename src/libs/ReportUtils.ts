@@ -152,6 +152,7 @@ type OptimisticExpenseReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
+    | 'parentReportActionID'
 >;
 
 type OptimisticIOUReportAction = Pick<
