@@ -1178,7 +1178,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
-        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
@@ -1410,6 +1409,11 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
     return Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
 }
 
+function getForwardedReportActionMessage(action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>): string {
+    // TODO: handle when automation has forwarded this
+    return 'approved and forwarded this report';
+}
+
 /**
  * Check if the linked transaction is on hold
  */
@@ -1624,6 +1628,7 @@ export {
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
+    getForwardedReportActionMessage,
 };
 
 export type {LastVisibleMessage};

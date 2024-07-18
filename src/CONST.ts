@@ -689,7 +689,7 @@ const CONST = {
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
-                FORWARDED: 'FORWARDED', // OldDot Action
+                FORWARDED: 'FORWARDED',
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
