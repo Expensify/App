@@ -168,7 +168,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID]);
 
     const navigateToDetails = useCallback(
-        (cardID: number) => {
+        (cardID: string) => {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID, Navigation.getActiveRoute()));
         },
         [policyID],
@@ -306,7 +306,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 icon={ExpensifyCardImage}
                                 iconWidth={variables.iconSizeExtraLarge}
                                 iconHeight={variables.iconSizeExtraLarge}
-                                onPress={() => navigateToDetails(card.cardID)}
+                                onPress={() => navigateToDetails(card.cardID.toString())}
                                 shouldShowRightIcon
                             />
                         ))}
