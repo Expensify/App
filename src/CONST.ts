@@ -4277,13 +4277,12 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
-                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
-                        '3. Click *Categories*.\n' +
-                        '4. Enable and disable default categories.\n' +
-                        '5. Click *Add categories* to make your own.\n' +
+                        '1. Go to your [workspace settings](${workspaceLink}).\n` +
+                        '2. Click *Categories*.\n' +
+                        '3. Enable and disable default categories.\n' +
+                        '4. Click *Add categories* to make your own.\n' +
                         '\n' +
-                        'For more controls like requiring a category for every expense, click *Settings*.',
+                        'For more controls like requiring a category for every expense, go to *Categories* > *Settings*.',
                 },
                 {
                     type: 'addExpenseApprovals',
@@ -4294,11 +4293,10 @@ const CONST = {
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
-                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
-                        '3. Click *More features*.\n' +
-                        '4. Enable *Workflows*.\n' +
-                        '5. In *Workflows*, enable *Add approvals*.\n' +
+                        '1. Go to your [workspace settings](${workspaceLink}).\n` +
+                        '2. Click *More features*.\n' +
+                        '3. Enable *Workflows*.\n' +
+                        '4. In *Workflows*, enable *Add approvals*.\n' +
                         '\n' +
                         'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
                 },
@@ -4311,11 +4309,10 @@ const CONST = {
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
-                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
-                        '3. Click *Members* > *Invite member*.\n' +
-                        '4. Enter emails or phone numbers. \n' +
-                        '5. Add an invite message if you want.\n' +
+                        '1. Go to your [workspace settings]](${workspaceLink}).\n` +
+                        '2. Click *Members* > *Invite member*.\n' +
+                        '3. Enter emails or phone numbers. \n' +
+                        '4. Add an invite message if you want.\n' +
                         '\n' +
                         'That’s it! Happy expensing :)',
                 },
