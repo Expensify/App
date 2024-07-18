@@ -402,41 +402,6 @@ type OriginalMessageApproved = {
     expenseReportID: string;
 };
 
-/**
- *
- */
-type OriginalMessageExportIntegration = {
-    /**
-     * Whether the export was done via an automation
-     */
-    automaticAction: false;
-
-    /**
-     * The integration that was exported to (display text)
-     */
-    label: string;
-
-    /**
-     *
-     */
-    lastModified: string;
-
-    /**
-     * Whether the report was manually marked as exported
-     */
-    markedManually: boolean;
-
-    /**
-     * An list of URLs to the report in the integration for company card expenses
-     */
-    nonReimbursableUrls?: string[];
-
-    /**
-     * An list of URLs to the report in the integration for out of pocket expenses
-     */
-    reimbursableUrls?: string[];
-};
-
 /** Model of `unapproved` report action */
 type OriginalMessageUnapproved = {
     /** Unapproved expense amount */
@@ -489,7 +454,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
     /** */
@@ -597,5 +562,4 @@ export type {
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
-    OriginalMessageExportIntegration,
 };
