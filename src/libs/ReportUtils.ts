@@ -5468,7 +5468,8 @@ function shouldReportBeInOptionList({
         return false;
     }
 
-    if ((Object.values(CONST.REPORT.TYPE.UNSUPPORTED) as string[]).includes(report?.type ?? '')) {
+    const unsupportedReportTypes = Object.values(CONST.REPORT.TYPE.UNSUPPORTED) as string[];
+    if (unsupportedReportTypes.includes(report?.type ?? '')) {
         return false;
     }
 
