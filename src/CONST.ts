@@ -842,6 +842,8 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+        },
+        UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
             BILL: 'bill',
         },
@@ -2346,6 +2348,8 @@ const CONST = {
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
+
+        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
     },
 
     PRONOUNS: {
@@ -5229,6 +5233,7 @@ const CONST = {
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
+            EXPORT: 'export',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

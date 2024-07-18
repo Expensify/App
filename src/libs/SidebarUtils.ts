@@ -105,6 +105,9 @@ function getOrderedReportIDs(
         if (!report) {
             return;
         }
+        if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+            return;
+        }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);

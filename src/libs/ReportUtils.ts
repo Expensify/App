@@ -8,6 +8,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
@@ -1731,7 +1732,7 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
 /**
  * Helper method to return the default avatar associated with the given login
  */
-function getDefaultWorkspaceAvatar(workspaceName?: string): IconAsset {
+function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
     if (!workspaceName) {
         return defaultWorkspaceAvatars.WorkspaceBuilding;
     }
@@ -5475,7 +5476,7 @@ function shouldReportBeInOptionList({
         return false;
     }
 
-    if (report?.type === CONST.REPORT.TYPE.PAYCHECK || report?.type === CONST.REPORT.TYPE.BILL) {
+    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
         return false;
     }
 
@@ -6146,7 +6147,7 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -6154,6 +6155,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePai
         return false;
     }
 
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
     return !isArchivedRoom(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
@@ -6948,6 +6950,14 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (isRootGroupChat(report)) {
+        return true;
+    }
+
+    if (isPolicyExpenseChat(report) && !report?.isOwnPolicyExpenseChat && !PolicyUtils.isPolicyAdmin(policy)) {
+        return true;
+    }
+
     if (isPublicRoom(report) && SessionUtils.isAnonymousUser()) {
         return false;
     }
@@ -6957,7 +6967,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     }
 
     // Anyone viewing these chat types is already a participant and therefore cannot leave
-    if (isSelfDM(report) || isRootGroupChat(report)) {
+    if (isSelfDM(report)) {
         return false;
     }
 

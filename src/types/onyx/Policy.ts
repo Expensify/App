@@ -1355,8 +1355,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
-        /** The scheduled submit frequency set up on this policy */
-        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+        /**
+         * The scheduled submit frequency set up on this policy.
+         * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
+         * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
+         */
+        autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
 
         /** Scheduled submit data */
         harvesting?: {

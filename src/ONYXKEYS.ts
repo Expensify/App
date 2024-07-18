@@ -134,7 +134,7 @@ const ONYXKEYS = {
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
-    NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
+    NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
