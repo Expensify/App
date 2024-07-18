@@ -1,6 +1,7 @@
 ---
 title: QuickBooks Desktop
 description: How to connect Expensify to QuickBooks Desktop and troubleshoot issues.
+order: 1
 ---
 # Overview
 QuickBooks Desktop is an accounting package developed by Intuit. It is designed for small and medium-sized businesses to help them manage their financial and accounting tasks. You can connect Expensify to QuickBooks Desktop to make expense management seamless.
