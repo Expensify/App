@@ -158,11 +158,7 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-<<<<<<< HEAD
-                    setEnteredSubMenuIndexes(enteredSubMenuIndexes.slice(0, -1));
-=======
                     enteredSubMenuIndexes.splice(-1);
->>>>>>> 0560908 (Merge pull request #45674 from Expensify/vit-revert44724)
                 }}
             />
         );
