@@ -2954,7 +2954,7 @@ export default {
             deactivateCard: {
                 deactivate: 'Deactivate',
                 deactivateCard: 'Deactivate card',
-                deleteConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
+                deactivateConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
             },
         },
         reimburse: {
