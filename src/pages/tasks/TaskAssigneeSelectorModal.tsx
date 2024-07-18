@@ -21,6 +21,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -100,6 +101,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+    const waitForNavigation = useWaitForNavigation();
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
@@ -167,29 +169,36 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
-                if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = TaskActions.setAssigneeValue(
-                        option?.login ?? '',
-                        option?.accountID ?? -1,
-                        report.reportID,
-                        undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
-                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
-                    );
-
-                    // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
-                }
                 Navigation.dismissModal(report.reportID);
+                waitForNavigation(() => {
+                    if (option.accountID !== report.managerID) {
+                        const assigneeChatReport = TaskActions.setAssigneeValue(
+                            option?.login ?? '',
+                            option?.accountID ?? -1,
+                            report.reportID,
+                            undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
+                            OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
+                        );
+
+                        // Pass through the selected assignee
+                        TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    }
+                });
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
-                TaskActions.setAssigneeValue(
-                    option?.login ?? '',
-                    option.accountID,
-                    task?.shareDestination ?? '',
-                    undefined, // passing null as report is null in this condition
-                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
-                );
                 Navigation.goBack(ROUTES.NEW_TASK);
+                waitForNavigation(() => {
+                    if (!option.accountID) {
+                        return;
+                    }
+                    TaskActions.setAssigneeValue(
+                        option?.login ?? '',
+                        option.accountID,
+                        task?.shareDestination ?? '',
+                        undefined, // passing null as report is null in this condition
+                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
+                    );
+                });
             }
         },
         [session?.accountID, task?.shareDestination, report],
