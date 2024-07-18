@@ -2693,6 +2693,7 @@ export default {
         },
         expensifyCard: {
             issueCard: 'Emitir tarjeta',
+            newCard: 'Nueva tarjeta',
             name: 'Nombre',
             lastFour: '4 últimos',
             limit: 'Limite',

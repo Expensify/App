@@ -2644,6 +2644,7 @@ export default {
         },
         expensifyCard: {
             issueCard: 'Issue card',
+            newCard: 'New card',
             name: 'Name',
             lastFour: 'Last 4',
             limit: 'Limit',
