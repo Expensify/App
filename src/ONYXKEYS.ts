@@ -583,7 +583,7 @@ const ONYXKEYS = {
         NETSUITE_CUSTOM_FORM_ID_FORM_DRAFT: 'netsuiteCustomFormIDFormDraft',
         SAGE_INTACCT_DIMENSION_TYPE_FORM: 'sageIntacctDimensionTypeForm',
         SAGE_INTACCT_DIMENSION_TYPE_FORM_DRAFT: 'sageIntacctDimensionTypeFormDraft',
-        SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersDate',
+        SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
     },
 } as const;
 

@@ -6,7 +6,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import { FormOnyxValues } from '@components/Form/types';
+import type { FormOnyxValues } from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -35,7 +35,8 @@ function SearchFiltersDatePage() {
     };
 
     useEffect(() => {
-        console.log(searchAdvancedFiltersForm);
+        // console log for debugging
+        // console.log(searchAdvancedFiltersForm);
     }, [searchAdvancedFiltersForm]);
 
     return (
