@@ -5069,6 +5069,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         undefined,
         undefined,
         undefined,
+        undefined,
         expenseReportId,
     );
     const expenseChatReportID = expenseChatData.reportID;
