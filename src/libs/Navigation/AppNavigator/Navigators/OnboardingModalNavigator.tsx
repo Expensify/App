@@ -14,9 +14,9 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWork from '@pages/OnboardingWork';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -42,8 +42,8 @@ function OnboardingModalNavigator() {
         Navigation.isNavigationReady().then(() => {
             // Need to go back to previous route and then redirect to Concierge,
             // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
+            Navigation.setShouldPopAllStateOnUP(true);
+            Navigation.goBack(ROUTES.HOME, true, true);
         });
     }, [hasCompletedGuidedSetupFlow]);
 
