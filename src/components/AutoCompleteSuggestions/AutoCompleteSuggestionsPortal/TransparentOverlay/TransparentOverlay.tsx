@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {PointerEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -13,6 +14,7 @@ type TransparentOverlayProps = {
 type OnPressHandler = PressableProps['onPress'];
 
 function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const onResetSuggestions = useCallback<NonNullable<OnPressHandler>>(
@@ -34,9 +36,9 @@ function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
         >
             <PressableWithoutFeedback
                 onPress={onResetSuggestions}
-                style={styles.flex1}
-                accessibilityLabel={CONST.ROLE.NONE}
-                role={CONST.ROLE.NONE}
+                style={[styles.flex1, styles.cursorDefault]}
+                accessibilityLabel={translate('common.close')}
+                role={CONST.ROLE.BUTTON}
             />
         </View>
     );
