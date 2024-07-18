@@ -1,23 +1,42 @@
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {CancellationType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useCancellationType(): CancellationType | undefined {
     const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
 
-    const filteredCancellationDetails = cancellationDetails?.filter((item) => !item.cancellationDate);
+    const [cancellationType, setCancellationType] = useState<CancellationType | undefined>();
 
-    if (!filteredCancellationDetails) {
-        return;
-    }
+    const previousCancellationDetails = useRef(cancellationDetails);
 
-    if (filteredCancellationDetails.length === 1) {
-        return filteredCancellationDetails[0]?.cancellationType;
-    }
+    const memoizedCancellationType = useMemo(() => {
+        const pendingManualCancellation = cancellationDetails?.filter((detail) => detail.cancellationType === CONST.CANCELLATION_TYPE.MANUAL).find((detail) => !detail.cancellationDate);
 
-    const sorted = filteredCancellationDetails?.sort((a, b) => new Date(b?.requestDate ?? 0).getDate() - new Date(a?.requestDate ?? 0).getDate());
+        // There is a pending manual cancellation - return manual cancellation type
+        if (pendingManualCancellation) {
+            return CONST.CANCELLATION_TYPE.MANUAL;
+        }
 
-    return sorted[0]?.cancellationType;
+        // There are no new items in the cancellation details NVP
+        if (previousCancellationDetails.current?.length === cancellationDetails?.length) {
+            return;
+        }
+
+        // There is a new item in the cancellation details NVP, it has to be an automatic cancellation, as pending manual cancellations are handled above
+        return CONST.CANCELLATION_TYPE.AUTOMATIC;
+    }, [cancellationDetails]);
+
+    useEffect(() => {
+        if (!memoizedCancellationType) {
+            return;
+        }
+
+        setCancellationType(memoizedCancellationType);
+    }, [memoizedCancellationType]);
+
+    return cancellationType;
 }
 
 export default useCancellationType;
