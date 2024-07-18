@@ -354,7 +354,7 @@ function ReportActionItemMessageEdit(
             const keyEvent = e as KeyboardEvent;
             const isSuggestionsMenuVisible = suggestionsRef.current?.getIsSuggestionsMenuVisible();
 
-            if (isSuggestionsMenuVisible && keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+            if (isSuggestionsMenuVisible) {
                 suggestionsRef.current?.triggerHotkeyActions(keyEvent);
                 return;
             }
