@@ -3662,6 +3662,9 @@ function addDomainToShortMention(mention: string): string | undefined {
 
 /**
  * Replaces all valid short mention found in a text to a full mention
+ *
+ * Example:
+ * "Hello \@example -> Hello \@example\@expensify.com"
  */
 function completeShortMention(text: string): string {
     return text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
