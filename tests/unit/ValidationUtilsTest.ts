@@ -24,7 +24,7 @@ describe('ValidationUtils', () => {
         });
 
         test('Should return false for a date after the range', () => {
-            const futureDate = '3024-07-18';
+            const futureDate = '3042-07-18';
             const isValid = ValidationUtils.isValidDate(futureDate);
             expect(isValid).toBe(false);
         });
