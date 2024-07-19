@@ -61,12 +61,8 @@ const addPolicyIDToRoute = (route: NavigationPartialRoute, policyID?: string) =>
 };
 
 function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
-    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME, params: {policyID}}];
-
-    if (route.name !== SCREENS.HOME) {
-        // If the generated state requires tab other than HOME, we need to insert it.
-        routesForBottomTabNavigator.push(addPolicyIDToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
-    }
+    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [];
+    routesForBottomTabNavigator.push(addPolicyIDToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
 
     return {
         name: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
