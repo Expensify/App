@@ -4,9 +4,11 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -26,14 +28,10 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: (onboarding) => {
-            // onboarding is an array for old accounts and accounts created from olddot
-            if (Array.isArray(onboarding)) {
-                return true;
-            }
-            return onboarding?.hasCompletedGuidedSetupFlow;
-        },
+        selector: hasCompletedGuidedSetupFlowSelector,
     });
+
+    useDisableModalDismissOnEscape();
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {
