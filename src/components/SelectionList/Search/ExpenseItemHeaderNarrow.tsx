@@ -20,7 +20,6 @@ type ExpenseItemHeaderNarrowProps = {
     participantFromDisplayName: string;
     participantToDisplayName: string;
     action?: SearchTransactionAction;
-    transactionID?: string;
     containerStyle?: StyleProp<ViewStyle>;
     onButtonPress: () => void;
     canSelectMultiple?: boolean;
@@ -44,7 +43,6 @@ function ExpenseItemHeaderNarrow({
     isDisabled,
     handleCheckboxPress,
     text,
-    transactionID,
 }: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -95,7 +93,6 @@ function ExpenseItemHeaderNarrow({
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
                     action={action}
-                    transactionID={transactionID}
                     goToItem={onButtonPress}
                     isLargeScreenWidth={false}
                 />
