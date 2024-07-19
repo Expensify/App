@@ -100,11 +100,6 @@ const webpackConfig = ({config}: {config: Configuration}) => {
         }),
     );
 
-    config.module.rules?.push({
-        test: /\.lottie$/,
-        type: 'asset/resource',
-    });
-
     return config;
 };
 

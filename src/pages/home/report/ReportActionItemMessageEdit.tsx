@@ -194,7 +194,7 @@ function ReportActionItemMessageEdit(
                 }
 
                 // Show the main composer when the focused message is deleted from another client
-                // to prevent the main composer stays hidden until we swtich to another chat.
+                // to prevent the main composer stays hidden until we switch to another chat.
                 setShouldShowComposeInputKeyboardAware(true);
             };
         },
@@ -354,7 +354,7 @@ function ReportActionItemMessageEdit(
             const keyEvent = e as KeyboardEvent;
             const isSuggestionsMenuVisible = suggestionsRef.current?.getIsSuggestionsMenuVisible();
 
-            if (isSuggestionsMenuVisible && keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+            if (isSuggestionsMenuVisible) {
                 suggestionsRef.current?.triggerHotkeyActions(keyEvent);
                 return;
             }
@@ -374,16 +374,12 @@ function ReportActionItemMessageEdit(
         [deleteDraft, hideSuggestionMenu, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
-    const measureContainer = useCallback(
-        (callback: MeasureInWindowOnSuccessCallback) => {
-            if (!containerRef.current) {
-                return;
-            }
-            containerRef.current.measureInWindow(callback);
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isFocused],
-    );
+    const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
+        if (!containerRef.current) {
+            return;
+        }
+        containerRef.current.measureInWindow(callback);
+    }, []);
 
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
@@ -408,8 +404,7 @@ function ReportActionItemMessageEdit(
 
         // eslint-disable-next-line react-compiler/react-compiler
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [tag]);
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
