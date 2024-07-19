@@ -112,7 +112,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                         if (isSearchTabName(activeBottomTabRoute?.name)) {
                             return;
                         }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL})));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}

@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {SearchQueryString} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -47,6 +49,22 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
+}
+
+// TODO_SEARCH: use this function after backend changes.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function searchV2(queryString: SearchQueryString) {
+    const queryJSON = buildSearchQueryJSON(queryString);
+
+    if (!queryJSON) {
+        return;
+    }
+
+    const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
+
+    // TODO_SEARCH: uncomment this line after backend changes
+    // @ts-expect-error waiting for backend changes
+    API.read(READ_COMMANDS.SEARCH, queryJSON, {optimisticData, finallyData});
 }
 
 /**

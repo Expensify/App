@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,22 +8,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
-import SearchFilters from './SearchFilters';
+import SearchStatuses from './SearchStatusMenu';
 
-type SearchPageProps = StackScreenProps<CentralPaneScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
-
-const defaultSearchProps = {
-    query: '' as SearchQuery,
-    policyIDs: undefined,
-    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-};
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -32,23 +21,16 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
-    const {
-        query: rawQuery,
-        policyIDs,
-        sortBy,
-        sortOrder,
-    } = useMemo(() => {
-        if (activeBottomTabRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeBottomTabRoute.params) {
-            return defaultSearchProps;
-        }
-        return {...defaultSearchProps, ...activeBottomTabRoute.params} as SearchPageProps['route']['params'];
-    }, [activeBottomTabRoute]);
+    // TODO_SEARCH: types for the activeBottomTabRoute are broken.
+    const queryJSON = useMemo(() => buildSearchQueryJSON(activeBottomTabRoute.params.cq ?? activeBottomTabRoute.params.q), [activeBottomTabRoute.params]);
+    const policyIDs = activeBottomTabRoute.params.policyIDs as string | undefined;
 
-    const query = rawQuery as SearchQuery;
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
-    const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
-
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL));
+    // TODO_SEARCH: not sure how we should handle possible undefined for queryJSON.
+    if (!queryJSON) {
+        return null;
+    }
 
     return (
         <ScreenWrapper
@@ -57,7 +39,7 @@ function SearchPageBottomTab() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
-                shouldShow={!isValidQuery}
+                shouldShow={false}
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
@@ -68,7 +50,7 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchFilters query={query} />
+                        <SearchStatuses status={queryJSON.status} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -78,10 +60,8 @@ function SearchPageBottomTab() {
                 )}
                 {isSmallScreenWidth && (
                     <Search
+                        queryJSON={queryJSON}
                         policyIDs={policyIDs}
-                        query={query}
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
                         isMobileSelectionModeActive={isMobileSelectionModeActive}
                         setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                     />

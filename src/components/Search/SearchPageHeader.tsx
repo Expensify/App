@@ -13,13 +13,12 @@ import * as SearchActions from '@libs/actions/Search';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {SelectedTransactions} from './types';
+import type {SearchStatus, SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
-    query: SearchQuery;
+    status: SearchStatus;
     selectedItems?: SelectedTransactions;
     clearSelectedItems?: () => void;
     hash: number;
@@ -30,13 +29,13 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchPageHeaderProps) {
+function SearchPageHeader({status, selectedItems = {}, hash, clearSelectedItems, onSelectDeleteOption, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
+    const headerContent: {[key in SearchStatus]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
         shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
         drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
@@ -146,8 +145,8 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
 
     return (
         <HeaderWithBackButton
-            title={headerContent[query]?.title}
-            icon={headerContent[query]?.icon}
+            title={headerContent[status]?.title}
+            icon={headerContent[status]?.icon}
             shouldShowBackButton={false}
         >
             {headerButtonsOptions.length > 0 && (

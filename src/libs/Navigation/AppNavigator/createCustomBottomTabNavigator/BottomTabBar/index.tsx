@@ -112,7 +112,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                         if (currentTabName === SCREENS.SEARCH.BOTTOM_TAB || currentTabName === SCREENS.SEARCH.CENTRAL_PANE) {
                             return;
                         }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL})));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}

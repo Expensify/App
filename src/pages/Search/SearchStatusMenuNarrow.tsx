@@ -10,14 +10,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
-import type {SearchMenuFilterItem} from './SearchFilters';
+import type {SearchStatusMenuItem} from './SearchStatusMenu';
 
-type SearchFiltersNarrowProps = {
-    filterItems: SearchMenuFilterItem[];
+type SearchStatusMenuNarrowProps = {
+    filterItems: SearchStatusMenuItem[];
     activeItemIndex: number;
 };
 
-function SearchFiltersNarrow({filterItems, activeItemIndex}: SearchFiltersNarrowProps) {
+function SearchStatusMenuNarrow({filterItems, activeItemIndex}: SearchStatusMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -77,6 +77,6 @@ function SearchFiltersNarrow({filterItems, activeItemIndex}: SearchFiltersNarrow
     );
 }
 
-SearchFiltersNarrow.displayName = 'SearchFiltersNarrow';
+SearchStatusMenuNarrow.displayName = 'SearchStatusMenuNarrow';
 
-export default SearchFiltersNarrow;
+export default SearchStatusMenuNarrow;

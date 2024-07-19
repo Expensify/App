@@ -57,7 +57,7 @@ function ActionCell({
         }
 
         if (action === CONST.SEARCH.ACTION_TYPES.HOLD) {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(CONST.SEARCH.TAB.ALL, transactionID));
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(transactionID));
         } else if (action === CONST.SEARCH.ACTION_TYPES.UNHOLD) {
             SearchActions.unholdMoneyRequestOnSearch(currentSearchHash, [transactionID]);
         }
