@@ -350,7 +350,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
-        it('returns true when the report has oustanding child expense', () => {
+        it('returns true when the report has outstanding child expense', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
