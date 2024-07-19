@@ -25,6 +25,7 @@ type SearchMenuFilterItem = {
     route: Route;
 };
 
+// Because we will add have AdvancedFilters, in future rename this component to `SearchTypeMenu|Tabs|Filters` to avoid confusion
 function SearchFilters({query}: SearchFiltersProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
