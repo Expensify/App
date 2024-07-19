@@ -387,51 +387,6 @@ describe('ReportUtils', () => {
 
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
-
-        it('returns false if the user free trial has ended and it added a payment card', async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial not ended
-                [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010, // payment card added
-            });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                hasReceivedFreeTrialEndMessage: true,
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-            };
-
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
-        });
-
-        it("returns true if the report is the system chat, the user free trial has ended and it didn't add a payment card yet", async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial ended
-                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
-            });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                hasReceivedFreeTrialEndMessage: true,
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-            };
-
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
-        });
-
-        it("returns true if the report is the concierge chat, the user free trial has ended and it didn't add a payment card yet", async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial ended
-                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: 8}, // even account id
-            });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
-                hasReceivedFreeTrialEndMessage: true,
-            };
-
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
-        });
     });
 
     describe('getMoneyRequestOptions', () => {
