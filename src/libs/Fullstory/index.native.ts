@@ -15,11 +15,11 @@ const FS = {
      * Initializes FullStory
      */
     init: () => {
-        Environment.getEnvironment().then((envName: string) => {
+        Environment.getEnvironment().then(() => {
             // We only want to start fullstory if the app is running in production
-            if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
-                return;
-            }
+            // if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
+            //     return;
+            // }
             FullStory.restart();
             const [session] = useOnyx(ONYXKEYS.USER_METADATA);
             FS.fsIdentify(session);
@@ -29,7 +29,7 @@ const FS = {
     /**
      * Sets the identity as anonymous using the FullStory library.
      */
-    anonymize: () => FullStory.anonymize(),
+    anonymize: () => () => {},
 
     /**
      * Sets the identity consent status using the FullStory library.
@@ -55,19 +55,14 @@ const FS = {
      * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
-        if (!metadata?.accountID) {
-            // anonymize FullStory user identity metadata
-            FullStory.anonymize();
-        } else {
-            Environment.getEnvironment().then((envName: string) => {
-                // define FullStory user identity
-                const localMetadata = metadata;
-                localMetadata.environment = envName;
-                FullStory.identify(String(localMetadata.accountID), {
-                    properties: localMetadata,
-                });
+        Environment.getEnvironment().then((envName: string) => {
+            // define FullStory user identity
+            const localMetadata = metadata;
+            localMetadata.environment = envName;
+            FullStory.identify(String(localMetadata.accountID), {
+                properties: localMetadata,
             });
-        }
+        });
     },
 };
 

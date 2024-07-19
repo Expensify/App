@@ -1,6 +1,5 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
@@ -29,10 +28,10 @@ const FS = {
      */
     onReady: () =>
         new Promise((resolve) => {
-            Environment.getEnvironment().then((envName: string) => {
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
-                    return;
-                }
+            Environment.getEnvironment().then(() => {
+                // if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                //     return;
+                // }
                 // Initialised via HEAD snippet
                 if (!isInitialized()) {
                     init({orgId: ''}, resolve);
@@ -58,9 +57,6 @@ const FS = {
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
         try {
             Environment.getEnvironment().then((envName: string) => {
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
-                    return;
-                }
                 FS.onReady().then(() => {
                     FS.consent(true);
                     if (value) {
@@ -81,16 +77,11 @@ const FS = {
      * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
-        if (!metadata?.accountID) {
-            // anonymize FullStory user identity metadata
-            FS.anonymize();
-        } else {
-            // define FullStory user identity
-            FullStory('setIdentity', {
-                uid: String(metadata.accountID),
-                properties: metadata,
-            });
-        }
+        // define FullStory user identity
+        FullStory('setIdentity', {
+            uid: String(metadata.accountID),
+            properties: metadata,
+        });
     },
 
     /**
