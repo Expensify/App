@@ -96,7 +96,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string)
     });
 }
 
-const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
+const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void): Promise<void> => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -115,7 +115,19 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
 
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
-        .then(() => {
+        .then((downloadPath) =>
+            RNFetchBlob.MediaCollection.copyToMediaStore(
+                {
+                    name: FileUtils.getFileName(downloadPath),
+                    parentFolder: 'Expensify',
+                    mimeType: null,
+                },
+                'Download',
+                downloadPath,
+            ).then(() => downloadPath),
+        )
+        .then((downloadPath) => {
+            RNFetchBlob.fs.unlink(downloadPath);
             FileUtils.showSuccessAlert();
         })
         .catch(() => {
