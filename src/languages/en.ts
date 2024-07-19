@@ -2953,7 +2953,7 @@ export default {
             },
             deactivateCard: {
                 deactivate: 'Deactivate',
-                deactivateCard: 'Deactivate card',
+                deactivateCardModal: 'Deactivate card',
                 deactivateConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
             },
         },
