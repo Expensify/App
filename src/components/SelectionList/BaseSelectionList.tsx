@@ -289,8 +289,9 @@ function BaseSelectionList<TItem extends ListItem>(
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
      * @param item - the list item
+     * @param indexToFocus - the list item index to focus
      */
-    const selectRow = (item: TItem) => {
+    const selectRow = (item: TItem, indexToFocus?: number) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -308,6 +309,10 @@ function BaseSelectionList<TItem extends ListItem>(
             if (shouldShowTextInput) {
                 clearInputAfterSelect();
             }
+        }
+
+        if (typeof indexToFocus === 'number') {
+            setFocusedIndex(indexToFocus);
         }
 
         if (shouldDebounceRowSelect) {
@@ -453,7 +458,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
                     isMobileSelectionModeActive={isMobileSelectionModeActive}
-                    onSelectRow={() => selectRow(item)}
+                    onSelectRow={() => selectRow(item, index)}
                     onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
