@@ -793,12 +793,12 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
  * 1. When the date refers to the current day: Departs on Sunday, Mar 17 at 8:00
  * 2. When the date refers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
  */
-function getFormattedTransportDate(date: Date): string {
+function getFormattedTransportDate(date: Date, shouldUseDescriptors = true): string {
     const {translateLocal} = Localize;
     if (isThisYear(date)) {
-        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+        return `${shouldUseDescriptors ? `${translateLocal('travel.departs')} ` : ''}${format(date, 'EEEE, MMM d')} ${shouldUseDescriptors ? `${translateLocal('common.conjunctionAt')} ` : ''}${format(date, 'HH:MM')}`;
     }
-    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+    return `${shouldUseDescriptors ? `${translateLocal('travel.departs')} ` : ''}${format(date, 'EEEE, MMM d, yyyy')} ${shouldUseDescriptors ? `${translateLocal('common.conjunctionAt')} ` : ''}${format(date, 'HH:MM')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {

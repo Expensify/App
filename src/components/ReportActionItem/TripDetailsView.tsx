@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
+import type {ReservationWithDetails} from '@src/libs/TripReservationUtils';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 
 type TripDetailsViewProps = {
@@ -37,9 +38,12 @@ type ReservationViewProps = {
 
     /** Reservation object to be displayed in the view */
     reservation: Reservation;
+
+    /** Index of reservation from the reservationList */
+    reservationIndex: number;
 };
 
-function ReservationView({reportID, transactionID, reservation}: ReservationViewProps) {
+function ReservationView({reportID, transactionID, reservation, reservationIndex}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -131,7 +135,7 @@ function ReservationView({reportID, transactionID, reservation}: ReservationView
             wrapperStyle={[styles.taskDescriptionMenuItem]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
-            onPress={() => Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute(reportID, transactionID))}
+            onPress={() => Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute(reportID, transactionID, reservationIndex))}
             interactive
             shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
@@ -149,7 +153,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
     const {translate} = useLocalize();
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
-    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    const reservations: ReservationWithDetails[] = TripReservationUtils.getReservationsFromTripTransactionsWithIndexAndID(tripTransactions);
 
     return (
         <View>
@@ -164,19 +168,16 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                 </View>
             </View>
             <>
-                {reservations.map((reservation) => {
-                    const transactionID = TripReservationUtils.getTransactionIDFromReservation(tripTransactions, reservation);
-
-                    return (
-                        <OfflineWithFeedback>
-                            <ReservationView
-                                reportID={tripRoomReportID ?? '-1'}
-                                transactionID={transactionID}
-                                reservation={reservation}
-                            />
-                        </OfflineWithFeedback>
-                    );
-                })}
+                {reservations.map(({reservation, transactionID, reservationIndex}) =>
+                    <OfflineWithFeedback>
+                        <ReservationView
+                            reportID={tripRoomReportID ?? '-1'}
+                            transactionID={transactionID}
+                            reservation={reservation}
+                            reservationIndex={reservationIndex}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}

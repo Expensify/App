@@ -2008,6 +2008,7 @@ export default {
         details: 'Details',
         tripSupport: 'Trip support',
         confirmationNo: 'Confirmation No.',
+        itineraryNo: 'Itinerary No.',
     },
     workspace: {
         common: {

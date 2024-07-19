@@ -6,11 +6,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TripDetailsMenuItem from '@components/TripDetailsMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@hooks/useTheme';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
@@ -19,40 +19,97 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ReservationType} from '@src/types/onyx/Transaction';
+import type {ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
+import DateUtils from '@libs/DateUtils';
+import { View } from 'react-native';
+import Text from '@components/Text';
+import Icon from '@components/Icon';
 
 type TravelDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRAVEL_DETAILS>;
 
+/**
+ * Due to there being no backend data yet for more specific trip details,
+ * this implementation uses whatever info we already receive to show the most basic
+ * and fallback sort of information about the trip details. After the backends for the
+ * trip details get merged, the current impelmentation will become a fallback for when data
+ * isn't loaded, and a new way of showing more detailed info will be implemented.
+ * 
+ * Please refer to the conversation below for more details:
+ * https://swmansion.slack.com/archives/C05S5EV2JTX/p1721062807563259
+ */
 function TravelDetails({route}: TravelDetailsProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
-    const reportID = route.params.reportID;
     const transactionID = route.params.transactionID;
+    const reservationIndex = route.params.reservationIndex;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
+    const reservation = transaction?.receipt?.reservationList?.[reservationIndex];
 
-    const testDetails = {
-        date: 'Thursday, Jan 18, 2024',
-        from: 'Philadelphia (PHL)',
-        to: 'San Francisco (SFO)',
-        confirmationNo: 'ESKDK',
-        type: CONST.RESERVATION_TYPE.FLIGHT,
+    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => {
+        const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
+        let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
+
+        shortName = longName && shortName ? `(${shortName})` : shortName;
+
+        return `${longName}${shortName}`;
     };
 
-    type HeaderReservationType = Exclude<ReservationType, 'car'>;
+    const getFormattedDate = () => {
+        switch (reservation?.type) {
+            case CONST.RESERVATION_TYPE.HOTEL:
+            case CONST.RESERVATION_TYPE.CAR:
+                return DateUtils.getFormattedReservationRangeDate(new Date(reservation?.start.date), new Date(reservation?.end.date));
+            default:
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation?.start.date ?? ''));
+        }
+    };
 
-    const headerTranslationPaths: Record<HeaderReservationType | 'DEFAULT', TranslationPaths> = {
+    const titleComponent = () => {
+        if (reservation?.type === CONST.RESERVATION_TYPE.FLIGHT) {
+            return (
+                <View style={styles.gap1}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <Text style={[styles.textStrong, styles.lh20]}>{formatAirportInfo(reservation.start)}</Text>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                        <Text style={[styles.textStrong, styles.lh20]}>{formatAirportInfo(reservation.end)}</Text>
+                    </View>
+                </View>
+            );
+        }
+
+        return (
+            <View style={styles.gap1}>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textStrong, styles.lh20]}
+                >
+                    {reservation?.type === CONST.RESERVATION_TYPE.CAR ? reservation?.carInfo?.name : reservation?.start.longName}
+                </Text>
+            </View>
+        );
+    };
+
+    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation?.type);
+
+    const confirmationNo = `${reservation?.confirmations && reservation?.confirmations?.length > 0 ? `${reservation?.confirmations[0].value}` : ''}`;
+
+    const headerTranslationPaths: Record<ReservationType | 'DEFAULT', TranslationPaths> = {
         [CONST.RESERVATION_TYPE.FLIGHT]: 'travel.flight',
         [CONST.RESERVATION_TYPE.HOTEL]: 'travel.hotel',
+        [CONST.RESERVATION_TYPE.CAR]: 'travel.travel',
         DEFAULT: 'travel.travel',
     };
 
-    const headerTranslationPath = (type: HeaderReservationType): TranslationPaths => headerTranslationPaths[type] || headerTranslationPaths.DEFAULT;
-
-    const reservationIcon = TripReservationUtils.getTripReservationIcon(CONST.RESERVATION_TYPE.FLIGHT);
+    const headerTranslationPath = (type: ReservationType | undefined): TranslationPaths => headerTranslationPaths[type ?? 'DEFAULT'];
 
     return (
         <ScreenWrapper
@@ -61,7 +118,7 @@ function TravelDetails({route}: TravelDetailsProps) {
             testID={TravelDetails.displayName}
         >
             <HeaderWithBackButton
-                title={`${translate(headerTranslationPath(testDetails.type))} ${translate('travel.details')}`}
+                title={`${translate(headerTranslationPath(reservation?.type))} ${translate('travel.details')}`}
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={reservationIcon}
                 iconWidth={variables.iconSizeNormal}
@@ -69,21 +126,22 @@ function TravelDetails({route}: TravelDetailsProps) {
                 iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             />
             <MenuItemWithTopDescription
-                title={`${testDetails.from} \u279C ${testDetails.to}`}
-                titleStyle={styles.textBold}
-                description={testDetails.date}
+                description={getFormattedDate()}
+                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                titleComponent={titleComponent()}
+                titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
+                wrapperStyle={[styles.taskDescriptionMenuItem]}
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                title={testDetails.confirmationNo}
+                title={confirmationNo}
                 titleStyle={styles.textBold}
-                description={translate('travel.confirmationNo')}
+                description={reservation?.type === CONST.RESERVATION_TYPE.FLIGHT ? translate('travel.confirmationNo') : translate('travel.itineraryNo')}
                 interactive={false}
             />
-            <TripDetailsMenuItem />
             <MenuItem
                 title={translate('travel.tripSupport')}
-                onPress={() => Link.openExternalLink('www.google.pl')}
+                onPress={() => Link.openExternalLink('https://travel.expensify.com/support')}
                 icon={Expensicons.Phone}
                 shouldShowRightIcon
             />

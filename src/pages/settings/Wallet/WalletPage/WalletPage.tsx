@@ -256,6 +256,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         styles,
     ]);
 
+    Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute('-1', '-1', 0));
+
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
