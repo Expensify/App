@@ -156,6 +156,7 @@ function ReportListItem<TItem extends ListItem>({
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
+                                    shouldStopMouseDownPropagation
                                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !isLargeScreenWidth && styles.mr3]}
                                 />
                             )}
