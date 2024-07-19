@@ -35,7 +35,7 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
-    SEARCH: {
+    SEARCH_CENTRAL_PANE: {
         route: 'search',
         getRoute: ({query, queryKind = CONST.SEARCH.QUERY_KIND.CANNED_QUERY, policyIDs}: {query: SearchQueryString; queryKind?: QueryKind; policyIDs?: string}) =>
             `search?${queryKind === CONST.SEARCH.QUERY_KIND.CANNED_QUERY ? 'q' : 'cq'}=${query}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
@@ -858,6 +858,10 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_NAME: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_LIMIT: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',

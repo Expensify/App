@@ -38,25 +38,25 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
             title: translate('common.expenses'),
             status: CONST.SEARCH.STATUS.ALL,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
         },
         {
             title: translate('common.shared'),
             status: CONST.SEARCH.STATUS.SHARED,
             icon: Expensicons.Send,
-            route: ROUTES.SEARCH.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
         },
         {
             title: translate('common.drafts'),
             status: CONST.SEARCH.STATUS.DRAFTS,
             icon: Expensicons.Pencil,
-            route: ROUTES.SEARCH.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
         },
         {
             title: translate('common.finished'),
             status: CONST.SEARCH.STATUS.FINISHED,
             icon: Expensicons.CheckCircle,
-            route: ROUTES.SEARCH.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
         },
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.status === status);

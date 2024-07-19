@@ -37,7 +37,7 @@ function SearchPageBottomTab() {
         };
     }, [activeCentralPaneRoute]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
     return (
         <ScreenWrapper
