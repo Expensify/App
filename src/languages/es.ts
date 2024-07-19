@@ -356,6 +356,8 @@ export default {
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
+        downloadFailedTitle: 'Error en la descarga',
+        downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -801,7 +803,7 @@ export default {
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
-        confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
+        confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
         confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
                 'aprobar',
@@ -1077,12 +1079,6 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
-        disable: 'Deshabilitar',
-        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
-        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
-        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
     recoveryCodeForm: {
         error: {
@@ -1491,6 +1487,7 @@ export default {
             title: '¿Qué quieres hacer hoy?',
             errorSelection: 'Por favor selecciona una opción para continuar.',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -2715,6 +2712,12 @@ export default {
             virtual: 'Virtual',
             physical: 'Física',
             deactivate: 'Desactivar tarjeta',
+            changeCardLimit: 'Modificar el límite de la tarjeta',
+            changeLimit: 'Modificar límite',
+            smartLimitWarning: (limit: string) =>
+                `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta que apruebes antiguos gastos de la tarjeta.`,
+            monthlyLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta el próximo mes.`,
+            fixedLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, se rechazarán las nuevas transacciones.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2826,6 +2829,7 @@ export default {
             subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando quieras solicitar información adicional.',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
+            importedFromAccountingSoftware: 'Campos de informes importadas desde',
             textType: 'Texto',
             dateType: 'Fecha',
             dropdownType: 'Lista',
@@ -3154,6 +3158,10 @@ export default {
             reimbursedReports: 'Sincronizar informes reembolsados',
             cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',
+            continuousReconciliation: 'Conciliación continua',
+            saveHoursOnReconciliation:
+                'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
+            enableContinuousReconciliation: 'Para activar la Conciliación Continua, activa la ',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 accountMatches: 'Asegúrate de que esta cuenta coincide con ',
@@ -3567,7 +3575,7 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        selectMultiple: 'Seleccionar múltiples',
+        selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         searchResults: {
             emptyResults: {
@@ -3581,6 +3589,14 @@ export default {
             hold: 'Bloquear',
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
+        },
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
+        filtersHeader: 'Filtros',
+        filters: {
+            date: {
+                before: 'Antes de',
+                after: 'Después de',
+            },
         },
     },
     genericErrorPage: {
@@ -4471,6 +4487,8 @@ export default {
         categoryToKeep: 'Elige qué categoría quieres conservar',
         isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
+        confirmDetails: 'Confirma los detalles que conservas',
+        confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Bloqueado',
     },
     violationDismissal: {
@@ -4594,7 +4612,7 @@ export default {
         },
         cardSection: {
             title: 'Pago',
-            subtitle: 'Añade una tarjeta de pago para abonar tu suscripción a Expensify',
+            subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
             cardNextPayment: ({nextPaymentDate}) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Tarjeta terminada en ${cardNumber}`,
