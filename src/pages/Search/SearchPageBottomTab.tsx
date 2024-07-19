@@ -3,32 +3,45 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
+import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON} from '@libs/SearchUtils';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
+import {buildSearchQueryJSON, getQueryStringFromParams} from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import SearchStatuses from './SearchStatusMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const activeBottomTabRoute = useActiveBottomTabRoute();
+    const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
     // TODO_SEARCH: types for the activeBottomTabRoute are broken.
-    const queryJSON = useMemo(() => buildSearchQueryJSON(activeBottomTabRoute.params.cq ?? activeBottomTabRoute.params.q), [activeBottomTabRoute.params]);
-    const policyIDs = activeBottomTabRoute.params.policyIDs as string | undefined;
+    const {queryJSON, policyIDs} = useMemo(() => {
+        if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
+            return {queryJSON: undefined, policyIDs: undefined};
+        }
+
+        // This will be SEARCH_CENTRAL_PANE as we checked that in if.
+        const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+
+        return {
+            queryJSON: buildSearchQueryJSON(getQueryStringFromParams(searchParams)),
+            policyIDs: searchParams.policyIDs,
+        };
+    }, [activeCentralPaneRoute]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
     // TODO_SEARCH: not sure how we should handle possible undefined for queryJSON.
-    if (!queryJSON) {
+    if (!queryJSON || !policyIDs) {
         return null;
     }
 

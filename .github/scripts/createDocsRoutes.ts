@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 type Article = {
     href: string;
     title: string;
+    order?: number;
 };
 
 type Section = {
@@ -60,11 +61,12 @@ function toTitleCase(str: string): string {
 /**
  * @param filename - The name of the file
  */
-function getArticleObj(filename: string): Article {
+function getArticleObj(filename: string, order?: number): Article {
     const href = filename.replace('.md', '');
     return {
         href,
         title: toTitleCase(href.replaceAll('-', ' ')),
+        order,
     };
 }
 
@@ -90,6 +92,12 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
     }
 }
 
+function getOrderFromArticleFrontMatter(path: string): number | undefined {
+    const frontmatter = fs.readFileSync(path, 'utf8').split('---')[1];
+    const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
+    return frontmatterObject.order as number | undefined;
+}
+
 /**
  * Add articles and sections to hubs
  * @param hubs - The hubs inside docs/articles/ for a platform
@@ -113,7 +121,8 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
             // Each subfolder will be a section containing articles
             fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`).forEach((subArticle) => {
-                articles.push(getArticleObj(subArticle));
+                const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
+                articles.push(getArticleObj(subArticle, order));
             });
 
             pushOrCreateEntry(routeHubs, hub, 'sections', {
