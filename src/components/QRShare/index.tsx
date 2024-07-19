@@ -7,16 +7,21 @@ import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import type {QRShareHandle, QRShareProps} from './types';
 
 function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
+    const qrCodeContainerWidth = isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
 
-    const [qrCodeSize, setQrCodeSize] = useState<number | undefined>();
+    const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg>();
 
     useImperativeHandle(
