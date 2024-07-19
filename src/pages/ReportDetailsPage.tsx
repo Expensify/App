@@ -183,8 +183,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return report;
     }, [caseID, parentReport, report]);
 
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-
     const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
     const shouldShowTaskDeleteButton =
         isTaskReport &&
@@ -525,8 +523,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     } else if (caseID === CASES.MONEY_REPORT) {
         holdReportAction = requestParentReportAction;
     }
+
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(holdReportAction);
-    const shouldShowHoldAction = (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !ReportUtils.isArchivedRoom(parentReport);
+    const shouldShowHoldAction = (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
