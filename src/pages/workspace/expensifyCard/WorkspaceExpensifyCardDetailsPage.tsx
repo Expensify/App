@@ -147,13 +147,13 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 onPress={() => setIsDeactivateModalVisible(true)}
                             />
                             <ConfirmModal
-                                title={translate('workspace.card.deactivateCard.deactivateCard')}
+                                title={translate('workspace.card.deactivateCardModal.deactivateCard')}
                                 isVisible={isDeactivateModalVisible}
                                 onConfirm={deactivateCard}
                                 onCancel={() => setIsDeactivateModalVisible(false)}
                                 shouldSetModalVisibility={false}
-                                prompt={translate('workspace.card.deactivateCard.deactivateConfirmation')}
-                                confirmText={translate('workspace.card.deactivateCard.deactivate')}
+                                prompt={translate('workspace.card.deactivateCardModal.deactivateConfirmation')}
+                                confirmText={translate('workspace.card.deactivateCardModal.deactivate')}
                                 cancelText={translate('common.cancel')}
                                 danger
                             />
