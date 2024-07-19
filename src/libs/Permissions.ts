@@ -19,10 +19,6 @@ function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
 
-function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
-}
-
 function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
 }
@@ -71,7 +67,6 @@ export default {
     canUseChronos,
     canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseViolations,
     canUseDupeDetection,
     canUseReportFields,
     canUseP2PDistanceRequests,

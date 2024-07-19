@@ -42,7 +42,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {canUseViolations} = usePermissions();
     const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
@@ -152,7 +151,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
-                    canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
                 />
             );
@@ -169,7 +167,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             shouldDisableFocusOptions,
             transactions,
             transactionViolations,
-            canUseViolations,
             onLayoutItem,
         ],
     );

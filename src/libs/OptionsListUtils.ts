@@ -1752,9 +1752,6 @@ function getUserToInviteOption({
  * Check whether report has violations
  */
 function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
-    if (!Permissions.canUseViolations(betas)) {
-        return false;
-    }
     const {parentReportID, parentReportActionID} = report ?? {};
     const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
     if (!canGetParentReport) {

@@ -305,7 +305,6 @@ function getOptionData({
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
         if (
-            Permissions.canUseViolations(allBetas) &&
             ReportUtils.shouldDisplayTransactionThreadViolations(
                 oneTransactionThreadReport,
                 transactionViolations,

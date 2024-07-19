@@ -1639,13 +1639,11 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
-    if (Permissions.canUseViolations(betas)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
@@ -1702,13 +1700,11 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
-    if (Permissions.canUseViolations(betas)) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: transactionViolations ?? null,
+    });
 
     if (shouldDeleteTransactionThread) {
         failureData.push({
@@ -5419,13 +5415,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     ];
 
-    if (Permissions.canUseViolations(betas)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
@@ -5530,13 +5524,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     ];
 
-    if (Permissions.canUseViolations(betas)) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: transactionViolations ?? null,
+    });
 
     if (shouldDeleteTransactionThread) {
         failureData.push({

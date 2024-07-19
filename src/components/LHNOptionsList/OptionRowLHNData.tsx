@@ -26,7 +26,6 @@ function OptionRowLHNData({
     transaction,
     lastReportActionTransaction,
     transactionViolations,
-    canUseViolations,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -35,7 +34,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
+    const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -69,7 +68,6 @@ function OptionRowLHNData({
         parentReportAction,
         transaction,
         transactionViolations,
-        canUseViolations,
         receiptTransactions,
     ]);
 

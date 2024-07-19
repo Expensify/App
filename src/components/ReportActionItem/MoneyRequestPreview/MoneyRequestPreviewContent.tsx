@@ -84,7 +84,6 @@ function MoneyRequestPreviewContent({
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const {canUseViolations} = usePermissions();
 
     const participantAccountIDs =
         ReportActionsUtils.isMoneyRequestAction(action) && isBillSplit ? ReportActionsUtils.getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
@@ -112,10 +111,9 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations);
-    const hasNoticeTypeViolations = !!(
+    const hasNoticeTypeViolations = (
         TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations) &&
-        ReportUtils.isPaidGroupPolicy(iouReport) &&
-        canUseViolations
+        ReportUtils.isPaidGroupPolicy(iouReport)
     );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);

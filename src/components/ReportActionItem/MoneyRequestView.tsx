@@ -118,7 +118,7 @@ function MoneyRequestView({
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
+    const {canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -192,8 +192,8 @@ function MoneyRequestView({
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
-        [canUseViolations, getViolationsForField],
+            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
+        [getViolationsForField],
     );
 
     let amountDescription = `${translate('iou.amount')}`;
@@ -346,7 +346,7 @@ function MoneyRequestView({
     ];
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
-    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowNotesViolations = !isReceiptBeingScanned && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
