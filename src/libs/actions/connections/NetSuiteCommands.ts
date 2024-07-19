@@ -7,7 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections, NetSuiteCustomFormID} from '@src/types/onyx/Policy';
+import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type SubsidiaryParam = {
@@ -402,6 +402,118 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
     API.write(commandName, params, onyxData);
 }
 
+function updateNetSuiteCustomersJobsMapping(
+    policyID: string,
+    mappingValue: {
+        customersMapping: NetSuiteMappingValues;
+        jobsMapping: NetSuiteMappingValues;
+    },
+    oldMappingValue: {
+        customersMapping?: NetSuiteMappingValues;
+        jobsMapping?: NetSuiteMappingValues;
+    },
+) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            customers: mappingValue.customersMapping,
+                                            jobs: mappingValue.jobsMapping,
+                                            pendingFields: {
+                                                customers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                                jobs: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        customers: null,
+                                        jobs: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            customers: mappingValue.customersMapping,
+                                            jobs: mappingValue.jobsMapping,
+                                            pendingFields: {
+                                                customers: null,
+                                                jobs: null,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        customers: null,
+                                        jobs: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            customers: oldMappingValue.customersMapping,
+                                            jobs: oldMappingValue.jobsMapping,
+                                            pendingFields: {
+                                                customers: null,
+                                                jobs: null,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        customers: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                        jobs: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        ...mappingValue,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOMERS_JOBS_MAPPING, params, onyxData);
+}
+
 function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: boolean) {
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX, isSyncTaxEnabled, !isSyncTaxEnabled);
 
@@ -425,6 +537,31 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
         enabled: isCrossSubsidiaryCustomersEnabled,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION, params, onyxData);
+}
+
+function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomSegment[], oldRecords: NetSuiteCustomSegment[]) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords);
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS,
+        {
+            policyID,
+            customSegments: JSON.stringify(records),
+        },
+        onyxData,
+    );
+}
+
+function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[]) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords);
+    API.write(
+        WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
+        {
+            policyID,
+            customLists: JSON.stringify(records),
+        },
+        onyxData,
+    );
 }
 
 function updateNetSuiteExporter(policyID: string, exporter: string, oldExporter: string) {
@@ -849,6 +986,8 @@ export {
     updateNetSuiteExportToNextOpenPeriod,
     updateNetSuiteImportMapping,
     updateNetSuiteCrossSubsidiaryCustomersConfiguration,
+    updateNetSuiteCustomSegments,
+    updateNetSuiteCustomLists,
     updateNetSuiteAutoSync,
     updateNetSuiteSyncReimbursedReports,
     updateNetSuiteSyncPeople,
@@ -862,4 +1001,5 @@ export {
     updateNetSuiteExportJournalsTo,
     updateNetSuiteApprovalAccount,
     updateNetSuiteCustomFormIDOptions,
+    updateNetSuiteCustomersJobsMapping,
 };

@@ -17,14 +17,6 @@ const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.REPORT,
 ]);
 
-function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
-    if (!screen) {
-        return false;
-    }
-
-    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
-}
-
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = cloneDeep(state);
     const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
@@ -33,5 +25,12 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     }
     return stateCopy;
 };
+
+function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
+    if (!screen) {
+        return false;
+    }
+    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
+}
 
 export {isCentralPaneName, removePolicyIDParamFromState};

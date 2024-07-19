@@ -527,7 +527,7 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
-function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
 }
 
@@ -573,15 +573,15 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: boolean): boolean {
-    return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
+function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
+    return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
 function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
     // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
     // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
     // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
+    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
@@ -950,7 +950,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
-    didRceiptScanSucceed,
+    didReceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
