@@ -44,7 +44,7 @@ const FS = {
     /**
      * Sets the identity as anonymous using the FullStory library.
      */
-    anonymize: () => FullStory('setIdentity', {anonymous: true}),
+    anonymize: () => FullStory('setIdentity', {anonymous: false}),
 
     /**
      * Sets the identity consent status using the FullStory library.
@@ -79,7 +79,8 @@ const FS = {
     fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
         // define FullStory user identity
         FullStory('setIdentity', {
-            uid: String(metadata.accountID),
+            anonymous: false,
+            uid: String(metadata?.accountID),
             properties: metadata,
         });
     },

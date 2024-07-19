@@ -1,7 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserMetadata} from '@src/types/onyx';
@@ -55,11 +54,12 @@ const FS = {
      * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
-        Environment.getEnvironment().then((envName: string) => {
+        Environment.getEnvironment().then(() => {
             // define FullStory user identity
             const localMetadata = metadata;
-            localMetadata.environment = envName;
-            FullStory.identify(String(localMetadata.accountID), {
+            // localMetadata?.environment = envName;
+            FullStory.identify(String(localMetadata?.accountID), {
+                anonymous: false,
                 properties: localMetadata,
             });
         });
