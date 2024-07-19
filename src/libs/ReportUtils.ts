@@ -284,7 +284,7 @@ type OptimisticChatReport = Pick<
     isOptimisticReport: true;
 };
 
-type OptimisticExportAction = OriginalMessageExportedToIntegration &
+type OptimisticExportIntegrationAction = OriginalMessageExportedToIntegration &
     Pick<
         ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>,
         'reportActionID' | 'actorAccountID' | 'avatar' | 'created' | 'lastModified' | 'message' | 'person' | 'shouldShow' | 'pendingAction' | 'errors' | 'automatic'
@@ -5149,7 +5149,7 @@ function buildOptimisticTaskReport(
  * @param integration - The connectionName of the integration
  * @param markedManually - Whether the integration was marked as manually exported
  */
-function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportAction {
+function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
     const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
     return {
         reportActionID: NumberUtils.rand64(),
@@ -5157,7 +5157,13 @@ function buildOptimisticExportIntegrationAction(integration: ConnectionName, mar
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [],
-        person: [],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
         automatic: false,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
