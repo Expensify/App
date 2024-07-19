@@ -525,7 +525,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }
 
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(holdReportAction);
-    const shouldShowHoldAction = (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
+    const shouldShowHoldAction =
+        (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
+        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
