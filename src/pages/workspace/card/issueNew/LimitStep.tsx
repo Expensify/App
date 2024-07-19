@@ -81,6 +81,7 @@ function LimitStep() {
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 // TODO: change the submitButtonText to 'common.confirm' when editing and navigate to ConfirmationStep
                 submitButtonText={translate('common.next')}
+                shouldHideFixErrorsAlert
                 onSubmit={submit}
                 style={[styles.flex1]}
                 submitButtonStyles={[styles.mh5, styles.mt0]}
