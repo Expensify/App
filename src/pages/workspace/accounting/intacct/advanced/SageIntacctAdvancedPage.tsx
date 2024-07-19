@@ -118,7 +118,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     switchAccessibilityLabel={section.label}
                     isActive={section.isActive}
                     onToggle={section.onToggle}
-                    wrapperStyle={[styles.ph5, styles.pb3]}
+                    wrapperStyle={[styles.ph5, styles.pv3]}
                     pendingAction={section.pendingAction}
                     errors={section.error}
                     onCloseError={section.onCloseError}

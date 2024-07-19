@@ -49,13 +49,19 @@ const ROUTES = {
         },
     },
 
+    SEARCH_ADVANCED_FILTERS: 'search/filters',
+
+    SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
+
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
+
     SEARCH_REPORT: {
-        route: '/search/:query/view/:reportID',
+        route: 'search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
     TRANSACTION_HOLD_REASON_RHP: {
-        route: '/search/:query/hold/:transactionID',
+        route: 'search/:query/hold/:transactionID',
         getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
     },
 
@@ -198,8 +204,7 @@ const ROUTES = {
     },
     SETTINGS_2FA: {
         route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
 
@@ -700,7 +705,8 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'settings/workspaces/:policyID/upgrade/:featureName',
-        getRoute: (policyID: string, featureName: string) => `settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const,
+        getRoute: (policyID: string, featureName: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
@@ -814,6 +820,10 @@ const ROUTES = {
     WORKSPACE_TAX_VALUE: {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
+    },
+    WORKSPACE_TAX_CODE: {
+        route: 'settings/workspaces/:policyID/tax/:taxID/tax-code',
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/tax-code` as const,
     },
     WORKSPACE_REPORT_FIELDS: {
         route: 'settings/workspaces/:policyID/reportFields',
