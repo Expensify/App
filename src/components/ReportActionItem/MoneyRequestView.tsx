@@ -311,7 +311,7 @@ function MoneyRequestView({
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report.reportID))}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnit')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}

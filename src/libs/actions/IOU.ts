@@ -2572,18 +2572,11 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (updatedTransaction && hasModifiedDistanceRate) {
-        // In order to build a proper optimistic action's originalMessage, we need to provide these values
-        transactionChanges.amount = updatedTransaction.modifiedAmount;
-        transactionChanges.merchant = updatedTransaction.modifiedMerchant;
-        transactionChanges.currency = updatedTransaction.modifiedCurrency;
-    }
-
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, updatedTransaction, transactionChanges, isFromExpenseReport, policy);
     if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -2884,18 +2877,11 @@ function getUpdateTrackExpenseParams(
         });
     }
 
-    if (updatedTransaction && hasModifiedDistanceRate) {
-        // In order to build a proper optimistic action's originalMessage, we need to provide these values
-        transactionChanges.amount = updatedTransaction.modifiedAmount;
-        transactionChanges.merchant = updatedTransaction.modifiedMerchant;
-        transactionChanges.currency = updatedTransaction.modifiedCurrency;
-    }
-
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, updatedTransaction, transactionChanges, false, policy);
     if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -5065,8 +5051,8 @@ function editRegularMoneyRequest(
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
 
     // STEP 2: Build new modified expense report action.
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
     const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, updatedTransaction, transactionChanges, isFromExpenseReport, policy);
 
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // Should only update if the transaction matches the currency of the report, else we wait for the update

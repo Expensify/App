@@ -434,7 +434,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
     },
-    keyof Comment
+    keyof Comment | keyof TransactionCustomUnit
 >;
 
 /** Keys of pending transaction fields */
