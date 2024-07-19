@@ -27,7 +27,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
 
     // TODO: change true for false after API is ready - true is for testing purposes
-    const showMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? true;
+    const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? true;
     const selectedFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 
     const data = useMemo(() => {
@@ -40,7 +40,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             isSelected: selectedFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
         });
 
-        if (showMonthlyOption) {
+        if (shouldShowMonthlyOption) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
                 text: translate('workspace.expensifyCard.frequency.monthly'),
@@ -50,7 +50,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         }
 
         return options;
-    }, [translate, showMonthlyOption, selectedFrequency]);
+    }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
         Card.updateSettlementFrequency(policyID, value);

@@ -163,8 +163,7 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.allowDebit || bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
+    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS || bankAccount?.accountData?.allowDebit);
 }
 
 export {
