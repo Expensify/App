@@ -73,6 +73,8 @@ describe('libs/NextStepUtils', () => {
         describe('it generates an optimistic nextStep once a report has been opened', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                // Waiting for userSubmitter to add expenses.
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -103,8 +105,10 @@ describe('libs/NextStepUtils', () => {
                     optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 });
 
+                // Format: Waiting for userSubmitter's expense(s) to automatically submit on scheduleSubmitSetting
+
                 test('daily', () => {
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+                    // Waiting for userSubmitter's expense(s) to automatically submit later today
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -135,7 +139,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('weekly', () => {
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+                    // Waiting for userSubmitter's expense(s) to automatically submit on Sunday
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -166,7 +170,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('twice a month', () => {
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+                    // Waiting for userSubmitter's expense(s) to automatically submit on the 1st and 16th of each month
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -197,7 +201,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('monthly on the 2nd', () => {
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+                    // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -229,7 +233,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('monthly on the last day', () => {
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+                    // Waiting for userSubmitter's expense(s) to automatically submit on lastDayOfMonth of each month
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -262,7 +266,8 @@ describe('libs/NextStepUtils', () => {
 
                 test('monthly on the last business day', () => {
                     const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(new Date());
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+
+                    // Waiting for userSubmitter's expense(s) to automatically submit on lastBusinessDayOfMonth of each month
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -294,7 +299,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('trip', () => {
-                    // Waiting for userSubmitter expense(s) to automatically submit on scheduleSubmitSetting
+                    // Waiting for userSubmitter's expense(s) to automatically submit at the end of their trip
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -325,6 +330,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('manual', () => {
+                    // Waiting for userSubmitter to add expenses.
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -362,6 +368,7 @@ describe('libs/NextStepUtils', () => {
         describe('it generates an optimistic nextStep once a report has been submitted', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
                 // Waiting for userAdmin to pay expense(s)
                 optimisticNextStep.message = [
                     {
@@ -391,6 +398,7 @@ describe('libs/NextStepUtils', () => {
             test('another reviewer', () => {
                 report.managerID = strangeAccountID;
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
                 // Waiting for userApprover to approve expense(s)
                 optimisticNextStep.message = [
                     {
@@ -428,6 +436,7 @@ describe('libs/NextStepUtils', () => {
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
                 // Waiting for userApprover to approve expense(s)
                 optimisticNextStep.message = [
                     {
@@ -463,7 +472,6 @@ describe('libs/NextStepUtils', () => {
             });
             test('submit and close approval mode', () => {
                 report.ownerAccountID = strangeAccountID;
-                // Finished! No further action required.
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
@@ -484,7 +492,6 @@ describe('libs/NextStepUtils', () => {
         describe('it generates an optimistic nextStep once a report has been approved', () => {
             test('non-payer', () => {
                 report.managerID = strangeAccountID;
-                // Finished! No further action required.
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
@@ -499,6 +506,8 @@ describe('libs/NextStepUtils', () => {
 
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                // Waiting for userAdmin to pay expense(s).
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -535,7 +544,6 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been paid', () => {
             test('paid with wallet / outside of Expensify', () => {
-                // Finished! No further action required.
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
