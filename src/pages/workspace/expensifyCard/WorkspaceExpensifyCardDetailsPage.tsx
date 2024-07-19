@@ -128,7 +128,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 description={translate('workspace.card.issueNewCard.cardName')}
                                 title={card.nameValuePairs?.cardTitle}
                                 shouldShowRightIcon
-                                onPress={() => {}} // TODO: navigate to Edit card name page https://github.com/Expensify/App/issues/44327
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
                             />
                             <MenuItem
                                 icon={Expensicons.Trashcan}
