@@ -22,6 +22,12 @@ function TripDetailsMenuItem() {
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(CONST.RESERVATION_TYPE.FLIGHT);
 
+    /**
+     * Temporary mock data value which will be replaced once the
+     * backend implementation and data structure gets merged into staging
+     */
+    const mockData = 'data';
+
     return (
         <View style={[styles.pv3, styles.ph5]}>
             <View style={[styles.tripDetailsContainer, styles.pb3]}>
@@ -32,34 +38,34 @@ function TripDetailsMenuItem() {
                     />
                 </View>
                 <View>
-                    <Text style={styles.textBold}>{'data'}</Text>
-                    <Text style={styles.textLabelSupporting}>{'data'}</Text>
+                    <Text style={styles.textBold}>{mockData}</Text>
+                    <Text style={styles.textLabelSupporting}>{mockData}</Text>
                 </View>
             </View>
 
             <View style={[styles.tripDetailsContainer, styles.pt3]}>
-                <Text style={[styles.textBold, styles.textLarge]}>{'data'}</Text>
+                <Text style={[styles.textBold, styles.textLarge]}>{mockData}</Text>
                 <View style={[styles.tripDetailsContainer, styles.flex1, styles.justifyContentBetween]}>
                     <View style={styles.tripDetailsLine} />
                     <View style={styles.tripDetailsLineTextContainer}>
-                        <Text style={styles.textLabelSupporting}>{'data'}</Text>
-                        <Text style={[styles.textLabelSupporting, styles.tripDetailsLineSubtext]}>{'data'}</Text>
+                        <Text style={styles.textLabelSupporting}>{mockData}</Text>
+                        <Text style={[styles.textLabelSupporting, styles.tripDetailsLineSubtext]}>{mockData}</Text>
                     </View>
                     <View style={styles.tripDetailsLine} />
                 </View>
-                <Text style={[styles.textBold, styles.textLarge]}>{'data'}</Text>
+                <Text style={[styles.textBold, styles.textLarge]}>{mockData}</Text>
             </View>
 
             <View style={[styles.tripDetailsContainer, styles.pt3]}>
                 <View style={{flex: 1, paddingRight: 24}}>
-                    <Text style={[styles.labelStrong, styles.pb1]}>{'data'}</Text>
-                    <Text style={[styles.textLabelSupporting, styles.pb1]}>{'data'}</Text>
-                    <Text style={styles.textLabelSupporting}>{'data'}</Text>
+                    <Text style={[styles.labelStrong, styles.pb1]}>{mockData}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.pb1]}>{mockData}</Text>
+                    <Text style={styles.textLabelSupporting}>{mockData}</Text>
                 </View>
                 <View style={{flex: 1, paddingLeft: 24, alignItems: 'flex-end'}}>
-                    <Text style={[styles.labelStrong, styles.pb1]}>{'data'}</Text>
-                    <Text style={[styles.textLabelSupporting, styles.textAlignRight, styles.pb1]}>{'data'}</Text>
-                    <Text style={[styles.textLabelSupporting, styles.textAlignRight]}>{'data'}</Text>
+                    <Text style={[styles.labelStrong, styles.pb1]}>{mockData}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.textAlignRight, styles.pb1]}>{mockData}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.textAlignRight]}>{mockData}</Text>
                 </View>
             </View>
         </View>
