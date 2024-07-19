@@ -10,10 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabSelectorItem from './TabSelectorItem';
+import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
+
+   registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 type IconAndTitle = {
@@ -53,7 +56,7 @@ function getOpacity(position: Animated.AnimatedInterpolation<number>, routesLeng
     return activeValue;
 }
 
-function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSelectorProps) {
+function TabSelector({state, navigation, onTabPress = () => {}, position, registerFocusTrapContainer}: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -83,7 +86,12 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
     }, [defaultAffectedAnimatedTabs, state.index]);
 
     return (
-        <View style={styles.tabSelector}>
+        <View style={styles.tabSelector} ref={(viewNode) => {
+            if(viewNode) {
+                const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+                return () => unregister?.();
+            }
+        }}>
             {state.routes.map((route, index) => {
                 const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);

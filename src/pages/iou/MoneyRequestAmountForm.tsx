@@ -25,6 +25,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
@@ -67,6 +68,8 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
+
+    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -92,6 +95,7 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
+        registerFocusTrapContainer
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -251,7 +255,12 @@ function MoneyRequestAmountForm(
     }, [selectedTab]);
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        <ScrollView ref={(scrollViewNode) => {
+            if(scrollViewNode) {
+                const unregister = registerFocusTrapContainer?.(scrollViewNode as unknown as HTMLElement);
+                return () => unregister?.();
+            }
+        }} contentContainerStyle={styles.flexGrow1}>
             <View
                 id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}

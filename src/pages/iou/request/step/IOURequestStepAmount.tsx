@@ -26,6 +26,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type AmountParams = {
     amount: string;
@@ -57,6 +58,8 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 
         /** Whether the user input should be kept or not */
         shouldKeepUserInput?: boolean;
+
+        registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
     };
 
 function IOURequestStepAmount({
@@ -72,6 +75,7 @@ function IOURequestStepAmount({
     skipConfirmation,
     draftTransaction,
     shouldKeepUserInput = false,
+    registerFocusTrapContainer,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -323,6 +327,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
+                registerFocusTrapContainer={registerFocusTrapContainer}
             />
         </StepScreenWrapper>
     );

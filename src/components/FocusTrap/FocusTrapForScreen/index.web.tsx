@@ -9,7 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
-function FocusTrapForScreen({children}: FocusTrapProps) {
+function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -36,6 +36,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
         <FocusTrap
             active={isActive}
             paused={!isFocused}
+            containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
@@ -54,6 +55,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                     }
                     return element;
                 },
+                ...(focusTrapSettings?.focusTrapOptions ?? {}),
             }}
         >
             {children}

@@ -37,6 +37,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type IOURequestStepDistanceOnyxProps = {
     /** backup version of the original transaction  */
@@ -57,6 +58,7 @@ type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
+        registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
     };
 
 function IOURequestStepDistance({
@@ -70,6 +72,7 @@ function IOURequestStepDistance({
     personalDetails,
     currentUserPersonalDetails,
     skipConfirmation,
+    registerFocusTrapContainer,
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -454,7 +457,12 @@ function IOURequestStepDistance({
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
-                <View style={styles.flex1}>
+                <View style={styles.flex1} ref={(viewNode) => {
+                    if(viewNode) {
+                        const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+                        return () => unregister?.();
+                    }
+                }}>
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}

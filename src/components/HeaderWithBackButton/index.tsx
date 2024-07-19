@@ -1,5 +1,3 @@
-import React, {useMemo} from 'react';
-import {Keyboard, StyleSheet, View} from 'react-native';
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -15,11 +13,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
+import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import variables from '@styles/variables';
+import React, { useMemo } from 'react';
+import { Keyboard, StyleSheet, View } from 'react-native';
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
@@ -60,6 +60,7 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     progressBarPercentage,
     style,
+    registerFocusTrapContainer
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -141,6 +142,12 @@ function HeaderWithBackButton({
                 shouldOverlay && StyleSheet.absoluteFillObject,
                 style,
             ]}
+            ref={(viewNode) => {
+                if(viewNode) {
+                    const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+                    return () => unregister?.();
+                }
+            }}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (

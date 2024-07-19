@@ -55,6 +55,7 @@ function IOURequestStepScan({
     personalDetails,
     currentUserPersonalDetails,
     skipConfirmation,
+    registerFocusTrapContainer,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -672,7 +673,12 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                <View ref={(viewNode) => {
+                    if (viewNode) {
+                        const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+                        return () => unregister?.();
+                    }
+                }} style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
                     {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                     <ReceiptDropUI
                         onDrop={(e) => {

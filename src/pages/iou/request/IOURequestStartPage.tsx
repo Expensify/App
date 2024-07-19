@@ -29,6 +29,7 @@ import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
+import useFocusTrapContainers from '@hooks/useFocusTrapContainers';
 
 type IOURequestStartPageOnyxProps = {
     /** The report that holds the transaction */
@@ -76,20 +77,20 @@ function IOURequestStartPage({
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
-    useFocusEffect(
-        useCallback(() => {
-            const handler = (event: KeyboardEvent) => {
-                if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-                    return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-            };
-            KeyDownPressListener.addKeyDownPressListener(handler);
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         const handler = (event: KeyboardEvent) => {
+    //             if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+    //                 return;
+    //             }
+    //             event.preventDefault();
+    //             event.stopPropagation();
+    //         };
+    //         KeyDownPressListener.addKeyDownPressListener(handler);
 
-            return () => KeyDownPressListener.removeKeyDownPressListener(handler);
-        }, []),
-    );
+    //         return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+    //     }, []),
+    // );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
@@ -117,6 +118,20 @@ function IOURequestStartPage({
         [policy, reportID, isFromGlobalCreate, transaction],
     );
 
+    const [containers, addContainer] = useFocusTrapContainers();
+    const [manualTabContainers, addManualTabContainer] = useFocusTrapContainers();
+    const [scanTabContainers, addScanTabContainer] = useFocusTrapContainers();
+    const [distanceTabContainers, addDistanceTabContainer] = useFocusTrapContainers();
+
+    const focusTrapContainers = [
+        ...containers,
+        ...(selectedTab === CONST.TAB_REQUEST.MANUAL ? manualTabContainers : []),
+        ...(selectedTab === CONST.TAB_REQUEST.SCAN ? scanTabContainers : []),
+        ...(selectedTab === CONST.TAB_REQUEST.DISTANCE ? distanceTabContainers : []),
+    ]
+
+    console.log(focusTrapContainers);
+
     if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
         // which will lead to briefly displaying the Not Found page without this loader.
@@ -137,6 +152,7 @@ function IOURequestStartPage({
                 shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
+                focusTrapSettings={{containerElements: focusTrapContainers, focusTrapOptions: {preventScroll: true}}}
             >
                 {({safeAreaPaddingBottomStyle}) => (
                     <DragAndDropProvider
@@ -147,28 +163,36 @@ function IOURequestStartPage({
                             <HeaderWithBackButton
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
+                                registerFocusTrapContainer={addContainer}
                             />
                             {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}
-                                    tabBar={TabSelector}
+                                    tabBar={(props) => (
+                                        <TabSelector
+                                            {...props}
+                                            registerFocusTrapContainer={addContainer}
+                                        />
+                                    )}
                                 >
                                     <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                         {() => (
                                             <IOURequestStepAmount
                                                 shouldKeepUserInput
                                                 route={route}
+                                                registerFocusTrapContainer={addManualTabContainer}
                                             />
                                         )}
                                     </TopTab.Screen>
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
-                                    {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan registerFocusTrapContainer={addScanTabContainer} route={route} />}</TopTab.Screen>
+                                    {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} registerFocusTrapContainer={addDistanceTabContainer} />}</TopTab.Screen>}
                                 </OnyxTabNavigator>
                             ) : (
                                 <IOURequestStepAmount
                                     route={route}
                                     shouldKeepUserInput
+                                    registerFocusTrapContainer={addManualTabContainer}
                                 />
                             )}
                         </View>

@@ -26,6 +26,7 @@ import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
 import withNavigationFallback from './withNavigationFallback';
+import FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -99,6 +100,8 @@ type ScreenWrapperProps = {
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+    focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 };
 
 type ScreenWrapperStatusContextType = {didScreenTransitionEnd: boolean};
@@ -126,6 +129,7 @@ function ScreenWrapper(
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
+        focusTrapSettings
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -242,7 +246,7 @@ function ScreenWrapper(
                 }
 
                 return (
-                    <FocusTrapForScreens>
+                    <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
                         <View
                             ref={ref}
                             style={[styles.flex1, {minHeight}]}

@@ -9,6 +9,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
@@ -130,6 +131,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 export type {ThreeDotsMenuItem};
