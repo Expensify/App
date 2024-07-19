@@ -11,11 +11,13 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InvertedFlatList from '@components/InvertedFlatList';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLog} from '@libs/actions/Console';
 import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/Console';
@@ -40,15 +42,55 @@ type ConsolePageOnyxProps = {
 
 type ConsolePageProps = ConsolePageOnyxProps;
 
+const filterBy = {
+    all: '',
+    network: '-[Network]-',
+} as const;
+type FilterBy = (typeof filterBy)[keyof typeof filterBy];
+
 function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
     const [logs, setLogs] = useState(capturedLogs);
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
+    const [activeFilterIndex, setActiveFilterIndex] = useState<FilterBy>(filterBy.all);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
+
+    const menuItems: PopoverMenuItem[] = useMemo(
+        () => [
+            {
+                text: translate('common.filterLogs'),
+                disabled: true,
+            },
+            {
+                icon: Expensicons.All,
+                text: translate('common.all'),
+                iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: activeFilterIndex === filterBy.all,
+                success: activeFilterIndex === filterBy.all,
+                onSelected: () => {
+                    setActiveFilterIndex(filterBy.all);
+                },
+            },
+            {
+                icon: Expensicons.CardsAndDomains,
+                text: translate('common.network'),
+                iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
+                iconRight: Expensicons.CheckCircle,
+                shouldShowRightIcon: activeFilterIndex === filterBy.network,
+                success: activeFilterIndex === filterBy.network,
+                onSelected: () => {
+                    setActiveFilterIndex(filterBy.network);
+                },
+            },
+        ],
+        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
+    );
 
     const logsList = useMemo(
         () =>
@@ -57,6 +99,8 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 .reverse(),
         [logs],
     );
+
+    const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
 
     useEffect(() => {
         if (!shouldStoreLogs) {
@@ -121,10 +165,12 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
+                shouldShowThreeDotsButton
+                threeDotsMenuItems={menuItems}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
                 <InvertedFlatList
-                    data={logsList}
+                    data={filteredLogsList}
                     renderItem={renderItem}
                     contentContainerStyle={styles.p5}
                     ListEmptyComponent={<Text>{translate('initialSettingsPage.debugConsole.noLogsAvailable')}</Text>}
