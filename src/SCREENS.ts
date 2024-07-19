@@ -199,6 +199,7 @@ const SCREENS = {
         TAX_CODE: 'Transaction_Duplicate_Tax_Code',
         REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
         BILLABLE: 'Transaction_Duplicate_Billable',
+        CONFIRMATION: 'Transaction_Duplicate_Confirmation',
     },
 
     IOU_SEND: {
