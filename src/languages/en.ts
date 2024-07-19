@@ -2951,9 +2951,9 @@ export default {
                 limitType: 'Limit type',
                 name: 'Name',
             },
-            deactivateCard: {
+            deactivateCardModal: {
                 deactivate: 'Deactivate',
-                deactivateCardModal: 'Deactivate card',
+                deactivateCard: 'Deactivate card',
                 deactivateConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
             },
         },

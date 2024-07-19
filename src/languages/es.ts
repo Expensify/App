@@ -3198,9 +3198,9 @@ export default {
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
             },
-            deactivateCard: {
+            deactivateCardModal: {
                 deactivate: 'Desactivar',
-                deactivateCardModal: 'Desactivar tarjeta',
+                deactivateCard: 'Desactivar tarjeta',
                 deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
             },
         },
