@@ -5684,6 +5684,9 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 iouReportID: null,
                 lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.lastMessageText,
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.created,
+                pendingFields: {
+                    preview: 'delete',
+                },
             },
         });
     }
