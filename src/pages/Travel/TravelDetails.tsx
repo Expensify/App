@@ -28,7 +28,11 @@ function TravelDetails({route}: TravelDetailsProps) {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`);
+    const reportID = route.params.reportID;
+    const transactionID = route.params.transactionID;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
     const testDetails = {
         date: 'Thursday, Jan 18, 2024',
