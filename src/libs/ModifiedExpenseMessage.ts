@@ -261,19 +261,6 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         );
     }
 
-    const hasModifiedDistanceRate = reportActionOriginalMessage && 'oldCustomUnitRate' in reportActionOriginalMessage && 'customUnitRate' in reportActionOriginalMessage;
-    if (hasModifiedDistanceRate) {
-        buildMessageFragmentForValue(
-            reportActionOriginalMessage?.customUnitRate ?? '',
-            reportActionOriginalMessage?.oldCustomUnitRate ?? '',
-            Localize.translateLocal('iou.mileageRate'),
-            false,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
-    }
-
     const message =
         getMessageLine(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +

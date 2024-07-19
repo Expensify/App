@@ -668,7 +668,6 @@ export default {
         amount: 'Amount',
         taxAmount: 'Tax amount',
         taxRate: 'Tax rate',
-        mileageRate: 'Mileage rate',
         approve: 'Approve',
         approved: 'Approved',
         cash: 'Cash',

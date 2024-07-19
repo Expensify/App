@@ -204,7 +204,7 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
-    const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '-1';
+    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -311,8 +311,7 @@ function MoneyRequestView({
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report.reportID))}
                 />
             </OfflineWithFeedback>
-            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36987 */}
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnit')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}

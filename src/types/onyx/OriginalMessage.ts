@@ -314,12 +314,6 @@ type OriginalMessageModifiedExpense = {
     /** Old expense tax rate */
     oldTaxRate?: string;
 
-    /** Edited expense distance rate */
-    customUnitRate?: string;
-
-    /** Old expense distance rate */
-    oldCustomUnitRate?: string;
-
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 

@@ -2449,30 +2449,43 @@ function calculateDiffAmount(
     return 0;
 }
 
-function calculateAmountForUpdatedWaypoint(
+function calculateAmountForUpdatedWaypointOrRate(
     transaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
 ) {
-    let updatedAmount: number = CONST.IOU.DEFAULT_AMOUNT;
-    let updatedMerchant = Localize.translateLocal('iou.fieldPending');
-    if (!isEmptyObject(transactionChanges?.routes?.route0?.geometry)) {
-        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-        const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
-        const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-        const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-            ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-            : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
-        const {unit, rate} = mileageRate;
-        const distance = TransactionUtils.getDistance(transaction);
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
-        updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
-        updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
-            toLocaleDigit(preferredLocale, digit),
-        );
+    const hasModifiedRate = !isEmptyObject(transactionChanges.customUnitRateID);
+    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && !hasModifiedRate) {
+        return {
+            amount: CONST.IOU.DEFAULT_AMOUNT,
+            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+            modifiedMerchant: Localize.translateLocal('iou.fieldPending')
+        };
     }
-    return {amount: updatedAmount, modifiedAmount: updatedAmount, modifiedMerchant: updatedMerchant};
+
+    const customUnitRateID = hasModifiedRate ? transactionChanges.customUnitRateID! : TransactionUtils.getRateID(transaction) ?? '';
+
+    const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
+    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
+    const {unit, rate} = mileageRate;
+
+    const distanceInMeters = TransactionUtils.getDistanceInMeters(transaction, unit);
+    const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+    const updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
+    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
+        toLocaleDigit(preferredLocale, digit),
+    );
+
+    return {
+        amount: updatedAmount,
+        modifiedAmount: updatedAmount,
+        modifiedMerchant: updatedMerchant,
+        modifiedCurrency: policyCurrency,
+    };
 }
 
 /**
@@ -2532,10 +2545,11 @@ function getUpdateMoneyRequestParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy, iouReport),
+            ...calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, iouReport),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2556,6 +2570,13 @@ function getUpdateMoneyRequestParams(
                 modifiedMerchant: transaction.modifiedMerchant,
             },
         });
+    }
+
+    if (updatedTransaction && hasModifiedDistanceRate) {
+        // In order to build a proper optimistic action's originalMessage, we need to provide these values
+        transactionChanges.amount = updatedTransaction.modifiedAmount;
+        transactionChanges.merchant = updatedTransaction.modifiedMerchant;
+        transactionChanges.currency = updatedTransaction.modifiedCurrency;
     }
 
     // Step 3: Build the modified expense report actions
@@ -2836,10 +2857,11 @@ function getUpdateTrackExpenseParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy, transactionThread),
+            ...calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, transactionThread),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2860,6 +2882,13 @@ function getUpdateTrackExpenseParams(
                 modifiedMerchant: transaction.modifiedMerchant,
             },
         });
+    }
+
+    if (updatedTransaction && hasModifiedDistanceRate) {
+        // In order to build a proper optimistic action's originalMessage, we need to provide these values
+        transactionChanges.amount = updatedTransaction.modifiedAmount;
+        transactionChanges.merchant = updatedTransaction.modifiedMerchant;
+        transactionChanges.currency = updatedTransaction.modifiedCurrency;
     }
 
     // Step 3: Build the modified expense report actions
@@ -3174,6 +3203,7 @@ function updateMoneyRequestDistanceRate(
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
     };
+    const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
 
     let data: UpdateMoneyRequestData;

@@ -448,6 +448,7 @@ type AdditionalTransactionChanges = {
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
 
+    /** The ID of the distance rate */
     customUnitRateID?: string;
 
     /** Previous amount before changes */
