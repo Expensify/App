@@ -2042,6 +2042,7 @@ export default {
         details: 'Detalles',
         tripSupport: 'Soporte de viaje',
         confirmationNo: 'No. de confirmación',
+        itineraryNo: 'Itinerario No.',
     },
     workspace: {
         common: {
