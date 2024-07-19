@@ -41,7 +41,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             }
 
             setPolicyTaxCode(policyID, currentTaxCode, newTaxCode);
-            Navigation.dismissModal();
+            Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, newTaxCode));
         },
         [currentTaxCode, policyID],
