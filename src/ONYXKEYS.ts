@@ -134,7 +134,7 @@ const ONYXKEYS = {
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
-    NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
+    NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
@@ -451,6 +451,9 @@ const ONYXKEYS = {
 
         /** The bank account that Expensify Card payments will be reconciled against */
         SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',
+
+        /** If continuous reconciliation is enabled */
+        SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'sharedNVP_expensifyCard_useContinuousReconciliation_',
     },
 
     /** List of Form ids */
@@ -702,6 +705,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.BankAccount;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
 };
 
 type OnyxValuesMapping = {
