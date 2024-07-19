@@ -41,7 +41,7 @@ function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelec
         hidePickerModal();
     };
 
-    const title = Str.recapitalize(translate(getUnitTranslationKey(defaultValue)));
+    const title = defaultValue ? Str.recapitalize(translate(getUnitTranslationKey(defaultValue))) : '';
 
     return (
         <View>
