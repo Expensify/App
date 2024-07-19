@@ -49,29 +49,20 @@ const ROUTES = {
         },
     },
 
-    SEARCH_ADVANCED_FILTERS: {
-        route: '/search/filters',
-        getRoute: () => `search/filters` as const,
-    },
+    SEARCH_ADVANCED_FILTERS: 'search/filters',
 
-    SEARCH_ADVANCED_FILTERS_DATE: {
-        route: '/search/filters/date',
-        getRoute: () => `search/filters/date` as const,
-    },
+    SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
 
-    SEARCH_ADVANCED_FILTERS_TYPE: {
-        route: '/search/filters/type',
-        getRoute: () => `search/filters/type` as const,
-    },
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
 
     SEARCH_REPORT: {
-        route: '/search/:query/view/:reportID',
+        route: 'search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
     TRANSACTION_HOLD_REASON_RHP: {
-        route: '/search/:query/hold/:transactionID',
-        getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
+        route: 'search/:query/hold',
+        getRoute: (query: string) => `search/${query}/hold` as const,
     },
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -213,8 +204,7 @@ const ROUTES = {
     },
     SETTINGS_2FA: {
         route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
 
@@ -875,6 +865,10 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
+    },
+    WORKSPACE_EXPENSIFY_CARD_NAME: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',

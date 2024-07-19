@@ -1840,6 +1840,9 @@ function getSendInvoiceInformation(
     }
 
     // STEP 5: Build optimistic reportActions.
+    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
+    chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
             optimisticInvoiceReport,
@@ -1853,10 +1856,8 @@ function getSendInvoiceInformation(
             undefined,
             false,
             false,
-            receiptObject,
             false,
         );
-    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
 
     // STEP 6: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForInvoice(
@@ -2033,7 +2034,6 @@ function getMoneyRequestInformation(
             undefined,
             false,
             false,
-            receiptObject,
             false,
             undefined,
             linkedTrackedExpenseReportAction?.childReportID,
@@ -2259,7 +2259,6 @@ function getTrackExpenseInformation(
         undefined,
         false,
         false,
-        receiptObject,
         false,
         !shouldUseMoneyReport,
         linkedTrackedExpenseReportAction?.childReportID,
@@ -3923,7 +3922,6 @@ function createSplitsAndOnyxData(
         '',
         false,
         false,
-        {},
         isOwnPolicyExpenseChat,
     );
 
@@ -4504,7 +4502,6 @@ function startSplitBill({
         '',
         false,
         false,
-        receiptObject,
         isOwnPolicyExpenseChat,
     );
 
@@ -4961,6 +4958,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         tag: transactionTag,
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
     } = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
 
     const parameters: CompleteSplitBillParams = {
@@ -4975,6 +4973,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         splits: JSON.stringify(splits),
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
