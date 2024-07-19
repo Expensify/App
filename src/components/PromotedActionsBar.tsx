@@ -27,7 +27,7 @@ type PromotedAction = {
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    message: (params: {accountID?: number; login?: string}) => PromotedAction;
+    message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
     hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
 };
@@ -50,11 +50,16 @@ const PromotedActions = {
             ReportActions.joinRoom(report);
         }),
     }),
-    message: ({accountID, login}) => ({
+    message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: Expensicons.CommentBubbles,
         text: Localize.translateLocal('common.message'),
         onSelected: () => {
+            if (reportID) {
+                Navigation.dismissModal(reportID);
+                return;
+            }
+
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
                 ReportActions.navigateToAndOpenReport([login]);
