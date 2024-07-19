@@ -378,10 +378,12 @@ function isUserOnFreeTrial(): boolean {
     }
 
     const currentDate = new Date();
-    const firstDayFreeTrialDate = parseDate(firstDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+    const firstDayDate = new Date(firstDayFreeTrial);
+    const lastDayDate = new Date(lastDayFreeTrial);
+    const firstDayFreeTrialDateUTC = new Date(Date.UTC(firstDayDate.getFullYear(), firstDayDate.getMonth(), firstDayDate.getDate(), firstDayDate.getHours(), firstDayDate.getMinutes(), firstDayDate.getSeconds()));
+    const lastDayFreeTrialDateUTC = new Date(Date.UTC(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate(), lastDayDate.getHours(), lastDayDate.getMinutes(), lastDayDate.getSeconds()));
 
-    return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
+    return isAfter(currentDate, firstDayFreeTrialDateUTC) && isBefore(currentDate, lastDayFreeTrialDateUTC);
 }
 
 /**
