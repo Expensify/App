@@ -90,7 +90,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            headerTitle="workspace.sageIntacct.reimbursableExpenses.label"
+            headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             titleStyle={[styles.ph5, styles.pb5]}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
