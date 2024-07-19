@@ -24,6 +24,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 // TODO: remove when Onyx data is available
@@ -127,7 +128,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 description={translate('workspace.card.issueNewCard.cardName')}
                                 title={card.nameValuePairs?.cardTitle}
                                 shouldShowRightIcon
-                                onPress={() => {}} // TODO: navigate to Edit card name page https://github.com/Expensify/App/issues/44327
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
                             />
                             <MenuItem
                                 icon={Expensicons.Trashcan}
