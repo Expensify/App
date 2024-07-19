@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
+import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
-import type {StartTrace, StopTrace, TraceMap} from './types';
+import type {Log, StartTrace, StopTrace, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 
@@ -46,7 +47,12 @@ const stopTrace: StopTrace = (customEventName) => {
     delete traceMap[customEventName];
 };
 
+const log: Log = (action: string) => {
+    crashlytics().log(action);
+};
+
 export default {
     startTrace,
     stopTrace,
+    log,
 };
