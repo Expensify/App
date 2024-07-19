@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
@@ -95,24 +96,26 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     title={translate('workspace.expensifyCard.settlementAccount')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 />
-                <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                {isUsedContinuousReconciliation && (
-                    <Text style={[styles.mh5, styles.mb6]}>
-                        <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, reconciliationConnection))}>
-                            {translate('workspace.expensifyCard.reconciliationAccount')}
-                        </TextLink>{' '}
-                        <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
-                        <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt2')}</Text>
-                    </Text>
-                )}
-                <SelectionList
-                    sections={[{data}]}
-                    ListItem={RadioListItem}
-                    onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
-                    shouldDebounceRowSelect
-                    initiallyFocusedOptionKey={paymentBankAccountID.toString()}
-                />
+                <ScrollView>
+                    <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
+                    {isUsedContinuousReconciliation && (
+                        <Text style={[styles.mh5, styles.mb6]}>
+                            <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
+                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, reconciliationConnection))}>
+                                {translate('workspace.expensifyCard.reconciliationAccount')}
+                            </TextLink>{' '}
+                            <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
+                            <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt2')}</Text>
+                        </Text>
+                    )}
+                    <SelectionList
+                        sections={[{data}]}
+                        ListItem={RadioListItem}
+                        onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
+                        shouldDebounceRowSelect
+                        initiallyFocusedOptionKey={paymentBankAccountID.toString()}
+                    />
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
