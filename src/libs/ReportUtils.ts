@@ -77,7 +77,6 @@ import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import StringUtils from './StringUtils';
-import * as SubscriptionUtils from './SubscriptionUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -2378,10 +2377,6 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (optionOrReport.hasOutstandingChildRequest) {
-        return true;
-    }
-
-    if (isChatUsedForOnboarding(optionOrReport) && SubscriptionUtils.hasUserFreeTrialEnded() && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
         return true;
     }
 

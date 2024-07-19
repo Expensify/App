@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
@@ -9,6 +9,8 @@ import QRShare from '@components/QRShare';
 import type {QRShareHandle} from '@components/QRShare/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -50,6 +52,13 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
     const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
+    const adminRoom = useMemo(() => {
+        if (!policy?.id) {
+            return undefined;
+        }
+        return ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
+    }, [policy?.id]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -63,8 +72,29 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                     title={translate('common.share')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <ScrollView style={[themeStyles.flex1, themeStyles.pt2]}>
+                <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                     <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
+                        <View style={[themeStyles.mh5]}>
+                            <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
+                        </View>
+                        <View style={[themeStyles.mh5, themeStyles.mb9]}>
+                            <Text style={[themeStyles.textNormal]}>
+                                {translate('workspace.common.shareNote.content.firstPart')}{' '}
+                                <TextLink
+                                    style={themeStyles.link}
+                                    onPress={() => {
+                                        if (!adminRoom?.reportID) {
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID));
+                                    }}
+                                >
+                                    {CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
+                                </TextLink>{' '}
+                                {translate('workspace.common.shareNote.content.secondPart')}
+                            </Text>
+                        </View>
+
                         <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph9]}>
                             {/*
                             Right now QR code download button is not shown anymore
