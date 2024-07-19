@@ -36,7 +36,7 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
-    SEARCH: {
+    SEARCH_CENTRAL_PANE: {
         route: '/search/:query',
         getRoute: (searchQuery: SearchQuery, queryParams?: AuthScreensParamList['Search_Central_Pane']) => {
             const {sortBy, sortOrder} = queryParams ?? {};
