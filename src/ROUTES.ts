@@ -3,7 +3,7 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {AuthScreensParamList} from './libs/Navigation/types';
-import type {SageIntacctMappingName} from './types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -49,14 +49,20 @@ const ROUTES = {
         },
     },
 
+    SEARCH_ADVANCED_FILTERS: 'search/filters',
+
+    SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
+
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
+
     SEARCH_REPORT: {
-        route: '/search/:query/view/:reportID',
+        route: 'search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
     },
 
     TRANSACTION_HOLD_REASON_RHP: {
-        route: '/search/:query/hold/:transactionID',
-        getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
+        route: 'search/:query/hold',
+        getRoute: (query: string) => `search/${query}/hold` as const,
     },
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -285,6 +291,10 @@ const ROUTES = {
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+    },
+    REPORT_WITH_ID_DETAILS_EXPORT: {
+        route: 'r/:reportID/details/export/:connectionName',
+        getRoute: (reportID: string, connectionName: ConnectionName) => `r/${reportID}/details/export/${connectionName}` as const,
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
@@ -676,6 +686,15 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
+    WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+    },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) =>
+            `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
@@ -686,7 +705,8 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'settings/workspaces/:policyID/upgrade/:featureName',
-        getRoute: (policyID: string, featureName: string) => `settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const,
+        getRoute: (policyID: string, featureName: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
@@ -699,6 +719,14 @@ const ROUTES = {
     WORKSPACE_CATEGORY_EDIT: {
         route: 'settings/workspaces/:policyID/categories/:categoryName/edit',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/edit` as const,
+    },
+    WORKSPACE_CATEGORY_PAYROLL_CODE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/payroll-code',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/payroll-code` as const,
+    },
+    WORKSPACE_CATEGORY_GL_CODE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/gl-code',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/gl-code` as const,
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
@@ -731,6 +759,10 @@ const ROUTES = {
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
         getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tag-list/${orderWeight}` as const,
+    },
+    WORKSPACE_TAG_GL_CODE: {
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
@@ -789,6 +821,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
+    WORKSPACE_TAX_CODE: {
+        route: 'settings/workspaces/:policyID/tax/:taxID/tax-code',
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/tax-code` as const,
+    },
     WORKSPACE_REPORT_FIELDS: {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
@@ -797,38 +833,50 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
     },
-    WORKSPACE_REPORT_FIELD_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportField/:reportFieldID/edit',
-        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldID)}/edit` as const,
+    WORKSPACE_REPORT_FIELDS_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit` as const,
     },
-    WORKSPACE_REPORT_FIELD_LIST_VALUES: {
-        route: 'settings/workspaces/:policyID/reportField/listValues/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportField/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
+        route: 'settings/workspaces/:policyID/reportFields/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
-    WORKSPACE_REPORT_FIELD_ADD_VALUE: {
-        route: 'settings/workspaces/:policyID/reportField/addValue/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportField/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
+    WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
-    WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportField/:valueIndex/:reportFieldID?',
+    WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
         getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
-            `settings/workspaces/${policyID}/reportField/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
+            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
-    WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
-        route: 'settings/workspaces/:policyID/reportField/new/:valueIndex/edit',
-        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportField/new/${valueIndex}/edit` as const,
+    WORKSPACE_REPORT_FIELDS_EDIT_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
     },
-    WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE: {
-        route: 'settings/workspaces/:policyID/reportField/:reportFieldID/edit/initialValue',
-        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+    WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID',
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
+    },
+    WORKSPACE_EXPENSIFY_CARD_NAME: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
@@ -1004,6 +1052,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/existing-connections',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/existing-connections` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
@@ -1149,6 +1201,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
