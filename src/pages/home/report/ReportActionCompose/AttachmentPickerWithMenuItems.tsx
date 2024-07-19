@@ -23,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
@@ -226,12 +227,13 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
+                        onSelected: () =>
+                            Modal.close(() => {
+                                if (Browser.isSafari()) {
+                                    return;
+                                }
+                                triggerAttachmentPicker();
+                            }),
                     },
                 ];
                 return (
@@ -314,7 +316,6 @@ function AttachmentPickerWithMenuItems({
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
                                 onItemSelected();
-
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
