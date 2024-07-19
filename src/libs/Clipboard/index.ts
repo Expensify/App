@@ -136,7 +136,7 @@ const setString: SetString = (text) => {
     Clipboard.setString(text);
 };
 
-const getImage: GetImage = () => Promise.reject('getImage not supported on web');
+const getImage: GetImage = () => Promise.reject(new Error('getImage not supported on web'));
 
 export default {
     setString,

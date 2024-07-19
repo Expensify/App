@@ -1,4 +1,4 @@
-import {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@components/AttachmentModal';
 
 type SetString = (text: string) => void;
 type SetHtml = (html: string, text: string) => void;

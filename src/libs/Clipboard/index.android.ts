@@ -12,14 +12,13 @@ const setString: SetString = (text) => {
 const canSetHtml: CanSetHtml = () => false;
 const setHtml: SetHtml = () => {};
 
-const getImage: GetImage = () => {
-    return Clipboard.getImage().then((imageb64) => {
+const getImage: GetImage = () =>
+    Clipboard.getImage().then((imageb64) => {
         if (!imageb64) {
             return undefined;
         }
         return {uri: imageb64, name: 'image.png', type: 'image/png'};
     });
-};
 
 export default {
     setString,

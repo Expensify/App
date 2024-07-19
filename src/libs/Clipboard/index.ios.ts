@@ -12,8 +12,8 @@ const setString: SetString = (text) => {
 const canSetHtml: CanSetHtml = () => false;
 const setHtml: SetHtml = () => {};
 
-const getImage: GetImage = () => {
-    return Clipboard.hasImage()
+const getImage: GetImage = () =>
+    Clipboard.hasImage()
         .then((hasImage) => {
             if (!hasImage) {
                 return undefined;
@@ -26,7 +26,6 @@ const getImage: GetImage = () => {
             }
             return {uri: imageb64, name: 'image.png', type: 'image/png'};
         });
-};
 
 export default {
     setString,
