@@ -39,6 +39,10 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
+beforeEach(() => {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+});
+
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {

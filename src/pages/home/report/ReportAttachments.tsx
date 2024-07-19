@@ -38,7 +38,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             defaultOpen
             report={report}
             source={source}
-            onModalHide={() => {
+            onModalClose={() => {
                 Navigation.dismissModal();
                 // This enables Composer refocus when the attachments modal is closed by the browser navigation
                 ComposerFocusManager.setReadyToFocus();
