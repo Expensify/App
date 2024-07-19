@@ -95,6 +95,7 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        shouldUpdateFocusedIndex = false,
         onLongPressRow,
         isMobileSelectionModeActive,
     }: BaseSelectionListProps<TItem>,
@@ -311,7 +312,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        if (typeof indexToFocus === 'number') {
+        if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
             setFocusedIndex(indexToFocus);
         }
 

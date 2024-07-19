@@ -122,7 +122,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => setTypeSelected(value)}
                     sections={[{data}]}
-                    shouldDebounceRowSelect
+                    shouldUpdateFocusedIndex
                     isAlternateTextMultilineSupported
                     initiallyFocusedOptionKey={typeSelected}
                 />
