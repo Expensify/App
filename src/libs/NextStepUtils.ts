@@ -79,7 +79,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report ?? {};
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const {harvesting, preventSelfApproval, autoReportingOffset} = policy;
+    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;

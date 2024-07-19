@@ -21,6 +21,7 @@ import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
+import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import RenameAction from '@components/ReportActionItem/RenameAction';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
@@ -407,7 +408,7 @@ function ReportActionItem({
                     text: 'subscription.cardSection.addCardButton',
                     key: `${action.reportActionID}-actionableAddPaymentCard-submit`,
                     onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
                     isMediumSized: true,
                     isPrimary: true,
@@ -655,6 +656,8 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
+            children = <ExportIntegration action={action} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
