@@ -1102,7 +1102,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).filter((accountID) => Number(accountID) !== currentUserAccountID);
-    return participantAccountIDs.length === 1 && Number(participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+    return participantAccountIDs.length === 1 && Number(participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isThread(report);
 }
 
 function findSelfDMReportID(): string | undefined {
@@ -5239,8 +5239,13 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return true;
     }
+
+    if (report.lastMessageText ?? report.lastMessageTranslationKey) {
+        return false;
+    }
+
     const lastVisibleMessage = getLastVisibleMessage(report.reportID);
-    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    return !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {

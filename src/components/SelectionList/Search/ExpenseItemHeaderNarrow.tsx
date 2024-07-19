@@ -92,6 +92,7 @@ function ExpenseItemHeaderNarrow({
                     action={action}
                     goToItem={onButtonPress}
                     isLargeScreenWidth={false}
+                    isSelected={isSelected}
                 />
             </View>
         </View>

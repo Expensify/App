@@ -156,7 +156,7 @@ export default {
         magicCode: 'Código mágico',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
-        inbox: 'Bandeja de entrada',
+        inbox: 'Recibidos',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
@@ -4491,6 +4491,8 @@ export default {
         categoryToKeep: 'Elige qué categoría quieres conservar',
         isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
+        confirmDetails: 'Confirma los detalles que conservas',
+        confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Bloqueado',
     },
     violationDismissal: {

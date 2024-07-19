@@ -3973,6 +3973,8 @@ export default {
         categoryToKeep: 'Choose which category to keep',
         isTransactionBillable: 'Choose if transaction is billable',
         keepThisOne: 'Keep this one',
+        confirmDetails: `Confirm the details you're keeping`,
+        confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
         hold: 'Hold',
     },
     violationDismissal: {
