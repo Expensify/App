@@ -58,6 +58,9 @@ type PrivatePersonalDetails = {
 
     /** User's home address */
     address?: Address;
+
+    /** User's home address history. The most recent address is the last item in the array */
+    addresses?: Address[];
 };
 
 export default PrivatePersonalDetails;
