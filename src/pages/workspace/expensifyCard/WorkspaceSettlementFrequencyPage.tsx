@@ -15,6 +15,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceSettlementFrequencyPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY>;
@@ -54,7 +55,6 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
         Card.updateSettlementFrequency(policyID, value);
-        Navigation.goBack();
     };
 
     return (
@@ -68,7 +68,10 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.expensifyCard.settlementFrequency')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.expensifyCard.settlementFrequency')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
+                />
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementFrequencyDescription')}</Text>
                 <SelectionList
                     sections={[{data}]}

@@ -91,7 +91,10 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.expensifyCard.settlementAccount')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.expensifyCard.settlementAccount')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
+                />
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
                 {isUsedContinuousReconciliation && (
                     <Text style={[styles.mh5, styles.mb6]}>
