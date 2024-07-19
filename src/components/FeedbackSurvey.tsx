@@ -102,7 +102,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     message={translate('common.error.pleaseCompleteForm')}
                     buttonText={translate('common.submit')}
                     enabledWhenOffline
-                    containerStyles={styles.mt2}
+                    containerStyles={styles.mt3}
                 />
             </FixedFooter>
         </View>

@@ -9,6 +9,7 @@ function useCancellationType(): CancellationType | undefined {
 
     const [cancellationType, setCancellationType] = useState<CancellationType | undefined>();
 
+    // Store initial cancellation details array in a ref for comparison
     const previousCancellationDetails = useRef(cancellationDetails);
 
     const memoizedCancellationType = useMemo(() => {

@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -14,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import * as Subscription from '@userActions/Subscription';
-import type {FeedbackSurveyOptionID} from '@src/CONST';
+import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -28,7 +29,7 @@ function RequestEarlyCancellationPage() {
         Subscription.cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
-    const acknowledgmentText = useMemo(
+    const acknowledgementText = useMemo(
         () => (
             <Text>
                 {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
@@ -98,25 +99,19 @@ function RequestEarlyCancellationPage() {
                 description={translate('subscription.requestEarlyCancellation.subtitle')}
                 onSubmit={handleSubmit}
                 optionRowStyles={styles.flex1}
-                footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgmentText}</Text>}
+                footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgementText}</Text>}
                 isNoteRequired
             />
         ),
-        [acknowledgmentText, styles, translate],
+        [acknowledgementText, styles, translate],
     );
 
-    let screenContent: React.ReactNode;
+    const contentMap: Partial<Record<CancellationType, ReactNode>> = {
+        [CONST.CANCELLATION_TYPE.MANUAL]: manualCancellationContent,
+        [CONST.CANCELLATION_TYPE.AUTOMATIC]: automaticCancellationContent,
+    };
 
-    switch (cancellationType) {
-        case CONST.CANCELLATION_TYPE.MANUAL:
-            screenContent = manualCancellationContent;
-            break;
-        case CONST.CANCELLATION_TYPE.AUTOMATIC:
-            screenContent = automaticCancellationContent;
-            break;
-        default:
-            screenContent = surveyContent;
-    }
+    const screenContent = cancellationType ? contentMap[cancellationType] : surveyContent;
 
     return (
         <ScreenWrapper
