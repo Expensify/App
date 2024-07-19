@@ -12,7 +12,7 @@ import type {FileDownload} from './types';
 const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get', onDownloadFailed?: () => void) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
     if (
-        // we have two file download cases that we should allow 1. dowloading attachments 2. downloading Expensify package for Sage Intacct
+        // We have two file download cases that we should allow: 1. downloading attachments 2. downloading Expensify package for Sage Intacct
         shouldOpenExternalLink ||
         (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) &&
             !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => resolvedUrl.startsWith(prefix)) &&
