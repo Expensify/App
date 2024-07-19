@@ -198,12 +198,12 @@ function hasAuthToken(): boolean {
     return !!session.authToken;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
-        if (NativeModules.HybridAppModule) {
+        if (NativeModules.HybridAppModule && killHybridApp) {
             NativeModules.HybridAppModule.closeReactNativeApp();
             return;
         }
@@ -411,7 +411,7 @@ function signInAttemptState(): OnyxData {
 function beginSignIn(email: string) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    const params: BeginSignInParams = {email, useNewBeginSignIn: true};
+    const params: BeginSignInParams = {email};
 
     API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
 }

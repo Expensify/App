@@ -5,7 +5,6 @@ description: Expensify Card Settings for Employees
 
 # Using Your Expensify Visa® Commercial Card
 
-## Getting Started
 ### Activate Your Card
 You can start using your card immediately upon receipt by logging into your Expensify account, heading to your Home tab, and following the prompts on the _**Activate your Expensify Card**_ task. 
 

@@ -6,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
@@ -261,6 +262,29 @@ function isLocalFile(receiptUri?: string | number): boolean {
     return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
 }
 
+function getFileResolution(targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> {
+    if (!targetFile) {
+        return Promise.resolve(null);
+    }
+
+    // If the file already has width and height, return them directly
+    if ('width' in targetFile && 'height' in targetFile) {
+        return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
+    }
+
+    // Otherwise, attempt to get the image resolution
+    return getImageResolution(targetFile)
+        .then(({width, height}) => ({width, height}))
+        .catch((error: Error) => {
+            Log.hmmm('Failed to get image resolution:', error);
+            return null;
+        });
+}
+
+function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
+    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -275,4 +299,7 @@ export {
     base64ToFile,
     isLocalFile,
     validateImageForCorruption,
+    isImage,
+    getFileResolution,
+    isHighResolutionImage,
 };
