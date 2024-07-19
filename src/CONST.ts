@@ -5275,7 +5275,6 @@ const CONST = {
             CANNED_QUERY: 'cannedQuery',
             CUSTOM_QUERY: 'customQuery',
         },
-        DEFAULT_QUERY: 'type:all sortBy:date sortOrder:desc',
     },
 
     REFERRER: {
