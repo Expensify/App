@@ -5684,8 +5684,14 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 iouReportID: null,
                 lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.lastMessageText,
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.created,
+            },
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
                 pendingFields: {
-                    preview: 'delete',
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         });
