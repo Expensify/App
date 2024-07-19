@@ -25,7 +25,7 @@ const mockedCard = {
         cardTitle: 'Test 1',
         isVirtual: true,
         limit: 2000,
-        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
     },
     lastFourPAN: '1234',
 };
@@ -58,7 +58,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     };
 
     const submit = () => {
-        // TODO: update the condition when requirements are known
+        // TODO: update the condition of showing confirm warning when requirements are known
         const shouldShowConfirmModal = true;
 
         if (shouldShowConfirmModal) {
@@ -70,6 +70,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const data = useMemo(() => {
         const options = [];
+        // TODO: update the condition of showing the fixed option when requirements are known
         const shouldShowFixedOption = true;
 
         if (areApprovalsConfigured) {
@@ -113,7 +114,6 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         >
             <ScreenWrapper
                 testID={WorkspaceEditCardLimitTypePage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
