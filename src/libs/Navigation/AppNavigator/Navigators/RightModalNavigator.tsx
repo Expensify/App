@@ -165,6 +165,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                         component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
+                        component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>
