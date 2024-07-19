@@ -106,6 +106,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
 
+    /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 };
 
