@@ -11,10 +11,11 @@ import Text from './Text';
 /**
  * This component is going to be used in TravelDetails when we resolve
  * the backends and send over detailed info about reservations.
- * 
+ *
  * Please refer to the conversation below for more details:
  * https://swmansion.slack.com/archives/C05S5EV2JTX/p1721062807563259
  */
+/* eslint-disable */
 function TripDetailsMenuItem() {
     const theme = useTheme();
     const styles = useThemeStyles();
