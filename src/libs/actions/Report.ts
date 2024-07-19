@@ -3800,15 +3800,6 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticReportActionID]: null,
-            },
-        },
-    ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3828,11 +3819,12 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
         optimisticReportActionID,
     } satisfies ReportExportParams;
 
-    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
 function markAsManuallyExported(reportID: string, connectionName: ConnectionName) {
     const action = ReportUtils.buildOptimisticExportIntegrationAction(connectionName, true);
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
     const optimisticReportActionID = action.reportActionID;
 
     const optimisticData: OnyxUpdate[] = [
@@ -3850,7 +3842,9 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [optimisticReportActionID]: null,
+                [optimisticReportActionID]: {
+                    pendingAction: null,
+                },
             },
         },
     ];
@@ -3871,6 +3865,7 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
         reportIDList: reportID,
         markedManually: true,
         optimisticReportActionID,
+        customLabel: label,
     } satisfies MarkAsExportedParams;
 
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
