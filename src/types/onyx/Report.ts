@@ -71,6 +71,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
+        /** The file name of the Group Chat report custom avatar
+         *  This field is not coming from backend, so it's for client side only
+         */
+        avatarFileName?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -289,6 +294,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The trip ID in spotnana */
             tripID: string;
         };
+
+        /** Whether the report is archived */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived?: string;
     },
     PolicyReportField['fieldID']
 >;
