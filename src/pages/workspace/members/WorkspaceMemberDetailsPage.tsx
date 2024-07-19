@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -68,6 +69,62 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
         fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
     },
     test3: {
+        accountID: 885646,
+        cardID: 3,
+        nameValuePairs: {
+            limit: 3000,
+            cardTitle: 'Test 3',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+    test4: {
+        accountID: 885646,
+        cardID: 3,
+        nameValuePairs: {
+            limit: 3000,
+            cardTitle: 'Test 3',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+    test5: {
+        accountID: 885646,
+        cardID: 3,
+        nameValuePairs: {
+            limit: 3000,
+            cardTitle: 'Test 3',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+    test6: {
+        accountID: 885646,
+        cardID: 3,
+        nameValuePairs: {
+            limit: 3000,
+            cardTitle: 'Test 3',
+        },
+        lastFourPAN: '1234',
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: '',
+        availableSpend: 1,
+        domainName: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+    },
+    test7: {
         accountID: 885646,
         cardID: 3,
         nameValuePairs: {
@@ -217,110 +274,118 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
-                <HeaderWithBackButton
-                    title={displayName}
-                    subtitle={policy?.name}
-                />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
-                    <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                        <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                            <Avatar
-                                containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
-                                imageStyles={[styles.avatarXLarge]}
-                                source={details.avatar}
-                                avatarID={accountID}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                size={CONST.AVATAR_SIZE.XLARGE}
-                                fallbackIcon={fallbackIcon}
-                            />
-                        </OfflineWithFeedback>
-                        {!!(details.displayName ?? '') && (
-                            <Text
-                                style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
-                                numberOfLines={1}
-                            >
-                                {displayName}
-                            </Text>
-                        )}
-                        {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                            <Button
-                                text={translate('workspace.people.transferOwner')}
-                                onPress={startChangeOwnershipFlow}
-                                medium
-                                isDisabled={isOffline}
-                                icon={Expensicons.Transfer}
-                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                style={styles.mv5}
-                            />
-                        ) : (
-                            <Button
-                                text={translate('workspace.people.removeMemberButtonTitle')}
-                                onPress={askForConfirmationToRemove}
-                                medium
-                                isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                icon={Expensicons.RemoveMembers}
-                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                style={styles.mv5}
-                            />
-                        )}
-                        <ConfirmModal
-                            danger
-                            title={translate('workspace.people.removeMemberTitle')}
-                            isVisible={isRemoveMemberConfirmModalVisible}
-                            onConfirm={removeUser}
-                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={confirmModalPrompt}
-                            confirmText={translate('common.remove')}
-                            cancelText={translate('common.cancel')}
+                {({safeAreaPaddingBottomStyle}) => (
+                    <>
+                        <HeaderWithBackButton
+                            title={displayName}
+                            subtitle={policy?.name}
                         />
-                    </View>
-                    <View style={styles.w100}>
-                        <MenuItemWithTopDescription
-                            disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                            title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                            description={translate('common.role')}
-                            shouldShowRightIcon
-                            onPress={openRoleSelectionModal}
-                        />
-                        <MenuItem
-                            title={translate('common.profile')}
-                            icon={Expensicons.Info}
-                            onPress={navigateToProfile}
-                            shouldShowRightIcon
-                        />
-                        <WorkspaceMemberDetailsRoleSelectionModal
-                            isVisible={isRoleSelectionModalVisible}
-                            items={roleItems}
-                            onRoleChange={changeRole}
-                            onClose={() => setIsRoleSelectionModalVisible(false)}
-                        />
-                        {policy?.areExpensifyCardsEnabled && (
-                            <>
-                                <View style={styles.ph5}>
-                                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                        {translate('walletPage.assignedCards')}
-                                    </Text>
+                        <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
+                            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+                                <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                                    <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
+                                        <Avatar
+                                            containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
+                                            imageStyles={[styles.avatarXLarge]}
+                                            source={details.avatar}
+                                            avatarID={accountID}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                            size={CONST.AVATAR_SIZE.XLARGE}
+                                            fallbackIcon={fallbackIcon}
+                                        />
+                                    </OfflineWithFeedback>
+                                    {!!(details.displayName ?? '') && (
+                                        <Text
+                                            style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                            numberOfLines={1}
+                                        >
+                                            {displayName}
+                                        </Text>
+                                    )}
+                                    {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                                        <Button
+                                            text={translate('workspace.people.transferOwner')}
+                                            onPress={startChangeOwnershipFlow}
+                                            medium
+                                            isDisabled={isOffline}
+                                            icon={Expensicons.Transfer}
+                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                            style={styles.mv5}
+                                        />
+                                    ) : (
+                                        <Button
+                                            text={translate('workspace.people.removeMemberButtonTitle')}
+                                            onPress={askForConfirmationToRemove}
+                                            medium
+                                            isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                            icon={Expensicons.RemoveMembers}
+                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                            style={styles.mv5}
+                                        />
+                                    )}
+                                    <ConfirmModal
+                                        danger
+                                        title={translate('workspace.people.removeMemberTitle')}
+                                        isVisible={isRemoveMemberConfirmModalVisible}
+                                        onConfirm={removeUser}
+                                        onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
+                                        prompt={confirmModalPrompt}
+                                        confirmText={translate('common.remove')}
+                                        cancelText={translate('common.cancel')}
+                                    />
                                 </View>
-                                {Object.values(cardList ?? {}).map((card) => (
+                                <View style={styles.w100}>
+                                    <MenuItemWithTopDescription
+                                        disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                        title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                        description={translate('common.role')}
+                                        shouldShowRightIcon
+                                        onPress={openRoleSelectionModal}
+                                    />
                                     <MenuItem
-                                        title={card.nameValuePairs?.cardTitle}
-                                        badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
-                                        icon={ExpensifyCardImage}
-                                        iconWidth={variables.iconSizeExtraLarge}
-                                        iconHeight={variables.iconSizeExtraLarge}
-                                        onPress={() => navigateToDetails(card.cardID.toString())}
+                                        title={translate('common.profile')}
+                                        icon={Expensicons.Info}
+                                        onPress={navigateToProfile}
                                         shouldShowRightIcon
                                     />
-                                ))}
-                                <MenuItem
-                                    title={translate('workspace.expensifyCard.newCard')}
-                                    icon={Expensicons.Plus}
-                                    onPress={navigateToIssueNewCard}
-                                />
-                            </>
-                        )}
-                    </View>
-                </View>
+                                    <WorkspaceMemberDetailsRoleSelectionModal
+                                        isVisible={isRoleSelectionModalVisible}
+                                        items={roleItems}
+                                        onRoleChange={changeRole}
+                                        onClose={() => setIsRoleSelectionModalVisible(false)}
+                                    />
+                                    {policy?.areExpensifyCardsEnabled && (
+                                        <>
+                                            <View style={[styles.ph5, styles.pv3]}>
+                                                <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                                    {translate('walletPage.assignedCards')}
+                                                </Text>
+                                            </View>
+                                            {Object.values(cardList ?? {}).map((card) => (
+                                                <MenuItem
+                                                    title={card.nameValuePairs?.cardTitle}
+                                                    badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
+                                                    icon={ExpensifyCardImage}
+                                                    iconStyles={styles.cardIcon}
+                                                    contentFit="contain"
+                                                    iconWidth={variables.cardIconWidth}
+                                                    iconHeight={variables.cardIconHeight}
+                                                    onPress={() => navigateToDetails(card.cardID.toString())}
+                                                    shouldShowRightIcon
+                                                />
+                                            ))}
+                                            <MenuItem
+                                                title={translate('workspace.expensifyCard.newCard')}
+                                                icon={Expensicons.Plus}
+                                                onPress={navigateToIssueNewCard}
+                                            />
+                                        </>
+                                    )}
+                                </View>
+                            </View>
+                        </ScrollView>
+                    </>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
