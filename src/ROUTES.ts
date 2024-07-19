@@ -36,7 +36,7 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
-    SEARCH: {
+    SEARCH_CENTRAL_PANE: {
         route: '/search/:query',
         getRoute: (searchQuery: SearchQuery, queryParams?: AuthScreensParamList['Search_Central_Pane']) => {
             const {sortBy, sortOrder} = queryParams ?? {};
@@ -870,6 +870,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_LIMIT: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
@@ -947,8 +951,8 @@ const ROUTES = {
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
     },
     TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
-        route: 'r/:threadReportID/duplicates/confirm',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+        route: 'r/:threadReportID/duplicates/review/description',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
     },
     TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/reimbursable',
@@ -958,7 +962,10 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/billable',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
     },
-
+    TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
+        route: 'r/:threadReportID/duplicates/confirm',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+    },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

@@ -1,9 +1,11 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import type {RouteConfig} from './createNormalizedConfigs';
+import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
@@ -51,7 +53,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             exact: true,
         },
         [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-        [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH.route,
+        [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH_CENTRAL_PANE.route,
         [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
 
@@ -462,6 +464,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.route,
@@ -906,6 +911,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
                             exact: true,
                         },
+                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
@@ -1082,4 +1091,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
     },
 };
 
+const normalizedConfigs = Object.keys(config.screens)
+    .map((key) =>
+        createNormalizedConfigs(
+            key,
+            config.screens,
+            [],
+            config.initialRouteName
+                ? [
+                      {
+                          initialRouteName: config.initialRouteName,
+                          parentScreens: [],
+                      },
+                  ]
+                : [],
+            [],
+        ),
+    )
+    .flat()
+    .reduce((acc, route) => {
+        acc[route.screen as Screen] = route;
+        return acc;
+    }, {} as Record<Screen, RouteConfig>);
+
+export {normalizedConfigs};
 export default config;
