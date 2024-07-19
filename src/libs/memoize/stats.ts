@@ -1,7 +1,6 @@
 import Log from '@libs/Log';
 
 type MemoizeStatsEntry = {
-    keyLength: number;
     didHit: boolean;
     cacheRetrievalTime: number;
     fnTime?: number;
@@ -11,15 +10,13 @@ type MemoizeStatsEntry = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return entry.keyLength !== undefined && entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
+    return entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
 }
 
 class MemoizeStats {
     private calls = 0;
 
     private hits = 0;
-
-    private avgKeyLength = 0;
 
     private avgCacheRetrievalTime = 0;
 
@@ -45,8 +42,6 @@ class MemoizeStats {
         this.hits += entry.didHit ? 1 : 0;
 
         this.cacheSize = entry.cacheSize;
-
-        this.avgKeyLength = this.calculateCumulativeAvg(this.avgKeyLength, this.calls, entry.keyLength);
 
         this.avgCacheRetrievalTime = this.calculateCumulativeAvg(this.avgCacheRetrievalTime, this.hits, entry.cacheRetrievalTime);
 
@@ -97,7 +92,6 @@ class MemoizeStats {
         this.isEnabled = true;
         this.calls = 0;
         this.hits = 0;
-        this.avgKeyLength = 0;
         this.avgCacheRetrievalTime = 0;
         this.avgFnTime = 0;
         this.cacheSize = 0;
@@ -109,7 +103,6 @@ class MemoizeStats {
         return {
             calls: this.calls,
             hits: this.hits,
-            avgKeyLength: this.avgKeyLength,
             avgCacheRetrievalTime: this.avgCacheRetrievalTime,
             avgFnTime: this.avgFnTime,
             cacheSize: this.cacheSize,
