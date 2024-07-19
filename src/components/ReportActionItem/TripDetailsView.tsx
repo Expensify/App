@@ -17,8 +17,8 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
-import ROUTES from '@src/ROUTES';
 import type {ReservationWithDetails} from '@src/libs/TripReservationUtils';
+import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 
 type TripDetailsViewProps = {
@@ -168,7 +168,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                 </View>
             </View>
             <>
-                {reservations.map(({reservation, transactionID, reservationIndex}) =>
+                {reservations.map(({reservation, transactionID, reservationIndex}) => (
                     <OfflineWithFeedback>
                         <ReservationView
                             reportID={tripRoomReportID ?? '-1'}
@@ -177,7 +177,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                             reservationIndex={reservationIndex}
                         />
                     </OfflineWithFeedback>
-                )}
+                ))}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}

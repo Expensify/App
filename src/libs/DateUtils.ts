@@ -796,9 +796,13 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
 function getFormattedTransportDate(date: Date, shouldUseDescriptors = true): string {
     const {translateLocal} = Localize;
     if (isThisYear(date)) {
-        return `${shouldUseDescriptors ? `${translateLocal('travel.departs')} ` : ''}${format(date, 'EEEE, MMM d')} ${shouldUseDescriptors ? `${translateLocal('common.conjunctionAt')} ` : ''}${format(date, 'HH:MM')}`;
+        return `${shouldUseDescriptors ? `${translateLocal('travel.departs')} ` : ''}${format(date, 'EEEE, MMM d')} ${
+            shouldUseDescriptors ? `${translateLocal('common.conjunctionAt')} ` : ''
+        }${format(date, 'HH:MM')}`;
     }
-    return `${shouldUseDescriptors ? `${translateLocal('travel.departs')} ` : ''}${format(date, 'EEEE, MMM d, yyyy')} ${shouldUseDescriptors ? `${translateLocal('common.conjunctionAt')} ` : ''}${format(date, 'HH:MM')}`;
+    return `${shouldUseDescriptors ? `${translateLocal('travel.departs')} ` : ''}${format(date, 'EEEE, MMM d, yyyy')} ${
+        shouldUseDescriptors ? `${translateLocal('common.conjunctionAt')} ` : ''
+    }${format(date, 'HH:MM')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {

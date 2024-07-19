@@ -1,16 +1,20 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
@@ -20,10 +24,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
-import DateUtils from '@libs/DateUtils';
-import { View } from 'react-native';
-import Text from '@components/Text';
-import Icon from '@components/Icon';
 
 type TravelDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRAVEL_DETAILS>;
 
@@ -33,7 +33,7 @@ type TravelDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCRE
  * and fallback sort of information about the trip details. After the backends for the
  * trip details get merged, the current impelmentation will become a fallback for when data
  * isn't loaded, and a new way of showing more detailed info will be implemented.
- * 
+ *
  * Please refer to the conversation below for more details:
  * https://swmansion.slack.com/archives/C05S5EV2JTX/p1721062807563259
  */

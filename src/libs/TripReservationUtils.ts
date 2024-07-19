@@ -25,18 +25,17 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .flat();
 }
 
-
 type ReservationWithDetails = {
     reservation: Reservation;
     transactionID: string;
     reservationIndex: number;
-}
+};
 
 function getReservationsFromTripTransactionsWithIndexAndID(transactions: Transaction[]): ReservationWithDetails[] {
     return transactions.flatMap((transaction) => {
         const transactionID = transaction.transactionID;
         const reservationList = transaction?.receipt?.reservationList ?? [];
-        
+
         return reservationList.map((reservation, index) => ({
             reservation,
             transactionID,
