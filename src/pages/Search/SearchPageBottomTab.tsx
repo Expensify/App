@@ -23,7 +23,6 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
-    // TODO_SEARCH: types for the activeBottomTabRoute are broken.
     const {queryJSON, policyIDs} = useMemo(() => {
         if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
             return {queryJSON: undefined, policyIDs: undefined};
@@ -40,11 +39,6 @@ function SearchPageBottomTab() {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
-    // TODO_SEARCH: not sure how we should handle possible undefined for queryJSON.
-    if (!queryJSON || !policyIDs) {
-        return null;
-    }
-
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
@@ -52,7 +46,7 @@ function SearchPageBottomTab() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
-                shouldShow={false}
+                shouldShow={!queryJSON}
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
@@ -63,7 +57,8 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchStatuses status={queryJSON.status} />
+                        {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
+                        <SearchStatuses status={queryJSON!.status} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -73,7 +68,8 @@ function SearchPageBottomTab() {
                 )}
                 {isSmallScreenWidth && (
                     <Search
-                        queryJSON={queryJSON}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        queryJSON={queryJSON!}
                         policyIDs={policyIDs}
                         isMobileSelectionModeActive={isMobileSelectionModeActive}
                         setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
