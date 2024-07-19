@@ -363,7 +363,9 @@ function calculateRemainingFreeTrialDays(): number {
     }
 
     const currentDate = new Date();
-    const diffInSeconds = differenceInSeconds(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate), currentDate);
+    const lastDayDate = new Date(lastDayFreeTrial);
+    const lastDayFreeTrialDateUTC = new Date(Date.UTC(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate(), lastDayDate.getHours(), lastDayDate.getMinutes(), lastDayDate.getSeconds()));
+    const diffInSeconds = differenceInSeconds(lastDayFreeTrialDateUTC, currentDate);
     const diffInDays = Math.ceil(diffInSeconds / 86400);
 
     return diffInDays < 0 ? 0 : diffInDays;
