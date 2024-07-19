@@ -278,7 +278,8 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                receiptObj,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                {...receiptObj, name: receiptObj?.name || transaction.filename},
                 transaction.category,
                 transaction.tag,
                 transactionTaxCode,
