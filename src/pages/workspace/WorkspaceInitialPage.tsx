@@ -333,6 +333,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const prevPolicy = usePrevious(policy);
     const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
     const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
+    const [enabledItemState, setEnabledItemState] = useState(enabledItem);
+
+    useEffect(() => {
+        setEnabledItemState(enabledItem);
+    }, [enabledItem]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -403,7 +408,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
-                                    highlighted={enabledItem?.routeName === item.routeName}
+                                    highlighted={enabledItemState?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
