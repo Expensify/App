@@ -5101,16 +5101,6 @@ const styles = (theme: ThemeColors) =>
             height: 172,
         },
 
-        reportListItemWrapper: {
-            paddingVertical: 6,
-            paddingHorizontal: 0,
-            overflow: 'hidden',
-        },
-
-        reportListItemHeaderInner: {
-            minHeight: 40,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

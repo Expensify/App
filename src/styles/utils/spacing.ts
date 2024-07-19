@@ -287,6 +287,10 @@ export default {
         marginBottom: 4,
     },
 
+    mb2half: {
+        marginBottom: 6,
+    },
+
     mb2: {
         marginBottom: 8,
     },
@@ -401,7 +405,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv2half: {
         paddingVertical: 6,
     },
 
@@ -551,6 +555,10 @@ export default {
 
     pt1: {
         paddingTop: 4,
+    },
+
+    pt2half: {
+        paddingTop: 6,
     },
 
     pt2: {

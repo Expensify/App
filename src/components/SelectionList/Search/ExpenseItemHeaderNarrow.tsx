@@ -51,7 +51,7 @@ function ExpenseItemHeaderNarrow({
     const theme = useTheme();
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4, styles.gap2, containerStyle]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
                 {canSelectMultiple && (
                     <PressableWithFeedback
