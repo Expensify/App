@@ -1,10 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -37,6 +40,7 @@ function ReportFieldsInitialValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
 
@@ -82,7 +86,7 @@ function ReportFieldsInitialValuePage({
         [availableListValuesLength, policy?.fieldList, translate],
     );
 
-    if (!reportField) {
+    if (!reportField || hasAccountingConnections) {
         return <NotFoundPage />;
     }
 
@@ -105,6 +109,12 @@ function ReportFieldsInitialValuePage({
                     title={reportField.name}
                     onBackButtonPress={Navigation.goBack}
                 />
+                {isListFieldType && (
+                    <View style={[styles.ph5, styles.pb4]}>
+                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
+                    </View>
+                )}
+
                 {isTextFieldType && (
                     <FormProvider
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
