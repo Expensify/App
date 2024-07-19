@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -40,6 +40,9 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationOnyxProps = {
+    /** The policy collection */
+    allPolicies: OnyxEntry<OnyxCollection<Policy>>;
+
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
 
@@ -61,6 +64,7 @@ type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 function IOURequestStepConfirmation({
+    allPolicies,
     policy: policyReal,
     policyDraft,
     policyTags,
@@ -192,6 +196,17 @@ function IOURequestStepConfirmation({
     }, [transactionID, requestType, defaultCategory]);
 
     const navigateBack = useCallback(() => {
+        // If the action is categorize and there's no policies except personal one, we simply call goBack(), i.e: dismiss the whole flow together
+        if (
+            action === CONST.IOU.ACTION.CATEGORIZE &&
+            Object.values(allPolicies ?? {}).filter(
+                (individualPolicy) =>
+                    individualPolicy && individualPolicy.type !== CONST.POLICY.TYPE.PERSONAL && individualPolicy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            ).length === 0
+        ) {
+            Navigation.goBack();
+            return;
+        }
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction?.participantsAutoAssigned) {
@@ -200,7 +215,7 @@ function IOURequestStepConfirmation({
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [transaction, iouType, requestType, transactionID, reportID, action]);
+    }, [transaction, iouType, requestType, transactionID, reportID, action, allPolicies]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -632,6 +647,9 @@ function IOURequestStepConfirmation({
 IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
     policy: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
