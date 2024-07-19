@@ -59,6 +59,11 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
             return;
         }
 
+        if (!NativeModules.HybridAppModule) {
+            Log.hmmm(`[HybridApp] Onboarding status has changed, but the HybridAppModule is not defined`);
+            return;
+        }
+
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding});
         NativeModules.HybridAppModule.completeOnboarding(completedHybridAppOnboarding);
     }, [completedHybridAppOnboarding]);
