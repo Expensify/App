@@ -11,7 +11,7 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 function patchPackage {
   OS="$(uname)"
   if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
-    npx patch-package --error-on-fail
+    npx patch-package --error-on-fail --color=always
   else
     error "Unsupported OS: $OS"
     exit 1

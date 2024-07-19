@@ -72,7 +72,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.dismissModal()}
             />
             <View style={styles.flex1}>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
