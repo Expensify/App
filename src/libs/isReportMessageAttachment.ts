@@ -19,9 +19,17 @@ export default function isReportMessageAttachment(message: Message | undefined):
         return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && message.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
-    const isAttachmentMessageText = message.text === CONST.ATTACHMENT_MESSAGE_TEXT;
-    const isVideoText = Str.isVideo(message.text);
     const hasAttachmentHtml = attachmentRegex.test(message.html) || message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
 
-    return (isAttachmentMessageText || isVideoText) && hasAttachmentHtml;
+    if (!hasAttachmentHtml) {
+        return false;
+    }
+
+    const isAttachmentMessageText = message.text === CONST.ATTACHMENT_MESSAGE_TEXT;
+
+    if (isAttachmentMessageText) {
+        return true;
+    }
+
+    return Str.isVideo(message.text);
 }
