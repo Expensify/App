@@ -12,26 +12,24 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Search from '@userActions/Search';
+import {mergeFilters} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
-const currentDate = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+const DEFAULT_DATE = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+const DEFAULT_FILTERS_FORM_VALUE = {[INPUT_IDS.DATE.AFTER]: DEFAULT_DATE, [INPUT_IDS.DATE.BEFORE]: DEFAULT_DATE};
 
 function SearchFiltersDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-
-    const isDateAfterInitialized = !!(searchAdvancedFiltersForm && searchAdvancedFiltersForm[INPUT_IDS.DATE.AFTER]);
-    const isDateBeforeInitialized = !!(searchAdvancedFiltersForm && searchAdvancedFiltersForm[INPUT_IDS.DATE.BEFORE]);
-    const defaultDateAfter = isDateAfterInitialized ? searchAdvancedFiltersForm[INPUT_IDS.DATE.AFTER] : currentDate;
-    const defaultDateBefore = isDateBeforeInitialized ? searchAdvancedFiltersForm[INPUT_IDS.DATE.BEFORE] : currentDate;
+    const [searchAdvancedFiltersForm = DEFAULT_FILTERS_FORM_VALUE] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const defaultDateAfter = searchAdvancedFiltersForm[INPUT_IDS.DATE.AFTER];
+    const defaultDateBefore = searchAdvancedFiltersForm[INPUT_IDS.DATE.BEFORE];
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
-        Search.mergeFilters(value);
+        mergeFilters(value);
         Navigation.goBack();
     };
 
@@ -45,7 +43,7 @@ function SearchFiltersDatePage() {
                 <HeaderWithBackButton title={translate('common.date')} />
                 <View style={[styles.flex1, styles.ph3]}>
                     <FormProvider
-                        style={[styles.flexGrow1, styles.ph5]}
+                        style={[styles.flex1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
                         onSubmit={updateDate}
                         submitButtonText={translate('common.save')}

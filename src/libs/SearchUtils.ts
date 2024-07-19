@@ -1,4 +1,6 @@
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FormOnyxValues} from '@components/Form/types';
 import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -394,6 +396,11 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
     return filters;
 }
 
+function mergeFilters(updatedForm: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) {
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+    Onyx.merge(`${ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}`, updatedForm);
+}
+
 export {
     buildJSONQuery,
     getListItem,
@@ -408,4 +415,5 @@ export {
     isTransactionListItemType,
     isSearchResultsEmpty,
     getFilters,
+    mergeFilters,
 };

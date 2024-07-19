@@ -3535,7 +3535,6 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
-
         offlinePrompt: "You can't take this action right now.",
         filtersHeader: 'Filters',
         filters: {
