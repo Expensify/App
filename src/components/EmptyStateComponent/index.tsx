@@ -14,7 +14,18 @@ import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles, headerContentStyles}: EmptyStateComponentProps) {
+function EmptyStateComponent({
+    SkeletonComponent,
+    headerMediaType,
+    headerMedia,
+    buttonText,
+    buttonAction,
+    title,
+    subtitle,
+    headerStyles,
+    headerContentStyles,
+    emptyStateContentStyles,
+}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -76,7 +87,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                 />
             </View>
             <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
-                <View style={styles.emptyStateContent}>
+                <View style={[styles.emptyStateContent, emptyStateContentStyles]}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>

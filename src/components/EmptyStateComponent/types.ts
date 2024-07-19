@@ -19,6 +19,7 @@ type SharedProps<T> = {
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
+    emptyStateContentStyles?: StyleProp<ViewStyle>;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {

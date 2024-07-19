@@ -6,7 +6,6 @@ import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
@@ -18,7 +17,6 @@ const BUTTON_MARGIN = 12;
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN : HEADER_HEIGHT;
@@ -30,9 +28,10 @@ function EmptyCardView() {
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={Illustrations.EmptyCardState}
-                    headerStyles={{backgroundColor: theme.buttonHoveredBG, overflow: 'hidden'}}
+                    headerStyles={[{overflow: 'hidden'}, isSmallScreenWidth && {maxHeight: 300}]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
+                    emptyStateContentStyles={isSmallScreenWidth ? {top: -BUTTON_HEIGHT} : undefined}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
