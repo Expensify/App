@@ -3218,6 +3218,11 @@ export default {
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
             },
+            deactivateCardModal: {
+                deactivate: 'Desactivar',
+                deactivateCard: 'Desactivar tarjeta',
+                deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
+            },
         },
         reimburse: {
             captureReceipts: 'Captura recibos',
