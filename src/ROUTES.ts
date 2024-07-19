@@ -946,7 +946,6 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/description',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
     },
-
     TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/reimbursable',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,

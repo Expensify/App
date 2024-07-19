@@ -28,7 +28,7 @@ function ReviewBillable() {
         [compareResult.change.billable, translate],
     );
 
-    const onSelectRow = (data: FieldItemType<'billable'>) => {
+    const setBillable = (data: FieldItemType<'billable'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({billable: data.value});
         }
@@ -43,7 +43,7 @@ function ReviewBillable() {
                 label={translate('violations.isTransactionBillable')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setBillable}
             />
         </ScreenWrapper>
     );

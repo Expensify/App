@@ -28,7 +28,7 @@ function ReviewReimbursable() {
         [compareResult.change.reimbursable, translate],
     );
 
-    const onSelectRow = (data: FieldItemType<'reimbursable'>) => {
+    const setReimbursable = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({reimbursable: data.value});
         }
@@ -43,7 +43,7 @@ function ReviewReimbursable() {
                 label={translate('violations.isTransactionReimbursable')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setReimbursable}
             />
         </ScreenWrapper>
     );

@@ -32,7 +32,7 @@ function ReviewMerchant() {
         [compareResult.change.merchant, translate],
     );
 
-    const onSelectRow = (data: FieldItemType<'merchant'>) => {
+    const setMerchant = (data: FieldItemType<'merchant'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({merchant: data.value});
         }
@@ -47,7 +47,7 @@ function ReviewMerchant() {
                 label={translate('violations.merchantToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setMerchant}
             />
         </ScreenWrapper>
     );

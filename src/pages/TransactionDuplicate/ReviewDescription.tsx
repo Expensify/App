@@ -31,7 +31,7 @@ function ReviewDescription() {
             ),
         [compareResult.change.description, translate],
     );
-    const onSelectRow = (data: FieldItemType<'description'>) => {
+    const setDescription = (data: FieldItemType<'description'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({description: data.value});
         }
@@ -46,7 +46,7 @@ function ReviewDescription() {
                 label={translate('violations.descriptionToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setDescription}
             />
         </ScreenWrapper>
     );

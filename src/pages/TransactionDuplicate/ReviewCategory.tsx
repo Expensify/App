@@ -32,7 +32,7 @@ function ReviewCategory() {
         [compareResult.change.category, translate],
     );
 
-    const onSelectRow = (data: FieldItemType<'category'>) => {
+    const setCategory = (data: FieldItemType<'category'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({category: data.value});
         }
@@ -47,7 +47,7 @@ function ReviewCategory() {
                 label={translate('violations.categoryToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setCategory}
             />
         </ScreenWrapper>
     );

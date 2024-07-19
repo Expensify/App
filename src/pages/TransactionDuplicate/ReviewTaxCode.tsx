@@ -47,7 +47,7 @@ function ReviewTaxRate() {
         [policy, transaction],
     );
 
-    const onSelectRow = useCallback(
+    const setTaxCode = useCallback(
         (data: FieldItemType<'taxCode'>) => {
             if (data.value !== undefined) {
                 setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value)});
@@ -65,7 +65,7 @@ function ReviewTaxRate() {
                 label={translate('violations.taxCodeToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setTaxCode}
             />
         </ScreenWrapper>
     );

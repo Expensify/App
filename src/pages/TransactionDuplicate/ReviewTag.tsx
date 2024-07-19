@@ -32,7 +32,7 @@ function ReviewTag() {
             ),
         [compareResult.change.tag, translate],
     );
-    const onSelectRow = (data: FieldItemType<'tag'>) => {
+    const setTag = (data: FieldItemType<'tag'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({tag: data.value});
         }
@@ -47,7 +47,7 @@ function ReviewTag() {
                 label={translate('violations.tagToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setTag}
             />
         </ScreenWrapper>
     );

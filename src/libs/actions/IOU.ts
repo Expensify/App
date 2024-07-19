@@ -7355,6 +7355,7 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '-1';
 }
 
+/** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
 function mergeDuplicates(params: TransactionMergeParams) {
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
@@ -7415,11 +7416,9 @@ function mergeDuplicates(params: TransactionMergeParams) {
     });
 
     const optimisticData: OnyxUpdate[] = [];
-
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations);
-
     const failureData: OnyxUpdate[] = [];
 
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations);
     failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations);
 
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
