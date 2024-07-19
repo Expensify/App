@@ -392,6 +392,10 @@ function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>) {
     });
 }
 
+function abandonReviewDuplicateTransactions() {
+    Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
+}
+
 function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
@@ -470,5 +474,6 @@ export {
     markAsCash,
     dismissDuplicateTransactionViolation,
     setReviewDuplicatesKey,
+    abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
 };

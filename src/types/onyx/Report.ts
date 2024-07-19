@@ -71,6 +71,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
+        /** The file name of the Group Chat report custom avatar
+         *  This field is not coming from backend, so it's for client side only
+         */
+        avatarFileName?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -290,8 +295,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             tripID: string;
         };
 
-        /** Whether the report has received a free trial end message or not */
-        hasReceivedFreeTrialEndMessage?: boolean;
+        /** Whether the report is archived */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived?: string;
     },
     PolicyReportField['fieldID']
 >;
