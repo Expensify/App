@@ -754,7 +754,7 @@ function getLastVisibleMessage(
         };
     }
 
-    let messageText = getTextFromHtml(message?.html) ?? '';
+    let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
     if (messageText) {
         messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }

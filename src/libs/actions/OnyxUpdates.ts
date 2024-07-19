@@ -163,10 +163,15 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0)
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
+        Log.info('We do not have lastUpdateIDFromClient, client needs updating');
+        return true;
+    }
+    if (lastUpdateIDFromClient < previousUpdateID) {
+        Log.info('lastUpdateIDFromClient is less than the previousUpdateID received, client needs updating', false, {lastUpdateIDFromClient, previousUpdateID});
         return true;
     }
 
-    return lastUpdateIDFromClient < previousUpdateID;
+    return false;
 }
 
 // eslint-disable-next-line import/prefer-default-export

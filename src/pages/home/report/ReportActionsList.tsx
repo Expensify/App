@@ -276,9 +276,7 @@ function ReportActionsList({
             if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
                 hasCalledReadNewestAction.current = true;
-                if (isFromNotification) {
-                    Navigation.setParams({referrer: undefined});
-                }
+                Navigation.setParams({referrer: undefined});
             } else {
                 readActionSkipped.current = true;
             }
