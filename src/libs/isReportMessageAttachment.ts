@@ -19,7 +19,7 @@ export default function isReportMessageAttachment(message: Message | undefined):
         return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && message.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
-    const hasAttachmentHtml = attachmentRegex.test(message.html) || message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+    const hasAttachmentHtml = message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML || attachmentRegex.test(message.html);
 
     if (!hasAttachmentHtml) {
         return false;
