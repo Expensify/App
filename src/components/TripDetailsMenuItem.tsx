@@ -11,6 +11,10 @@ import Text from './Text';
 /**
  * This component is going to be used in TravelDetails when we resolve
  * the backends and send over detailed info about reservations.
+ * 
+ * Due to it not being currently used and there being no data passed to this
+ * as I am unaware of the data structure, I have disabled eslint rules
+ * for this component.
  *
  * Please refer to the conversation below for more details:
  * https://swmansion.slack.com/archives/C05S5EV2JTX/p1721062807563259
