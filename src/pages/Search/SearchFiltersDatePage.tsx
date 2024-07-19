@@ -1,12 +1,12 @@
-import { format } from 'date-fns';
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
+import {format} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type { FormOnyxValues } from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
-
 const currentDate = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
 function SearchFiltersDatePage() {
@@ -26,18 +25,15 @@ function SearchFiltersDatePage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const areFiltersInitiated = !!(searchAdvancedFiltersForm && searchAdvancedFiltersForm[INPUT_IDS.DATE]);
-    const defaultDate = areFiltersInitiated ? searchAdvancedFiltersForm[INPUT_IDS.DATE] : currentDate;
+    const isDateAfterInitialized = !!(searchAdvancedFiltersForm && searchAdvancedFiltersForm[INPUT_IDS.DATE.AFTER]);
+    const isDateBeforeInitialized = !!(searchAdvancedFiltersForm && searchAdvancedFiltersForm[INPUT_IDS.DATE.BEFORE]);
+    const defaultDateAfter = isDateAfterInitialized ? searchAdvancedFiltersForm[INPUT_IDS.DATE.AFTER] : currentDate;
+    const defaultDateBefore = isDateBeforeInitialized ? searchAdvancedFiltersForm[INPUT_IDS.DATE.BEFORE] : currentDate;
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         Search.mergeFilters(value);
         Navigation.goBack();
     };
-
-    useEffect(() => {
-        // console log for debugging
-        // console.log(searchAdvancedFiltersForm);
-    }, [searchAdvancedFiltersForm]);
 
     return (
         <ScreenWrapper
@@ -57,9 +53,17 @@ function SearchFiltersDatePage() {
                     >
                         <InputWrapper
                             InputComponent={DatePicker}
-                            inputID={INPUT_IDS.DATE}
+                            inputID={INPUT_IDS.DATE.AFTER}
                             label={translate('common.date')}
-                            defaultValue={defaultDate}
+                            defaultValue={defaultDateAfter}
+                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                        />
+                        <InputWrapper
+                            InputComponent={DatePicker}
+                            inputID={INPUT_IDS.DATE.BEFORE}
+                            label={translate('common.date')}
+                            defaultValue={defaultDateBefore}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         />
