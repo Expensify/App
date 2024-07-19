@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -56,7 +57,9 @@ function ReportFieldsValueSettingsPage({
         return [reportFieldValue, reportFieldDisabledValue];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
-    if (!currentValueName) {
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+
+    if (!currentValueName || hasAccountingConnections) {
         return <NotFoundPage />;
     }
 

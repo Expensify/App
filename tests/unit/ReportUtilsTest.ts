@@ -2,6 +2,7 @@
 import {addDays, format as formatDate, subDays} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,6 +167,8 @@ describe('ReportUtils', () => {
                     ...baseAdminsRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
@@ -190,6 +193,8 @@ describe('ReportUtils', () => {
                     ...baseUserCreatedRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
@@ -234,6 +239,8 @@ describe('ReportUtils', () => {
                     oldPolicyName: policy.name,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 test('as member', () => {

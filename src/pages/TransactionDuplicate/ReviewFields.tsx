@@ -8,14 +8,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {ReviewDuplicates} from '@src/types/onyx';
 
-type FieldItemType = {
+type FieldItemType<T extends keyof ReviewDuplicates> = {
     text: string;
-    value: string | boolean;
+    value: ReviewDuplicates[T];
     keyForList: string;
 };
 
-type ReviewFieldsProps = {
+type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
     /* Step Names which are displayed in stepper */
     stepNames: string[];
 
@@ -23,16 +24,16 @@ type ReviewFieldsProps = {
     label: string;
 
     /* Values to choose from */
-    options: Array<{text: string; value: string | boolean | undefined}> | undefined;
+    options: Array<{text: string; value: ReviewDuplicates[K]}> | undefined;
 
     /* Current index */
     index: number;
 
     /* Callback to what should happen after selecting row */
-    onSelectRow: (item: FieldItemType) => void;
+    onSelectRow: (item: FieldItemType<K>) => void;
 };
 
-function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps) {
+function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps<K>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -50,7 +51,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
             filteredOptions?.map((option) => ({
                 text: option.text,
                 keyForList: option.text,
-                value: option.value ?? '',
+                value: option.value,
             })),
         [filteredOptions],
     );
