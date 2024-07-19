@@ -357,42 +357,6 @@ describe('libs/NextStepUtils', () => {
                     });
                 });
             });
-
-            test('prevented self submitting', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-                optimisticNextStep.message = [
-                    {
-                        text: "Oops! Looks like you're submitting to ",
-                    },
-                    {
-                        text: 'yourself',
-                        type: 'strong',
-                    },
-                    {
-                        text: '. Approving your own reports is ',
-                    },
-                    {
-                        text: 'forbidden',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
-                    },
-                ];
-
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    preventSelfApproval: true,
-                    employeeList: {
-                        [currentUserEmail]: {
-                            submitsTo: currentUserEmail,
-                        },
-                    },
-                }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
-
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
-            });
         });
 
         describe('it generates an optimistic nextStep once a report has been submitted', () => {

@@ -74,9 +74,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
     const {policyID = '', ownerAccountID = -1} = report ?? {};
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const {harvesting, autoReportingFrequency, autoReportingOffset} = policy;
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
-    const isSelfApproval = currentUserAccountID === submitToAccountID;
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
     const managerDisplayName = ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
@@ -165,29 +164,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     text: `automatically submit${harvestingSuffix}`,
                     type: 'strong',
                 });
-            }
-
-            // Prevented self submitting
-            if (preventSelfApproval && isSelfApproval) {
-                optimisticNextStep.message = [
-                    {
-                        text: "Oops! Looks like you're submitting to ",
-                    },
-                    {
-                        text: 'yourself',
-                        type: 'strong',
-                    },
-                    {
-                        text: '. Approving your own reports is ',
-                    },
-                    {
-                        text: 'forbidden',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
-                    },
-                ];
             }
 
             break;
