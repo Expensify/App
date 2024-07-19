@@ -26,7 +26,7 @@ const reactNativeDocumentPickerMock: ReactNativeDocumentPickerMock = {
         xls: 'com.microsoft.excel.xls',
         xlsx: 'org.openxmlformats.spreadsheetml.sheet',
         zip: 'public.zip-archive',
-        json: 'public.json'
+        json: 'public.json',
     }),
 };
 
