@@ -3145,7 +3145,7 @@ export default {
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportAs: 'Exportar cómo',
-            exportOutOfPocket: 'Exportar gastos de bolsillo como',
+            exportOutOfPocket: ' Exportar gastos por cuenta propia como',
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
