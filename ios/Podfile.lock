@@ -1315,7 +1315,7 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-document-picker (9.1.1):
+  - react-native-document-picker (9.3.0):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1523,7 +1523,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-sqlite (8.0.6):
+  - react-native-quick-sqlite (8.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2735,7 +2735,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 84830d6d2c30836b5b177ce2b96376e73c621837
   react-native-cameraroll: b39afffe89b01a67076b4eb37d606d42766e7f26
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
-  react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
+  react-native-document-picker: e08f984d5567149f38594d36a1df6199a228d574
   react-native-geolocation: eb908ac9d7130f5aff33d98e6ce43c7bd3dd1584
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 3590e297f678952408e949388cfea5f8a6334e5a
@@ -2746,7 +2746,7 @@ SPEC CHECKSUMS:
   react-native-pdf: 14b2da67d900fa6480cc4ea0c50f166a0ea7d985
   react-native-performance: b0fbe5a6f07abba144600ca39c231204be6371e8
   react-native-plaid-link-sdk: 79a7f130762fe9834f58f9621e8ef09b39776107
-  react-native-quick-sqlite: 31975de368a0b72ad74af19b43f5b865984c7d4d
+  react-native-quick-sqlite: 131f17748b27326d731058cd5d673adcf582c038
   react-native-release-profiler: db7b9573d0414d2408d0fc5808dfc9d95bc75754
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: fad48266ac1ec47fd1374b624697216e16875f77
