@@ -331,7 +331,75 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
     API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
 }
 
-function updatePolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string) {
+function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': payrollCode,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': null,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': payrollCode,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updatePayrollCodeFailureMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categoryName,
+        payrollCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE, parameters, onyxData);
+}
+
+function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string) {
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
 
     const onyxData: OnyxData = {
@@ -684,9 +752,10 @@ export {
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    setPolicyCategoryPayrollCode,
     createPolicyCategory,
     renamePolicyCategory,
-    updatePolicyCategoryGLCode,
+    setPolicyCategoryGLCode,
     clearCategoryErrors,
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,

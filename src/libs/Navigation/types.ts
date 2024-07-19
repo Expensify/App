@@ -19,7 +19,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import type {SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -206,6 +206,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
         policyID: string;
@@ -445,7 +449,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {
@@ -603,6 +613,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
@@ -639,8 +653,20 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CODE]: {
+        policyID: string;
+        taxID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+        policyID: string;
+        cardID: string;
+        backTo?: Routes;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -670,6 +696,11 @@ type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: undefined;
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+    };
+    [SCREENS.REPORT_DETAILS.EXPORT]: {
+        reportID: string;
+        policyID: string;
+        connectionName: ConnectionName;
     };
 };
 
@@ -1024,11 +1055,11 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
 };
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type FullScreenNavigatorParamList = {
@@ -1125,8 +1156,6 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
-type BottomTabScreensParamList = {[SCREENS.HOME]: undefined; [SCREENS.REPORT]: undefined} & SearchNavigatorParamList & SettingsNavigatorParamList;
-
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: {
@@ -1215,6 +1244,10 @@ type SearchReportParamList = {
     };
 };
 
+type SearchAdvancedFiltersParamList = {
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -1224,8 +1257,6 @@ type RestrictedActionParamList = {
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
-
-type BottomTabScreenName = keyof BottomTabScreensParamList;
 
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
@@ -1244,8 +1275,6 @@ export type {
     CentralPaneName,
     BackToParams,
     BottomTabName,
-    BottomTabScreenName,
-    BottomTabScreensParamList,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
@@ -1292,5 +1321,6 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
 };

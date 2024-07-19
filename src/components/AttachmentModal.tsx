@@ -530,6 +530,7 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
+                                            isUploaded={!isEmptyObject(report)}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )
