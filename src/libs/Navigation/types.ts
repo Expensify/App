@@ -50,6 +50,10 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
+type BackToParams = {
+    backTo?: Routes;
+};
+
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
@@ -73,15 +77,6 @@ type CentralPaneScreensParamList = {
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
-};
-
-type BackToParams = {
-    backTo?: Routes;
-};
-
-type BackToAndForwardToParms = {
-    backTo?: Routes;
-    forwardTo?: Routes;
 };
 
 type SearchNavigatorParamList = {
@@ -629,10 +624,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-        backTo?: Routes;
-        forwardTo?: string;
-    };
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
@@ -675,6 +667,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         cardID: string;
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -1063,12 +1059,12 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
 };
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type FullScreenNavigatorParamList = {
@@ -1165,8 +1161,6 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
-type BottomTabScreensParamList = {[SCREENS.HOME]: undefined; [SCREENS.REPORT]: undefined} & SearchNavigatorParamList & SettingsNavigatorParamList;
-
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: {
@@ -1255,6 +1249,10 @@ type SearchReportParamList = {
     };
 };
 
+type SearchAdvancedFiltersParamList = {
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -1278,8 +1276,6 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
-type BottomTabScreenName = keyof BottomTabScreensParamList;
-
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
@@ -1296,10 +1292,7 @@ export type {
     CentralPaneScreensParamList,
     CentralPaneName,
     BackToParams,
-    BackToAndForwardToParms,
     BottomTabName,
-    BottomTabScreenName,
-    BottomTabScreensParamList,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
@@ -1346,6 +1339,7 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
     DebugParamList,
 };
