@@ -32,7 +32,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const isConnectionDataFetchNeeded =
             !isOffline &&
             props.policy &&
-            (props.policy.areConnectionsEnabled ? !!props.policy.areConnectionsEnabled : !isEmptyObject(props.policy.connections)) &&
+            (props.policy.areConnectionsEnabled ? props.policy.areConnectionsEnabled : !isEmptyObject(props.policy.connections)) &&
             !hasConnectionsDataBeenFetched;
 
         useEffect(() => {

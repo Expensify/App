@@ -333,7 +333,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const prevPolicy = usePrevious(policy);
     const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
     const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
-    const [enabledItemState, setEnabledItemState] = useState(enabledItem);
+    const [, setEnabledItemState] = useState(enabledItem);
 
     useEffect(() => {
         setEnabledItemState(enabledItem);
