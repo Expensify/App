@@ -51,6 +51,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             return;
         }
 
+        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
         if (NativeModules.HybridAppModule) {
             return;
         }
@@ -61,8 +62,6 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 navigationRef.resetRoot(adaptedState);
             },
         });
-
-        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
