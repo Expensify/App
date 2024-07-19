@@ -442,7 +442,6 @@ type OptionData = {
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
     isConciergeChat?: boolean;
-    hasReceivedFreeTrialEndMessage?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -2379,10 +2378,6 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (optionOrReport.hasOutstandingChildRequest) {
-        return true;
-    }
-
-    if (optionOrReport?.hasReceivedFreeTrialEndMessage && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
         return true;
     }
 
