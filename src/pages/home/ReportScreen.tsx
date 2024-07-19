@@ -160,7 +160,6 @@ function ReportScreen({
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom, activeWorkspaceID)?.reportID;
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -173,6 +172,8 @@ function ReportScreen({
             return;
         }
 
+        const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom, activeWorkspaceID)?.reportID;
+
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
         if (!lastAccessedReportID) {
@@ -181,7 +182,7 @@ function ReportScreen({
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-    }, [lastAccessedReportID, activeWorkspaceID, canUseDefaultRooms, navigation, route]);
+    }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -227,6 +228,8 @@ function ReportScreen({
             visibility: reportOnyx?.visibility,
             oldPolicyName: reportOnyx?.oldPolicyName,
             policyName: reportOnyx?.policyName,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            private_isArchived: reportOnyx?.private_isArchived,
             isOptimisticReport: reportOnyx?.isOptimisticReport,
             lastMentionedTime: reportOnyx?.lastMentionedTime,
             avatarUrl: reportOnyx?.avatarUrl,
@@ -268,6 +271,7 @@ function ReportScreen({
             reportOnyx?.visibility,
             reportOnyx?.oldPolicyName,
             reportOnyx?.policyName,
+            reportOnyx?.private_isArchived,
             reportOnyx?.isOptimisticReport,
             reportOnyx?.lastMentionedTime,
             reportOnyx?.avatarUrl,

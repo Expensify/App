@@ -199,7 +199,6 @@ function ReportActionsView({
                 report.reportID,
                 false,
                 false,
-                {},
                 false,
                 DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
             ) as OnyxTypes.ReportAction;

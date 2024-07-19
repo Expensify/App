@@ -48,7 +48,7 @@ function SearchPageBottomTab() {
 
     const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL));
 
     return (
         <ScreenWrapper

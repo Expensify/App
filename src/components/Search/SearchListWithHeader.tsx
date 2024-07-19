@@ -26,7 +26,7 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
-    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}];
+    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
 function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
@@ -107,7 +107,7 @@ function SearchListWithHeader(
                         const {[item.keyForList]: omittedTransaction, ...transactions} = prev;
                         return transactions;
                     }
-                    return {...prev, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, action: item.action}};
+                    return {...prev, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
                 });
 
                 return;
