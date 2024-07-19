@@ -7,15 +7,12 @@ import type {TextSelection} from '@components/Composer/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
 import type {SuggestionsRef} from './ReportActionCompose';
-import SuggestionEmoji from './SuggestionEmoji';
+import SuggestionEmoji from './SuggestionEmoji'
 import SuggestionMention from './SuggestionMention';
 
 type SuggestionProps = {
     /** The current input value */
     value: string;
-
-    /** Callback to update the current input value */
-    setValue: (newValue: string) => void;
 
     /** The current selection value */
     selection: TextSelection;
@@ -56,7 +53,6 @@ type SuggestionProps = {
 function Suggestions(
     {
         value,
-        setValue,
         selection,
         setSelection,
         updateComment,
@@ -153,7 +149,6 @@ function Suggestions(
 
     const baseProps = {
         value,
-        setValue,
         setSelection,
         selection,
         updateComment,
