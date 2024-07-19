@@ -52,11 +52,8 @@ Onyx.connect({
         frequentlyUsedEmojis.forEach((emoji) => {
             const existingEmoji = emojiMap.get(emoji.code);
             if (existingEmoji) {
-                emojiMap.set(emoji.code, {
-                    ...emoji,
-                    count: existingEmoji.count + emoji.count,
-                    lastUpdatedAt: Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt),
-                });
+                existingEmoji.count += emoji.count;
+                existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
             } else {
                 emojiMap.set(emoji.code, emoji);
             }
