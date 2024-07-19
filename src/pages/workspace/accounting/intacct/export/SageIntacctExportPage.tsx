@@ -45,7 +45,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 pendingAction: config?.pendingFields?.reimbursable ?? config?.pendingFields?.reimbursableExpenseReportDefaultVendor,
             },
             {
-                description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
+                description: translate('workspace.accounting.exportCompanyCard'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)),
                 title: exportConfig?.nonReimbursable
                     ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)

@@ -2084,7 +2084,6 @@ export default {
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             date: 'Export date',
             exportInvoices: 'Export invoices to',
-            exportCompany: 'Export company cards as',
             exportExpensifyCard: 'Export Expensify Card transactions as',
             deepDiveExpensifyCard: 'Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
@@ -2265,7 +2264,6 @@ export default {
                 },
             },
             nonReimbursableExpenses: {
-                label: 'Export company cards as',
                 description: 'Set how company card purchases export to Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit cards',
