@@ -364,7 +364,9 @@ function calculateRemainingFreeTrialDays(): number {
 
     const currentDate = new Date();
     const lastDayDate = new Date(lastDayFreeTrial);
-    const lastDayFreeTrialDateUTC = new Date(Date.UTC(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate(), lastDayDate.getHours(), lastDayDate.getMinutes(), lastDayDate.getSeconds()));
+    const lastDayFreeTrialDateUTC = new Date(
+        Date.UTC(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate(), lastDayDate.getHours(), lastDayDate.getMinutes(), lastDayDate.getSeconds()),
+    );
     const diffInSeconds = differenceInSeconds(lastDayFreeTrialDateUTC, currentDate);
     const diffInDays = Math.ceil(diffInSeconds / 86400);
 
@@ -382,8 +384,12 @@ function isUserOnFreeTrial(): boolean {
     const currentDate = new Date();
     const firstDayDate = new Date(firstDayFreeTrial);
     const lastDayDate = new Date(lastDayFreeTrial);
-    const firstDayFreeTrialDateUTC = new Date(Date.UTC(firstDayDate.getFullYear(), firstDayDate.getMonth(), firstDayDate.getDate(), firstDayDate.getHours(), firstDayDate.getMinutes(), firstDayDate.getSeconds()));
-    const lastDayFreeTrialDateUTC = new Date(Date.UTC(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate(), lastDayDate.getHours(), lastDayDate.getMinutes(), lastDayDate.getSeconds()));
+    const firstDayFreeTrialDateUTC = new Date(
+        Date.UTC(firstDayDate.getFullYear(), firstDayDate.getMonth(), firstDayDate.getDate(), firstDayDate.getHours(), firstDayDate.getMinutes(), firstDayDate.getSeconds()),
+    );
+    const lastDayFreeTrialDateUTC = new Date(
+        Date.UTC(lastDayDate.getFullYear(), lastDayDate.getMonth(), lastDayDate.getDate(), lastDayDate.getHours(), lastDayDate.getMinutes(), lastDayDate.getSeconds()),
+    );
 
     return isAfter(currentDate, firstDayFreeTrialDateUTC) && isBefore(currentDate, lastDayFreeTrialDateUTC);
 }
