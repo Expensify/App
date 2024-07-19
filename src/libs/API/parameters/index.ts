@@ -196,6 +196,7 @@ export type {default as CreatePolicyTaxParams} from './CreatePolicyTaxParams';
 export type {default as OpenPolicyWorkflowsPageParams} from './OpenPolicyWorkflowsPageParams';
 export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDistanceRatesPageParams';
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
+export type {default as OpenPolicyReportFieldsPageParams} from './OpenPolicyReportFieldsPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
@@ -221,6 +222,7 @@ export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicy
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
@@ -260,3 +262,4 @@ export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuite
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
+export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
