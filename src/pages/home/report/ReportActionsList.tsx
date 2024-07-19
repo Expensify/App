@@ -541,16 +541,13 @@ function ReportActionsList({
         lastMessageTime.current = null;
         const areSomeReportActionsUnread = sortedVisibleReportActions.some((reportAction) => {
             /**
-             * In case of archived reports, we have `newMessageTimeReference` equal to `reportAction.created`.
-             * So the condition should be `<=` to mark the report as read. We will only use this condition when
-             * the report is archived to not introduce any regression for other reports.
+             * The archived reports should not be marked as unread. So we are checking if the report is archived or not.
+             * If the report is archived and unread, we will mark the report as read.
              */
-            const isTimeLesserOrEqual = ReportUtils.isArchivedRoom(report)
-                ? newMessageTimeReference && newMessageTimeReference <= reportAction.created
-                : newMessageTimeReference && newMessageTimeReference < reportAction.created;
+            const isUnreadArchivedReport = ReportUtils.isArchivedRoom(report) && ReportUtils.isUnread(report);
+            const isUnread = isUnreadArchivedReport || (newMessageTimeReference && newMessageTimeReference < reportAction.created);
             return (
-                isTimeLesserOrEqual &&
-                (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID()
+                isUnread && (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID()
             );
         });
         if (scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !areSomeReportActionsUnread) {
