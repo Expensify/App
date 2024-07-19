@@ -431,6 +431,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         policy,
         connectedIntegration,
         isPolicyAdmin,
+        isSingleTransactionView,
         canModifyTask,
         shouldShowMenuItem,
         isTaskReport,
