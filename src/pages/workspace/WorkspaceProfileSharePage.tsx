@@ -1,7 +1,6 @@
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
-import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +13,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
@@ -28,6 +28,7 @@ import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const themeStyles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareHandle>(null);
@@ -35,11 +36,22 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const session = useSession();
 
     const policyName = policy?.name ?? '';
-    const id = policy?.id ?? '-1';
+    const policyID = policy?.id ?? '-1';
     const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
+    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}`;
+
+    const hasAvatar = !!policy?.avatarURL;
+    const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
+
+    const defaultWorkspaceAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID);
+
+    const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
+    const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
+    const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
+
     const adminRoom = useMemo(() => {
         if (!policy?.id) {
             return undefined;
@@ -49,7 +61,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={id}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
@@ -84,23 +96,25 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                         </View>
 
                         <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph9]}>
-                            {/* 
+                            {/*
                             Right now QR code download button is not shown anymore
                             This is a temporary measure because right now it's broken because of the Fabric update.
                             We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
-                            
+
                             Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
                         */}
                             <QRShare
                                 ref={qrCodeRef}
                                 url={url}
                                 title={policyName}
-                                logo={(policy?.avatarURL ? policy.avatarURL : expensifyLogo) as ImageSourcePropType}
+                                logo={logo}
+                                svgLogo={svgLogo}
+                                logoBackgroundColor={logoBackgroundColor}
+                                svgLogoFillColor={svgLogoFillColor}
                                 logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                                 logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                             />
                         </View>
-
                         <View style={[themeStyles.mt3, themeStyles.ph4]}>
                             <ContextMenuItem
                                 isAnonymousAction

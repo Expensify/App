@@ -75,7 +75,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
-        if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+        if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
             let message: TranslationPaths;
 
             if (isReversedTransaction) {
