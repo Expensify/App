@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -39,6 +40,7 @@ function ReportFieldsInitialValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
 
@@ -84,7 +86,7 @@ function ReportFieldsInitialValuePage({
         [availableListValuesLength, policy?.fieldList, translate],
     );
 
-    if (!reportField) {
+    if (!reportField || hasAccountingConnections) {
         return <NotFoundPage />;
     }
 

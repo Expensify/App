@@ -688,6 +688,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     SEARCH: 'Search',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
+    OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -742,6 +743,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
+    [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
