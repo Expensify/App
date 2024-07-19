@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, format as formatDate, subDays} from 'date-fns';
+import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -321,7 +321,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
 
-        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
+        it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 97,
