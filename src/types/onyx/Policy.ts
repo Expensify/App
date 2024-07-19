@@ -133,6 +133,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates if the tax rate is selected. */
     isSelected?: boolean;
 
+    /** The old tax code of the tax rate when we edit the tax code */
+    previousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -1081,6 +1084,33 @@ type SageIntacctSyncConfig = {
     syncReimbursedReports: boolean | string;
 };
 
+/** Sage Intacct export configs */
+type SageIntacctExportConfig = {
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+    /** The e-mail of the exporter */
+    exporter: string;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+    /** Account that receives the non-reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor used for credit card transactions of non-reimbursable bill */
+    nonReimbursableCreditCardChargeDefaultVendor: string;
+
+    /** Default vendor of non-reimbursable bill */
+    nonReimbursableVendor: string;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+    /** Default vendor of reimbursable bill */
+    reimbursableExpenseReportDefaultVendor: string;
+};
+
 /**
  * Connection config for Sage Intacct
  */
@@ -1116,34 +1146,7 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         /** Sage Intacct export configs */
-        export: OnyxCommon.OnyxValueWithOfflineFeedback<{
-            /** Export date type */
-            exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
-
-            /** The e-mail of the exporter */
-            exporter: string;
-
-            /** Defines how non-reimbursable expenses are exported */
-            nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
-
-            /** Account that receives the non-reimbursable expenses */
-            nonReimbursableAccount: string;
-
-            /** Default vendor used for credit card transactions of non-reimbursable bill */
-            nonReimbursableCreditCardChargeDefaultVendor: string;
-
-            /** Default vendor of non-reimbursable bill */
-            nonReimbursableVendor: string;
-
-            /** Defines how reimbursable expenses are exported */
-            reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
-
-            /** Default vendor of reimbursable bill */
-            reimbursableExpenseReportDefaultVendor: string;
-
-            /** Collection of mapping field errors, which will be triggered when update action fails  */
-            errorFields?: OnyxCommon.ErrorFields;
-        }>;
+        export: SageIntacctExportConfig;
 
         /** Whether employees should be imported from Sage Intacct */
         importEmployees: boolean;
@@ -1157,13 +1160,16 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Sage Intacct sync */
         sync: SageIntacctSyncConfig;
 
+        /** Sage Intacct entity */
+        entity?: string;
+
         /** Collection of Sage Intacct config errors */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig
+    SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
 /** State of integration connection */
@@ -1352,8 +1358,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
-        /** The scheduled submit frequency set up on this policy */
-        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+        /**
+         * The scheduled submit frequency set up on this policy.
+         * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
+         * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
+         */
+        autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
 
         /** Scheduled submit data */
         harvesting?: {
@@ -1507,7 +1517,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 
 /** Names of policy connection services */
-type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionName = ConnectionName;
 
 /** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {
@@ -1515,7 +1525,7 @@ type PolicyConnectionSyncProgress = {
     stageInProgress: PolicyConnectionSyncStage;
 
     /** Name of the connected service */
-    connectionName: PolicyConnectionName;
+    connectionName: ConnectionName;
 
     /** Timestamp of the connection */
     timestamp: string;
@@ -1565,6 +1575,8 @@ export type {
     SageIntacctMappingName,
     SageIntacctDimension,
     SageIntacctDataElementWithValue,
+    NetSuiteMappingValues,
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
+    SageIntacctExportConfig,
 };

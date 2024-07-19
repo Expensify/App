@@ -80,14 +80,20 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {setActiveWorkspaceID} = useActiveWorkspace();
+    const [user] = useOnyx(ONYXKEYS.USER);
 
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
     const initialState = useMemo(() => {
+        if (!user || user.isFromPublicDomain) {
+            return;
+        }
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        if (!hasCompletedGuidedSetupFlow) {
+        // We also make sure that the user is authenticated.
+        if (!hasCompletedGuidedSetupFlow && authenticated) {
             const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
             return adaptedState;
         }
