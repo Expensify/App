@@ -2093,6 +2093,14 @@ export default {
             lineItemLevel: 'Nivel de partida',
             reportLevel: 'Nivel de informe',
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
+            shareNote: {
+                header: 'Comparte fácilmente tu espacio de trabajo con otros miembros.',
+                content: {
+                    firstPart:
+                        'Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala',
+                    secondPart: 'para tu revisión.',
+                },
+            },
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
@@ -3209,6 +3217,11 @@ export default {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
+            },
+            deactivateCardModal: {
+                deactivate: 'Desactivar',
+                deactivateCard: 'Desactivar tarjeta',
+                deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
             },
         },
         reimburse: {
