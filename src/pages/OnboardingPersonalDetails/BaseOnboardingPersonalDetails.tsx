@@ -131,18 +131,17 @@ function BaseOnboardingPersonalDetails({
     const PersonalDetailsFooterInstance = <OfflineIndicator />;
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-            <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={75}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                shouldEnableKeyboardAvoidingView
-                testID="BaseOnboardingPersonalDetails"
-            >
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID="BaseOnboardingPersonalDetails"
+        >
+            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    progressBarPercentage={75}
+                    onBackButtonPress={Navigation.goBack}
+                />
                 <FormProvider
                     style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
@@ -189,8 +188,8 @@ function BaseOnboardingPersonalDetails({
                         />
                     </View>
                 </FormProvider>
-            </ScreenWrapper>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 }
 

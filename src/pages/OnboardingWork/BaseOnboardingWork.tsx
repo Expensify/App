@@ -69,18 +69,18 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const WorkFooterInstance = <OfflineIndicator />;
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-            <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                shouldEnableKeyboardAvoidingView
-                testID="BaseOnboardingWork"
-            >
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            shouldEnableKeyboardAvoidingView
+            testID="BaseOnboardingWork"
+        >
+            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
+                    onBackButtonPress={Navigation.goBack}
+                />
                 <FormProvider
                     style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
@@ -112,8 +112,8 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                         />
                     </View>
                 </FormProvider>
-            </ScreenWrapper>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 }
 
