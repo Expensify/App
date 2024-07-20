@@ -144,10 +144,6 @@ function getActiveRoute(): string {
         return '';
     }
 
-    if (currentRoute?.path) {
-        return currentRoute.path;
-    }
-
     const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
     if (routeFromState) {

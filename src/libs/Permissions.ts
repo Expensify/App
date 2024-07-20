@@ -68,7 +68,6 @@ export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseDupeDetection,
-    canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
     canUseSpotnanaTravel,

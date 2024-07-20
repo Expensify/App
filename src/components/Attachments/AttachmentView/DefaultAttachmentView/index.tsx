@@ -8,6 +8,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type DefaultAttachmentViewProps = {
     /** The name of the file */
@@ -21,9 +22,11 @@ type DefaultAttachmentViewProps = {
 
     /** Additional styles for the container */
     containerStyles?: StyleProp<ViewStyle>;
+
+    icon?: IconAsset;
 };
 
-function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles}: DefaultAttachmentViewProps) {
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon}: DefaultAttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -33,7 +36,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
-                    src={Expensicons.Paperclip}
+                    src={icon ?? Expensicons.Paperclip}
                 />
             </View>
 

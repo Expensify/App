@@ -24,6 +24,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -38,6 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -127,6 +129,7 @@ function ReportPreview({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
@@ -200,6 +203,18 @@ function ReportPreview({
         } else {
             IOU.approveMoneyRequest(iouReport, true);
         }
+    };
+
+    const getSettlementAmount = () => {
+        if (hasOnlyHeldExpenses) {
+            return '';
+        }
+
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+            return nonHeldAmount;
+        }
+
+        return CurrencyUtils.convertToDisplayString(reimbursableSpend, iouReport?.currency);
     };
 
     const getDisplayAmount = (): string => {
@@ -320,6 +335,14 @@ function ReportPreview({
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
+    /*
+     * Manual export
+     */
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -402,9 +425,9 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && (
+                                {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
                                     <SettlementButton
-                                        formattedAmount={getDisplayAmount() ?? ''}
+                                        formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
@@ -428,6 +451,13 @@ function ReportPreview({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
+                                {shouldShowExportIntegrationButton && (
+                                    <ExportWithDropdownMenu
+                                        policy={policy}
+                                        report={iouReport}
+                                        connectionName={connectedIntegration}
+                                    />
+                                )}
                                 {shouldShowSubmitButton && (
                                     <Button
                                         medium
@@ -444,7 +474,7 @@ function ReportPreview({
             </View>
             {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}

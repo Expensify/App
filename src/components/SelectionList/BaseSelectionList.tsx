@@ -67,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
+        sectionListStyle,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
@@ -729,7 +730,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
-                                style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
                                 ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 ListEmptyComponent={listEmptyContent}
