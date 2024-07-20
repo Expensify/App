@@ -74,8 +74,8 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const headerContent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.xero.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.exportPreferredExporterSubNote')}</Text>
+                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -93,7 +93,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectExporter}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
-            title="workspace.xero.preferredExporter"
+            title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );

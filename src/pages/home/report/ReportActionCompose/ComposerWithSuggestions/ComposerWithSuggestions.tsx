@@ -38,7 +38,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -53,7 +53,6 @@ import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -304,21 +303,11 @@ function ComposerWithSuggestions(
     const [composerHeight, setComposerHeight] = useState(0);
 
     const textInputRef = useRef<TextInput | null>(null);
-    const insertedEmojisRef = useRef<Emoji[]>([]);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
-
-    /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
-        insertedEmojisRef.current = [];
-    }, []);
 
     /**
      * Set the TextInput Ref
@@ -421,8 +410,6 @@ function ComposerWithSuggestions(
                     if (suggestionsRef.current) {
                         suggestionsRef.current.resetSuggestions();
                     }
-                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
@@ -461,18 +448,7 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [
-            debouncedUpdateFrequentlyUsedEmojis,
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
-            raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-            selection.end,
-        ],
+        [findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {
@@ -543,7 +519,7 @@ function ComposerWithSuggestions(
                 event.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
-                    Report.saveReportActionDraft(reportID, lastReportAction, parseHtmlToMarkdown(message?.html ?? ''));
+                    Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
         },
@@ -682,7 +658,7 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
         if (modal?.isVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line no-param-reassign
+            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
 
@@ -708,7 +684,7 @@ function ComposerWithSuggestions(
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     useImperativeHandle(
         ref,
@@ -744,12 +720,14 @@ function ComposerWithSuggestions(
     const onClear = useCallback(() => {
         mobileInputScrollPosition.current = 0;
         setTextInputShouldClear(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
+        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     useFocusedInputHandler(
         {

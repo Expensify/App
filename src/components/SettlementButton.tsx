@@ -4,8 +4,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -103,6 +105,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
 function SettlementButton({
@@ -138,6 +143,7 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    useKeyboardShortcuts = false,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -223,10 +229,15 @@ function SettlementButton({
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -276,11 +287,14 @@ function SettlementButton({
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    onOptionSelected={(option) => savePreferredPaymentMethod(policyID, option.value)}
+                    onOptionSelected={(option) => {
+                        savePreferredPaymentMethod(policyID, option.value);
+                    }}
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
                 />
             )}
         </KYCWall>

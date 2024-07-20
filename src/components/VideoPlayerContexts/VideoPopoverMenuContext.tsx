@@ -62,6 +62,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
                     updatePlaybackSpeed(speed);
                 },
                 shouldPutLeftPaddingWhenNoIcon: true,
+                isSelected: currentPlaybackSpeed === speed,
             })),
         });
         return items;

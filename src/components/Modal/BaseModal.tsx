@@ -118,7 +118,7 @@ function BaseModal(
             }
             hideModal(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -242,7 +242,9 @@ function BaseModal(
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
                     animationOut={animationOut ?? modalStyleAnimationOut}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriver={useNativeDriverProp && useNativeDriver}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming}

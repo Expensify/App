@@ -36,12 +36,14 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
 
         if (!policy.errorFields && policy.isChangeOwnerFailed) {
             // there are some errors but not related to change owner flow - show an error page
+            Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
             return;
         }
 
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
             // no errors - show a success page
+            Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
             return;
         }

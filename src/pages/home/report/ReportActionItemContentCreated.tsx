@@ -75,7 +75,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
-        if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+        if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
             let message: TranslationPaths;
 
             if (isReversedTransaction) {
@@ -149,33 +149,29 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <OfflineWithFeedback pendingAction={action.pendingAction}>
                 {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                     <>
-                        {transactionCurrency !== report.currency && (
-                            <>
-                                <MoneyReportView
-                                    report={report}
-                                    policy={policy}
-                                />
-                                {renderThreadDivider}
-                            </>
-                        )}
+                        <MoneyReportView
+                            report={report}
+                            policy={policy}
+                            isCombinedReport
+                            shouldShowTotal={transactionCurrency !== report.currency}
+                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        />
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <View>
                                 <MoneyRequestView
                                     report={transactionThreadReport}
-                                    shouldShowAnimatedBackground={transactionCurrency === report.currency}
+                                    shouldShowAnimatedBackground={false}
                                 />
                                 {renderThreadDivider}
                             </View>
                         </ShowContextMenuContext.Provider>
                     </>
                 ) : (
-                    <>
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                        />
-                        {renderThreadDivider}
-                    </>
+                    <MoneyReportView
+                        report={report}
+                        policy={policy}
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    />
                 )}
             </OfflineWithFeedback>
         );

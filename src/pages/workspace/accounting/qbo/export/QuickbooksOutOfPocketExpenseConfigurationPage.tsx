@@ -63,7 +63,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesExportDestination}>
                         <MenuItemWithTopDescription
                             title={reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined}
-                            description={translate('workspace.qbo.exportAs')}
+                            description={translate('workspace.accounting.exportAs')}
                             errorText={hasErrors && reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}Error`) : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                             brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

@@ -62,7 +62,7 @@ function RoomInvitePage({
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -94,7 +94,7 @@ function RoomInvitePage({
         setUserToInvite(inviteOptions.userToInvite);
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [betas, debouncedSearchTerm, excludedUsers, options.personalDetails]);
 
     const sections = useMemo(() => {
@@ -266,7 +266,6 @@ function RoomInvitePage({
                         onSubmit={inviteUsers}
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
                         enabledWhenOffline
-                        disablePressOnEnter
                         isAlertVisible={false}
                     />
                 </View>

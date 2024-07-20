@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -22,8 +21,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -59,8 +58,6 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-const parser = new ExpensiMark();
-
 function WorkspaceInviteMessagePage({
     workspaceInviteMessageDraft,
     invitedEmailsToAccountIDsDraft,
@@ -87,20 +84,18 @@ function WorkspaceInviteMessagePage({
         workspaceInviteMessageDraft ||
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description ||
-        parser.replace(
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            }),
-        );
+        Parser.htmlToMarkdown(policy?.description ?? '') ||
+        translate('workspace.common.welcomeNote', {
+            workspaceName: policy?.name ?? '',
+        });
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(parseHtmlToMarkdown(getDefaultWelcomeNote()));
+            setWelcomeNote(getDefaultWelcomeNote());
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
@@ -113,9 +108,7 @@ function WorkspaceInviteMessagePage({
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
-        // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+        Navigation.dismissModal();
     };
 
     /** Opens privacy url as an external link */

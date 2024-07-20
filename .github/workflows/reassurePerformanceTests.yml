@@ -47,13 +47,13 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
-          npm install --force
-          npx reassure --baseline
+          npm install --force || (rm -rf node_modules && npm install --force) 
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           git switch --force --detach -
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
           git checkout --ours .
-          npm install --force
-          npx reassure --branch
+          npm install --force || (rm -rf node_modules && npm install --force)
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
       - name: Validate output.json
         id: validateReassureOutput

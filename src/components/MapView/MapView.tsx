@@ -37,6 +37,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const currentPosition = userLocation ?? initialLocation;
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);
+        const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
 
         // Determines if map can be panned to user's detected
         // location without bothering the user. It will return
@@ -138,7 +139,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [navigation]);
 
         useEffect(() => {
-            setAccessToken(accessToken);
+            setAccessToken(accessToken).then((token) => {
+                if (!token) {
+                    return;
+                }
+                setIsAccessTokenSet(true);
+            });
         }, [accessToken]);
 
         const setMapIdle = (e: MapState) => {
@@ -151,7 +157,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
         };
         const centerMap = useCallback(() => {
-            if (directionCoordinates && directionCoordinates.length > 1) {
+            const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
+            if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
                 const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
                 return;
@@ -198,7 +205,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
         const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
-        return !isOffline && !!accessToken && !!defaultSettings ? (
+        return !isOffline && isAccessTokenSet && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     style={{flex: 1}}
@@ -208,6 +215,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
+                    // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
+                    scaleBarPosition={{...styles.tn8, left: 0}}
+                    compassEnabled
+                    compassPosition={{...styles.l2, ...styles.t5}}
                     logoPosition={{...styles.l2, ...styles.b2}}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...responder.panHandlers}
