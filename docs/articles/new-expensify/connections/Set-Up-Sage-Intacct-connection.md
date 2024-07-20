@@ -1,6 +1,6 @@
 ---
-title: Set up QuickBooks Online connection
-description: Integrate QuickBooks Online with Expensify
+title: Set up Sage Intacct connection
+description: Integrate Sage Intacct with Expensify
 ---
 <div id="new-expensify" markdown="1">
 
