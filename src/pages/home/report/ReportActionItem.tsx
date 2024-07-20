@@ -23,7 +23,6 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
-import RenameAction from '@components/ReportActionItem/RenameAction';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
@@ -658,6 +657,12 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            const originalMessage = ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
+            const oldName = originalMessage?.oldName ?? '';
+            const newName = originalMessage?.newName ?? '';
+            const message = translate('newRoomPage.renamedRoomAction', {oldName, newName});
+            children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -838,9 +843,6 @@ function ReportActionItem({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             />
         );
-    }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-        return <RenameAction action={action} />;
     }
     if (ReportActionsUtils.isChronosOOOListAction(action)) {
         return (
