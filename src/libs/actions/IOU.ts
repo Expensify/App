@@ -2455,16 +2455,15 @@ function calculateAmountForUpdatedWaypointOrRate(
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
 ) {
-    const hasModifiedRate = !isEmptyObject(transactionChanges.customUnitRateID);
-    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && !hasModifiedRate) {
+    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
         return {
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedMerchant: Localize.translateLocal('iou.fieldPending')
+            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
         };
     }
 
-    const customUnitRateID = hasModifiedRate ? transactionChanges.customUnitRateID! : TransactionUtils.getRateID(transaction) ?? '';
+    const customUnitRateID = !isEmptyObject(transactionChanges.customUnitRateID) ? transactionChanges.customUnitRateID : TransactionUtils.getRateID(transaction) ?? '';
 
     const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
