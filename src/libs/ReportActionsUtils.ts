@@ -1165,6 +1165,19 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+function getReportActionMessageFragments(action: ReportAction): Message[] {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
+        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    } else {
+        const actionMessage = action.previousMessage ?? action.message;
+        if (Array.isArray(actionMessage)) {
+            return actionMessage.filter((item): item is Message => !!item);
+        }
+        return actionMessage ? [actionMessage] : [];
+    }
+}
+
 function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -1555,6 +1568,7 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
+    getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
