@@ -2473,7 +2473,7 @@ function calculateAmountForUpdatedWaypointOrRate(
         : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
     const {unit, rate} = mileageRate;
 
-    const distanceInMeters = TransactionUtils.getDistanceInMeters(transaction, unit);
+    const distanceInMeters = DistanceRequestUtils.getDistanceInMeters(transaction, unit);
     const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
     const updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
     const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>

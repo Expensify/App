@@ -20,7 +20,6 @@ import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from './ReportActionsUtils';
-import DistanceRequestUtils from './DistanceRequestUtils';
 import * as ReportConnection from './ReportConnection';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -388,18 +387,6 @@ function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boo
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
-}
-
-function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: Unit) {
-    if (transaction?.routes?.route0?.distance) {
-        return transaction.routes.route0.distance;
-    }
-
-    if (transaction?.comment?.customUnit?.quantity && unit) {
-        return DistanceRequestUtils.convertToDistanceInMeters(transaction.comment.customUnit.quantity, unit);
-    }
-
-    return 0;
 }
 
 function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
@@ -996,7 +983,6 @@ export {
     getTaxCode,
     getCurrency,
     getDistance,
-    getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,

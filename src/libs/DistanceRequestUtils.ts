@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -110,6 +110,19 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
         default:
             throw new Error('Unsupported unit. Supported units are "mi" or "km".');
     }
+}
+
+// Get the distance in meters from the transaction
+function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: Unit): number {
+    if (transaction?.routes?.route0?.distance) {
+        return transaction.routes.route0.distance;
+    }
+
+    if (transaction?.comment?.customUnit?.quantity && unit) {
+        return convertToDistanceInMeters(transaction.comment.customUnit.quantity, unit);
+    }
+
+    return 0;
 }
 
 /**
@@ -288,6 +301,7 @@ export default {
     getRateForDisplay,
     getMileageRates,
     getDistanceForDisplay,
+    getDistanceInMeters,
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
