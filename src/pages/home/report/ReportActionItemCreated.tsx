@@ -57,7 +57,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
             pendingAction={props.report?.pendingFields?.addWorkspaceRoom ?? props.report?.pendingFields?.createChat}
             errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
+            onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID, undefined, true)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
