@@ -12,7 +12,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportAction';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -42,13 +41,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const actionMessage = action.previousMessage ?? action.message;
-    let fragments: Message[] = [];
-    if (Array.isArray(actionMessage)) {
-        fragments = actionMessage.filter((item): item is Message => !!item);
-    } else {
-        fragments = actionMessage ? [actionMessage] : [];
-    }
+    const fragments = ReportActionsUtils.getReportActionMessageFragments(action);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
 
     if (ReportActionsUtils.isMemberChangeAction(action)) {
