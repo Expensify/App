@@ -408,7 +408,7 @@ function ReportActionItem({
                     text: 'subscription.cardSection.addCardButton',
                     key: `${action.reportActionID}-actionableAddPaymentCard-submit`,
                     onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
                     isMediumSized: true,
                     isPrimary: true,
