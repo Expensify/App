@@ -131,7 +131,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={policyCategory.name}
-                            description={translate(`workspace.categories.categoryName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
                         />
