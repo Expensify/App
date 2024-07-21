@@ -41,6 +41,9 @@ Onyx.connect({
                         emoji = {...emoji, ...findEmojiByCode(item.code)};
                     }
                     const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                    if (!emojiWithSkinTones) {
+                        return null
+                    }
                     return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
