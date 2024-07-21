@@ -1201,7 +1201,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
-        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
 
@@ -1275,8 +1274,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
             return Localize.translateLocal('report.actions.type.unshare', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
             return Localize.translateLocal('report.actions.type.takeControl');
-        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
-            return getExportIntegrationLastMessageText(oldDotAction as ReportAction);
         default:
             return '';
     }
