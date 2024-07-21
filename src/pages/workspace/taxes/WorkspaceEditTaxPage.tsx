@@ -136,7 +136,7 @@ function WorkspaceEditTaxPage({
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 if (!PolicyUtils.isControlPolicy(policy)) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
