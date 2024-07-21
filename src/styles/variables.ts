@@ -63,7 +63,7 @@ export default {
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
-    fontSizeNormalHeight: getValueUsingPixelRatio(21, 28),
+    fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
@@ -207,9 +207,11 @@ export default {
     oldDotWireframeIconWidth: 263.38,
     oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
+    restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     welcomeVideoDelay: 1000,
+    explanationModalDelay: 2000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -240,11 +242,16 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    h20: 20,
+    h28: 28,
     h36: 36,
+    w20: 20,
     w28: 28,
     w36: 36,
     w40: 40,
     w44: 44,
+    w52: 52,
     w80: 80,
+    w92: 92,
     w96: 96,
 } as const;

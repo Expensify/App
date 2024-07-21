@@ -3,7 +3,7 @@ import type {PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = React.createContext<PopoverContextValue>({
     onOpen: () => {},
-    popover: {},
+    popover: null,
     close: () => {},
     isOpen: false,
 });
@@ -13,7 +13,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
         () => ({
             onOpen: () => {},
             close: () => {},
-            popover: {},
+            popover: null,
             isOpen: false,
         }),
         [],

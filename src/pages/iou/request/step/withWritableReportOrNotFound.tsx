@@ -54,7 +54,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report = {reportID: ''}, route, isLoadingApp = true} = props;
+        const {report = {reportID: ''}, route, isLoadingApp = true, reportDraft} = props;
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
@@ -62,13 +62,13 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
-            if (!!report?.reportID || !route.params.reportID) {
+            if (!!report?.reportID || !route.params.reportID || !!reportDraft) {
                 return;
             }
 
             ReportActions.openReport(route.params.reportID);
 
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
 
         if (isEditing && isLoadingApp) {

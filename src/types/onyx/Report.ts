@@ -71,11 +71,19 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
+        /** The file name of the Group Chat report custom avatar
+         *  This field is not coming from backend, so it's for client side only
+         */
+        avatarFileName?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
         hasOutstandingChildRequest?: boolean;
+
+        /** Whether the report has a child task that is awaiting action from the current user */
+        hasOutstandingChildTask?: boolean;
 
         /** List of icons for report participants */
         icons?: OnyxCommon.Icon[];
@@ -274,6 +282,22 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
+
+        /** The trip data for a trip room */
+        tripData?: {
+            /** The start date of a trip */
+            startDate: string;
+
+            /** The end date of a trip */
+            endDate: string;
+
+            /** The trip ID in spotnana */
+            tripID: string;
+        };
+
+        /** Whether the report is archived */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived?: string;
     },
     PolicyReportField['fieldID']
 >;

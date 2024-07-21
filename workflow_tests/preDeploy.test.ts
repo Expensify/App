@@ -1,4 +1,4 @@
-import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {MockStep} from '@kie/act-js';
 import {MockGithub} from '@kie/mock-github';
 import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';
@@ -278,7 +278,7 @@ describe('test workflow preDeploy', () => {
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
                         {key: 'SLACK_WEBHOOK', value: '***'},
                     ]),
-                    utils.createStepAssertion('Exit failed workflow', false, ''),
+                    utils.createStepAssertion('Exit failed workflow', false, 'Checks failed, exiting ~ typecheck: failure, lint: success, test: success'),
                 ]),
             );
             assertions.assertChooseDeployActionsJobExecuted(result, false);
@@ -349,7 +349,7 @@ describe('test workflow preDeploy', () => {
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
                         {key: 'SLACK_WEBHOOK', value: '***'},
                     ]),
-                    utils.createStepAssertion('Exit failed workflow', false, ''),
+                    utils.createStepAssertion('Exit failed workflow', false, 'Checks failed, exiting ~ typecheck: success, lint: failure, test: success'),
                 ]),
             );
             assertions.assertChooseDeployActionsJobExecuted(result, false);
@@ -420,7 +420,7 @@ describe('test workflow preDeploy', () => {
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
                         {key: 'SLACK_WEBHOOK', value: '***'},
                     ]),
-                    utils.createStepAssertion('Exit failed workflow', false, ''),
+                    utils.createStepAssertion('Exit failed workflow', false, 'Checks failed, exiting ~ typecheck: success, lint: success, test: failure'),
                 ]),
             );
             assertions.assertChooseDeployActionsJobExecuted(result, false);

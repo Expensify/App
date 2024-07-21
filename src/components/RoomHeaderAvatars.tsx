@@ -44,8 +44,8 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
             >
                 <Avatar
                     source={icons[0].source}
-                    imageStyles={styles.avatarLarge}
-                    size={CONST.AVATAR_SIZE.LARGE}
+                    imageStyles={styles.avatarXLarge}
+                    size={CONST.AVATAR_SIZE.XLARGE}
                     name={icons[0].name}
                     avatarID={icons[0].id}
                     type={icons[0].type}

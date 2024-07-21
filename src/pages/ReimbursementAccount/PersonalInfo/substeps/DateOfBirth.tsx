@@ -1,5 +1,5 @@
 import {subYears} from 'date-fns';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -32,23 +32,26 @@ type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.dob) {
-        if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
-            errors.dob = 'bankAccount.error.dob';
-        } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-            errors.dob = 'bankAccount.error.age';
-        }
-    }
-
-    return errors;
-};
-
 function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}: DateOfBirthProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.dob) {
+                if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                    errors.dob = translate('bankAccount.error.dob');
+                } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                    errors.dob = translate('bankAccount.error.age');
+                }
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const dobDefaultValue = reimbursementAccount?.achData?.[PERSONAL_INFO_DOB_KEY] ?? reimbursementAccountDraft?.[PERSONAL_INFO_DOB_KEY] ?? '';
 

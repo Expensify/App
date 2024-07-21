@@ -57,7 +57,7 @@ type SuggestionPersonalDetailsList = Record<
 >;
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -317,8 +317,8 @@ function SuggestionMention(
     );
 
     const calculateMentionSuggestion = useCallback(
-        (selectionEnd: number) => {
-            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
+        (selectionStart?: number, selectionEnd?: number) => {
+            if (selectionEnd !== selectionStart || !selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -384,7 +384,7 @@ function SuggestionMention(
     );
 
     useEffect(() => {
-        calculateMentionSuggestion(selection.end);
+        calculateMentionSuggestion(selection.start, selection.end);
     }, [selection, calculateMentionSuggestion]);
 
     useEffect(() => {
@@ -408,6 +408,7 @@ function SuggestionMention(
     );
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(
         ref,
@@ -417,8 +418,9 @@ function SuggestionMention(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            getIsSuggestionsMenuVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -432,7 +434,8 @@ function SuggestionMention(
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }

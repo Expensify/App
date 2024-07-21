@@ -4,7 +4,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {ReportAction} from '@src/types/onyx';
 
 type RenameActionProps = WithCurrentUserPersonalDetailsProps & {
@@ -20,7 +20,7 @@ function RenameAction({currentUserPersonalDetails, action}: RenameActionProps) {
     const userDisplayName = action.person?.[0]?.text;
     const actorAccountID = action.actorAccountID ?? '-1';
     const displayName = actorAccountID === currentUserAccountID ? `${translate('common.you')}` : `${userDisplayName}`;
-    const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ? action.originalMessage : null;
+    const originalMessage = ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
     const oldName = originalMessage?.oldName ?? '';
     const newName = originalMessage?.newName ?? '';
 

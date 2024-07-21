@@ -15,7 +15,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {CentralPaneNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -95,7 +95,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<CentralPaneNavigatorParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<AuthScreensParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -131,7 +131,7 @@ function ScreenWrapper(
 ) {
     /**
      * We are only passing navigation as prop from
-     * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+     * ReportScreen -> ScreenWrapper
      *
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.
@@ -139,7 +139,7 @@ function ScreenWrapper(
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -211,7 +211,7 @@ function ScreenWrapper(
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
@@ -279,7 +279,7 @@ function ScreenWrapper(
                                                     : children
                                             }
                                             {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                            {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                            {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
                                                 <OfflineIndicator
                                                     containerStyles={[]}
                                                     style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}

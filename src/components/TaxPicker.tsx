@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -54,9 +54,11 @@ type TaxPickerProps = TaxPickerOnyxProps & {
 
     /** The type of IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+
+    onDismiss: () => void;
 };
 
-function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit, action, splitDraftTransaction, iouType}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit, action, splitDraftTransaction, iouType, onDismiss}: TaxPickerProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -94,6 +96,17 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
 
     const selectedOptionKey = useMemo(() => sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
+    const handleSelectRow = useCallback(
+        (newSelectedOption: OptionsListUtils.TaxRatesOption) => {
+            if (selectedOptionKey === newSelectedOption.keyForList) {
+                onDismiss();
+                return;
+            }
+            onSubmit(newSelectedOption);
+        },
+        [onSubmit, onDismiss, selectedOptionKey],
+    );
+
     return (
         <SelectionList
             sections={sections}
@@ -101,7 +114,7 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
             textInputValue={searchValue}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
-            onSelectRow={onSubmit}
+            onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported

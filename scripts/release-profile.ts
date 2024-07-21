@@ -3,21 +3,7 @@
 /* eslint-disable no-console */
 import {execSync} from 'child_process';
 import fs from 'fs';
-
-type ArgsMap = Record<string, string>;
-
-// Function to parse command-line arguments into a key-value object
-function parseCommandLineArguments(): ArgsMap {
-    const args = process.argv.slice(2); // Skip node and script paths
-    const argsMap: ArgsMap = {};
-    args.forEach((arg) => {
-        const [key, value] = arg.split('=');
-        if (key.startsWith('--')) {
-            argsMap[key.substring(2)] = value;
-        }
-    });
-    return argsMap;
-}
+import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
 // Function to find .cpuprofile files in the current directory
 function findCpuProfileFiles() {

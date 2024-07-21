@@ -73,19 +73,20 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
-    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
+    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
+            Navigation.goBack();
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            Navigation.dismissModal(report?.reportID);
         }
-
-        Navigation.dismissModal(report?.reportID);
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
+        setIsDeleteModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     };
 

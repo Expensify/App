@@ -94,7 +94,7 @@ function SubscriptionDetails() {
                     <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
                 </View>
             ) : (
-                <OfflineWithFeedback pendingAction={privateSubscription?.pendingAction}>
+                <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.type}>
                     <OptionsPicker
                         options={options}
                         selectedOption={privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL}

@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -33,19 +33,22 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+            const errors = {};
+            const taskDescriptionLength = ReportUtils.getCommentLength(values.description);
+            if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            }
 
-        if (values?.description && values.description?.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
-        }
-
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.description !== parseHtmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
+            if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
                 Task.editTask(report, {description: values.description});
@@ -108,7 +111,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parseHtmlToMarkdown(report?.description ?? '')}
+                            defaultValue={Parser.htmlToMarkdown(report?.description ?? '')}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;

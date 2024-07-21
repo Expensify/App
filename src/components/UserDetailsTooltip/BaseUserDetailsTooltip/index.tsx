@@ -31,7 +31,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
 
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.
-    if (delegateAccountID) {
+    if (delegateAccountID && delegateAccountID > 0) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
         const delegateUserDisplayName = ReportUtils.getUserDetailTooltipText(delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;

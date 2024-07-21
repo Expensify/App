@@ -72,7 +72,7 @@ const useValidateCustomDate = (data: string) => {
             return;
         }
         validate();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [data]);
 
     const validateCustomDate = () => validate();
@@ -149,7 +149,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
             clearAfter: draftClearAfter || clearAfter,
         });
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const customStatusDate = DateUtils.extractDate(draftClearAfter);

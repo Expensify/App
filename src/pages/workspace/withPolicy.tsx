@@ -4,27 +4,23 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {
-    BottomTabNavigatorParamList,
-    CentralPaneNavigatorParamList,
-    FullScreenNavigatorParamList,
-    ReimbursementAccountNavigatorParamList,
-    SettingsNavigatorParamList,
-} from '@navigation/types';
+import type {AuthScreensParamList, BottomTabNavigatorParamList, FullScreenNavigatorParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
+type NavigatorsParamList = BottomTabNavigatorParamList & AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
 
 type PolicyRoute = RouteProp<
     NavigatorsParamList,
     | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
     | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.PROFILE
     | typeof SCREENS.WORKSPACE.BILLS
     | typeof SCREENS.WORKSPACE.MORE_FEATURES
     | typeof SCREENS.WORKSPACE.MEMBERS
+    | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
     | typeof SCREENS.WORKSPACE.INVITE
     | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
     | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
@@ -41,6 +37,11 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.ADDRESS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS
+    | typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {

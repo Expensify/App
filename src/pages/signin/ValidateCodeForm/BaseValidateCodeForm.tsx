@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -217,7 +218,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         clearLocalSignInData();
         // `clearLocalSignInData` is not required as a dependency, and adding it
         // overcomplicates things requiring clearLocalSignInData function to use useCallback
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     useEffect(() => {
@@ -291,7 +292,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
 
     return (
-        <>
+        <SafariFormWrapper>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
             {account?.requiresTwoFactorAuth ? (
                 <View style={[styles.mv3]}>
@@ -303,7 +304,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError?.recoveryCode ?? ''}
+                            errorText={formError?.recoveryCode ? translate(formError?.recoveryCode) : ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -323,7 +324,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError?.twoFactorAuthCode ?? ''}
+                            errorText={formError?.twoFactorAuthCode ? translate(formError?.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -356,7 +357,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError?.validateCode ?? ''}
+                        errorText={formError?.validateCode ? translate(formError?.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"
@@ -402,7 +403,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
             </View>
-        </>
+        </SafariFormWrapper>
     );
 }
 

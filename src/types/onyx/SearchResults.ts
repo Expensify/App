@@ -1,24 +1,24 @@
 import type {ValueOf} from 'type-fest';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
 /** Types of search data */
-type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
+type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? typeof TransactionListItem
-    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
+    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
     ? typeof ReportListItem
     : never;
 
 /** Model of search result section */
-type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? TransactionListItemType[]
-    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
+    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
     ? ReportListItemType[]
     : never;
 
@@ -29,11 +29,23 @@ type SearchTypeToItemMap = {
         listItem: ListItemType<K>;
 
         /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data']) => SectionsType<K>;
+        getSections: (data: SearchResults['data'], metadata: SearchResults['search']) => SectionsType<K>;
 
         /** Returns sorted search results sections based on search results data */
         getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
     };
+};
+
+/** Model of columns to show for search results */
+type ColumnsToShow = {
+    /** Whether the category column should be shown */
+    shouldShowCategoryColumn: boolean;
+
+    /** Whether the tag column should be shown */
+    shouldShowTagColumn: boolean;
+
+    /** Whether the tax column should be shown */
+    shouldShowTaxColumn: boolean;
 };
 
 /** Model of search result state */
@@ -49,6 +61,9 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
+
+    /** The optional columns that should be shown according to policy settings */
+    columnsToShow: ColumnsToShow;
 };
 
 /** Model of personal details search result */
@@ -78,6 +93,9 @@ type SearchPolicyDetails = {
     name: string;
 };
 
+/** The action that can be performed for the transaction */
+type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
 /** Model of report search result */
 type SearchReport = {
     /** The ID of the report */
@@ -93,10 +111,22 @@ type SearchReport = {
     currency?: string;
 
     /** The report type */
-    type?: string;
+    type?: ValueOf<typeof CONST.REPORT.TYPE>;
+
+    /** The accountID of the report manager */
+    managerID?: number;
+
+    /** The accountID of the user who created the report  */
+    accountID?: number;
+
+    /** The policyID of the report */
+    policyID?: string;
+
+    /** The date the report was created */
+    created?: string;
 
     /** The action that can be performed for the report */
-    action?: string;
+    action?: SearchTransactionAction;
 };
 
 /** Model of transaction search result */
@@ -112,6 +142,15 @@ type SearchTransaction = {
 
     /** The transaction amount */
     amount: number;
+
+    /** If the transaction can be deleted */
+    canDelete: boolean;
+
+    /** If the transaction can be put on hold */
+    canHold: boolean;
+
+    /** If the transaction can be removed from hold */
+    canUnhold: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -132,6 +171,9 @@ type SearchTransaction = {
     receipt?: {
         /** Source of the receipt */
         source?: string;
+
+        /** State of the receipt */
+        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
 
     /** The transaction tag */
@@ -147,7 +189,7 @@ type SearchTransaction = {
     category: string;
 
     /** The type of request */
-    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The type of report the transaction is associated with */
     reportType: string;
@@ -183,7 +225,7 @@ type SearchTransaction = {
     transactionThreadReportID: string;
 
     /** The action that can be performed for the transaction */
-    action: string;
+    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -199,10 +241,10 @@ type SearchTransaction = {
 type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
 
 /** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
 /** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
+type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
 
 /** Model of search results */
 type SearchResults = {
@@ -211,6 +253,9 @@ type SearchResults = {
 
     /** Search results data */
     data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
+
+    /** Whether search data is being fetched from server */
+    isLoading?: boolean;
 };
 
 export default SearchResults;
@@ -219,6 +264,7 @@ export type {
     SearchQuery,
     SearchTransaction,
     SearchTransactionType,
+    SearchTransactionAction,
     SearchPersonalDetails,
     SearchPolicyDetails,
     SearchAccountDetails,

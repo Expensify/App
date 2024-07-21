@@ -27,9 +27,6 @@ type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Subscription size */
     userCount?: number;
 
-    /** Pending action */
-    pendingAction?: OnyxCommon.PendingAction;
-
     /** An error message */
     errors?: OnyxCommon.Errors;
 

@@ -88,7 +88,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -117,6 +117,7 @@ jobs:
         id: runFastlaneBetaTest
         run: bundle exec fastlane android build_internal
         env:
+          RUBYOPT: '-rostruct'
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
@@ -125,7 +126,7 @@ jobs:
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android
           path: ./android_paths.json
@@ -161,7 +162,7 @@ jobs:
         run: sudo xcode-select -switch /Applications/Xcode_15.0.1.app
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -217,7 +218,7 @@ jobs:
           S3_REGION: us-east-1
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios
           path: ./ios_paths.json
@@ -321,7 +322,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
 
       - name: Read JSONs with android paths

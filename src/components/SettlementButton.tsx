@@ -1,11 +1,13 @@
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -16,7 +18,6 @@ import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {PaymentType} from './ButtonWithDropdownMenu/types';
@@ -55,7 +56,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     chatReportID?: string;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report> | EmptyObject;
+    iouReport?: OnyxEntry<Report>;
 
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
@@ -104,6 +105,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
 function SettlementButton({
@@ -121,9 +125,9 @@ function SettlementButton({
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
-    // The "iouReport" and "nvpLastPaymentMethod" objects needs to be stable to prevent the "useMemo"
-    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
-    iouReport = CONST.EMPTY_OBJECT,
+    iouReport,
+    // The "nvpLastPaymentMethod" object needs to be stable to prevent the "useMemo"
+    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_OBJECT
     nvpLastPaymentMethod = CONST.EMPTY_OBJECT,
     isDisabled = false,
     isLoading = false,
@@ -139,15 +143,17 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    useKeyboardShortcuts = false,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const session = useSession();
-    const chatReport = ReportUtils.getReport(chatReportID);
+    // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
+    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport));
     const shouldShowPayElsewhereOption = (!isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -223,10 +229,15 @@ function SettlementButton({
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -237,7 +248,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                IOU.approveMoneyRequest(iouReport ?? {});
+                IOU.approveMoneyRequest(iouReport);
             }
             return;
         }
@@ -276,11 +287,14 @@ function SettlementButton({
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    onOptionSelected={(option) => savePreferredPaymentMethod(policyID, option.value)}
+                    onOptionSelected={(option) => {
+                        savePreferredPaymentMethod(policyID, option.value);
+                    }}
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
                 />
             )}
         </KYCWall>

@@ -43,14 +43,14 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-                errors.tagName = 'workspace.tags.tagRequiredError';
+                errors.tagName = translate('workspace.tags.tagRequiredError');
             } else if (tags?.[tagName] && currentTagName !== tagName) {
-                errors.tagName = 'workspace.tags.existingTagError';
+                errors.tagName = translate('workspace.tags.existingTagError');
             }
 
             return errors;
         },
-        [route.params.orderWeight, currentTagName, policyTags],
+        [policyTags, route.params.orderWeight, currentTagName, translate],
     );
 
     const editTag = useCallback(

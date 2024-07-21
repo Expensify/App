@@ -49,7 +49,7 @@ function openOnfidoFlow() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, {}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, null, {optimisticData, finallyData});
 }
 
 function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[] | null, idNumber?: string) {
@@ -208,14 +208,14 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
  * Fetches data when the user opens the InitialSettingsPage
  */
 function openInitialSettingsPage() {
-    API.read(READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE, {});
+    API.read(READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE, null);
 }
 
 /**
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, {});
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null);
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {

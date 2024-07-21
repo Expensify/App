@@ -60,11 +60,11 @@ function IOURequestStepMerchant({
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || isTypeInvoice || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    const isMerchantRequired =
+        ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -75,12 +75,12 @@ function IOURequestStepMerchant({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
-                errors.moneyRequestMerchant = 'common.error.fieldRequired';
+                errors.moneyRequestMerchant = translate('common.error.fieldRequired');
             }
 
             return errors;
         },
-        [isMerchantRequired],
+        [isMerchantRequired, translate],
     );
 
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {

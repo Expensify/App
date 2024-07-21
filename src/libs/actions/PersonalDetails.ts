@@ -25,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
-import * as Session from './Session';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -191,10 +190,6 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
-    if (Session.isAnonymousUser()) {
-        return;
-    }
-
     if (!currentUserAccountID) {
         return;
     }
@@ -397,7 +392,7 @@ function deleteAvatar() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {optimisticData, failureData});
 }
 
 /**

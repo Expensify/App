@@ -38,6 +38,10 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
+    const dismiss = () => {
+        Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -60,6 +64,7 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
                                 policyID={policyID}
                                 insets={insets}
                                 onSubmit={submit}
+                                onDismiss={dismiss}
                             />
                         </View>
                     </>

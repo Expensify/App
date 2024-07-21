@@ -52,7 +52,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '-1', true)), ...CONST.EXPENSIFY_EMAILS],
+        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true)), ...CONST.EXPENSIFY_EMAILS],
         [report],
     );
 
@@ -76,7 +76,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setRecentReports(inviteOptions.recentReports);
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers, options]);
 
     const sections = useMemo(() => {
@@ -152,7 +152,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const reportID = report.reportID;
     const backRoute = useMemo(() => ROUTES.REPORT_PARTICIPANTS.getRoute(reportID), [reportID]);
-    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report?.reportID ?? '-1'), [report]);
+    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -197,7 +197,6 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 onSubmit={inviteUsers}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                disablePressOnEnter
             />
         ),
         [selectedOptions.length, inviteUsers, translate, styles],

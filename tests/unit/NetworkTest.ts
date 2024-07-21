@@ -16,6 +16,8 @@ import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type OnResolved = (params: {jsonCode?: string | number}) => void;
+
 const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
 jest.mock('@src/libs/Log');
@@ -53,18 +55,18 @@ describe('NetworkTests', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        let isOffline: boolean | undefined;
+        let isOffline: boolean;
 
         Onyx.connect({
             key: ONYXKEYS.NETWORK,
             callback: (val) => {
-                isOffline = val && val.isOffline;
+                isOffline = !!val?.isOffline;
             },
         });
 
         // Given a test user login and account ID
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
-            expect(isOffline).toBe(undefined);
+            expect(isOffline).toBe(false);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
             global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
@@ -109,7 +111,7 @@ describe('NetworkTests', () => {
             // This should first trigger re-authentication and then a Failed to fetch
             PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
             return waitForBatchedUpdates()
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true}))
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
                     expect(isOffline).toBe(false);
 
@@ -260,7 +262,7 @@ describe('NetworkTests', () => {
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -276,7 +278,7 @@ describe('NetworkTests', () => {
         const logAlertSpy = jest.spyOn(Log, 'alert');
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -289,10 +291,10 @@ describe('NetworkTests', () => {
     test('test Failed to fetch error for non-retryable requests resolve with unable to retry jsonCode', () => {
         // Setup xhr handler that rejects once with a Failed to Fetch
         global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
-        const onResolved = jest.fn();
+        const onResolved = jest.fn() as jest.MockedFunction<OnResolved>;
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
@@ -313,7 +315,7 @@ describe('NetworkTests', () => {
         // GIVEN a mock that will return a "cancelled" request error
         global.fetch = jest.fn().mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 // WHEN we make a few requests and then cancel them
                 Network.post('MockCommandOne');

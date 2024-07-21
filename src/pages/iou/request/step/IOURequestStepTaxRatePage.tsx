@@ -7,6 +7,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCurrency} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +39,7 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
     const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
     const taxPercentage = getTaxValue(selectedTaxCode);
     if (taxPercentage) {
-        return TransactionUtils.calculateTaxAmount(taxPercentage, amount);
+        return TransactionUtils.calculateTaxAmount(taxPercentage, amount, getCurrency(transaction));
     }
 }
 
@@ -85,10 +86,6 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            if (newTaxCode === TransactionUtils.getTaxCode(currentTransaction)) {
-                navigateBack();
-                return;
-            }
             IOU.updateMoneyRequestTaxRate({
                 transactionID: currentTransaction?.transactionID ?? '-1',
                 optimisticReportActionID: report?.reportID ?? '-1',
@@ -127,6 +124,7 @@ function IOURequestStepTaxRatePage({
                 onSubmit={updateTaxRates}
                 action={action}
                 iouType={iouType}
+                onDismiss={navigateBack}
             />
         </StepScreenWrapper>
     );

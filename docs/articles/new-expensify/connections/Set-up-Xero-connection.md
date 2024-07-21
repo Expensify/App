@@ -23,6 +23,12 @@ To set up your Xero connection, complete the 4 steps below.
    <li>Enter your Xero login details to import your settings from Xero to Expensify.</li>
 </ol>
 
+![The toggle location to enable accounting integrations like QuickBooks Online]({{site.url}}/assets/images/ExpensifyHelp-Xero-1.png){:width="100%"}
+
+![How to enable accounting integrations like QuickBooks Online]({{site.url}}/assets/images/ExpensifyHelp-Xero-2.png){:width="100%"}
+
+![The QuickBooks Online Connect button]({{site.url}}/assets/images/ExpensifyHelp-Xero-3.png){:width="100%"}
+
 # Step 2: Configure import settings
 
 The following steps help you determine how data will be imported from Xero to Expensify. 

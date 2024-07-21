@@ -6723,7 +6723,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -11598,15 +11598,25 @@ async function run() {
          *   1. For regular staging deploys, the person who merged the PR.
          *   2. For CPs, the person who committed the cherry-picked commit (not necessarily the author of the commit).
          */
-        const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
-            pull_number: prNumber,
-        });
-        const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
-        const title = pr.title;
-        const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
-        await commentPR(prNumber, deployMessage);
+        try {
+            const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                pull_number: prNumber,
+            });
+            const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
+            const title = pr.title;
+            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
+            await commentPR(prNumber, deployMessage);
+        }
+        catch (error) {
+            if (error.status === 404) {
+                console.log(`Unable to comment on PR #${prNumber}. GitHub responded with 404.`);
+            }
+            else {
+                throw error;
+            }
+        }
     }
 }
 if (require.main === require.cache[eval('__filename')]) {
@@ -11755,13 +11765,11 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
-     * Initialize internal octokit
-     *
-     * @private
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
      */
-    static initOctokit() {
+    static initOctokitWithToken(token) {
         const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
-        const token = core.getInput('GITHUB_TOKEN', { required: true });
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {
@@ -11780,6 +11788,15 @@ class GithubUtils {
                 },
             },
         }));
+    }
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = core.getInput('GITHUB_TOKEN', { required: true });
+        this.initOctokitWithToken(token);
     }
     /**
      * Either give an existing instance of Octokit rest or create a new one
@@ -12136,12 +12153,31 @@ class GithubUtils {
             .then((events) => events.filter((event) => event.event === 'closed'))
             .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
-    static getArtifactByName(artefactName) {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName) {
+        return this.octokit.actions
+            .listArtifactsForRepo({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            per_page: 100,
-        }).then((artifacts) => artifacts.find((artifact) => artifact.name === artefactName));
+            per_page: 1,
+            name: artifactName,
+        })
+            .then((response) => response.data.artifacts[0]);
+    }
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId) {
+        return this.octokit.actions
+            .downloadArtifact({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            artifact_id: artifactId,
+            archive_format: 'zip',
+        })
+            .then((response) => response.url);
     }
 }
 exports["default"] = GithubUtils;
@@ -12182,14 +12218,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12203,6 +12231,14 @@ module.exports = require("assert");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 

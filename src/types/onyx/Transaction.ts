@@ -81,7 +81,7 @@ type Comment = {
     splits?: Split[];
 
     /** Violations that were dismissed */
-    dismissedViolations?: Record<ViolationName, Record<string, string>>;
+    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
 };
 
 /** Model of transaction custom unit */
@@ -121,6 +121,9 @@ type ReceiptSource = string;
 type Receipt = {
     /** Name of receipt file */
     name?: string;
+
+    /** ID of receipt file */
+    receiptID?: number;
 
     /** Path of the receipt file */
     source?: ReceiptSource;

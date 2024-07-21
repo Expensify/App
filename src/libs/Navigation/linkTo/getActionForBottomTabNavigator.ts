@@ -13,7 +13,6 @@ function getActionForBottomTabNavigator(
     shouldNavigate?: boolean,
 ): Writable<NavigationAction> | undefined {
     const bottomTabNavigatorRoute = state.routes.at(0);
-
     if (!bottomTabNavigatorRoute || bottomTabNavigatorRoute.state === undefined || !action || action.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         return;
     }
@@ -22,10 +21,10 @@ function getActionForBottomTabNavigator(
     let payloadParams = params.params as Record<string, string | undefined>;
     const screen = params.screen;
 
-    if (!payloadParams) {
-        payloadParams = {policyID};
-    } else if (!('policyID' in payloadParams && !!payloadParams?.policyID)) {
+    if (policyID && !payloadParams?.policyID) {
         payloadParams = {...payloadParams, policyID};
+    } else if (!policyID) {
+        delete payloadParams?.policyID;
     }
 
     // Check if the current bottom tab is the same as the one we want to navigate to. If it is, we don't need to do anything.

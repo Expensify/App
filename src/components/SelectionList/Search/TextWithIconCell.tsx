@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -11,9 +12,10 @@ type TextWithIconCellProps = {
     icon: IconAsset;
     text?: string;
     showTooltip: boolean;
+    textStyle?: StyleProp<TextStyle>;
 };
 
-export default function TextWithIconCell({icon, text, showTooltip}: TextWithIconCellProps) {
+export default function TextWithIconCell({icon, text, showTooltip, textStyle}: TextWithIconCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -35,7 +37,7 @@ export default function TextWithIconCell({icon, text, showTooltip}: TextWithIcon
                 />
                 <Text
                     numberOfLines={1}
-                    style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting, styles.flexShrink1]}
+                    style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting, styles.flexShrink1, textStyle]}
                 >
                     {text}
                 </Text>
