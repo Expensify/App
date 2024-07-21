@@ -24,7 +24,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
-        [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
+        [SCREENS.REPORT_AVATAR]: {
+            path: ROUTES.REPORT_AVATAR.route,
+            parse: {
+                isNewGroupChat: (isNewGroupChat: string) => isNewGroupChat === 'true',
+            },
+        },
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
@@ -909,6 +914,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
                             exact: true,
                         },
                     },
