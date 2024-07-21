@@ -3,6 +3,7 @@ import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -33,8 +34,9 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
     const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initWithStoredValues: shouldUseGroupChatDraft});
 
     if (shouldUseGroupChatDraft) {
-        avatarURL = groupChatDraft?.avatarUri ?? undefined;
         fileName = groupChatDraft?.avatarFileName ?? undefined;
+        avatarURL = groupChatDraft?.avatarBase64 ? FileUtils.base64ToFile(groupChatDraft?.avatarBase64, fileName ?? '')?.uri : groupChatDraft?.avatarUri ?? undefined;
+
         // When user enters custom group name, it typically stored in groupChatDraft.reportName
         // If that is null then we will use ReportUtils.getGroupChatName to get the name
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */

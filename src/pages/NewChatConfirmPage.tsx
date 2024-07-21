@@ -99,16 +99,25 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         [newGroupDraft],
     );
 
+    const base64Image = useMemo(() => {
+        if (!newGroupDraft?.avatarBase64) {
+            return;
+        }
+        const file = FileUtils.base64ToFile(newGroupDraft?.avatarBase64 ?? '', newGroupDraft?.avatarFileName ?? '');
+        Report.setGroupDraft({avatarUri: file.uri});
+        return file;
+    }, [newGroupDraft?.avatarBase64, newGroupDraft?.avatarFileName]);
+
+    const stashedLocalAvatarImage = base64Image?.uri ?? newGroupDraft?.avatarUri;
+
     const createGroup = useCallback(() => {
         if (!newGroupDraft) {
             return;
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile]);
-
-    const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
+        Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', stashedLocalAvatarImage ?? '', avatarFile, optimisticReportID.current, true);
+    }, [newGroupDraft, avatarFile, stashedLocalAvatarImage]);
 
     useEffect(() => {
         if (!stashedLocalAvatarImage) {
@@ -121,7 +130,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
 
         const onFailure = () => {
             setAvatarFile(undefined);
-            Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+            Report.setGroupDraft({avatarUri: null, avatarBase64: null, avatarFileName: null, avatarFileType: null});
         };
 
         // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
@@ -144,11 +153,11 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
-                        Report.setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
+                        Report.setGroupDraft({avatarUri: image.uri ?? '', avatarBase64: image.base64 ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                     }}
                     onImageRemoved={() => {
                         setAvatarFile(undefined);
-                        Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+                        Report.setGroupDraft({avatarUri: null, avatarBase64: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}

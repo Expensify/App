@@ -18,6 +18,9 @@ type NewGroupChatDraft = {
     /** New group chat avatar URI */
     avatarUri: string | null;
 
+    /** New group chat avatar image encoded in bse64 string */
+    avatarBase64: string | null;
+
     /** New group chat avatar file name */
     avatarFileName: string | null;
 

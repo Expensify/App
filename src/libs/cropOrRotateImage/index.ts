@@ -1,6 +1,6 @@
 import {manipulateAsync} from 'expo-image-manipulator';
 import getSaveFormat from './getSaveFormat';
-import type {CropOrRotateImage} from './types';
+import type {CropOrRotateImage, CroppedRotatedFile} from './types';
 
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve) => {
@@ -9,9 +9,15 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
             fetch(result.uri)
                 .then((res) => res.blob())
                 .then((blob) => {
-                    const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
+                    const file: CroppedRotatedFile = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
                     file.uri = URL.createObjectURL(file);
-                    resolve(file);
+
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = function () {
+                        file.base64 = (reader.result as string) ?? '';
+                        resolve(file);
+                    };
                 });
         });
     });
