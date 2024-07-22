@@ -28,12 +28,11 @@ type SearchHoldReasonPageProps = {
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {currentSearchHash} = useSearchContext();
-    const {transactionID, backTo} = route.params;
+    const {currentSearchHash, selectedTransactionIDs} = useSearchContext();
+    const {backTo} = route.params;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, [transactionID], values.comment);
-
+        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
         Navigation.goBack();
     };
 

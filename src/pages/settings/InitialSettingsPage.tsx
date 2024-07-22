@@ -20,7 +20,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
+import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -106,7 +106,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate, formatPhoneNumber} = useLocalize();
-    const activeBottomTabRoute = useActiveBottomTabRoute();
+    const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
@@ -332,9 +332,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={
-                                    !!activeBottomTabRoute &&
+                                    !!activeCentralPaneRoute &&
                                     !!item.routeName &&
-                                    !!(activeBottomTabRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
+                                    !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
                                 }
                                 isPaneMenu
                                 iconRight={item.iconRight}
@@ -355,7 +355,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             userWallet?.currentBalance,
             isExecuting,
             singleExecution,
-            activeBottomTabRoute,
+            activeCentralPaneRoute,
             waitForNavigate,
         ],
     );
