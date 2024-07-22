@@ -67,13 +67,13 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
             </OfflineWithFeedback>
             {!isMultiLevelTags && (
                 <OfflineWithFeedback
-                    errors={policyTags?.[policyTagLists[0].name]?.errors}
+                    errors={policyTags?.[policyTagLists[0]?.name]?.errors}
                     onClose={() => Tag.clearPolicyTagListErrors(policyID, policyTagLists[0].orderWeight)}
-                    pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
+                    pendingAction={policyTags?.[policyTagLists[0]?.name]?.pendingAction}
                     errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
-                        title={policyTagLists[0].name}
+                        title={policyTagLists[0]?.name}
                         description={translate(`workspace.tags.customTagName`)}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists[0].orderWeight))}
                         shouldShowRightIcon
