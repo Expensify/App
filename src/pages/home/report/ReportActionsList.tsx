@@ -325,19 +325,6 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
 
-    // useEffect(() => {
-    //     if (!userActiveSince.current || report.reportID !== prevReportID) {
-    //         return;
-    //     }
-    //     if (!messageManuallyMarkedUnread && (lastReadTimeRef.current ?? '') < (report.lastReadTime ?? '')) {
-    //         cacheUnreadMarkers.delete(report.reportID);
-    //     }
-    //     lastReadTimeRef.current = report.lastReadTime;
-    //     setMessageManuallyMarkedUnread(0);
-
-    //     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    // }, [report.lastReadTime, report.reportID]);
-
     useEffect(() => {
         const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
