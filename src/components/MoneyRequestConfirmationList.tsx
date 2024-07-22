@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,6 +11,7 @@ import {MouseProvider} from '@hooks/useMouseContext';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -740,11 +741,12 @@ function MoneyRequestConfirmationList({
     );
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const confirmButtonRef = useRef<View>(null);
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                confirmButtonRef.current?.focus();
+                InteractionManager.runAfterInteractions(() => {
+                    blurActiveElement();
+                });
             }, CONST.ANIMATED_TRANSITION);
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
         }, []),
@@ -782,7 +784,6 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
-                buttonRef={confirmButtonRef}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
