@@ -302,7 +302,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {!isEmptyObject(report) && report.reportID && (
                             <MenuItem
-                                title="Debug"
+                                title={translate('debug.debug')}
                                 icon={Expensicons.Bug}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
