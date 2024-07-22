@@ -84,7 +84,7 @@ Xero requires all expenses exported from Expensify to use a category matching an
 2. Review the expenses on the report. If any appear with a red _Category no longer valid_ violation, recategorize the expense until all expenses are violation-free.
 3. Click the **Export to** button and then the **Xero** option.
 4. If you receive the same error, continue.
-    - _Note the categories used on the expenses and check the Settings > Workspaces > [click workspace] > Categories page to confirm the exact categories used on the report are enabled and connected to Xero (you'll see a blue icon next to all connected categories)._ 
+    - _Note the categories used on the expenses and check the Settings > Workspaces > [click workspace] > Categories page to confirm the exact categories used on the report are enabled and connected to Xero (you'll see a blue icon next to all connected categories)._
 5. Confirm that the categories used for expenses in the report match exactly the accounts in your Xero chart of accounts.
 6. If you make any changes in Xero or in Expensify, always sync the connection and then try to export again. 
 
