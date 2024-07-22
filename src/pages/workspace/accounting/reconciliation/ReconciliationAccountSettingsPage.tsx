@@ -23,9 +23,10 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const {translate} = useLocalize();
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
 
-    const selectedBankAccount = useMemo(() => reconciliationConnection ?? Object.values(bankAccountList ?? {})[0], [reconciliationConnection, bankAccountList]);
+    const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID], [paymentBankAccountID, bankAccountList]);
 
     const sections = useMemo(() => {
         const data = Object.values(bankAccountList ?? {}).map((bankAccount) => ({

@@ -24,6 +24,7 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
+    TransactionMergeParams,
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
@@ -1846,6 +1847,9 @@ function getSendInvoiceInformation(
     }
 
     // STEP 5: Build optimistic reportActions.
+    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
+    chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
             optimisticInvoiceReport,
@@ -1859,10 +1863,8 @@ function getSendInvoiceInformation(
             undefined,
             false,
             false,
-            receiptObject,
             false,
         );
-    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
 
     // STEP 6: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForInvoice(
@@ -2039,7 +2041,6 @@ function getMoneyRequestInformation(
             undefined,
             false,
             false,
-            receiptObject,
             false,
             undefined,
             linkedTrackedExpenseReportAction?.childReportID,
@@ -2265,7 +2266,6 @@ function getTrackExpenseInformation(
         undefined,
         false,
         false,
-        receiptObject,
         false,
         !shouldUseMoneyReport,
         linkedTrackedExpenseReportAction?.childReportID,
@@ -3929,7 +3929,6 @@ function createSplitsAndOnyxData(
         '',
         false,
         false,
-        {},
         isOwnPolicyExpenseChat,
     );
 
@@ -4510,7 +4509,6 @@ function startSplitBill({
         '',
         false,
         false,
-        receiptObject,
         isOwnPolicyExpenseChat,
     );
 
@@ -4967,6 +4965,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         tag: transactionTag,
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
     } = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
 
     const parameters: CompleteSplitBillParams = {
@@ -4981,6 +4980,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         splits: JSON.stringify(splits),
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
@@ -7376,6 +7376,75 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '-1';
 }
 
+/** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
+function mergeDuplicates(params: TransactionMergeParams) {
+    const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+
+    const optimisticTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        value: {
+            ...originalSelectedTransaction,
+            billable: params.billable,
+            comment: {
+                comment: params.comment,
+            },
+            category: params.category,
+            created: params.created,
+            currency: params.currency,
+            modifiedMerchant: params.merchant,
+            reimbursable: params.reimbursable,
+            tag: params.tag,
+        },
+    };
+
+    const failureTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        value: originalSelectedTransaction as OnyxTypes.Transaction,
+    };
+
+    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        value: null,
+    }));
+
+    const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
+    }));
+
+    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+        };
+    });
+
+    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations,
+        };
+    });
+
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations);
+    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations);
+
+    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -7443,5 +7512,6 @@ export {
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
+    mergeDuplicates,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
