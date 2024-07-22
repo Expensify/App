@@ -212,7 +212,7 @@ function ReportActionsList({
          * We ONLY want to update the unreadMarkerTime when the user switches reports OR
          * when they mark a message as unread (handled in a different subscription below)
          */
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     /**
