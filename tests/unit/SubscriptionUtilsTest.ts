@@ -312,6 +312,20 @@ describe('SubscriptionUtils', () => {
     });
 
     describe('getSubscriptionStatus', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
+                [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: null,
+                [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: null,
+                [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: null,
+                [ONYXKEYS.FUND_LIST]: null,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: null,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: null,
+            });
+        });
+
         it('should return undefined by default', () => {
             expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
         });
@@ -331,6 +345,7 @@ describe('SubscriptionUtils', () => {
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE status', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
@@ -340,6 +355,7 @@ describe('SubscriptionUtils', () => {
 
         it('should return OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE status', async () => {
             await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
@@ -371,6 +387,7 @@ describe('SubscriptionUtils', () => {
 
         it('should return CARD_AUTHENTICATION_REQUIRED status', async () => {
             await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });

@@ -9,6 +9,12 @@ type SelectedTransactionInfo = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be put on hold */
+    canHold: boolean;
+
+    /** If the transaction can be removed from hold */
+    canUnhold: boolean;
+
     /** The action that can be performed for the transaction */
     action: string;
 };
@@ -23,7 +29,24 @@ type SearchContext = {
     currentSearchHash: number;
     selectedTransactionIDs: string[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIds: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
 };
 
-export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext};
+type ASTNode = {
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
+    right: string | ASTNode;
+};
+
+type QueryFilter = {
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | number;
+};
+
+type AllFieldKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type QueryFilters = {
+    [K in AllFieldKeys]: QueryFilter | QueryFilter[];
+};
+
+export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilter, QueryFilters, AllFieldKeys};

@@ -88,6 +88,9 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
+
+    /** The width of inner content */
+    contentWidth?: number;
 };
 
 type Selection = {
@@ -123,6 +126,7 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
+        contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -326,6 +330,7 @@ function MoneyRequestAmountInput(
             hideFocusedState={hideFocusedState}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            contentWidth={contentWidth}
         />
     );
 }

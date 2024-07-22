@@ -19,7 +19,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import type {SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -50,10 +50,6 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type BackToParams = {
-    backTo?: Routes;
-};
-
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
@@ -77,6 +73,21 @@ type CentralPaneScreensParamList = {
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
+};
+
+type BackToAndForwardToParms = {
+    backTo?: Routes;
+    forwardTo?: Routes;
+};
+
+type SearchNavigatorParamList = {
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: undefined;
+    [SCREENS.SEARCH.REPORT_RHP]: undefined;
 };
 
 type SettingsNavigatorParamList = {
@@ -201,6 +212,14 @@ type SettingsNavigatorParamList = {
         categoryName: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -251,6 +270,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAG_GL_CODE]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -430,7 +454,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {
@@ -588,6 +618,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
@@ -595,7 +629,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
@@ -624,8 +661,28 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CODE]: {
+        policyID: string;
+        taxID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+        policyID: string;
+        cardID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
+        policyID: string;
+        cardID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -655,6 +712,11 @@ type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: undefined;
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+    };
+    [SCREENS.REPORT_DETAILS.EXPORT]: {
+        reportID: string;
+        policyID: string;
+        connectionName: ConnectionName;
     };
 };
 
@@ -1009,11 +1071,11 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
 };
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type FullScreenNavigatorParamList = {
@@ -1174,6 +1236,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         };
         [SCREENS.REPORT_AVATAR]: {
             reportID: string;
+            isNewGroupChat: boolean;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
@@ -1196,6 +1259,10 @@ type SearchReportParamList = {
         query: string;
         reportID: string;
     };
+};
+
+type SearchAdvancedFiltersParamList = {
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
 };
 
 type RestrictedActionParamList = {
@@ -1226,6 +1293,7 @@ export type {
     CentralPaneScreensParamList,
     CentralPaneName,
     BackToParams,
+    BackToAndForwardToParms,
     BottomTabName,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
@@ -1258,6 +1326,7 @@ export type {
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
+    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     FeatureTrainingNavigatorParamList,
@@ -1273,5 +1342,6 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
 };

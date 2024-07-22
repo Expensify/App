@@ -15,6 +15,7 @@ function TransactionListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError,
     onFocus,
+    onLongPressRow,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -46,6 +47,7 @@ function TransactionListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
@@ -59,6 +61,7 @@ function TransactionListItem<TItem extends ListItem>({
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
+                shouldShowTransactionCheckbox={false}
             />
         </BaseListItem>
     );

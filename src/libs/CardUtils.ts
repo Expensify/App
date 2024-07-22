@@ -1,7 +1,9 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
@@ -143,6 +145,19 @@ function getMCardNumberString(cardNumber: string): string {
     return cardNumber.replace(/\s/g, '');
 }
 
+function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.card.issueNewCard.smartLimit';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+            return 'workspace.card.issueNewCard.fixedAmount';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.card.issueNewCard.monthly';
+        default:
+            return '';
+    }
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -155,4 +170,5 @@ export {
     findPhysicalCard,
     hasDetectedFraud,
     getMCardNumberString,
+    getTranslationKeyForLimitType,
 };

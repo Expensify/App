@@ -724,6 +724,8 @@ function ComposerWithSuggestions(
     }, []);
 
     useEffect(() => {
+        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
