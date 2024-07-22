@@ -105,6 +105,9 @@ function getOrderedReportIDs(
         if (!report) {
             return;
         }
+        if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+            return;
+        }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
@@ -187,13 +190,14 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report)) {
+        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -303,7 +307,8 @@ function getOptionData({
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -555,7 +560,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         return welcomeMessage;
     }
-    if (ReportUtils.isArchivedRoom(report)) {
+
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {
