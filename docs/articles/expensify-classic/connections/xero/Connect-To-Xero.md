@@ -4,8 +4,6 @@ description: Everything you need to know about Expensify's direct integration wi
 order: 1
 ---
 
-# Connect To Xero
-
 **Prerequisites**
 
 You must be a Workspace Admin in Expensify using a Collect or Control Workspace to connect your Xero account to Expensify.
