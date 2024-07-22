@@ -101,6 +101,12 @@ const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentRepo
     IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
 };
 
+const getTransactionID = (report: OnyxTypes.Report, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+    const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
+    const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
+    return originalMessage?.IOUTransactionID ?? -1;
+};
+
 function MoneyRequestView({
     report,
     parentReport,
@@ -651,31 +657,13 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage =
-                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? -1;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            },
+            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${getTransactionID(report, parentReportActions)}`,
         },
         transactionBackup: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage =
-                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? -1;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
-            },
+            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getTransactionID(report, parentReportActions)}`,
         },
         transactionViolations: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage =
-                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? -1;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-            },
+            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`,
         },
     })(MoneyRequestView),
 );
