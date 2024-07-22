@@ -42,19 +42,21 @@ class Memoize {
  * @param opts - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
-    const options = mergeOptions(opts);
+function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key = Parameters<Fn>>(fn: Fn, opts?: ClientOptions<Fn, MaxArgs, Key>) {
+    const options = mergeOptions<Fn, MaxArgs, Key>(opts);
 
-    const cache = ArrayCache<Parameters<Fn>, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
+    const cache = ArrayCache<Key, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
 
     const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 
     const memoized = function memoized(...args: Parameters<Fn>): ReturnType<Fn> {
         const constructable = !!new.target;
-        const key = truncateArgs(args, options.maxArgs) as Parameters<Fn>;
+
+        const truncatedArgs = truncateArgs(args, options.maxArgs);
+
+        const key = options.transformKey ? options.transformKey(truncatedArgs) : (truncatedArgs as Key);
 
         const statsEntry = stats.createEntry();
-        statsEntry.track('keyLength', key.length);
         statsEntry.track('didHit', true);
 
         const retrievalTimeStart = performance.now();
@@ -84,7 +86,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
 
     Memoize.registerMemoized(options.monitoringName ?? fn.name, memoized);
 
-    return memoized as MemoizedFn<Fn>;
+    return memoized as MemoizedFn<Fn, Key>;
 }
 
 export default memoize;

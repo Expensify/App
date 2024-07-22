@@ -1,27 +1,31 @@
+import type {TakeFirst} from '@src/types/utils/TupleOperations';
 import type {Cache} from './cache/types';
 import type {MemoizeStats} from './stats';
 
-type KeyComparator = <K>(key1: K[], key2: K[]) => boolean;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MemoizeFnPredicate = (...args: any[]) => any;
+
+type KeyComparator<Key> = (k1: Key, k2: Key) => boolean;
 
 type InternalOptions = {
     cache: 'array';
 };
 
-type Options = {
+type Options<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key> = {
     maxSize: number;
-    equality: 'deep' | 'shallow' | KeyComparator;
+    equality: 'deep' | 'shallow' | KeyComparator<Key>;
     monitor: boolean;
-    maxArgs?: number;
+    maxArgs?: MaxArgs;
     monitoringName?: string;
+    transformKey?: (truncatedArgs: TakeFirst<Parameters<Fn>, MaxArgs>) => Key;
 } & InternalOptions;
 
-type ClientOptions = Partial<Omit<Options, keyof InternalOptions>>;
+type ClientOptions<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key> = Partial<Omit<Options<Fn, MaxArgs, Key>, keyof InternalOptions>>;
 
 type Stats = Pick<MemoizeStats, 'startMonitoring' | 'stopMonitoring'>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MemoizeFnPredicate = (...args: any[]) => any;
+type MemoizedFn<Fn extends MemoizeFnPredicate, Key> = Fn & {
+    cache: Cache<Key, ReturnType<Fn>>;
+} & Stats;
 
-type MemoizedFn<Fn extends MemoizeFnPredicate> = Fn & {cache: Cache<Parameters<Fn>, ReturnType<Fn>>} & Stats;
-
-export type {Options, ClientOptions, MemoizedFn, KeyComparator, MemoizeFnPredicate, Stats};
+export type {Options, ClientOptions, MemoizeFnPredicate, Stats, KeyComparator, MemoizedFn};

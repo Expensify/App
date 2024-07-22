@@ -5,6 +5,6 @@ const DEFAULT_OPTIONS = {
     equality: 'deep',
     monitor: false,
     cache: 'array',
-} satisfies Options;
+} satisfies Options<() => unknown, number, unknown>;
 
 export default DEFAULT_OPTIONS;
