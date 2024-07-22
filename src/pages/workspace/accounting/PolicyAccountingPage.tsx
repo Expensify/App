@@ -3,6 +3,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {Except, LiteralUnion, ValueOf} from 'type-fest';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
@@ -64,10 +65,12 @@ type AccountingIntegration = {
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
     hasImportError?: boolean;
+    importPendingAction?: OfflineWithFeedbackProps['pendingAction'];
     onExportPagePress: () => void;
     hasExportError?: boolean;
     onAdvancedPagePress: () => void;
     hasAdvancedError?: boolean;
+    advancedPendingAction?: OfflineWithFeedbackProps['pendingAction'];
     onCardReconciliationPagePress: () => void;
 };
 function accountingIntegrationData(
@@ -115,18 +118,32 @@ function accountingIntegrationData(
                         CONST.XERO_CONFIG.IMPORT_TAX_RATES,
                         ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
                     ],
-                    policy?.connections?.xero?.config?.errorFields ?? {},
+                    policy?.connections?.xero?.config?.errorFields,
+                ),
+                importPendingAction: PolicyUtils.xeroSettingsPendingAction(
+                    [
+                        CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
+                        CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+                        CONST.XERO_CONFIG.IMPORT_CUSTOMERS,
+                        CONST.XERO_CONFIG.IMPORT_TAX_RATES,
+                        ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
+                    ],
+                    policy?.connections?.xero?.config?.pendingFields,
                 ),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 hasExportError: PolicyUtils.areXeroSettingsInErrorFields(
                     [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
-                    policy?.connections?.xero?.config?.errorFields ?? {},
+                    policy?.connections?.xero?.config?.errorFields,
                 ),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
                 hasAdvancedError: PolicyUtils.areXeroSettingsInErrorFields(
                     [CONST.XERO_CONFIG.ENABLED, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID],
-                    policy?.connections?.xero?.config?.errorFields ?? {},
+                    policy?.connections?.xero?.config?.errorFields,
+                ),
+                advancedPendingAction: PolicyUtils.xeroSettingsPendingAction(
+                    [CONST.XERO_CONFIG.ENABLED, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID],
+                    policy?.connections?.xero?.config?.pendingFields,
                 ),
             };
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
@@ -243,8 +260,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                     },
-                    pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
-                    brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                    pendingAction: PolicyUtils.xeroSettingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
+                    brickRoadIndicator: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
+                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                        : undefined,
                 };
             case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                 return {
@@ -357,6 +376,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
                           brickRoadIndicator: integrationData?.hasImportError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          pendingAction: integrationData?.importPendingAction,
                       },
                       {
                           icon: Expensicons.Send,
@@ -384,6 +404,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
                           brickRoadIndicator: integrationData?.hasAdvancedError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          pendingAction: integrationData?.advancedPendingAction,
                       },
                   ]),
         ];

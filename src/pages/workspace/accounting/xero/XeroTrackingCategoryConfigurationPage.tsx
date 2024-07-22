@@ -2,12 +2,14 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import {getTrackingCategories} from '@libs/actions/connections/ConnectToXero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {areXeroSettingsInErrorFields, xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -58,21 +60,28 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                         !xeroConfig?.importTrackingCategories,
                     )
                 }
+                pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES], xeroConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
             {xeroConfig?.importTrackingCategories && (
                 <View>
                     {menuItems.map((menuItem) => (
-                        <MenuItemWithTopDescription
-                            key={menuItem.description}
-                            title={menuItem.title}
-                            description={menuItem.description}
-                            shouldShowRightIcon
-                            onPress={menuItem.onPress}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                            brickRoadIndicator={xeroConfig?.errorFields?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`] ? 'error' : undefined}
-                        />
+                        <OfflineWithFeedback
+                            key={menuItem.id}
+                            pendingAction={xeroSettingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
+                        >
+                            <MenuItemWithTopDescription
+                                title={menuItem.title}
+                                description={menuItem.description}
+                                shouldShowRightIcon
+                                onPress={menuItem.onPress}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                brickRoadIndicator={
+                                    areXeroSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) ? 'error' : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
                     ))}
                 </View>
             )}

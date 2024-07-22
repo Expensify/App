@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
+import {getCurrentXeroOrganizationName, xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -29,49 +29,33 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.accounting.accounts'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
                 title: translate('workspace.accounting.importAsCategory'),
-                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], errorFields),
-                pendingAction: pendingFields?.enableNewCategories,
+                subscribedSettings: [CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES],
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
-                hasError: PolicyUtils.areXeroSettingsInErrorFields(
-                    [CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES, ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`)],
-                    errorFields,
-                ),
                 title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
-                pendingAction: pendingFields?.importTrackingCategories,
+                subscribedSettings: [
+                    CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+                    ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
+                ],
             },
             {
                 description: translate('workspace.xero.customers'),
                 action: () => {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
                 },
-                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], errorFields),
                 title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
-                pendingAction: pendingFields?.importCustomers,
+                subscribedSettings: [CONST.XERO_CONFIG.IMPORT_CUSTOMERS],
             },
             {
                 description: translate('workspace.accounting.taxes'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
-                hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.IMPORT_TAX_RATES], errorFields),
                 title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
-                pendingAction: pendingFields?.importTaxRates,
+                subscribedSettings: [CONST.XERO_CONFIG.IMPORT_TAX_RATES],
             },
         ],
-        [
-            translate,
-            errorFields,
-            pendingFields?.enableNewCategories,
-            pendingFields?.importTrackingCategories,
-            pendingFields?.importCustomers,
-            pendingFields?.importTaxRates,
-            importTrackingCategories,
-            importCustomers,
-            importTaxRates,
-            policyID,
-            policy,
-        ],
+        [translate, errorFields, pendingFields, policy, importTrackingCategories, importCustomers, importTaxRates, policyID],
     );
 
     return (
@@ -91,14 +75,14 @@ function XeroImportPage({policy}: WithPolicyProps) {
             {sections.map((section) => (
                 <OfflineWithFeedback
                     key={section.description}
-                    pendingAction={section.pendingAction}
+                    pendingAction={PolicyUtils.xeroSettingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
                         shouldShowRightIcon
                         onPress={section.action}
-                        brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={PolicyUtils.areXeroSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}
