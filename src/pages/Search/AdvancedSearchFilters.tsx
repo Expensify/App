@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -12,8 +13,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
-type AvailableFilters = 'type' | 'date';
+// the values of dateBefore+dateAfter map to just a single 'date' field on advanced filters
+type AvailableFilters = ValueOf<typeof INPUT_IDS> | 'date';
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AvailableFilters, translate: LocaleContextProps['translate']) {
     if (fieldName === 'date') {
@@ -32,7 +35,12 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    return fieldName;
+    if (fieldName === INPUT_IDS.TYPE) {
+        // return filters[fieldName] ? filters[fieldName].toUpperCase() : '';
+        return filters[fieldName];
+    }
+
+    return filters[fieldName];
 }
 
 function AdvancedSearchFilters() {
@@ -56,7 +64,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
             },
         ],
-        [searchAdvancedFilters],
+        [searchAdvancedFilters, translate],
     );
 
     return (
@@ -78,8 +86,8 @@ function AdvancedSearchFilters() {
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.mh4, styles.mt4]}
                 onSubmit={() => {
-                    // here set the selected filters as new query and redirecting to SearchResults page
-                    // once these are ready: https://github.com/Expensify/App/issues/45028 and https://github.com/Expensify/App/issues/45027
+                    // here set the selected filters as new query and redirect to SearchResults page
+                    // waiting for: https://github.com/Expensify/App/issues/45028 and https://github.com/Expensify/App/issues/45027
                     Navigation.goBack();
                 }}
             />
