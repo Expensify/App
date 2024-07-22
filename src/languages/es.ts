@@ -2127,9 +2127,7 @@ export default {
             taxesJournalEntrySwitchNote: 'QuickBooks Online no permite impuestos en los asientos contables. Por favor, cambia la opción de exportación a factura de proveedor o cheque.',
             locationsAdditionalDescription:
                 'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
-            exportExpenses: 'Exportar gastos de bolsillo como',
             exportInvoices: 'Exportar facturas a',
-            exportCompany: 'Exportar tarjetas de empresa como',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
             date: 'Fecha de exportación',
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
@@ -2243,14 +2241,12 @@ export default {
                 tag: 'Etiquetas',
             },
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
-            exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             purchaseBill: 'Factura de compra',
             exportDeepDiveCompanyCard:
                 'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Transacciones bancarias',
             xeroBankAccount: 'Cuenta bancaria de Xero',
             xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
-            exportExpenses: 'Exportar gastos por cuenta propia como',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
             purchaseBillDate: 'Fecha de la factura de compra',
             exportInvoices: 'Exportar facturas como',
@@ -2319,7 +2315,6 @@ export default {
                 },
             },
             reimbursableExpenses: {
-                label: 'Exportar gastos por cuenta propia como',
                 description: 'Establece cómo se exportan los gastos por cuenta propia a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
@@ -2327,7 +2322,6 @@ export default {
                 },
             },
             nonReimbursableExpenses: {
-                label: 'Exportar tarjetas de empresa como',
                 description: 'Establece cómo se exportan las compras con tarjeta de empresa a Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Tarjetas de crédito',
@@ -2358,8 +2352,6 @@ export default {
             subsidiary: 'Subsidiaria',
             subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a NetSuite.',
-            exportReimbursable: 'Exportar gastos reembolsables como',
-            exportNonReimbursable: 'Exportar gastos no reembolsables como',
             exportInvoices: 'Exportar facturas a',
             journalEntriesTaxPostingAccount: 'Cuenta de registro de impuestos de asientos contables',
             journalEntriesProvTaxPostingAccount: 'Cuenta de registro de impuestos provinciales de asientos contables',
@@ -3180,6 +3172,8 @@ export default {
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportAs: 'Exportar cómo',
+            exportOutOfPocket: ' Exportar gastos por cuenta propia como',
+            exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
