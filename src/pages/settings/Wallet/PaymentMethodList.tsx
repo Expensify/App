@@ -226,7 +226,7 @@ function PaymentMethodList({
                     return;
                 }
 
-                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy;
+                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
                 if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
@@ -242,7 +242,7 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isAdminIssuedVirtualCard ? card?.nameValuePairs?.cardTitle || card.bank : card.bank,
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
                     description: card.domainName,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,

@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import SCREENS from '@src/SCREENS';
 import getTopmostBottomTabRoute from './Navigation/getTopmostBottomTabRoute';
-import type {CentralPaneName, RootStackParamList, State} from './Navigation/types';
+import type {CentralPaneName, OnboardingFlowName, RootStackParamList, State} from './Navigation/types';
 
 const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.SETTINGS.WORKSPACES,
@@ -17,13 +17,7 @@ const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.REPORT,
 ]);
 
-function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
-    if (!screen) {
-        return false;
-    }
-
-    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
-}
+const ONBOARDING_SCREEN_NAMES = new Set([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK, SCREENS.ONBOARDING_MODAL.ONBOARDING]);
 
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = cloneDeep(state);
@@ -34,4 +28,19 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     return stateCopy;
 };
 
-export {isCentralPaneName, removePolicyIDParamFromState};
+function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
+    if (!screen) {
+        return false;
+    }
+    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
+}
+
+function isOnboardingFlowName(screen: string | undefined): screen is OnboardingFlowName {
+    if (!screen) {
+        return false;
+    }
+
+    return ONBOARDING_SCREEN_NAMES.has(screen as OnboardingFlowName);
+}
+
+export {isCentralPaneName, removePolicyIDParamFromState, isOnboardingFlowName};

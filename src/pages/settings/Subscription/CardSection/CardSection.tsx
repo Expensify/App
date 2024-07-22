@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
+import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
@@ -76,6 +77,8 @@ function CardSection() {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;
+    } else if (SubscriptionUtils.hasUserFreeTrialEnded()) {
+        BillingBanner = <TrialEndedBillingBanner />;
     } else if (billingStatus) {
         BillingBanner = (
             <SubscriptionBillingBanner
@@ -106,7 +109,7 @@ function CardSection() {
                             <Icon
                                 src={Expensicons.CreditCard}
                                 additionalStyles={styles.subscriptionAddedCardIcon}
-                                fill={theme.text}
+                                fill={theme.icon}
                                 medium
                             />
                             <View style={styles.flex1}>
@@ -145,7 +148,7 @@ function CardSection() {
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
                         style={styles.mt5}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
