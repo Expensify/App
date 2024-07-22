@@ -5,7 +5,12 @@ import type Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of
 // date because all these requests are updating the app to the most current state.
-const requestsToIgnoreLastUpdateID: string[] = [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES];
+const requestsToIgnoreLastUpdateID: string[] = [
+    WRITE_COMMANDS.OPEN_APP,
+    SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
+    WRITE_COMMANDS.CLOSE_ACCOUNT,
+    SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
+];
 
 const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
     requestResponse.then((response = {}) => {

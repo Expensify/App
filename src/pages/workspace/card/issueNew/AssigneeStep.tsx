@@ -119,6 +119,12 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         ];
     }, [membersDetails, debouncedSearchTerm]);
 
+    const headerMessage = useMemo(() => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+
+        return OptionsListUtils.getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
+    }, [debouncedSearchTerm, sections]);
+
     return (
         <ScreenWrapper
             testID={AssigneeStep.displayName}
@@ -142,6 +148,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
                 sections={sections}
+                headerMessage={headerMessage}
                 ListItem={UserListItem}
                 onSelectRow={submit}
             />
