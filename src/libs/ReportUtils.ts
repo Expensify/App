@@ -1860,7 +1860,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 
 const hiddenTranslation = Localize.translateLocal('common.hidden');
 
-const phoneNumberCache: {[key: string]: string} = {};
+const phoneNumberCache: Record<string, string> = {};
 
 /**
  * Get the displayName for a single report participant.
@@ -1876,11 +1876,11 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     }
 
     // Check if the phone number is already cached
-    let formattedLogin = phoneNumberCache[personalDetails.login || ''];
+    let formattedLogin = phoneNumberCache[personalDetails.login ?? ''];
     if (!formattedLogin) {
-        formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+        formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login ?? '');
         // Store the formatted phone number in the cache
-        phoneNumberCache[personalDetails.login || ''] = formattedLogin;
+        phoneNumberCache[personalDetails.login ?? ''] = formattedLogin;
     }
 
     // This is to check if account is an invite/optimistically created one
