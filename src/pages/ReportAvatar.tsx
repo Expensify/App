@@ -42,9 +42,17 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
         title = groupChatDraft?.reportName || ReportUtils.getGroupChatName(groupChatDraft?.participants.map((participant) => participant.accountID) ?? [], true);
         shouldShowNotFoundPage = !isLoadingApp && !groupChatDraft;
     } else {
-        avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
+        if (policy) {
+            avatarURL = policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name);
+        } else {
+            avatarURL = report.policyID ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
+        }
         // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
-        fileName = policy ? policy?.originalFileName ?? policy?.id ?? report?.policyID : report?.avatarFileName;
+        if (policy) {
+            fileName = policy?.originalFileName ?? policyID;
+        } else {
+            fileName = report?.policyID ?? report?.avatarFileName;
+        }
         title = policy ? ReportUtils.getPolicyName(report, false, policy) : ReportUtils.getReportName(report);
         shouldShowNotFoundPage = !isLoadingApp && !report?.reportID;
     }
