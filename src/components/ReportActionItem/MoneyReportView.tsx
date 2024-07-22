@@ -72,10 +72,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const shouldShowReportField =
         !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.isPaidGroupPolicyExpenseReport(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
 
-    if (!shouldShowReportField && !shouldShowBreakdown && !shouldShowTotal) {
-        return null;
-    }
-
     return (
         <>
             <View style={[styles.pRelative]}>
@@ -191,10 +187,12 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                     </>
                 )}
             </View>
-            <SpacerView
-                shouldShow={!shouldHideThreadDividerLine}
-                style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
-            />
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                />
+            )}
         </>
     );
 }

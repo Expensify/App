@@ -104,6 +104,8 @@ const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
  */
 const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
+const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
+
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
@@ -160,7 +162,7 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
 }
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
+    return isActionOfType(reportAction, ...POLICY_CHANGE_LOG_ARRAY);
 }
 
 function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
@@ -1141,28 +1143,6 @@ function getTextFromHtml(html?: string): string {
     return html ? Parser.htmlToText(html) : '';
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
-    const html = messageElements
-        .map((messageElement) => {
-            switch (messageElement.kind) {
-                case 'userMention':
-                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
-                case 'roomReference':
-                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
-                default:
-                    return messageElement.content;
-            }
-        })
-        .join('');
-
-    return {
-        html: `<muted-text>${html}</muted-text>`,
-        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
-        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-    };
-}
-
 function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -1219,7 +1199,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction): string {
+function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
@@ -1267,7 +1247,7 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
             return Localize.translateLocal('report.actions.type.reimbursementDelayed');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
+            return Localize.translateLocal(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
             return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
@@ -1279,9 +1259,45 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const html = messageElements
+        .map((messageElement) => {
+            switch (messageElement.kind) {
+                case 'userMention':
+                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
+                case 'roomReference':
+                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
+                default:
+                    return messageElement.content;
+            }
+        })
+        .join('');
+
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
+}
+
+function getReportActionMessageFragments(action: ReportAction): Message[] {
+    if (isOldDotReportAction(action)) {
+        const oldDotMessage = getMessageOfOldDotReportAction(action);
+        const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
+        return [{text: oldDotMessage, html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    const actionMessage = action.previousMessage ?? action.message;
+    if (Array.isArray(actionMessage)) {
+        return actionMessage.filter((item): item is Message => !!item);
+    }
+    return actionMessage ? [actionMessage] : [];
 }
 
 /**
@@ -1553,6 +1569,7 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
+    getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,

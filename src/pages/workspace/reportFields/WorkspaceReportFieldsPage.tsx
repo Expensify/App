@@ -1,7 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,6 +21,7 @@ import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,6 +71,14 @@ function WorkspaceReportFieldsPage({
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
+
+    const fetchReportFields = useCallback(() => {
+        ReportField.openPolicyReportFieldsPage(policyID);
+    }, [policyID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchReportFields});
+
+    useFocusEffect(fetchReportFields);
 
     useEffect(() => {
         if (isFocused) {
@@ -131,9 +140,9 @@ function WorkspaceReportFieldsPage({
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
-    const isLoading = policy === undefined;
+    const isLoading = !isOffline && policy === undefined;
     const shouldShowEmptyState =
-        Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length <= 0 && !isLoading;
+        !Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);

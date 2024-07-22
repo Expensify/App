@@ -101,7 +101,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={NetSuiteExportExpensesPage.displayName}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
-            headerTitle={`workspace.netsuite.${isReimbursable ? 'exportReimbursable' : 'exportNonReimbursable'}`}
+            headerTitle={`workspace.accounting.${isReimbursable ? 'exportOutOfPocket' : 'exportCompanyCard'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
