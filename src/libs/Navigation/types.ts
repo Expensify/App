@@ -676,6 +676,14 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
+        policyID: string;
+        cardID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -1063,11 +1071,11 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
 };
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type FullScreenNavigatorParamList = {
@@ -1164,8 +1172,6 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
-type BottomTabScreensParamList = {[SCREENS.HOME]: undefined; [SCREENS.REPORT]: undefined} & SearchNavigatorParamList & SettingsNavigatorParamList;
-
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: {
@@ -1230,6 +1236,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         };
         [SCREENS.REPORT_AVATAR]: {
             reportID: string;
+            isNewGroupChat: boolean;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
@@ -1254,6 +1261,10 @@ type SearchReportParamList = {
     };
 };
 
+type SearchAdvancedFiltersParamList = {
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -1264,11 +1275,11 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
-type BottomTabScreenName = keyof BottomTabScreensParamList;
-
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
+
+type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -1284,8 +1295,6 @@ export type {
     BackToParams,
     BackToAndForwardToParms,
     BottomTabName,
-    BottomTabScreenName,
-    BottomTabScreensParamList,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
@@ -1303,6 +1312,7 @@ export type {
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingModalNavigatorParamList,
+    OnboardingFlowName,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -1332,5 +1342,6 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
 };
