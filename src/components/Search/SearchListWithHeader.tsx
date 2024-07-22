@@ -14,10 +14,10 @@ import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchStatus, SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
-    status: SearchStatus;
+    queryJSON: SearchQueryJSON;
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
@@ -45,7 +45,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
 }
 
 function SearchListWithHeader(
-    {ListItem, onSelectRow, status, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isSearchResultsMode = false, ...props}: SearchListWithHeaderProps,
+    {ListItem, onSelectRow, queryJSON, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isSearchResultsMode = false, ...props}: SearchListWithHeaderProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -189,7 +189,7 @@ function SearchListWithHeader(
             <SearchPageHeader
                 selectedTransactions={selectedTransactions}
                 clearSelectedItems={clearSelectedItems}
-                status={status}
+                queryJSON={queryJSON}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}

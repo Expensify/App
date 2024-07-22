@@ -417,12 +417,13 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys
     return filters;
 }
 
-function getSearchHeaderTitle(query: string, isSmallScreenWidth: boolean) {
+function getSearchHeaderTitle(queryJSON: SearchQueryJSON, isSmallScreenWidth: boolean) {
+    const {status} = queryJSON;
     if (isSmallScreenWidth) {
-        return `Type: Expense, Status: ${Str.recapitalize(query)}`;
+        return `Type: Expense, Status: ${Str.recapitalize(status)}`;
     }
 
-    return `type:expense status:${query}`;
+    return `type:expense status:${status}`;
 }
 
 export {

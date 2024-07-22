@@ -1,71 +1,74 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
+import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchUtils from '@libs/SearchUtils';
+import {normalizeQuery} from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import * as SearchUtils from '@src/libs/SearchUtils';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SearchResultsFiltersNarrow from './SearchResultsFiltersNarrow';
+import SearchResultsStatusMenuNarrow from './SearchResultsStatusMenuNarrow';
 
-type SearchFiltersProps = {
-    query: string;
+type SearchResultsStatusMenuProps = {
+    queryJSON: SearchQueryJSON;
 };
 
-type SearchMenuFilterItem = {
+type SearchResultsStatusMenuItem = {
     title: string;
-    query: string;
+    status: SearchStatus;
     icon: IconAsset;
     route: Route;
 };
 
-function SearchResultsFilters({query}: SearchFiltersProps) {
+function SearchResultsStatusMenu({queryJSON}: SearchResultsStatusMenuProps) {
+    const {status} = queryJSON;
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
 
-    const filterItems: SearchMenuFilterItem[] = [
+    const filterItems: SearchResultsStatusMenuItem[] = [
         {
             title: translate('common.expenses'),
-            query: CONST.SEARCH.TAB.ALL,
+            status: CONST.SEARCH.STATUS.ALL,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
         },
         {
             title: translate('common.shared'),
-            query: CONST.SEARCH.TAB.SHARED,
+            status: CONST.SEARCH.STATUS.SHARED,
             icon: Expensicons.Send,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.SHARED),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
         },
         {
             title: translate('common.drafts'),
-            query: CONST.SEARCH.TAB.DRAFTS,
+            status: CONST.SEARCH.STATUS.DRAFTS,
             icon: Expensicons.Pencil,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.DRAFTS),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
         },
         {
             title: translate('common.finished'),
-            query: CONST.SEARCH.TAB.FINISHED,
+            status: CONST.SEARCH.STATUS.FINISHED,
             icon: Expensicons.CheckCircle,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.FINISHED),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
         },
     ];
-    const activeItemIndex = filterItems.findIndex((item) => item.query === query);
+    const activeItemIndex = filterItems.findIndex((item) => item.status === status);
 
     if (isSmallScreenWidth) {
         return (
-            <SearchResultsFiltersNarrow
+            <SearchResultsStatusMenuNarrow
                 filterItems={filterItems}
                 activeItemIndex={activeItemIndex}
-                title={SearchUtils.getSearchHeaderTitle(query, isSmallScreenWidth)}
+                title={SearchUtils.getSearchHeaderTitle(queryJSON, isSmallScreenWidth)}
             />
         );
     }
@@ -96,6 +99,7 @@ function SearchResultsFilters({query}: SearchFiltersProps) {
     );
 }
 
-SearchResultsFilters.displayName = 'SearchResultsFilters';
+SearchResultsStatusMenu.displayName = 'SearchResultsStatusMenu';
 
-export default SearchResultsFilters;
+export default SearchResultsStatusMenu;
+export type {SearchResultsStatusMenuItem};

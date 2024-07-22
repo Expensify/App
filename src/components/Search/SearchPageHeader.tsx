@@ -24,10 +24,10 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getDownloadOption from './SearchActionOptionsUtils';
 import {useSearchContext} from './SearchContext';
-import type {SearchStatus, SelectedTransactions} from './types';
+import type {SearchQueryJSON, SearchStatus, SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
-    status: SearchStatus;
+    queryJSON: SearchQueryJSON;
     selectedTransactions?: SelectedTransactions;
     selectedReports?: Array<SearchReport['reportID']>;
     clearSelectedItems?: () => void;
@@ -50,7 +50,7 @@ const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: Translat
 };
 
 function SearchPageHeader({
-    status,
+    queryJSON,
     selectedTransactions = {},
     hash,
     clearSelectedItems,
@@ -70,6 +70,8 @@ function SearchPageHeader({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
 
+    const {status} = queryJSON;
+
     const subtitle = useMemo(() => {
         if (!isSearchResultsMode) {
             return '';
@@ -80,11 +82,11 @@ function SearchPageHeader({
 
     const headerTitle = useMemo(() => {
         if (isSearchResultsMode) {
-            return SearchUtils.getSearchHeaderTitle(status, false);
+            return SearchUtils.getSearchHeaderTitle(queryJSON, false);
         }
 
         return translate(headerContent[status]?.titleTx);
-    }, [isSearchResultsMode, status, translate]);
+    }, [isSearchResultsMode, queryJSON, status, translate]);
 
     const headerIcon = useMemo(() => {
         if (isSearchResultsMode) {

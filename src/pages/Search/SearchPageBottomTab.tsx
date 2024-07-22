@@ -14,7 +14,7 @@ import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopB
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchStatuses from './SearchStatusMenu';
+import SearchResultsStatusMenu from './SearchResultsStatusMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -58,7 +58,7 @@ function SearchPageBottomTab() {
                             shouldDisplaySearch={false}
                         />
                         {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                        <SearchStatuses status={queryJSON!.status} />
+                        <SearchResultsStatusMenu queryJSON={queryJSON!} />
                     </>
                 ) : (
                     <HeaderWithBackButton

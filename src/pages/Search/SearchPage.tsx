@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import SearchV2 from '@components/Search/SearchV2';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +45,7 @@ function SearchPage({route}: SearchPageProps) {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     queryJSON={queryJSON!}
                     policyIDs={route.params.policyIDs}
+                    isSearchResultsMode
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
