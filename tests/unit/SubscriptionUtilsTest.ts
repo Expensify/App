@@ -38,8 +38,8 @@ const FUND_LIST: FundList = {
             cardYear: new Date().getFullYear(),
             cardMonth: new Date().getMonth() + 1,
             additionalData: {
-                isBillingCard: true
-            }
+                isBillingCard: true,
+            },
         },
     },
 };
