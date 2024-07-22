@@ -12,7 +12,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -53,8 +55,16 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         if (NativeModules.HybridAppModule) {
             return;
         }
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.route)});
-    }, [isLoadingApp, navigation]);
+
+        Welcome.isOnboardingFlowCompleted({
+            onNotCompleted: () => {
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+                navigationRef.resetRoot(adaptedState);
+            },
+        });
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isLoadingApp]);
 
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
     const navigateToChats = useCallback(() => {
@@ -94,7 +104,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
                             return;
                         }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL)));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
