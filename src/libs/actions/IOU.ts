@@ -7416,7 +7416,35 @@ function mergeDuplicates(params: TransactionMergeParams) {
     console.log('RORY_DEBUG transactionIDList', params.transactionIDList);
     console.log('RORY_DEBUG reportActionsForReport', allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]);
 
-    const reportActionsToDelete = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.filter(
+    const duplicateTransactionTotals = params.transactionIDList.reduce((total, id) => {
+        const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        if (!duplicateTransaction) {
+            return total;
+        }
+        return total + duplicateTransaction.amount;
+    }, 0);
+
+    const expenseReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+    const expenseReportOptimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+            value: {
+                total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
+            },
+        },
+    ];
+    const expenseReportFailureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+            value: {
+                total: expenseReport?.total,
+            },
+        },
+    ];
+
+    const iouActionsToDelete = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.filter(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 console.log(`RORY_DEBUG skipping reportAction ${reportAction.reportActionID} because it's not an IOU action`);
@@ -7436,10 +7464,10 @@ function mergeDuplicates(params: TransactionMergeParams) {
         },
     );
 
-    console.log('RORY_DEBUG reportActionsToDelete', reportActionsToDelete);
+    console.log('RORY_DEBUG reportActionsToDelete', iouActionsToDelete);
 
     const deletedTime = DateUtils.getDBTime();
-    const optimisticReportActionsData: OnyxUpdate[] = reportActionsToDelete.map((reportAction) => ({
+    const expenseReportActionsOptimisticData: OnyxUpdate[] = iouActionsToDelete.map((reportAction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: {
@@ -7465,7 +7493,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
             },
         },
     }));
-    const failureReportActionsData: OnyxUpdate[] = reportActionsToDelete.map((reportAction) => ({
+    const expenseReportActionsFailureData: OnyxUpdate[] = iouActionsToDelete.map((reportAction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: {
@@ -7481,8 +7509,8 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations, ...optimisticReportActionsData);
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, ...failureReportActionsData);
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations, ...expenseReportOptimisticData, ...expenseReportActionsOptimisticData);
+    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, ...expenseReportFailureData, ...expenseReportActionsFailureData);
 
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
