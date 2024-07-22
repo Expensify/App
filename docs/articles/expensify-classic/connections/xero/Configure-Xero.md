@@ -3,9 +3,7 @@ title: Configure Xero
 description: Configure Xero
 ---
 
-# Configure Xero
-
-**Best practices using Xero**
+**Best Practices Using Xero**
 
 A connection to Xero lets you combine the power of Expensify's expense management features with Xero's accounting capabilities. By following the recommended best practices below, your finances will be automatically categorized correctly and accounted for in the right place. 
 
@@ -16,14 +14,14 @@ A connection to Xero lets you combine the power of Expensify's expense managemen
 - Set your preferred exporter to a user who is both a workspace and domain admin. 
 - Configure your coding settings and enforce them by requiring categories and tags on expenses. 
 
-# Accessing the Xero configuration settings
+# Accessing the Xero Configuration Settings
 Xero is connected at the workspace level, and each workspace can have a unique configuration that dictates how the connection functions. To access the configuration:
 
-1. Click Settings near the bottom of the left-hand menu.
+1. Click **Settings** near the bottom of the left-hand menu.
 2. Navigate to Workspaces > Groups > [workspace Name] > Connections.
 3. Scroll down to the Xero connection and click the **Configure** button to open the settings menu.
 
-# Step 1: Configure export settings
+# Step 1: Configure Export Settings
 The following steps help you determine how data will be exported from Expensify to Xero.
 
 1. Click the **Configure** button under the Xero connection to open the settings menu.
@@ -38,7 +36,7 @@ The following steps help you determine how data will be exported from Expensify 
     - **Export non-reimbursable expenses as**: Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.
     - **Xero Bank Account**: Select which bank account will be used to post bank transactions when non-reimbursable expenses are exported.
 
-## Step 1b: Optional configuration when company cards are connected
+## Step 1B: Optional configuration when company cards are connected
 1. Click **Settings** near the bottom of the left-hand menu.
 2. Navigate to Domains > [domain name] > Company Cards.
 3. If you have more than one company card connection, select the connection first. 
@@ -66,7 +64,7 @@ The following steps help you determine the advanced settings for your connection
     - **Auto Sync**: When enabled, the connection will sync daily to ensure that the data shared between the two systems is up-to-date. 
         - New report approvals/reimbursements will be synced during the next auto-sync period. 
 Reimbursable expenses will export after reimbursement occurs or the report is marked as reimbursed outside Expensify when using Direct or Indirect reimbursement.
-        - Non-reimbursable expenses will export automatically after the report is final approved. 
+        - Non-reimbursable expenses will export automatically after the report is final approved.
     - **Newly Imported Categories Should Be**: When a new account is created in the Xero chart of accounts, this setting controls whether the new category in Expensify is enabled or disabled by default. Disabled categories are not visible to employees when coding expenses.
     - **Set purchase bill status** (optional): Reimbursable expenses are exported as purchase bills with the status selected. The options available are:
         - Awaiting Payment (default)
@@ -95,7 +93,7 @@ Yes, you can connect each organization you have to Expensify. Here are some esse
 2. Navigate to Business > Purchase Overview > Awaiting Payments. 
     - Bills will be payable to the individual who created and submitted the report in Expensify.
 
-### How can I view the bank transactions in Xero?
+## How can I view the bank transactions in Xero?
 
 **To view the transactions in Xero:**
 1. Log into Xero.
