@@ -32,7 +32,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             id: category.id,
             description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
-            title: translate(`workspace.xero.trackingCategoriesOptions.${category.value.toLowerCase()}` as TranslationPaths),
+            title: translate(`workspace.xero.trackingCategoriesOptions.${!!category.value ? category.value.toLowerCase() : 'default'}` as TranslationPaths),
         }));
     }, [translate, policy, policyID]);
 
