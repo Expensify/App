@@ -105,7 +105,7 @@ describe('libs/NextStepUtils', () => {
                     optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 });
 
-                // Format: Waiting for userSubmitter's expense(s) to automatically submit on scheduleSubmitSetting
+                // Format: Waiting for userSubmitter's expense(s) to automatically submit on scheduledSubmitSettings
 
                 test('daily', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit later today
