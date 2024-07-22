@@ -658,10 +658,11 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            const originalMessage = ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
-            const oldName = originalMessage?.oldName ?? '';
-            const newName = originalMessage?.newName ?? '';
-            const message = translate('newRoomPage.renamedRoomAction', {oldName, newName});
+            const initialMessage = ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
+            const message = translate('newRoomPage.renamedRoomAction', {
+                oldName: initialMessage?.oldName ?? '',
+                newName: initialMessage?.newName ?? '',
+            });
             children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const hasBeenFlagged =
