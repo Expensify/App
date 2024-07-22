@@ -221,7 +221,7 @@ function SearchPageHeader({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                    customText={translate('workspace.common.selected', undefined, selectedTransactionsKeys.length)}
                     options={headerButtonsOptions}
                     isSplitButton={false}
                 />

@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -17,25 +17,25 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    CustomersOrJobsLabelTranslationParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
+    ExportAgainModalDescriptionTranslationParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
     ForwardedParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    LastSyncDateTranslationParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -66,6 +66,7 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportIntegrationMessageTranslationParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -80,6 +81,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    StatementPageTitleTranslationParams,
     StepCounterParams,
     StripePaidParams,
     TaskCreatedActionParams,
@@ -496,16 +498,14 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        conciergePlaceholderOptions: [
-            'Ask for help!',
-            'Ask me anything!',
-            'Ask me to book travel!',
-            'Ask me what I can do!',
-            'Ask me how to pay people!',
-            'Ask me how to send an invoice!',
-            'Ask me how to scan a receipt!',
-            'Ask me how to get a free corporate card!',
-        ],
+        conciergePlaceholderOptions: (isSmallScreenWidth: boolean) => {
+            // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
+            const options = ['Ask for help!', 'Ask me anything!', 'Ask me to book travel!', 'Ask me what I can do!', 'Ask me how to pay people!'];
+            if (!isSmallScreenWidth) {
+                options.push('Ask me how to send an invoice!', 'Ask me how to scan a receipt!', 'Ask me how to get a free corporate card!');
+            }
+            return options[Math.floor(Math.random() * options.length)];
+        },
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
@@ -654,7 +654,7 @@ export default {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: (name: string) => `Pay ${name ?? 'someone'}`,
+        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
@@ -700,7 +700,10 @@ export default {
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        receiptIssuesFound: (count: number) => `${count === 1 ? 'Issue' : 'Issues'} found`,
+        receiptIssuesFound: () => ({
+            one: `Issue found`,
+            other: () => `Issues found`,
+        }),
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptMissingDetails: 'Receipt missing details',
@@ -710,12 +713,19 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
         transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
-            }`,
-        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Delete ${Str.pluralize('expense', 'expenses', count)}`,
-        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Are you sure that you want to delete ${Str.pluralize('this expense', 'these expenses', count)}?`,
+        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+            zero: `0 expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+            one: `1 expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+            other: (count: number) => `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+        }),
+        deleteExpense: () => ({
+            one: `Delete expense`,
+            other: () => `Delete expenses`,
+        }),
+        deleteConfirmation: () => ({
+            one: `Are you sure that you want to delete this expense?`,
+            other: () => `Are you sure that you want to delete these expenses?`,
+        }),
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
@@ -808,12 +818,18 @@ export default {
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
+        confirmApprovalAllHoldAmount: () => ({
+            zero: `This expense is on hold. Do you want to approve anyway?`,
+            one: `This expense is on hold. Do you want to approve anyway?`,
+            other: () => `These expenses are on hold. Do you want to approve anyway?`,
+        }),
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to pay anyway?`,
+        confirmPayAllHoldAmount: () => ({
+            zero: `This expense is on hold. Do you want to pay anyway?`,
+            one: `This expense is on hold. Do you want to pay anyway?`,
+            other: () => `These expenses are on hold. Do you want to pay anyway?`,
+        }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This expense is on',
@@ -2040,7 +2056,10 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
+            selected: () => ({
+                one: `1 selected`,
+                other: (count: number) => `${count} selected`,
+            }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             unavailable: 'Unavailable workspace',
@@ -2075,7 +2094,7 @@ export default {
             createNewConnection: 'Create new connection',
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
-            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateTranslationParams) => `${connectionName} - Last synced ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2507,7 +2526,7 @@ export default {
                     importJobs: 'Import projects',
                     customers: 'customers',
                     jobs: 'projects',
-                    label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
+                    label: ({importFields, importType}: CustomersOrJobsLabelTranslationParams) => `${importFields.join(' and ')}, ${importType}`,
                 },
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
@@ -2629,7 +2648,10 @@ export default {
             addAUserDefinedDimension: 'Add a user-defined dimension',
             detailedInstructionsLink: 'View detailed instructions',
             detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
-            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} added`,
+            userDimensionsAdded: () => ({
+                one: `1 UDD added`,
+                other: (count: number) => `${count} UDDs added`,
+            }),
             mappingTitle: (mappingName: SageIntacctMappingName): string => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
@@ -3279,9 +3301,18 @@ export default {
             rate: 'Rate',
             addRate: 'Add rate',
             trackTax: 'Track tax',
-            deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
-            enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
+            deleteRates: () => ({
+                one: `Delete 1 rate`,
+                other: (count: number) => `Delete ${count} rates`,
+            }),
+            enableRates: () => ({
+                one: `Enable 1 rate`,
+                other: (count: number) => `Enable ${count} rates`,
+            }),
+            disableRates: () => ({
+                one: `Disable 1 rate`,
+                other: (count: number) => `Disable ${count} rates`,
+            }),
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
@@ -3289,7 +3320,10 @@ export default {
             changePromptMessage: ' to make that change.',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
+            areYouSureDelete: () => ({
+                one: `Are you sure you want to delete 1 rate?`,
+                other: (count: number) => `Are you sure you want to delete ${count} rates?`,
+            }),
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -3376,7 +3410,7 @@ export default {
         },
         exportAgainModal: {
             title: 'Careful!',
-            description: (reportName: string, connectionName: ConnectionName) =>
+            description: ({reportName, connectionName}: ExportAgainModalDescriptionTranslationParams) =>
                 `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
@@ -3530,7 +3564,7 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this task?',
     },
     statementPage: {
-        title: (year, monthName) => `${monthName} ${year} statement`,
+        title: ({year, monthName}: StatementPageTitleTranslationParams) => `${monthName} ${year} statement`,
         generatingPDF: "We're generating your PDF right now. Please check back soon!",
     },
     keyboardShortcutsPage: {
@@ -3688,7 +3722,7 @@ export default {
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
-                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
+                integrationsMessage: ({errorMessage, label}: ReportIntegrationMessageTranslationParams) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,

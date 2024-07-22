@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
@@ -15,26 +14,26 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    CustomersOrJobsLabelTranslationParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
     EnterMagicCodeParams,
+    ExportAgainModalDescriptionTranslationParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
     ForwardedParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    LastSyncDateTranslationParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -65,6 +64,7 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportIntegrationMessageTranslationParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -79,6 +79,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    StatementPageTitleTranslationParams,
     StepCounterParams,
     StripePaidParams,
     TaskCreatedActionParams,
@@ -487,16 +488,13 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Añadir archivo adjunto',
         writeSomething: 'Escribe algo...',
-        conciergePlaceholderOptions: [
-            '¡Pide ayuda!',
-            '¡Pregúntame lo que sea!',
-            '¡Pídeme que te reserve un viaje!',
-            '¡Pregúntame qué puedo hacer!',
-            '¡Pregúntame cómo pagar a la gente!',
-            '¡Pregúntame cómo enviar una factura!',
-            '¡Pregúntame cómo escanear un recibo!',
-            '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
-        ],
+        conciergePlaceholderOptions: (isSmallScreenWidth: boolean) => {
+            const options = ['¡Pide ayuda!', '¡Pregúntame lo que sea!', '¡Pídeme que te reserve un viaje!', '¡Pregúntame qué puedo hacer!', '¡Pregúntame cómo pagar a la gente!'];
+            if (!isSmallScreenWidth) {
+                options.push('¡Pregúntame cómo enviar una factura!', '¡Pregúntame cómo escanear un recibo!', '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!');
+            }
+            return options[Math.floor(Math.random() * options.length)];
+        },
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}: LocalTimeParams) => `Son las ${time} para ${user}`,
@@ -649,7 +647,7 @@ export default {
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
-        paySomeone: (name: string) => `Pagar a ${name ?? 'alguien'}`,
+        paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
         trackManual: 'Crear gasto',
@@ -692,7 +690,10 @@ export default {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
-        receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
+        receiptIssuesFound: () => ({
+            one: `Problema encontrado`,
+            other: () => `Problemas encontrados`,
+        }),
         fieldPending: 'Pendiente...',
         receiptScanning: 'Escaneando recibo...',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
@@ -705,13 +706,19 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
-            }`,
-
-        deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
-        deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
+        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+            zero: `0 gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+            one: `1 gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+            other: (count: number) => `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+        }),
+        deleteExpense: () => ({
+            one: `Eliminar gasto`,
+            other: () => `Eliminar gastos`,
+        }),
+        deleteConfirmation: () => ({
+            one: `¿Estás seguro de que quieres eliminar esta solicitud?`,
+            other: () => `¿Estás seguro de que quieres eliminar estas solicitudes?`,
+        }),
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
@@ -804,20 +811,18 @@ export default {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'aprobar',
-                'aprobarlos',
-                transactionCount,
-            )} de todos modos?`,
+        confirmApprovalAllHoldAmount: () => ({
+            zero: `Ningún gasto está bloqueado. ¿Quieres aprobar todo el informe?`,
+            one: `Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?`,
+            other: () => `Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?`,
+        }),
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'pagar',
-                'pagarlo',
-                transactionCount,
-            )} de todos modos?`,
+        confirmPayAllHoldAmount: () => ({
+            zero: `Ningún gasto está bloqueado. ¿Quieres pagar todo el informe?`,
+            one: `Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?`,
+            other: () => `Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?`,
+        }),
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloquear',
@@ -2074,7 +2079,10 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
+            selected: () => ({
+                one: `1 seleccionado`,
+                other: (count: number) => `${count} seleccionados`,
+            }),
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2110,7 +2118,7 @@ export default {
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
-            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
+            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateTranslationParams) => `${connectionName} - Última sincronización ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2556,7 +2564,7 @@ export default {
                     importJobs: 'Importar proyectos',
                     customers: 'clientes',
                     jobs: 'proyectos',
-                    label: (importFields: string[], importType: string) => `${importFields.join(' y ')}, ${importType}`,
+                    label: ({importFields, importType}: CustomersOrJobsLabelTranslationParams) => `${importFields.join(' y ')}, ${importType}`,
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
@@ -2678,7 +2686,10 @@ export default {
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
-            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} añadido`,
+            userDimensionsAdded: () => ({
+                one: `1 UDD añadido`,
+                other: (count: number) => `${count} UDDs añadido`,
+            }),
             mappingTitle: (mappingName: SageIntacctMappingName): string => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
@@ -3333,9 +3344,18 @@ export default {
             rate: 'Tasa',
             addRate: 'Agregar tasa',
             trackTax: 'Impuesto de seguimiento',
-            deleteRates: ({count}: DistanceRateOperationsParams) => `Eliminar ${Str.pluralize('tasa', 'tasas', count)}`,
-            enableRates: ({count}: DistanceRateOperationsParams) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
+            deleteRates: () => ({
+                one: `Eliminar 1 tasa`,
+                other: (count: number) => `Eliminar ${count} tasas`,
+            }),
+            enableRates: () => ({
+                one: `Activar 1 tasa`,
+                other: (count: number) => `Activar ${count} tasas`,
+            }),
+            disableRates: () => ({
+                one: `Desactivar 1 tasa`,
+                other: (count: number) => `Desactivar ${count} tasas`,
+            }),
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
@@ -3343,7 +3363,10 @@ export default {
             changePromptMessage: ' para hacer ese cambio.',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta tasa', 'estas tasas', count)}?`,
+            areYouSureDelete: () => ({
+                one: `¿Estás seguro de que quieres eliminar 1 tasa?`,
+                other: (count: number) => `¿Estás seguro de que quieres eliminar ${count} tasas?`,
+            }),
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -3432,7 +3455,7 @@ export default {
 
         exportAgainModal: {
             title: '¡Cuidado!',
-            description: (reportName: string, connectionName: ConnectionName) =>
+            description: ({reportName, connectionName}: ExportAgainModalDescriptionTranslationParams) =>
                 `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
@@ -3587,7 +3610,7 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     statementPage: {
-        title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
+        title: ({year, monthName}: StatementPageTitleTranslationParams) => `Estado de cuenta de ${monthName} ${year}`,
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {
@@ -3746,7 +3769,7 @@ export default {
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
-                integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
+                integrationsMessage: ({errorMessage, label}: ReportIntegrationMessageTranslationParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,

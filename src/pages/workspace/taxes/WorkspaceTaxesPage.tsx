@@ -235,7 +235,7 @@ function WorkspaceTaxesPage({
             onPress={() => {}}
             options={dropdownMenuOptions}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-            customText={translate('workspace.common.selected', {selectedNumber: selectedTaxesIDs.length})}
+            customText={translate('workspace.common.selected', undefined, selectedTaxesIDs.length)}
             shouldAlwaysShowDropdownMenu
             pressOnEnter
             isSplitButton={false}

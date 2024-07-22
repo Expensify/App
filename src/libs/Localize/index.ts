@@ -6,7 +6,7 @@ import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement'
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {PluralFormPhase, TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 import LocaleListener from './LocaleListener';
@@ -45,8 +45,8 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
+type PhraseParameters<T> = T extends (arg: infer A) => string ? [A] : T extends (arg: infer A) => PluralFormPhase ? [A, number] : never[];
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey];
 
 /**
  * Map to store translated values for each locale.
@@ -69,6 +69,23 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
         return cache;
     }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
 );
+
+function handlePluralForm(translatedPhrase: PluralFormPhase, pluralForm: Intl.LDMLPluralRule, count: number) {
+    switch (pluralForm) {
+        case 'zero':
+            return translatedPhrase.zero;
+        case 'one':
+            return translatedPhrase.one;
+        case 'two':
+            return translatedPhrase.two;
+        case 'few':
+            return translatedPhrase.few?.(count);
+        case 'many':
+            return translatedPhrase.many?.(count);
+        default:
+            return translatedPhrase.other(count);
+    }
+}
 
 /**
  * Helper function to get the translated string for given
@@ -106,11 +123,21 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         return valueFromCache;
     }
 
-    const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
+    const translatedPhrase = translations?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(...phraseParameters);
+            const calledTranslatedPhrase = translatedPhrase(phraseParameters[0]);
+            if (typeof calledTranslatedPhrase === 'string') {
+                return calledTranslatedPhrase;
+            }
+            const count = phraseParameters[1] ?? 0;
+            const pluralForm = new Intl.PluralRules(language, {type: 'ordinal'}).select(count);
+            if (pluralForm in calledTranslatedPhrase) {
+                return handlePluralForm(calledTranslatedPhrase, pluralForm, count) ?? '';
+            }
+            Log.alert(`Plural form ${pluralForm} is not found for ${phraseKey}, using 'other' form`);
+            return calledTranslatedPhrase.other(count);
         }
 
         // We set the translated value in the cache only for the phrases without parameters.

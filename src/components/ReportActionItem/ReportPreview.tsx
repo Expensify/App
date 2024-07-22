@@ -328,11 +328,14 @@ function ReportPreview({
             return {supportText: formattedMerchant};
         }
         return {
-            supportText: translate('iou.expenseCount', {
-                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
-                scanningReceipts: numberOfScanningReceipts,
-                pendingReceipts: numberOfPendingRequests,
-            }),
+            supportText: translate(
+                'iou.expenseCount',
+                {
+                    scanningReceipts: numberOfScanningReceipts,
+                    pendingReceipts: numberOfPendingRequests,
+                },
+                numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+            ),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 

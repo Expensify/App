@@ -213,8 +213,8 @@ function SearchListWithHeader(
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={handleOnCancelConfirmModal}
-                title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
+                title={translate('iou.deleteExpense', undefined, selectedTransactionsToDelete.length)}
+                prompt={translate('iou.deleteConfirmation', undefined, selectedTransactionsToDelete.length)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger

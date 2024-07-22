@@ -120,7 +120,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 title={translate('workspace.exportAgainModal.title')}
                 onConfirm={confirmExport}
                 onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName})}
                 confirmText={translate('workspace.exportAgainModal.confirmText')}
                 cancelText={translate('workspace.exportAgainModal.cancelText')}
                 isVisible={!!modalStatus}

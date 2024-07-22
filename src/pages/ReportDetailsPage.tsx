@@ -763,7 +763,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     shouldEnableNewFocusManagement
                 />
                 <ConfirmModal
-                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense')}
+                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', undefined, 1)}
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
@@ -779,7 +779,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
-                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
+                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', undefined, 1)}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

@@ -1,5 +1,5 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {ConnectionName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
@@ -96,7 +96,6 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 };
 
 type RequestCountParams = {
-    count: number;
     scanningReceipts: number;
     pendingReceipts: number;
 };
@@ -251,9 +250,21 @@ type PaySomeoneParams = {name?: string};
 
 type TaskCreatedActionParams = {title: string};
 
+type PluralFormPhase = {
+    zero?: string;
+    one: string;
+    two?: string;
+    few?: (count: number) => string;
+    many?: (count: number) => string;
+    other: (count: number) => string;
+};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
+type TranslationPluralPhaseValue = (arg?: any) => PluralFormPhase;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TranslationSingularFunctionValue = (arg?: any) => string;
+type TranslationBaseValue = string | TranslationPluralPhaseValue | TranslationSingularFunctionValue;
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
@@ -261,7 +272,7 @@ type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 // Flattens an object and returns concatenations of all the keys of nested objects
 type FlattenObject<TObject, TPrefix extends string = ''> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
+    [TKey in keyof TObject]: TObject[TKey] extends (arg?: any) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
         TObject[TKey] extends any[]
@@ -289,6 +300,11 @@ type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
+type PluralTranslationFlatObject = Pick<
+    TranslationFlatObject,
+    {[K in keyof TranslationFlatObject]: TranslationFlatObject[K] extends TranslationPluralPhaseValue ? K : never}[keyof TranslationFlatObject]
+>;
+
 type TermsParams = {amount: string};
 
 type ElectronicFundsParams = {percentage: string; amount: string};
@@ -297,11 +313,7 @@ type LogSizeParams = {size: number};
 
 type HeldRequestParams = {comment: string};
 
-type DistanceRateOperationsParams = {count: number};
-
 type ReimbursementRateParams = {unit: Unit};
-
-type ConfirmHoldExpenseParams = {transactionCount: number};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -344,8 +356,29 @@ type RemoveMembersWarningPrompt = {
     ownerName: string;
 };
 
-type DeleteExpenseTranslationParams = {
-    count: number;
+type LastSyncDateTranslationParams = {
+    connectionName: string;
+    formattedDate: string;
+};
+
+type CustomersOrJobsLabelTranslationParams = {
+    importFields: string[];
+    importType: string;
+};
+
+type ExportAgainModalDescriptionTranslationParams = {
+    reportName: string;
+    connectionName: ConnectionName;
+};
+
+type StatementPageTitleTranslationParams = {
+    year: string | number;
+    monthName: string;
+};
+
+type ReportIntegrationMessageTranslationParams = {
+    errorMessage: string;
+    label: string;
 };
 
 export type {
@@ -359,14 +392,12 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -423,9 +454,11 @@ export type {
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
+    PluralFormPhase,
     TranslationBase,
     TranslationFlatObject,
     TranslationPaths,
+    PluralTranslationFlatObject,
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
@@ -468,5 +501,9 @@ export type {
     StripePaidParams,
     UnapprovedParams,
     RemoveMembersWarningPrompt,
-    DeleteExpenseTranslationParams,
+    LastSyncDateTranslationParams,
+    CustomersOrJobsLabelTranslationParams,
+    ExportAgainModalDescriptionTranslationParams,
+    StatementPageTitleTranslationParams,
+    ReportIntegrationMessageTranslationParams,
 };
