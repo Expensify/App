@@ -3552,6 +3552,7 @@ export default {
     search: {
         selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
+        viewResults: 'View results',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
@@ -3569,8 +3570,8 @@ export default {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: 'Before',
-                after: 'After',
+                before: (date: string) => `Before ${date || ''}`,
+                after: (date: string) => `After ${date || ''}`,
             },
         },
     },
