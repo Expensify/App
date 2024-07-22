@@ -384,10 +384,10 @@ function isUserOnFreeTrial(): boolean {
     const currentDate = new Date();
 
     // Free Trials are stored in UTC so the below code will convert the provided UTC datetime to local time
-    const firstDayDate = new Date(`${firstDayFreeTrial}Z`);
-    const lastDayDate = new Date(`${lastDayFreeTrial}Z`);
+    const firstDayFreeTrialDate = new Date(`${firstDayFreeTrial}Z`);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
-    return isAfter(currentDate, firstDayDate) && isBefore(currentDate, lastDayDate);
+    return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
 }
 
 /**
