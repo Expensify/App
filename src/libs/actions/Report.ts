@@ -1850,7 +1850,7 @@ function clearReportFieldErrors(reportID: string, reportField: PolicyReportField
     });
 }
 
- const clearReportErrors = (reportID: string, fieldKey: string)=>{
+const clearReportErrors = (reportID: string, fieldKey: string) => {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: {
             [fieldKey]: null,
@@ -1859,7 +1859,7 @@ function clearReportFieldErrors(reportID: string, reportField: PolicyReportField
             [fieldKey]: null,
         },
     });
- }
+};
 
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);

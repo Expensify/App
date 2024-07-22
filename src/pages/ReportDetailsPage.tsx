@@ -633,12 +633,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const nameSectionTitleField = titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey] || report.pendingFields?.reportName}
-            errors={report.errorFields?.[fieldKey] || report.errorFields?.reportName}
+            pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
+            errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
             onClose={() => {
-                if(report.errorFields?.reportName){
+                if (report.errorFields?.reportName) {
                     Report.clearReportErrors(report.reportID, 'reportName');
                 }
                 Report.clearReportFieldErrors(report.reportID, titleField);
