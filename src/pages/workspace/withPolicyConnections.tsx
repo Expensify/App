@@ -30,10 +30,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             initWithStoredValues: false,
         });
         const isConnectionDataFetchNeeded =
-            !isOffline &&
-            props.policy &&
-            (props.policy.areConnectionsEnabled ? props.policy.areConnectionsEnabled : !isEmptyObject(props.policy.connections)) &&
-            !hasConnectionsDataBeenFetched;
+            !isOffline && props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
