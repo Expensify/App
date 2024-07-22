@@ -2045,7 +2045,7 @@ export default {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         travel: 'Viajes',
-        details: 'Detalles',
+        details: ({type}) => `${type} Detalles`,
         tripSupport: 'Soporte de viaje',
         confirmationNo: 'No. de confirmación',
         itineraryNo: 'Itinerario No.',

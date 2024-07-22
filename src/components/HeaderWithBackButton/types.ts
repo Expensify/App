@@ -80,6 +80,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should disable threedots button */
     shouldDisableThreeDotsButton?: boolean;
 
+    /** Whether we should use isCentralPaneSettings for headers containing an icon */
+    shouldUseCentralPaneSettings?: boolean;
+
     /** Whether we should set modal visibility when three dot menu opens */
     shouldSetModalVisibility?: boolean;
 

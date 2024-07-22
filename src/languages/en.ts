@@ -2010,7 +2010,7 @@ export default {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         travel: 'Travel',
-        details: 'Details',
+        details: ({type}) => `${type} Details`,
         tripSupport: 'Trip support',
         confirmationNo: 'Confirmation No.',
         itineraryNo: 'Itinerary No.',

@@ -47,6 +47,7 @@ function HeaderWithBackButton({
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldUseCentralPaneSettings = true,
     stepCounter,
     subtitle = '',
     title = '',
@@ -105,7 +106,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseCentralPaneSettings && isCentralPaneSettings && styles.textHeadlineH2]}
             />
         );
     }, [
@@ -114,6 +115,7 @@ function HeaderWithBackButton({
         policy,
         progressBarPercentage,
         report,
+        shouldUseCentralPaneSettings,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,

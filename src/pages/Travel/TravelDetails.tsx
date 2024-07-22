@@ -118,8 +118,9 @@ function TravelDetails({route}: TravelDetailsProps) {
             testID={TravelDetails.displayName}
         >
             <HeaderWithBackButton
-                title={`${translate(headerTranslationPath(reservation?.type))} ${translate('travel.details')}`}
+                title={translate('travel.details', {type: translate(headerTranslationPath(reservation?.type))})}
                 onBackButtonPress={() => Navigation.goBack()}
+                shouldUseCentralPaneSettings={false}
                 icon={reservationIcon}
                 iconWidth={variables.iconSizeNormal}
                 iconHeight={variables.iconSizeNormal}
