@@ -15,12 +15,34 @@ type SearchSelectedNarrowProps = {options: Array<DropdownOption<SearchHeaderOpti
 function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const selectedOptionIndexRef = useRef(-1);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const buttonRef = useRef<View>(null);
 
     const openMenu = () => setIsModalVisible(true);
     const closeMenu = () => setIsModalVisible(false);
+
+    const handleOnModalHide = () => {
+        if (selectedOptionIndexRef.current === -1) {
+            return;
+        }
+        options[selectedOptionIndexRef.current]?.onSelected?.();
+    };
+
+    const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>, index: number) => {
+        if (option?.shouldCloseModalOnSelect) {
+            selectedOptionIndexRef.current = index;
+            closeMenu();
+            return;
+        }
+        option?.onSelected?.();
+    };
+
+    const handleOnCloseMenu = () => {
+        selectedOptionIndexRef.current = -1;
+        closeMenu();
+    };
 
     return (
         <View style={[styles.pb4]}>
@@ -29,21 +51,26 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 ref={buttonRef}
                 style={[styles.w100, styles.ph5]}
                 text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
-                shouldShowRightIcon
                 isContentCentered
                 iconRight={Expensicons.DownArrow}
+                isDisabled={options.length === 0}
+                shouldShowRightIcon={options.length !== 0}
             />
 
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={closeMenu}
+                onClose={handleOnCloseMenu}
+                onModalHide={handleOnModalHide}
             >
-                {options.map((option) => (
+                {options.map((option, index) => (
                     <MenuItem
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...option}
                         title={option.text}
+                        titleStyle={option.titleStyle}
                         icon={option.icon}
-                        onPress={option.onSelected}
+                        onPress={() => handleOnMenuItemPress(option, index)}
                         key={option.value}
                     />
                 ))}

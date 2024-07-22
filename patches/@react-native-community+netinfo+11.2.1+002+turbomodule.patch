@@ -2619,6 +2619,25 @@ index 6982220..b515270 100644
 +    readonly eventEmitter: NativeEventEmitter;
  };
  export default _default;
+diff --git a/node_modules/@react-native-community/netinfo/package.json b/node_modules/@react-native-community/netinfo/package.json
+index 3c80db2..15d214d 100644
+--- a/node_modules/@react-native-community/netinfo/package.json
++++ b/node_modules/@react-native-community/netinfo/package.json
+@@ -97,6 +97,14 @@
+     "webpack-cli": "^3.3.10",
+     "webpack-dev-server": "^3.11.3"
+   },
++  "codegenConfig": {
++    "name": "RNCNetInfoSpec",
++    "type": "modules",
++    "jsSrcsDir": "src/internal",
++    "android": {
++      "javaPackageName": "com.reactnativecommunity.netinfo"
++    }
++  },
+   "repository": {
+     "type": "git",
+     "url": "https://github.com/react-native-netinfo/react-native-netinfo.git"
 diff --git a/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec b/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec
 index e34e728..9090eb1 100644
 --- a/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec

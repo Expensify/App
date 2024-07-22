@@ -54,7 +54,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
      * We propagate it from OldDot to NewDot with native method due to limitations of old app.
      */
     useEffect(() => {
-        if (completedHybridAppOnboarding === undefined) {
+        if (completedHybridAppOnboarding === undefined || !NativeModules.HybridAppModule) {
             return;
         }
 

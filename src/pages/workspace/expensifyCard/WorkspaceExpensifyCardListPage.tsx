@@ -34,6 +34,7 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test1: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith'},
+        cardID: 1,
         nameValuePairs: {
             unapprovedExpenseLimit: 1000,
             cardTitle: 'Test 1',
@@ -43,6 +44,7 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test2: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller'},
+        cardID: 2,
         nameValuePairs: {
             unapprovedExpenseLimit: 2000,
             cardTitle: 'Test 2',
@@ -52,6 +54,7 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test3: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown'},
+        cardID: 3,
         nameValuePairs: {
             unapprovedExpenseLimit: 3000,
             cardTitle: 'Test 3',
@@ -108,7 +111,7 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
             />
             <Button
                 medium
-                onPress={() => {}} // TODO: add navigation action when settings screen is implemented (https://github.com/Expensify/App/issues/44311)
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
                 style={shouldUseNarrowLayout && styles.flex1}
@@ -127,7 +130,7 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
                 style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                 accessibilityLabel="row"
                 hoverStyle={[styles.hoveredComponentBG]}
-                onPress={() => {}} // TODO: add navigation action when card details screen is implemented (https://github.com/Expensify/App/issues/44325)
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
             >
                 <WorkspaceCardListRow
                     lastFourPAN={item.lastFourPAN ?? ''}
