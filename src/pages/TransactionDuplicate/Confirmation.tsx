@@ -78,7 +78,7 @@ function Confirmation() {
                                 </Text>
                                 <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                             </View>
-                            {/* We need that provider here becuase MoneyRequestView component require that */}
+                            {/* We need that provider here becuase MoneyRequestView component requires that */}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
                                     report={report}
