@@ -11,6 +11,7 @@ import type {
     Connections,
     SageIntacctConnectionsConfig,
     SageIntacctDimension,
+    SageIntacctExportConfig,
     SageIntacctMappingName,
     SageIntacctMappingType,
     SageIntacctMappingValue,
@@ -316,7 +317,7 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
     );
 }
 
-function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
+function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -327,12 +328,12 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Con
                         config: {
                             export: {
                                 [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
                             },
                         },
                     },
@@ -349,14 +350,11 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Con
                 connections: {
                     intacct: {
                         config: {
-                            export: {
-                                [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -373,14 +371,11 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Con
                 connections: {
                     intacct: {
                         config: {
-                            export: {
-                                [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
                             },
                         },
                     },
@@ -472,7 +467,7 @@ function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], vendor: string) {
+function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof SageIntacctExportConfig, vendor: string) {
     if (settingName === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR) {
         updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID, vendor);
     } else if (settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR) {
@@ -753,15 +748,6 @@ function updateSageIntacctEntity(policyID: string, entity: string) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity));
 }
 
-function reuseSageIntacctConnection(policyID: string, targetPolicyID: string, connectionName: string) {
-    const parameters = {
-        policyID,
-        targetPolicyID,
-        connectionName,
-    };
-    API.write(WRITE_COMMANDS.COPY_EXISTING_POLICY_CONNECTION, parameters, {});
-}
-
 export {
     connectToSageIntacct,
     updateSageIntacctBillable,
@@ -783,5 +769,4 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
-    reuseSageIntacctConnection,
 };

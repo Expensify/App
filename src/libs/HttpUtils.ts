@@ -174,7 +174,7 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
-    const controller = abortControllerMap.get(command) ?? abortControllerMap.get(ABORT_COMMANDS.All);
+    const controller = abortControllerMap.get(command);
 
     controller?.abort();
 
