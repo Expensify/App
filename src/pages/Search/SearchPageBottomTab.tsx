@@ -14,7 +14,7 @@ import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopB
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchStatuses from './SearchStatusMenu';
+import SearchStatusMenu from './SearchStatusMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -57,7 +57,7 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchStatuses status={queryJSON.status} />
+                        <SearchStatusMenu status={queryJSON.status} />
                     </>
                 ) : (
                     <HeaderWithBackButton

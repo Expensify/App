@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SearchFiltersNarrow from './SearchStatusMenuNarrow';
+import SearchStatusMenuNarrow from './SearchStatusMenuNarrow';
 
 type SearchStatusMenuProps = {
     status: SearchStatus;
@@ -63,7 +63,7 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
 
     if (isSmallScreenWidth) {
         return (
-            <SearchFiltersNarrow
+            <SearchStatusMenuNarrow
                 filterItems={filterItems}
                 activeItemIndex={activeItemIndex}
             />
