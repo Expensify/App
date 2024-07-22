@@ -183,18 +183,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
         (report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE,
     ) as Report[];
 
-    const onyxOperationsToAddExpenseReportFields = policyExpenseReports.map((report) => ({
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-        onyxMethod: Onyx.METHOD.MERGE,
-        value: {
-            fieldList: {
-                [fieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-            },
-        },
-    }));
-
     const optimisticData = [
-        ...onyxOperationsToAddExpenseReportFields,
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -205,6 +194,39 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 errorFields: null,
             },
         },
+        ...policyExpenseReports.map((report) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                },
+            },
+        })),
+    ] as OnyxUpdate[];
+
+    const failureData = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: null,
+                },
+                errorFields: {
+                    [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                },
+            },
+        },
+        ...policyExpenseReports.map((report) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: null,
+                },
+            },
+        })),
     ] as OnyxUpdate[];
 
     const onyxData: OnyxData = {
@@ -221,20 +243,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 },
             },
         ],
-        failureData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: null,
-                    },
-                    errorFields: {
-                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
-                    },
-                },
-            },
-        ],
+        failureData,
     };
 
     const parameters: CreateWorkspaceReportFieldParams = {
