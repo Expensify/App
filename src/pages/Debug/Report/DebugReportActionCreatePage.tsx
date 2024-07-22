@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -19,33 +21,35 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
 type DebugReportActionCreatePageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
+
+const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+    JSON.stringify(
+        {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            reportID,
+            reportActionID: NumberUtils.rand64(),
+            created: DateUtils.getDBTime(),
+            actorAccountID: session?.accountID,
+            avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
+        },
+        null,
+        6,
+    );
 
 function DebugReportActionCreatePage({
     route: {
         params: {reportID},
     },
 }: DebugReportActionCreatePageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [draftReportAction, setDraftReportAction] = useState<string>(
-        JSON.stringify(
-            {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportID,
-                reportActionID: NumberUtils.rand64(),
-                created: DateUtils.getDBTime(),
-                actorAccountID: session?.accountID,
-                avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
-                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
-            },
-            null,
-            6,
-        ),
-    );
+    const [draftReportAction, setDraftReportAction] = useState<string>(getInitialReportAction(reportID, session, personalDetailsList));
     const [error, setError] = useState<string>();
     return (
         <ScreenWrapper
@@ -57,12 +61,12 @@ function DebugReportActionCreatePage({
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title="Debug - Create Report Action"
+                        title={`${translate('debug.debug')} - ${translate('debug.createReportAction')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView contentContainerStyle={[styles.ph5, styles.pb5, styles.gap5]}>
                         <View>
-                            <Text style={[styles.textLabelSupporting, styles.mb2]}>Edit JSON:</Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.editJson')}</Text>
                             <TextInput
                                 errorText={error}
                                 accessibilityLabel="Text input field"
@@ -74,20 +78,20 @@ function DebugReportActionCreatePage({
                                     try {
                                         const parsedReportAction = JSON.parse(updatedJSON.replaceAll('\n', '')) as ReportAction;
                                         if (!parsedReportAction.reportID) {
-                                            throw SyntaxError('Missing reportID property');
+                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'reportID'}));
                                         }
                                         if (!parsedReportAction.reportActionID) {
-                                            throw SyntaxError('Missing reportActionID property');
+                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'reportActionID'}));
                                         }
                                         if (!parsedReportAction.created) {
-                                            throw SyntaxError('Missing created property');
+                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'created'}));
                                         }
                                         if (!parsedReportAction.actionName) {
-                                            throw SyntaxError('Missing actionName property');
+                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'actionName'}));
                                         }
                                         setError('');
-                                    } catch (error) {
-                                        setError(error.message as string);
+                                    } catch (e) {
+                                        setError((e as SyntaxError).message);
                                     } finally {
                                         setDraftReportAction(updatedJSON);
                                     }
@@ -96,7 +100,7 @@ function DebugReportActionCreatePage({
                             />
                         </View>
                         <View>
-                            <Text style={[styles.textLabelSupporting, styles.mb2]}>Preview:</Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
                             {!error ? (
                                 <ReportActionItem
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
@@ -111,12 +115,12 @@ function DebugReportActionCreatePage({
                                     shouldDisplayContextMenu={false}
                                 />
                             ) : (
-                                <Text>Nothing to preview</Text>
+                                <Text>{translate('debug.nothingToPreview')}</Text>
                             )}
                         </View>
                         <Button
                             success
-                            text="Save"
+                            text={translate('common.save')}
                             isDisabled={!draftReportAction}
                             onPress={() => {
                                 if (!draftReportAction || error) {

@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,6 +27,7 @@ function DebugReportActionPage({
         params: {reportID, reportActionID},
     },
 }: DebugReportActionPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
@@ -42,7 +44,7 @@ function DebugReportActionPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title="Debug - Report Action"
+                        title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <OnyxTabNavigator
@@ -52,9 +54,9 @@ function DebugReportActionPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
-                                    data={reportAction}
+                                    data={reportAction ?? {}}
                                     onyxKey={`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`}
-                                    idSelector={(action: OnyxEntry<ReportAction>) => action?.reportActionID ?? ''}
+                                    idSelector={(data) => (data as OnyxEntry<ReportAction>)?.reportActionID ?? ''}
                                     isCollection
                                 />
                             )}

@@ -44,7 +44,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             {/* When toggled the app will be put into debug mode. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
                 <Switch
-                    accessibilityLabel="Debug mode"
+                    accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
                     isOn={!!user.isDebugModeEnabled}
                     onToggle={() => User.setIsDebugModeEnabled(!user.isDebugModeEnabled)}
                 />

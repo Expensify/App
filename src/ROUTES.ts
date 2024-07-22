@@ -1485,35 +1485,35 @@ const ROUTES = {
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
-        getRoute: (reportID: string) => `debug/report/${reportID}`,
+        getRoute: (reportID: string) => `debug/report/${reportID}` as const,
     },
     DEBUG_REPORT_TAB_DETAILS: {
         route: 'debug/report/:reportID/details',
-        getRoute: (reportID: string) => `debug/report/${reportID}/details`,
+        getRoute: (reportID: string) => `debug/report/${reportID}/details` as const,
     },
     DEBUG_REPORT_TAB_JSON: {
         route: 'debug/report/:reportID/json',
-        getRoute: (reportID: string) => `debug/report/${reportID}/json`,
+        getRoute: (reportID: string) => `debug/report/${reportID}/json` as const,
     },
     DEBUG_REPORT_TAB_ACTIONS: {
         route: 'debug/report/:reportID/actions',
-        getRoute: (reportID: string) => `debug/report/${reportID}/actions`,
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions` as const,
     },
     DEBUG_REPORT_ACTION: {
         route: 'debug/report/:reportID/actions/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}`,
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
     },
     DEBUG_REPORT_ACTION_CREATE: {
         route: 'debug/report/:reportID/actions/create',
-        getRoute: (reportID: string) => `debug/report/${reportID}/actions/create`,
+        getRoute: (reportID: string) => `debug/report/${reportID}/actions/create` as const,
     },
     DEBUG_REPORT_ACTION_TAB_DETAILS: {
         route: 'debug/report/:reportID/actions/:reportActionID/details',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/details`,
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/details` as const,
     },
     DEBUG_REPORT_ACTION_TAB_JSON: {
         route: 'debug/report/:reportID/actions/:reportActionID/json',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/json`,
+        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/json` as const,
     },
 } as const;
 

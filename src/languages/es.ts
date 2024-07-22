@@ -5315,4 +5315,18 @@ export default {
         notAllowedMessageHyperLinked: ' copiloto con acceso',
         notAllowedMessageEnd: ' limitado',
     },
+    debug: {
+        debug: 'Depuración',
+        details: 'Detalles',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Previa',
+        nothingToPreview: 'Nada que previsualizar',
+        editJson: 'Edit JSON:',
+        preview: 'Previa:',
+        missingProperty: ({propertyName}) => `Falta ${propertyName}`,
+        createReportAction: 'Crear Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+    },
 } satisfies EnglishTranslation;

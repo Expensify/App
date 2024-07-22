@@ -4799,9 +4799,17 @@ export default {
         notAllowedMessageEnd: ' copilot',
     },
     debug: {
+        debug: 'Debug',
         details: 'Details',
         JSON: 'JSON',
         reportActions: 'Actions',
         reportActionPreview: 'Preview',
+        nothingToPreview: 'Nothing to preview',
+        editJson: 'Edit JSON:',
+        preview: 'Preview:',
+        missingProperty: ({propertyName}) => `Missing ${propertyName}`,
+        createReportAction: 'Create Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
     },
 } satisfies TranslationBase;
