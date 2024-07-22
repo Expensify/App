@@ -7,11 +7,13 @@ import type {
     CreateWorkspaceReportFieldParams,
     DeletePolicyReportField,
     EnableWorkspaceReportFieldListValueParams,
+    OpenPolicyReportFieldsPageParams,
     RemoveWorkspaceReportFieldListValueParams,
     UpdateWorkspaceReportFieldInitialValueParams,
 } from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
@@ -68,6 +70,19 @@ Onyx.connect({
         allPolicies[key] = value;
     },
 });
+
+function openPolicyReportFieldsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyReportFieldsPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyReportFieldsPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params);
+}
 
 /**
  * Sets the initial form values for the workspace report fields form.
@@ -540,6 +555,7 @@ export {
     deleteReportFields,
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
+    openPolicyReportFieldsPage,
     addReportFieldListValue,
     removeReportFieldListValue,
 };
