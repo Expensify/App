@@ -143,7 +143,7 @@ function BaseOnboardingPersonalDetails({
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                     footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
