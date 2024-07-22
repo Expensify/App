@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentXeroOrganizationName, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -55,7 +55,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 subscribedSettings: [CONST.XERO_CONFIG.IMPORT_TAX_RATES],
             },
         ],
-        [translate, errorFields, pendingFields, policy, importTrackingCategories, importCustomers, importTaxRates, policyID],
+        [translate, policy, importTrackingCategories, importCustomers, importTaxRates, policyID],
     );
 
     return (

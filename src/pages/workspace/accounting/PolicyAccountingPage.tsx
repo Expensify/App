@@ -3,7 +3,6 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Except, LiteralUnion, ValueOf} from 'type-fest';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
