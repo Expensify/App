@@ -1875,12 +1875,14 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         return '';
     }
 
+    const login = personalDetails.login ?? '';
+
     // Check if the phone number is already cached
-    let formattedLogin = phoneNumberCache[personalDetails.login ?? ''];
+    let formattedLogin = phoneNumberCache[login];
     if (!formattedLogin) {
-        formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login ?? '');
+        formattedLogin = LocalePhoneNumber.formatPhoneNumber(login);
         // Store the formatted phone number in the cache
-        phoneNumberCache[personalDetails.login ?? ''] = formattedLogin;
+        phoneNumberCache[login] = formattedLogin;
     }
 
     // This is to check if account is an invite/optimistically created one
