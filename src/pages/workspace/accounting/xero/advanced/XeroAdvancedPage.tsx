@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
+import {getCurrentXeroOrganizationName, xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -63,7 +63,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         enabled: !autoSync?.enabled,
                     })
                 }
-                pendingAction={pendingFields?.enabled}
+                pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLED)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLED)}
             />
@@ -80,13 +80,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         syncReimbursedReports: !sync?.syncReimbursedReports,
                     })
                 }
-                pendingAction={pendingFields?.syncReimbursedReports}
+                pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
             />
             {sync?.syncReimbursedReports && (
                 <>
-                    <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
+                    <OfflineWithFeedback pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             title={String(selectedBillPaymentAccountName)}
@@ -99,7 +99,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             }
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={pendingFields?.invoiceCollectionsAccountID}>
+                    <OfflineWithFeedback pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], pendingFields)}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             title={String(selectedBankAccountName)}

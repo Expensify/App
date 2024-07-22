@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -524,7 +523,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
 
 function areXeroSettingsInErrorFields(
     settings: Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>,
-    errorFields?: ErrorFields,
+    errorFields?: OnyxCommon.ErrorFields,
 ) {
     if (errorFields === undefined) {
         return false;
@@ -536,8 +535,8 @@ function areXeroSettingsInErrorFields(
 
 function xeroSettingsPendingAction(
     settings: Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>,
-    pendingFields?: Record<string, OnyxCommon.PendingAction>,
-): OnyxCommon.PendingAction {
+    pendingFields?: OnyxCommon.PendingFields<string>,
+): OnyxCommon.PendingAction | undefined {
     if (pendingFields === undefined) {
         return null;
     }
