@@ -84,11 +84,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const styles = useThemeStyles();
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -132,6 +133,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
@@ -216,13 +218,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const leaveChat = useCallback(() => {
         Navigation.dismissModal();
-        if (isChatRoom) {
-            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        if (isRootGroupChat) {
+            Report.leaveGroupChat(report.reportID);
             return;
         }
-        Report.leaveGroupChat(report.reportID);
-    }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+        const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+        Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
         if (PolicyUtils.hasAccountingConnections(policy)) {
@@ -233,8 +235,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         IOU.unapproveExpenseReport(moneyRequestReport);
     }, [moneyRequestReport, policy]);
 
-    const shouldShowLeaveButton =
-        !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
+    const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
 
@@ -381,7 +382,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 icon: Expensicons.Exit,
                 isAnonymousAction: true,
                 action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isGroupChat) {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
@@ -417,6 +418,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
+        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -486,7 +488,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    shouldDisableViewPhoto
                     onImageRemoved={() => {
                         // Calling this without a file will remove the avatar
                         Report.updateGroupChatAvatar(report.reportID ?? '');
@@ -500,6 +501,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '-1')}
                     shouldUseStyleUtilityForAnchorPosition
                     style={[styles.w100, styles.mb3]}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 />
             );
         }
@@ -774,7 +776,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         if (!navigateBackToAfterDelete.current) {
                             Navigation.dismissModal();
                         } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
