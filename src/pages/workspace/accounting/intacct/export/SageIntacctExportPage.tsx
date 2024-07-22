@@ -16,6 +16,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
 
+    const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const sections = useMemo(
@@ -24,15 +25,15 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.preferredExporter'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID)),
                 title: exportConfig?.exporter ?? translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!exportConfig?.errorFields?.exporter,
-                pendingAction: exportConfig?.pendingFields?.exporter,
+                hasError: !!config?.errorFields?.exporter,
+                pendingAction: config?.pendingFields?.exporter,
             },
             {
                 description: translate('workspace.sageIntacct.exportDate.label'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID)),
                 title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : translate(`workspace.sageIntacct.notConfigured`),
-                hasError: !!exportConfig?.errorFields?.exportDate,
-                pendingAction: exportConfig?.pendingFields?.exportDate,
+                hasError: !!config?.errorFields?.exportDate,
+                pendingAction: config?.pendingFields?.exportDate,
             },
             {
                 description: translate('workspace.sageIntacct.reimbursableExpenses.label'),
@@ -40,8 +41,8 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 title: exportConfig?.reimbursable
                     ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!exportConfig?.errorFields?.reimbursable,
-                pendingAction: exportConfig?.pendingFields?.reimbursable,
+                hasError: !!config?.errorFields?.reimbursable || !!config?.errorFields?.reimbursableExpenseReportDefaultVendor,
+                pendingAction: config?.pendingFields?.reimbursable ?? config?.pendingFields?.reimbursableExpenseReportDefaultVendor,
             },
             {
                 description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
@@ -49,11 +50,21 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 title: exportConfig?.nonReimbursable
                     ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!exportConfig?.errorFields?.nonReimbursable,
-                pendingAction: exportConfig?.pendingFields?.nonReimbursable,
+                hasError:
+                    !!config?.errorFields?.nonReimbursable ??
+                    !!config?.errorFields?.nonReimbursableAccount ??
+                    config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? !!config?.errorFields?.nonReimbursableVendor
+                        : !!config?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+                pendingAction:
+                    config?.pendingFields?.nonReimbursable ??
+                    config?.errorFields?.nonReimbursableAccount ??
+                    config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? config?.pendingFields?.nonReimbursableVendor
+                        : config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
             },
         ],
-        [exportConfig, policyID, translate],
+        [config, exportConfig, policyID, translate],
     );
 
     return (
