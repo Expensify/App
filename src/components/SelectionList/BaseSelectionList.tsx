@@ -40,7 +40,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseUserSkeletonView,
         canSelectMultiple = false,
         onSelectRow,
-        shouldDebounceRowSelect = false,
+        shouldSingleExecuteRowSelect = false,
         onCheckboxPress,
         onSelectAll,
         onDismissError,
@@ -282,9 +282,6 @@ function BaseSelectionList<TItem extends ListItem>(
         onChangeText?.('');
     }, [onChangeText]);
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    // const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
-
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
@@ -444,7 +441,13 @@ function BaseSelectionList<TItem extends ListItem>(
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
                     isMobileSelectionModeActive={isMobileSelectionModeActive}
-                    onSelectRow={singleExecution(() => selectRow(item))}
+                    onSelectRow={() => {
+                        if (shouldSingleExecuteRowSelect) {
+                            singleExecution(() => selectRow(item));
+                        } else {
+                            selectRow(item);
+                        }
+                    }}
                     onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}

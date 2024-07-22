@@ -48,7 +48,7 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
             textInputValue={searchValue}
             onChangeText={setSearchValue}
             onSelectRow={onSelect}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             headerMessage={headerMessage}
             initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
             showScrollIndicator

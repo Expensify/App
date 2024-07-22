@@ -777,15 +777,12 @@ function setAssigneeValue(
     if (!isCurrentUser) {
         // Check for the chatReport by participants IDs
         if (!report) {
-            // here
             report = ReportUtils.getChatByParticipants([assigneeAccountID, currentUserAccountID]);
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
             report = setNewOptimisticAssignee(assigneeEmail, assigneeAccountID).assigneeReport;
         }
-
-        // here
 
         // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
         // Therefore, we should add these optimistic fields here to prevent incorrect merging, which could lead to the creation of duplicate actions for an existing report

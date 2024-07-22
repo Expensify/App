@@ -214,7 +214,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
             ListItem={ListItem}
             onSelectRow={openReport}
             getItemHeight={getItemHeightMemoized}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
