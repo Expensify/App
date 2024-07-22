@@ -1,3 +1,8 @@
+---
+title: Manage duplicate expenses
+description: Identify and manage duplicate expense requests
+---
+
 <div id="new-expensify" markdown="1">
 
 Duplicate Detection helps prevent duplicate expense requests by flagging expense requests that have the same date and amount as another request in the same member's account. 
