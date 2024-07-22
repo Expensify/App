@@ -276,10 +276,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     };
 
     useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
-
-    useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
         if (!network.isOffline) {
             updateShouldShowLoadingSpinner();

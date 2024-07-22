@@ -9,7 +9,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,8 +31,6 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
-
-    useDisableModalDismissOnEscape();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {

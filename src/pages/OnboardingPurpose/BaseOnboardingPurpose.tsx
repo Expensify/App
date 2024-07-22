@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -13,7 +13,6 @@ import MenuItemList from '@components/MenuItemList';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,7 +28,8 @@ import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {BaseOnboardingPurposeProps} from './types';
 
 const menuIcons = {
     [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
@@ -39,7 +39,7 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
@@ -48,8 +48,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
-
-    useDisableModalDismissOnEscape();
+    const [onboardingPurposeSelected, onboardingPurposeSelectedResult] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
     const PurposeFooterInstance = <OfflineIndicator />;
 
@@ -86,8 +86,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
-    const [errorMessage, setErrorMessage] = useState<string>('');
-
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
         const isSelected = selectedPurpose === choice;
@@ -106,7 +104,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
-                setErrorMessage('');
+                Welcome.setOnboardingErrorMessage('');
             },
         };
     });
@@ -114,15 +112,18 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const handleOuterClick = useCallback(() => {
         if (!selectedPurpose) {
-            setErrorMessage(translate('onboarding.purpose.errorSelection'));
+            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
         } else {
-            setErrorMessage(translate('onboarding.purpose.errorContinue'));
+            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorContinue'));
         }
-    }, [selectedPurpose, setErrorMessage, translate]);
+    }, [selectedPurpose, translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
+    if (isLoadingOnyxValue(onboardingPurposeSelectedResult, onboardingErrorMessageResult)) {
+        return null;
+    }
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -151,14 +152,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
-                                setErrorMessage(translate('onboarding.purpose.errorSelection'));
+                                Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
                                 return;
                             }
-                            setErrorMessage('');
+                            Welcome.setOnboardingErrorMessage('');
                             saveAndNavigate();
                         }}
-                        message={errorMessage}
-                        isAlertVisible={!!errorMessage}
+                        message={onboardingErrorMessage}
+                        isAlertVisible={!!onboardingErrorMessage}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>
@@ -169,10 +170,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
-export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
-    onboardingPurposeSelected: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-})(BaseOnboardingPurpose);
+export default BaseOnboardingPurpose;
 
 export type {BaseOnboardingPurposeProps};

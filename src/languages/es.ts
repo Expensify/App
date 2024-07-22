@@ -156,7 +156,7 @@ export default {
         magicCode: 'Código mágico',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
-        inbox: 'Bandeja de entrada',
+        inbox: 'Recibidos',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
@@ -1079,6 +1079,12 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
+        disable: 'Deshabilitar',
+        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
+        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
+        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
     recoveryCodeForm: {
         error: {
@@ -1487,6 +1493,7 @@ export default {
             title: '¿Qué quieres hacer hoy?',
             errorSelection: 'Por favor selecciona una opción para continuar.',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -2092,6 +2099,14 @@ export default {
             lineItemLevel: 'Nivel de partida',
             reportLevel: 'Nivel de informe',
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
+            shareNote: {
+                header: 'Comparte fácilmente tu espacio de trabajo con otros miembros.',
+                content: {
+                    firstPart:
+                        'Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala',
+                    secondPart: 'para tu revisión.',
+                },
+            },
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
@@ -2701,16 +2716,35 @@ export default {
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
             cashBack: 'Reembolso',
             cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
-            issueNewCard: '',
+            issueNewCard: 'Emitir nueva tarjeta',
             finishSetup: 'Terminar configuración',
             chooseBankAccount: 'Elegir cuenta bancaria',
             chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
             accountEndingIn: 'Cuenta terminada en',
             addNewBankAccount: 'Añadir nueva cuenta bancaria',
+            settlementAccount: 'Cuenta de liquidación',
+            settlementAccountDescription: 'Elige una cuenta para pagar el saldo de tu Tarjeta Expensify.',
+            settlementAccountInfoPt1: 'Asegúrate de que esta cuenta coincide con tu',
+            settlementAccountInfoPt2: 'para que Reconciliación Continua funcione correctamente.',
+            reconciliationAccount: 'Cuenta de conciliación',
+            settlementFrequency: 'Frecuencia de liquidación',
+            settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
+            settlementFrequencyInfo:
+                'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días.',
+            frequency: {
+                daily: 'Cada día',
+                monthly: 'Mensual',
+            },
             cardDetails: 'Datos de la tarjeta',
             virtual: 'Virtual',
             physical: 'Física',
             deactivate: 'Desactivar tarjeta',
+            changeCardLimit: 'Modificar el límite de la tarjeta',
+            changeLimit: 'Modificar límite',
+            smartLimitWarning: (limit: string) =>
+                `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta que apruebes antiguos gastos de la tarjeta.`,
+            monthlyLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta el próximo mes.`,
+            fixedLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, se rechazarán las nuevas transacciones.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -3151,6 +3185,10 @@ export default {
             reimbursedReports: 'Sincronizar informes reembolsados',
             cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',
+            continuousReconciliation: 'Conciliación continua',
+            saveHoursOnReconciliation:
+                'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
+            enableContinuousReconciliation: 'Para activar la Conciliación Continua, activa la ',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 accountMatches: 'Asegúrate de que esta cuenta coincide con ',
@@ -3198,6 +3236,11 @@ export default {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
+            },
+            deactivateCardModal: {
+                deactivate: 'Desactivar',
+                deactivateCard: 'Desactivar tarjeta',
+                deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
             },
         },
         reimburse: {
@@ -4476,6 +4519,8 @@ export default {
         categoryToKeep: 'Elige qué categoría quieres conservar',
         isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
+        confirmDetails: 'Confirma los detalles que conservas',
+        confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Bloqueado',
     },
     violationDismissal: {

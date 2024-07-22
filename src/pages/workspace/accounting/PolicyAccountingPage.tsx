@@ -204,7 +204,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [getDatetimeToRelative, successfulDate]);
 
     const integrationSpecificMenuItems = useMemo(() => {
-        const sageIntacctEntityListLength = policy?.connections?.intacct?.data?.entities?.length;
+        const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -244,23 +244,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     },
                 };
             case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                return {
-                    description: translate('workspace.intacct.entity'),
-                    iconRight: Expensicons.ArrowRight,
-                    title: getCurrentSageIntacctEntityName(policy),
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    titleStyle: styles.fontWeightNormal,
-                    shouldShowRightIcon: !!sageIntacctEntityListLength,
-                    shouldShowDescriptionOnTop: true,
-                    pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
-                    brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    onPress: () => {
-                        if (!sageIntacctEntityListLength) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
-                    },
-                };
+                return !sageIntacctEntityList.length
+                    ? {}
+                    : {
+                          description: translate('workspace.intacct.entity'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: getCurrentSageIntacctEntityName(policy),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: true,
+                          shouldShowDescriptionOnTop: true,
+                          pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
+                          brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: () => {
+                              if (!sageIntacctEntityList.length) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
+                          },
+                      };
             default:
                 return undefined;
         }
