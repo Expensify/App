@@ -325,7 +325,7 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={getPendingFieldAction('waypoints') ? translate('iou.fieldPending') : distanceToDisplay}
-                    interactive={canEditDistance}
+                    interactive={canEditDistance && !readonly}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
                     onPress={() =>
@@ -352,7 +352,7 @@ function MoneyRequestView({
             <MenuItemWithTopDescription
                 description={translate('common.distance')}
                 title={transactionMerchant}
-                interactive={canEditDistance}
+                interactive={canEditDistance && !readonly}
                 shouldShowRightIcon={canEditDistance}
                 titleStyle={styles.flex1}
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))}
