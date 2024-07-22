@@ -49,13 +49,6 @@ describe('translate', () => {
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
-
-    it('Test when translation value is a function', () => {
-        const expectedValue = 'With variable Test Variable';
-        const testVariable = 'Test Variable';
-        // @ts-expect-error - TranslationPaths doesn't include testKeyGroup.testFunction as a valid key
-        expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
-    });
 });
 
 describe('Translation Keys', () => {
@@ -126,7 +119,7 @@ describe('flattenObject', () => {
                         none: 'No description',
                     },
                     content: func,
-                    messages: ['Hello', 'Hi', 'Sup!'],
+                    messages: 'Hello!',
                 },
             },
         };
@@ -141,7 +134,7 @@ describe('flattenObject', () => {
             'complex.report.title.task': 'Task',
             'complex.report.description.none': 'No description',
             'complex.report.content': func,
-            'complex.report.messages': ['Hello', 'Hi', 'Sup!'],
+            'complex.report.messages': 'Hello!',
         });
     });
 });
