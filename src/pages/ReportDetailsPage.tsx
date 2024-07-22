@@ -392,7 +392,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
@@ -432,6 +432,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         policy,
         connectedIntegration,
         isPolicyAdmin,
+        isSingleTransactionView,
         canModifyTask,
         shouldShowMenuItem,
         isTaskReport,
