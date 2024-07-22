@@ -80,9 +80,10 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         <>
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
-                {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && policy?.areReportFieldsEnabled && (
+                {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                     <>
                         {ReportUtils.isPaidGroupPolicyExpenseReport(report) &&
+                            policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
