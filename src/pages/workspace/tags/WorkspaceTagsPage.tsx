@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,9 +15,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -341,9 +342,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     />
                 )}
                 {!hasVisibleTag && !isLoading && (
-                    <WorkspaceEmptyStateSection
+                    <EmptyStateComponent
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={Illustrations.EmptyState}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                         title={translate('workspace.tags.emptyTags.title')}
-                        icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}

@@ -1,11 +1,20 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Localize from './Localize';
+import Navigation from './Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
+
+/**
+ * Check if the active route belongs to task edit flow.
+ */
+function isActiveTaskEditRoute(reportID: string): boolean {
+    return [ROUTES.TASK_TITLE, ROUTES.TASK_ASSIGNEE, ROUTES.REPORT_DESCRIPTION].map((route) => route.getRoute(reportID)).some(Navigation.isActiveRoute);
+}
 
 /**
  * Given the Task reportAction name, return the appropriate message to be displayed and copied to clipboard.
@@ -42,4 +51,4 @@ function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
     return taskTitle ? Localize.translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 
-export {getTaskReportActionMessage, getTaskTitle, getTaskCreatedMessage};
+export {isActiveTaskEditRoute, getTaskReportActionMessage, getTaskTitle, getTaskCreatedMessage};

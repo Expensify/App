@@ -85,7 +85,7 @@ function NetSuiteImportMappingPage({
                 updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
             }
 
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
         },
         [importField, importValue, policyID],
     );
