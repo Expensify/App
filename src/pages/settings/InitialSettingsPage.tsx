@@ -1,24 +1,24 @@
-import { useRoute } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type { GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle } from 'react-native';
-import { NativeModules, View } from 'react-native';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
-import { useOnyx, withOnyx } from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import {NativeModules, View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import { PressableWithFeedback } from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import type { WithCurrentUserPersonalDetailsProps } from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -31,7 +31,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
-import { hasGlobalWorkspaceSettingsRBR } from '@libs/WorkspacesSettingsUtils';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
@@ -40,15 +40,14 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Icon as TIcon } from '@src/types/onyx/OnyxCommon';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-
 
 type InitialSettingsPageOnyxProps = {
     /** The user's session */
@@ -253,11 +252,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 translationKey: 'sidebarScreen.saveTheWorld',
                 icon: Expensicons.Heart,
                 routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
-            },
-            {
-                translationKey: 'search.filtersHeader',
-                icon: Expensicons.Heart,
-                routeName: ROUTES.SEARCH_ADVANCED_FILTERS,
             },
         ];
         const signOutItem: MenuData = {
