@@ -222,19 +222,22 @@ function ReportActionsList({
      */
     const shouldDisplayNewMarker = useCallback(
         (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
+            // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
+            const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
+            if (isFromCurrentUser) {
+                return false;
+            }
+
+            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
+            if (!isWithinVisibleThreshold) {
+                return false;
+            }
+
             const nextMessage = sortedVisibleReportActions[index + 1];
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
-            let shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
 
-            if (shouldDisplay) {
-                const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
-                shouldDisplay =
-                    (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== accountID && isWithinVisibleThreshold;
-            }
-
-            return shouldDisplay;
+            return isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
         },
         [sortedVisibleReportActions, unreadMarkerTime, accountID],
     );
