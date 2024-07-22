@@ -270,10 +270,7 @@ function addSubscriptionPaymentCard(cardData: {
             successData,
             failureData,
         });
-        Navigation.goBack();
     }
-
-    Navigation.goBack();
 }
 
 /**
