@@ -3659,6 +3659,23 @@ function addDomainToShortMention(mention: string): string | undefined {
 }
 
 /**
+ * Replaces all valid short mention found in a text to a full mention
+ *
+ * Example:
+ * "Hello \@example -> Hello \@example\@expensify.com"
+ */
+function completeShortMention(text: string): string {
+    return text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        if (!Str.isValidMention(match)) {
+            return match;
+        }
+        const mention = match.substring(1);
+        const mentionWithDomain = addDomainToShortMention(mention);
+        return mentionWithDomain ? `@${mentionWithDomain}` : match;
+    });
+}
+
+/**
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
@@ -3669,14 +3686,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         isGroupPolicyReport = isReportInGroupPolicy(currentReport);
     }
 
-    const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
-        if (!Str.isValidMention(match)) {
-            return match;
-        }
-        const mention = match.substring(1);
-        const mentionWithDomain = addDomainToShortMention(mention);
-        return mentionWithDomain ? `@${mentionWithDomain}` : match;
-    });
+    const textWithMention = completeShortMention(text);
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
         ? Parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']})
@@ -5571,16 +5581,13 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
 
-        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (
-            participantAccountIDs.length === 0 ||
-            isChatThread(report) ||
-            isTaskReport(report) ||
-            isMoneyRequestReport(report) ||
-            isChatRoom(report) ||
-            isPolicyExpenseChat(report) ||
-            (isGroupChat(report) && !shouldIncludeGroupChats)
-        ) {
+        // Skip if it's not a 1:1 chat
+        if (!shouldIncludeGroupChats && !isOneOnOneChat(report)) {
+            return false;
+        }
+
+        // If we are looking for a group chat, then skip non-group chat report
+        if (shouldIncludeGroupChats && !isGroupChat(report)) {
             return false;
         }
 
@@ -7146,6 +7153,7 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
 
 export {
     addDomainToShortMention,
+    completeShortMention,
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
