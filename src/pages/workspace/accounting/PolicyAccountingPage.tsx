@@ -68,6 +68,7 @@ type AccountingIntegration = {
     importPendingAction?: OfflineWithFeedbackProps['pendingAction'];
     onExportPagePress: () => void;
     hasExportError?: boolean;
+    exportPendingAction?: OfflineWithFeedbackProps['pendingAction'];
     onAdvancedPagePress: () => void;
     hasAdvancedError?: boolean;
     advancedPendingAction?: OfflineWithFeedbackProps['pendingAction'];
@@ -134,6 +135,10 @@ function accountingIntegrationData(
                 hasExportError: PolicyUtils.areXeroSettingsInErrorFields(
                     [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
                     policy?.connections?.xero?.config?.errorFields,
+                ),
+                exportPendingAction: PolicyUtils.xeroSettingsPendingAction(
+                    [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
+                    policy?.connections?.xero?.config?.pendingFields,
                 ),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
@@ -386,6 +391,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
                           brickRoadIndicator: integrationData?.hasExportError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          pendingAction: integrationData?.exportPendingAction,
                       },
                       {
                           icon: Expensicons.ExpensifyCard,

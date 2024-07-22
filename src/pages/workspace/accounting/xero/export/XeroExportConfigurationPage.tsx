@@ -34,9 +34,8 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
             },
-            hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.EXPORTER], errorFields),
             title: exportConfiguration?.exporter ?? policyOwner,
-            pendingAction: pendingFields?.exporter,
+            subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.xero.exportExpenses'),
@@ -48,16 +47,14 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.xero.purchaseBillDate'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID)),
-            hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.BILL_DATE], errorFields),
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
-            pendingAction: pendingFields?.billDate,
+            subscribedSettings: [CONST.XERO_CONFIG.BILL_DATE],
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
-            hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.BILL_STATUS], errorFields),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
-            pendingAction: pendingFields?.billStatus,
+            subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
         {
             description: translate('workspace.xero.exportInvoices'),
@@ -76,9 +73,8 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.xero.xeroBankAccount'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID)),
-            hasError: PolicyUtils.areXeroSettingsInErrorFields([CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT], errorFields),
             title: selectedBankAccountName,
-            pendingAction: pendingFields?.nonReimbursableAccount,
+            subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },
     ];
 
@@ -98,7 +94,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
                     key={menuItem.description}
-                    pendingAction={menuItem.pendingAction}
+                    pendingAction={PolicyUtils.xeroSettingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={menuItem.title}
@@ -106,7 +102,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={menuItem?.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={PolicyUtils.areXeroSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         helperText={menuItem?.helperText}
                     />
                 </OfflineWithFeedback>

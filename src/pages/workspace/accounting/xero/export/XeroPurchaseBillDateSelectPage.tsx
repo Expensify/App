@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -67,7 +68,7 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-            pendingAction={config?.pendingFields?.billDate}
+            pendingAction={PolicyUtils.xeroSettingsPendingAction([CONST.XERO_CONFIG.BILL_DATE], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.BILL_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.BILL_DATE)}

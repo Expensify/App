@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -97,7 +98,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-            pendingAction={config?.pendingFields?.exporter}
+            pendingAction={PolicyUtils.xeroSettingsPendingAction([CONST.XERO_CONFIG.EXPORTER], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.EXPORTER)}
