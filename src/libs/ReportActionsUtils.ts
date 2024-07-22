@@ -1,7 +1,7 @@
 import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -10,8 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
@@ -104,6 +104,8 @@ const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
  */
 const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
+const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
+
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
@@ -160,7 +162,7 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
 }
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
+    return isActionOfType(reportAction, ...POLICY_CHANGE_LOG_ARRAY);
 }
 
 function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
@@ -715,10 +717,12 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInputValue<ReportAction> = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!_.isEmpty(actionsToMerge)) {
-        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true));
+        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
+            ReportAction | null | undefined
+        >;
     } else {
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
@@ -732,7 +736,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
 
 function getLastVisibleMessage(
     reportID: string,
-    actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInputValue<ReportAction> = {},
+    actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
 ): LastVisibleMessage {
     const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
@@ -752,7 +756,7 @@ function getLastVisibleMessage(
         };
     }
 
-    let messageText = getTextFromHtml(message?.html) ?? '';
+    let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
     if (messageText) {
         messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
@@ -1534,92 +1538,92 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 }
 
 export {
+    doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
+    getActionableMentionWhisperMessage,
+    getAllReportActions,
+    getCombinedReportActions,
     getDismissedViolationMessageText,
-    getOneTransactionThreadReportID,
+    getFilteredForOneTransactionView,
+    getFirstVisibleReportActionID,
+    getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getMemberChangeMessageFragment,
+    getMemberChangeMessagePlainText,
+    getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
     getParentReportAction,
     getReportAction,
+    getReportActionHtml,
+    getReportActionMessage,
     getReportActionMessageText,
-    getWhisperedTo,
-    isApprovedOrSubmittedReportAction,
+    getReportActionText,
     getReportPreviewAction,
     getSortedReportActions,
-    getCombinedReportActions,
     getSortedReportActionsForDisplay,
+    getTextFromHtml,
+    getTrackExpenseActionableWhisper,
+    getWhisperedTo,
+    hasRequestFromCurrentAccount,
+    isActionOfType,
+    isActionableJoinRequest,
+    isActionableJoinRequestPending,
+    isActionableMentionWhisper,
+    isActionableReportMentionWhisper,
+    isActionableTrackExpense,
+    isAddCommentAction,
+    isApprovedOrSubmittedReportAction,
+    isChronosOOOListAction,
+    isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isCreatedTaskReportAction,
+    isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isLinkedTransactionHeld,
+    isMemberChangeAction,
     isExportIntegrationAction,
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
+    isOldDotReportAction,
+    isPayAction,
     isPendingRemove,
-    isReversedTransaction,
+    isPolicyChangeLogAction,
+    isReimbursementDeQueuedAction,
+    isReimbursementQueuedAction,
+    isRenamedAction,
     isReportActionAttachment,
     isReportActionDeprecated,
     isReportPreviewAction,
+    isResolvedActionTrackExpense,
+    isReversedTransaction,
+    isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
-    isTrackExpenseAction,
-    isPayAction,
     isTaskAction,
-    doesReportHaveVisibleActions,
     isThreadParentMessage,
+    isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isWhisperAction,
     isWhisperActionTargetedToOthers,
-    isReimbursementQueuedAction,
-    shouldReportActionBeVisible,
     shouldHideNewMarker,
+    shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
-    hasRequestFromCurrentAccount,
-    getFirstVisibleReportActionID,
-    isMemberChangeAction,
-    getMemberChangeMessageFragment,
-    isOldDotReportAction,
-    getTrackExpenseActionableWhisper,
-    getMessageOfOldDotReportAction,
-    getMemberChangeMessagePlainText,
-    isReimbursementDeQueuedAction,
-    isActionableMentionWhisper,
-    isActionableReportMentionWhisper,
-    getActionableMentionWhisperMessage,
-    isCurrentActionUnread,
-    isActionableJoinRequest,
-    isActionableJoinRequestPending,
-    getReportActionText,
-    getReportActionHtml,
-    getReportActionMessage,
-    getOriginalMessage,
-    isActionOfType,
-    isActionableTrackExpense,
-    getAllReportActions,
-    isLinkedTransactionHeld,
     wasActionTakenByCurrentUser,
-    isResolvedActionTrackExpense,
-    isClosedAction,
-    isRenamedAction,
-    isRoomChangeLogAction,
     isInviteOrRemovedAction,
-    isChronosOOOListAction,
-    isAddCommentAction,
-    isPolicyChangeLogAction,
-    getTextFromHtml,
-    isTripPreview,
-    getIOUActionForReportID,
-    getFilteredForOneTransactionView,
     isActionableAddPaymentCard,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
