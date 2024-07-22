@@ -345,7 +345,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     </View>
                 ),
             },
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError ? [] : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
