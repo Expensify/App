@@ -100,6 +100,9 @@ type ListItem = {
     /** User login */
     login?: string | null;
 
+    /** Element to show on the left side of the item */
+    leftElement?: ReactNode;
+
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
 

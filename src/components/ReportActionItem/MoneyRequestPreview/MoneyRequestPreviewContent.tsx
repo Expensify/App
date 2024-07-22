@@ -194,7 +194,9 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
+            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations)?.sort((a) =>
+                a.type === CONST.VIOLATION_TYPES.VIOLATION ? -1 : 0,
+            );
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const violationsCount = violations.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length;
@@ -294,7 +296,7 @@ function MoneyRequestPreviewContent({
         } else if ('reimbursable' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID));
         } else {
-            // Navigation to confirm screen will be done in seperate PR
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID));
         }
     };
 
