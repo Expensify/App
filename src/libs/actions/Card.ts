@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
@@ -204,6 +205,102 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
     });
 }
 
+function updateSettlementFrequency(policyID: string, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
+    // TODO: remove this code when the API is ready
+    if (frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+            monthlySettlementDate: null,
+        });
+    } else {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+            monthlySettlementDate: new Date(),
+        });
+    }
+
+    // TODO: uncomment this code when the API is ready
+    // const optimisticData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         value: {
+    //             monthlySettlementDate: '',
+    //         },
+    //     },
+    // ];
+    //
+    // const successData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         value: {
+    //             monthlySettlementDate: '',
+    //         },
+    //     },
+    // ];
+    //
+    // const failureData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         value: {
+    //             monthlySettlementDate: null,
+    //         },
+    //     },
+    // ];
+    //
+    // const parameters = {
+    //     workspaceAccountID: policyID,
+    //     settlementFrequency: frequency,
+    // };
+    //
+    // API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
+}
+
+function updateSettlementAccount(policyID: string, accountID: number) {
+    // TODO: remove this code when the API is ready
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+        paymentBankAccountID: accountID,
+    });
+
+    // TODO: uncomment this code when the API is ready
+    // const optimisticData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         value: {
+    //             paymentBankAccountID: accountID,
+    //         },
+    //     },
+    // ];
+    //
+    // const successData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         value: {
+    //             paymentBankAccountID: accountID,
+    //         },
+    //     },
+    // ];
+    //
+    // const failureData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         value: {
+    //             paymentBankAccountID: null,
+    //         },
+    //     },
+    // ];
+    //
+    // const parameters = {
+    //     workspaceAccountID: policyID,
+    //     settlementBankAccountID: accountID,
+    // };
+    //
+    // API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
+}
+
 function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
     Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
 }
@@ -289,6 +386,8 @@ export {
     clearCardListErrors,
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
+    updateSettlementFrequency,
+    updateSettlementAccount,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,

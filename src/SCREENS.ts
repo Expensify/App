@@ -199,6 +199,7 @@ const SCREENS = {
         TAX_CODE: 'Transaction_Duplicate_Tax_Code',
         REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
         BILLABLE: 'Transaction_Duplicate_Billable',
+        CONFIRMATION: 'Transaction_Duplicate_Confirmation',
     },
 
     IOU_SEND: {
@@ -354,6 +355,9 @@ const SCREENS = {
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
+        EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
+        EXPENSIFY_CARD_SETTINGS_ACCOUNT: 'Workspace_ExpensifyCard_Settings_Account',
+        EXPENSIFY_CARD_SETTINGS_FREQUENCY: 'Workspace_ExpensifyCard_Settings_Frequency',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',

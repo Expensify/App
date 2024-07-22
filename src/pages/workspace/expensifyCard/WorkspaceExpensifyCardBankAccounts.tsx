@@ -10,6 +10,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as Card from '@userActions/Card';
@@ -44,7 +46,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         }
 
         // const eligibleBankAccounts = Object.values(bankAccountsList).filter((bankAccount) => bankAccount.accountData.allowDebit || bankAccount.accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
-        const eligibleBankAccounts = Object.values(bankAccountsList);
+        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
@@ -57,7 +59,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return (
                 <MenuItem
                     title={bankName}
-                    description={`${translate('workspace.expensifyCard.accountEndingIn')} ${bankAccountNumber.slice(-4)}`}
+                    description={`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}
                     onPress={() => handleSelectBankAccount(bankAccountID)}
                     icon={icon}
                     iconHeight={iconSize}
