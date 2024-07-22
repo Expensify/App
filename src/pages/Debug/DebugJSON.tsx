@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 type DebugJSONProps = {
     data: Record<string, unknown>;
 };
+
 function DebugJSON({data}: DebugJSONProps) {
     const styles = useThemeStyles();
     return (

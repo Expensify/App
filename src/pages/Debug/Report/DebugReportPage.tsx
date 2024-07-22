@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,6 +25,7 @@ function DebugReportPage({
         params: {reportID},
     },
 }: DebugReportPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
@@ -37,7 +39,7 @@ function DebugReportPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title="Debug - Report"
+                        title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <OnyxTabNavigator
@@ -47,7 +49,7 @@ function DebugReportPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
-                                    data={report}
+                                    data={report ?? {}}
                                     onyxKey={`${ONYXKEYS.COLLECTION.REPORT}${reportID}`}
                                 />
                             )}

@@ -4749,4 +4749,18 @@ export default {
     roomChangeLog: {
         updateRoomDescription: 'establece la descripción de la sala a:',
     },
+    debug: {
+        debug: 'Depuración',
+        details: 'Detalles',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Previa',
+        nothingToPreview: 'Nada que previsualizar',
+        editJson: 'Edit JSON:',
+        preview: 'Previa:',
+        missingProperty: ({propertyName}) => `Falta ${propertyName}`,
+        createReportAction: 'Crear Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+    },
 } satisfies EnglishTranslation;
