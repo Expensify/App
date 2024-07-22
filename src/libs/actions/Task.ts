@@ -568,7 +568,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
+function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>, currentReportID?: string) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
     const reportName = report.reportName?.trim();
@@ -587,6 +587,9 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     };
     const successReport: NullishDeep<OnyxTypes.Report> = {pendingFields: {...(assigneeAccountID && {managerID: null})}};
 
+    const additionalReport: NullishDeep<OnyxTypes.Report> = {}
+    report.reportID === currentReportID && (additionalReport.lastReadTime = DateUtils.getDBTimeWithSkew());
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -596,7 +599,10 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: optimisticReport,
+            value: {
+                ...optimisticReport,
+                ...additionalReport,
+            },
         },
     ];
 
@@ -609,7 +615,10 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: successReport,
+            value:{
+                ...successReport,
+                ...additionalReport,
+            }
         },
     ];
 

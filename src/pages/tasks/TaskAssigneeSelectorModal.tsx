@@ -34,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, Task} from '@src/types/onyx';
+import useCurrentReportID from "@hooks/useCurrentReportID";
 
 type TaskAssigneeSelectorModalOnyxProps = {
     /** All reports shared with the user */
@@ -99,6 +100,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const session = useSession();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentReportIDValue = useCurrentReportID();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const report: OnyxEntry<Report> = useMemo(() => {
@@ -177,7 +179,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     );
 
                     // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport, currentReportIDValue?.currentReportID);
                 }
                 Navigation.dismissModal(report.reportID);
                 // If there's no report, we're creating a new task

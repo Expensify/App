@@ -2323,7 +2323,10 @@ function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentRep
         return true;
     }
 
-    if (isOpenTaskReport(report, parentReportAction) && !report?.hasParentAccess && isReportManager(report)) {
+    if (isOpenTaskReport(report, parentReportAction) && isReportManager(report)) {
+        if (currentUserAccountID === report?.ownerAccountID) {
+            return !report?.hasParentAccess;
+        }
         return true;
     }
 
