@@ -7439,25 +7439,41 @@ function mergeDuplicates(params: TransactionMergeParams) {
     console.log('RORY_DEBUG reportActionsToDelete', reportActionsToDelete);
 
     const deletedTime = DateUtils.getDBTime();
-    const optimisticReportActionsData: OnyxUpdate[] = reportActionsToDelete.map(({reportActionID}) => ({
+    const optimisticReportActionsData: OnyxUpdate[] = reportActionsToDelete.map((reportAction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: {
-            [reportActionID]: {
+            [reportAction.reportActionID]: {
                 originalMessage: {
                     deleted: deletedTime,
                 },
+                ...(Array.isArray(reportAction.message) &&
+                    !!reportAction.message[0] && {
+                        message: [
+                            {
+                                ...reportAction.message[0],
+                                deleted: deletedTime,
+                            },
+                            ...reportAction.message.slice(1),
+                        ],
+                    }),
+                ...(!Array.isArray(reportAction.message) && {
+                    message: {
+                        deleted: deletedTime,
+                    },
+                }),
             },
         },
     }));
-    const failureReportActionsData: OnyxUpdate[] = reportActionsToDelete.map(({reportActionID}) => ({
+    const failureReportActionsData: OnyxUpdate[] = reportActionsToDelete.map((reportAction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: {
-            [reportActionID]: {
+            [reportAction.reportActionID]: {
                 originalMessage: {
                     deleted: null,
                 },
+                message: reportAction.message,
             },
         },
     }));
