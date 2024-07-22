@@ -377,7 +377,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={shouldUseNarrowLayout}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
