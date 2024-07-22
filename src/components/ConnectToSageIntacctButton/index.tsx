@@ -1,5 +1,6 @@
 import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,8 +12,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
@@ -27,6 +30,8 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
@@ -37,7 +42,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
-            text: translate('workspace.intacct.createNewConnection'),
+            text: translate('workspace.common.createNewConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
@@ -45,7 +50,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         },
         {
             icon: Expensicons.Copy,
-            text: translate('workspace.intacct.reuseExistingConnection'),
+            text: translate('workspace.common.reuseExistingConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
@@ -57,6 +62,11 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         <>
             <Button
                 onPress={() => {
+                    if (!isControlPolicy(policy)) {
+                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
+                        return;
+                    }
+
                     if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;

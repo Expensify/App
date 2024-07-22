@@ -34,6 +34,13 @@ function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue
     return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
 }
 
+const initialContainerState = {
+    width: 0,
+    left: 0,
+    bottom: 0,
+    cursorCoordinates: {x: 0, y: 0},
+};
+
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
  * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
@@ -48,12 +55,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const prevLeftValue = React.useRef<number>(0);
     const {windowHeight, windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
-    const [containerState, setContainerState] = React.useState({
-        width: 0,
-        left: 0,
-        bottom: 0,
-        cursorCoordinates: {x: 0, y: 0},
-    });
+    const [containerState, setContainerState] = React.useState(initialContainerState);
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {keyboardHeight} = useKeyboardState();
@@ -77,6 +79,11 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
     useEffect(() => {
         if (!measureParentContainerAndReportCursor) {
+            return;
+        }
+
+        if (!windowHeight || !windowWidth || !suggestionsLength) {
+            setContainerState(initialContainerState);
             return;
         }
 

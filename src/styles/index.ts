@@ -507,6 +507,10 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
+        textWrap: {
+            ...whiteSpace.preWrap,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
@@ -2104,7 +2108,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatFooterFullCompose: {
-            flex: 1,
+            height: '100%',
+            paddingTop: 20,
         },
 
         chatItemDraft: {
