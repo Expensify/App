@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm
-index b999c2c..b780cc7 100644
+index b999c2c..583a5d2 100644
 --- a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm
 +++ b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm
 @@ -10,7 +10,6 @@
@@ -41,7 +41,7 @@ index b999c2c..b780cc7 100644
    [bridge.uiManager.observerCoordinator addObserver:self];
  #endif // RCT_NEW_ARCH_ENABLED
  }
-@@ -241,28 +236,6 @@ - (void)addOperationBlock:(GestureHandlerOperation)operation
+@@ -241,27 +236,7 @@ - (void)addOperationBlock:(GestureHandlerOperation)operation
    [_operations addObject:operation];
  }
  
@@ -66,7 +66,7 @@ index b999c2c..b780cc7 100644
 -}
 -
 -#else
--
++#ifndef RCT_NEW_ARCH_ENABLED
+ 
  #pragma mark - RCTUIManagerObserver
  
- - (void)uiManagerWillFlushUIBlocks:(RCTUIManager *)uiManager
