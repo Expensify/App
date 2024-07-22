@@ -2645,6 +2645,10 @@ export default {
             collect: 'Collect',
         },
         expensifyCard: {
+            issueAndManageCards: 'Issue and manage your Expensify Cards',
+            getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
+            disclaimer:
+                'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
             issueCard: 'Issue card',
             name: 'Name',
             lastFour: 'Last 4',
@@ -2947,6 +2951,8 @@ export default {
             benefit4: 'Customizable limits and spend controls',
             addWorkEmail: 'Add work email address',
             checkingDomain: "Hang tight! We're still working on enabling your Expensify Cards. Check back here in a few minutes.",
+            issueAndManageCards: 'Issue and manage your Expensify Cards',
+            getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
