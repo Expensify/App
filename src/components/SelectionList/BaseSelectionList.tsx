@@ -443,7 +443,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isMobileSelectionModeActive={isMobileSelectionModeActive}
                     onSelectRow={() => {
                         if (shouldSingleExecuteRowSelect) {
-                            singleExecution(() => selectRow(item));
+                            singleExecution(() => selectRow(item))();
                         } else {
                             selectRow(item);
                         }
