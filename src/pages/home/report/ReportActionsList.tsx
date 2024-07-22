@@ -217,11 +217,8 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    /**
-     * Evaluate new unread marker visibility for each of the report actions.
-     */
-    const shouldDisplayNewMarker = useCallback(
-        (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
+    const currentUnreadMarker = useMemo(() => {
+        const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
             // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
             const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
             if (isFromCurrentUser) {
@@ -238,14 +235,8 @@ function ReportActionsList({
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
 
             return isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
-        },
-        [sortedVisibleReportActions, unreadMarkerTime, accountID],
-    );
+        };
 
-    const currentUnreadMarker = useMemo(() => {
-        // Iterate through the report actions and set appropriate unread marker.
-        // This is to avoid a warning of:
-        // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
         for (let index = 0; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions[index];
             if (shouldDisplayNewMarker(reportAction, index)) {
@@ -254,7 +245,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [sortedVisibleReportActions, shouldDisplayNewMarker]);
+    }, [accountID, sortedVisibleReportActions, unreadMarkerTime]);
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
