@@ -149,7 +149,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteIntegration, canUseSageIntacctIntegration} = usePermissions();
+    const {canUseSageIntacctIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -165,7 +165,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
         (name) =>
-            !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration) || (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration)),
+            !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration),
     );
 
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
