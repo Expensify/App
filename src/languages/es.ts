@@ -5328,5 +5328,6 @@ export default {
         createReportAction: 'Crear Report Action',
         reportAction: 'Report Action',
         report: 'Report',
+        hint: 'Los cambios de datos no se enviarán al backend',
     },
 } satisfies EnglishTranslation;

@@ -118,6 +118,7 @@ function DebugReportActionCreatePage({
                                 <Text>{translate('debug.nothingToPreview')}</Text>
                             )}
                         </View>
+                        <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
                             success
                             text={translate('common.save')}

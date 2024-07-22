@@ -4811,5 +4811,6 @@ export default {
         createReportAction: 'Create Report Action',
         reportAction: 'Report Action',
         report: 'Report',
+        hint: "Data changes won't be sent to the backend",
     },
 } satisfies TranslationBase;

@@ -3,6 +3,7 @@ import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +45,7 @@ function DebugDetails({data, onyxKey, isCollection = false, idSelector = () => '
                     }}
                 />
             ))}
+            <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
             <Button
                 success
                 text={translate('common.save')}
