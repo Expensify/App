@@ -92,7 +92,6 @@ function BaseVideoPlayer({
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -112,6 +111,19 @@ function BaseVideoPlayer({
     const debouncedHideControl = useMemo(() => debounce(hideControl, 2000), [hideControl]);
 
     useEffect(() => {
+        if (canUseTouchScreen) {
+            return;
+        }
+        // If the device cannot use touch screen, always set the control status as 'show'.
+        // Then if user hover over the video, controls is shown.
+        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+    }, [canUseTouchScreen]);
+
+    useEffect(() => {
+        // We only auto hide the control if the device can use touch screen.
+        if (!canUseTouchScreen) {
+            return;
+        }
         if (controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
@@ -121,7 +133,7 @@ function BaseVideoPlayer({
         }
 
         debouncedHideControl();
-    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible]);
+    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
 
     const showControl = useCallback(() => {
         if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
@@ -347,7 +359,7 @@ function BaseVideoPlayer({
                                     if (isFullScreenRef.current) {
                                         return;
                                     }
-                                    if (!isSmallScreenWidth) {
+                                    if (!canUseTouchScreen) {
                                         togglePlayCurrentVideo();
                                     }
                                     showControl();
