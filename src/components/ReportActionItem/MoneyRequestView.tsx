@@ -466,7 +466,7 @@ function MoneyRequestView({
                 {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
-                        disabled={!canEditReceipt}
+                        disabled={!canEditReceipt || readonly}
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
