@@ -320,6 +320,9 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding error message to be displayed to the user */
+    ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
+
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
 
@@ -449,10 +452,10 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'card_',
 
-        /** The bank account that Expensify Card payments will be reconciled against */
+        /** Stores which connection is set up to use Continuous Reconciliation */
         SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',
 
-        /** If continuous reconciliation is enabled */
+        /** The value that indicates whether Continuous Reconciliation should be used on the domain */
         SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'sharedNVP_expensifyCard_useContinuousReconciliation_',
     },
 
@@ -710,7 +713,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.BankAccount;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
 };
 
@@ -818,6 +821,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
+    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
