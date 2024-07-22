@@ -271,7 +271,9 @@ function ReportActionsList({
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
-                Navigation.setParams({referrer: undefined});
+                if (isFromNotification) {
+                    Navigation.setParams({referrer: undefined});
+                }
             } else {
                 readActionSkipped.current = true;
             }
