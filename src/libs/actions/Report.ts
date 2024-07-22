@@ -680,7 +680,6 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: file?.uri ?? '',
-                avatarFileName: file?.name ?? '',
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -691,15 +690,12 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         },
     ];
 
-    const fetchedReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                avatarFileName: fetchedReport?.avatarFileName ?? null,
-                avatarUrl: fetchedReport?.avatarUrl ?? null,
+                avatarUrl: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.avatarUrl ?? null,
                 pendingFields: {
                     avatar: null,
                 },
@@ -997,14 +993,7 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = ReportUtils.buildOptimisticGroupChatReport(
-                participantAccountIDs,
-                reportName ?? '',
-                avatarUri ?? '',
-                avatarFile?.name ?? '',
-                optimisticReportID,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            );
+            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(
                 [...participantAccountIDs, currentUserAccountID],
