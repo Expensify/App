@@ -1,16 +1,16 @@
 import Onyx from 'react-native-onyx';
-import type { OnyxUpdate } from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
-import type { SearchParams } from '@libs/API/parameters';
-import { READ_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import type {SearchParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { SearchTransaction } from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
-
 
 let currentUserEmail: string;
 Onyx.connect({
@@ -110,4 +110,12 @@ function exportSearchItemsToCSV(query: string, reportIDList: Array<string | unde
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV};
+/**
+ * Updates filters' form with changes from params
+ * @param updatedForm - Any part of filter form
+ */
+function mergeFilters(updatedForm: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) {
+    Onyx.merge(`${ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}`, updatedForm);
+}
+
+export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV, mergeFilters};

@@ -11,22 +11,22 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {mergeFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {mergeFilters} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
 const DEFAULT_DATE = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-const DEFAULT_FILTERS_FORM_VALUE = {[INPUT_IDS.DATE.AFTER]: DEFAULT_DATE, [INPUT_IDS.DATE.BEFORE]: DEFAULT_DATE};
+const DEFAULT_FILTERS_FORM_VALUE = {[INPUT_IDS.DATE_AFTER]: DEFAULT_DATE, [INPUT_IDS.DATE_BEFORE]: DEFAULT_DATE};
 
 function SearchFiltersDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm = DEFAULT_FILTERS_FORM_VALUE] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const defaultDateAfter = searchAdvancedFiltersForm[INPUT_IDS.DATE.AFTER];
-    const defaultDateBefore = searchAdvancedFiltersForm[INPUT_IDS.DATE.BEFORE];
+    const defaultDateAfter = searchAdvancedFiltersForm[INPUT_IDS.DATE_AFTER];
+    const defaultDateBefore = searchAdvancedFiltersForm[INPUT_IDS.DATE_BEFORE];
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         mergeFilters(value);
@@ -51,7 +51,7 @@ function SearchFiltersDatePage() {
                     >
                         <InputWrapper
                             InputComponent={DatePicker}
-                            inputID={INPUT_IDS.DATE.AFTER}
+                            inputID={INPUT_IDS.DATE_AFTER}
                             label={translate('common.date')}
                             defaultValue={defaultDateAfter}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
@@ -59,7 +59,7 @@ function SearchFiltersDatePage() {
                         />
                         <InputWrapper
                             InputComponent={DatePicker}
-                            inputID={INPUT_IDS.DATE.BEFORE}
+                            inputID={INPUT_IDS.DATE_BEFORE}
                             label={translate('common.date')}
                             defaultValue={defaultDateBefore}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}

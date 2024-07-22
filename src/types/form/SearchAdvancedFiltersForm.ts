@@ -1,26 +1,21 @@
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
     TYPE: 'type',
-    DATE: {
-        AFTER: 'dateAfter',
-        BEFORE: 'dateBefore',
-    },
+    DATE_AFTER: 'dateAfter',
+    DATE_BEFORE: 'dateBefore',
 } as const;
 
-type InputID = DeepValueOf<typeof INPUT_IDS>;
-
-type Date = {
-    [INPUT_IDS.DATE.AFTER]: string;
-    [INPUT_IDS.DATE.BEFORE]: string;
-};
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type SearchAdvancedFiltersForm = Form<
     InputID,
     {
         [INPUT_IDS.TYPE]: string;
-    } & Date
+        [INPUT_IDS.DATE_AFTER]: string;
+        [INPUT_IDS.DATE_BEFORE]: string;
+    }
 >;
 
 export type {SearchAdvancedFiltersForm};
