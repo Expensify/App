@@ -253,6 +253,19 @@ function ReportActionsList({
         return null;
     }, [accountID, sortedVisibleReportActions, unreadMarkerTime]);
 
+    /**
+     * Subscribe to read/unread events and update our unreadMarkerTime
+     */
+    useEffect(() => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => setUnreadMarkerTime(newLastReadTime));
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => setUnreadMarkerTime(newLastReadTime));
+
+        return () => {
+            unreadActionSubscription.remove();
+            readNewestActionSubscription.remove();
+        };
+    }, [report.reportID]);
+
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
@@ -324,21 +337,6 @@ function ReportActionsList({
         lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
-
-    useEffect(() => {
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
-            setUnreadMarkerTime(newLastReadTime);
-        });
-
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
-            setUnreadMarkerTime(newLastReadTime);
-        });
-
-        return () => {
-            unreadActionSubscription.remove();
-            readNewestActionSubscription.remove();
-        };
-    }, [report.reportID]);
 
     useEffect(() => {
         if (linkedReportActionID) {
