@@ -206,14 +206,16 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
 
+    /**
+     * The timestamp for the unread marker.
+     *
+     * This should ONLY be updated when the user switches reports OR when they mark a
+     * message as read/unread
+     */
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
         setUnreadMarkerTime(report.lastReadTime ?? '');
 
-        /**
-         * We ONLY want to update the unreadMarkerTime when the user switches reports OR
-         * when they mark a message as unread (handled in a different subscription below)
-         */
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
@@ -240,6 +242,7 @@ function ReportActionsList({
             return isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
         };
 
+        // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = 0; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions[index];
             if (shouldDisplayNewMarker(reportAction, index)) {
