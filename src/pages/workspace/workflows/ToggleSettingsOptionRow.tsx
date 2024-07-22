@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -8,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -98,8 +98,7 @@ function ToggleSettingOptionRow({
         if (!subtitle || !shouldParseSubtitle) {
             return '';
         }
-        const parser = new ExpensiMark();
-        return parser.replace(subtitle, {shouldEscapeText});
+        return Parser.replace(subtitle, {shouldEscapeText});
     }, [subtitle, shouldParseSubtitle, shouldEscapeText]);
 
     const processedSubtitle = useMemo(() => {

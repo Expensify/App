@@ -7,7 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections} from '@src/types/onyx/Policy';
+import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type SubsidiaryParam = {
@@ -402,6 +402,118 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
     API.write(commandName, params, onyxData);
 }
 
+function updateNetSuiteCustomersJobsMapping(
+    policyID: string,
+    mappingValue: {
+        customersMapping: NetSuiteMappingValues;
+        jobsMapping: NetSuiteMappingValues;
+    },
+    oldMappingValue: {
+        customersMapping?: NetSuiteMappingValues;
+        jobsMapping?: NetSuiteMappingValues;
+    },
+) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            customers: mappingValue.customersMapping,
+                                            jobs: mappingValue.jobsMapping,
+                                            pendingFields: {
+                                                customers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                                jobs: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        customers: null,
+                                        jobs: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            customers: mappingValue.customersMapping,
+                                            jobs: mappingValue.jobsMapping,
+                                            pendingFields: {
+                                                customers: null,
+                                                jobs: null,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        customers: null,
+                                        jobs: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            customers: oldMappingValue.customersMapping,
+                                            jobs: oldMappingValue.jobsMapping,
+                                            pendingFields: {
+                                                customers: null,
+                                                jobs: null,
+                                            },
+                                        },
+                                    },
+                                    errorFields: {
+                                        customers: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                        jobs: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        ...mappingValue,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOMERS_JOBS_MAPPING, params, onyxData);
+}
+
 function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: boolean) {
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX, isSyncTaxEnabled, !isSyncTaxEnabled);
 
@@ -425,6 +537,31 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
         enabled: isCrossSubsidiaryCustomersEnabled,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION, params, onyxData);
+}
+
+function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomSegment[], oldRecords: NetSuiteCustomSegment[]) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords);
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS,
+        {
+            policyID,
+            customSegments: JSON.stringify(records),
+        },
+        onyxData,
+    );
+}
+
+function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[]) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords);
+    API.write(
+        WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
+        {
+            policyID,
+            customLists: JSON.stringify(records),
+        },
+        onyxData,
+    );
 }
 
 function updateNetSuiteExporter(policyID: string, exporter: string, oldExporter: string) {
@@ -729,7 +866,107 @@ function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string, value: boole
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_ENABLED, parameters, onyxData);
 }
 
+function updateNetSuiteReimbursementAccountID(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccountID, oldBankAccountID);
+
+    const parameters = {
+        policyID,
+        bankAccountID,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_REIMBURSEMENT_ACCOUNT_ID, parameters, onyxData);
+}
+
+function updateNetSuiteCollectionAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT, bankAccountID, oldBankAccountID);
+
+    const parameters = {
+        policyID,
+        bankAccountID,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_COLLECTION_ACCOUNT, parameters, onyxData);
+}
+
+function updateNetSuiteExportReportsTo(
+    policyID: string,
+    approvalLevel: ValueOf<typeof CONST.NETSUITE_REPORTS_APPROVAL_LEVEL>,
+    oldApprovalLevel: ValueOf<typeof CONST.NETSUITE_REPORTS_APPROVAL_LEVEL>,
+) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO, approvalLevel, oldApprovalLevel);
+
+    const parameters = {
+        policyID,
+        value: approvalLevel,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_REPORTS_TO, parameters, onyxData);
+}
+
+function updateNetSuiteExportVendorBillsTo(
+    policyID: string,
+    approvalLevel: ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>,
+    oldApprovalLevel: ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>,
+) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO, approvalLevel, oldApprovalLevel);
+
+    const parameters = {
+        policyID,
+        value: approvalLevel,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_VENDOR_BILLS_TO, parameters, onyxData);
+}
+
+function updateNetSuiteExportJournalsTo(
+    policyID: string,
+    approvalLevel: ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>,
+    oldApprovalLevel: ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>,
+) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO, approvalLevel, oldApprovalLevel);
+
+    const parameters = {
+        policyID,
+        value: approvalLevel,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO, parameters, onyxData);
+}
+
+function updateNetSuiteApprovalAccount(policyID: string, value: string, oldValue: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT, value, oldValue);
+
+    const parameters = {
+        policyID,
+        value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT, parameters, onyxData);
+}
+
+function updateNetSuiteCustomFormIDOptions(
+    policyID: string,
+    value: string,
+    isReimbursable: boolean,
+    exportDestination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>,
+    oldCustomFormID?: NetSuiteCustomFormID,
+) {
+    const customFormIDKey = isReimbursable ? CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE : CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE;
+    const data = {
+        [customFormIDKey]: {
+            [CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]]: value,
+        },
+    };
+    const oldData = {
+        [customFormIDKey]: oldCustomFormID?.[customFormIDKey] ?? null,
+    };
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS, data, oldData);
+
+    const commandName = isReimbursable ? WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE : WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE;
+    const parameters = {
+        policyID,
+        formType: CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination],
+        formID: value,
+    };
+    API.write(commandName, parameters, onyxData);
+}
+
 export {
+    connectPolicyToNetSuite,
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,
     updateNetSuiteExporter,
@@ -749,11 +986,20 @@ export {
     updateNetSuiteExportToNextOpenPeriod,
     updateNetSuiteImportMapping,
     updateNetSuiteCrossSubsidiaryCustomersConfiguration,
+    updateNetSuiteCustomSegments,
+    updateNetSuiteCustomLists,
     updateNetSuiteAutoSync,
     updateNetSuiteSyncReimbursedReports,
     updateNetSuiteSyncPeople,
     updateNetSuiteAutoCreateEntities,
     updateNetSuiteEnableNewCategories,
     updateNetSuiteCustomFormIDOptionsEnabled,
-    connectPolicyToNetSuite,
+    updateNetSuiteReimbursementAccountID,
+    updateNetSuiteCollectionAccount,
+    updateNetSuiteExportReportsTo,
+    updateNetSuiteExportVendorBillsTo,
+    updateNetSuiteExportJournalsTo,
+    updateNetSuiteApprovalAccount,
+    updateNetSuiteCustomFormIDOptions,
+    updateNetSuiteCustomersJobsMapping,
 };

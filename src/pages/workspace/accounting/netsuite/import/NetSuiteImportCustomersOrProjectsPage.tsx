@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -10,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -17,8 +17,6 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-
-const parser = new ExpensiMark();
 
 type ImportField = 'jobs' | 'customers';
 
@@ -70,7 +68,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
             <View style={[styles.ph5, styles.flexRow, styles.pb5]}>
-                <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</comment>`} />
+                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</comment>`} />
             </View>
 
             <ToggleSettingOptionRow

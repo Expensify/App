@@ -38,7 +38,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
             return;
         }
         Policy.setPolicyIDForReimburseView(props.policy?.id ?? '-1');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {

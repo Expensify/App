@@ -60,8 +60,8 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
-            reverseConnectionEmptyCheck
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            shouldLoadForEmptyConnection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
         >

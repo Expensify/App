@@ -246,7 +246,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  */
 function datetimeToRelative(locale: Locale, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
-    return formatDistanceToNow(date, {addSuffix: true});
+    return formatDistanceToNow(date, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
 }
 
 /**

@@ -24,7 +24,24 @@ import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps} from './types';
+import type {AddressSearchProps, PredefinedPlace} from './types';
+
+/**
+ * Check if the place matches the search by the place name or description.
+ * @param search The search string for a place
+ * @param place The place to check for a match on the search
+ * @returns true if search is related to place, otherwise it returns false.
+ */
+function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean {
+    if (!search) {
+        return true;
+    }
+    if (!place) {
+        return false;
+    }
+    const fullSearchSentence = `${place.name ?? ''} ${place.description}`;
+    return search.split(' ').every((searchTerm) => !searchTerm || fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+}
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -42,6 +59,7 @@ function AddressSearch(
         isLimitedToUSA = false,
         label,
         maxInputLength,
+        onFocus,
         onBlur,
         onInputChange,
         onPress,
@@ -72,7 +90,7 @@ function AddressSearch(
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [searchValue, setSearchValue] = useState(value || defaultValue || '');
+    const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
@@ -282,7 +300,7 @@ function AddressSearch(
         // eslint-disable-next-line react/jsx-no-useless-fragment
         <>
             {(predefinedPlaces?.length ?? 0) > 0 && (
-                <>
+                <View style={styles.overflowAuto}>
                     {/* This will show current location button in list if there are some recent destinations */}
                     {shouldShowCurrentLocationButton && (
                         <CurrentLocationButton
@@ -291,7 +309,7 @@ function AddressSearch(
                         />
                     )}
                     {!value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{translate('common.recentDestinations')}</Text>}
-                </>
+                </View>
             )}
         </>
     );
@@ -304,10 +322,16 @@ function AddressSearch(
         };
     }, []);
 
+    const filteredPredefinedPlaces = useMemo(() => {
+        if (!searchValue) {
+            return predefinedPlaces ?? [];
+        }
+        return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
+    }, [predefinedPlaces, searchValue]);
+
     const listEmptyComponent = useCallback(
-        () =>
-            !!isOffline || !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>,
-        [isOffline, isTyping, styles, translate],
+        () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+        [isTyping, styles, translate],
     );
 
     const listLoader = useCallback(
@@ -348,7 +372,7 @@ function AddressSearch(
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
-                        predefinedPlaces={predefinedPlaces ?? undefined}
+                        predefinedPlaces={filteredPredefinedPlaces}
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
@@ -357,7 +381,7 @@ function AddressSearch(
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
                                 <View>
-                                    {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    {!!title && <Text style={styles.googleSearchText}>{title}</Text>}
                                     <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
                                 </View>
                             );
@@ -391,6 +415,7 @@ function AddressSearch(
                             shouldSaveDraft,
                             onFocus: () => {
                                 setIsFocused(true);
+                                onFocus?.();
                             },
                             onBlur: (event) => {
                                 if (!isCurrentTargetInsideContainer(event, containerRef)) {
@@ -420,10 +445,11 @@ function AddressSearch(
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.borderLeft, styles.borderRight, !isFocused && styles.h0],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
-                            separator: [styles.googleSearchSeparator],
+                            separator: [styles.googleSearchSeparator, styles.overflowAuto],
+                            container: [styles.mh100],
                         }}
                         numberOfLines={2}
                         isRowScrollable={false}
@@ -447,11 +473,13 @@ function AddressSearch(
                             )
                         }
                         placeholder=""
-                    />
-                    <LocationErrorMessage
-                        onClose={() => setLocationErrorCode(null)}
-                        locationErrorCode={locationErrorCode}
-                    />
+                        listViewDisplayed
+                    >
+                        <LocationErrorMessage
+                            onClose={() => setLocationErrorCode(null)}
+                            locationErrorCode={locationErrorCode}
+                        />
+                    </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}

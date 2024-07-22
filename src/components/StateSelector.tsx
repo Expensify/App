@@ -71,7 +71,7 @@ function StateSelector(
         // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
     const title = stateCode && Object.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';

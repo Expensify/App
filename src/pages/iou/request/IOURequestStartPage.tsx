@@ -109,9 +109,12 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
+            if (transaction?.iouRequestType === newIOUType) {
+                return;
+            }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
-        [policy, reportID, isFromGlobalCreate],
+        [policy, reportID, isFromGlobalCreate, transaction],
     );
 
     if (!transaction?.transactionID) {
@@ -163,7 +166,10 @@ function IOURequestStartPage({
                                     {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
                                 </OnyxTabNavigator>
                             ) : (
-                                <IOURequestStepAmount route={route} />
+                                <IOURequestStepAmount
+                                    route={route}
+                                    shouldKeepUserInput
+                                />
                             )}
                         </View>
                     </DragAndDropProvider>

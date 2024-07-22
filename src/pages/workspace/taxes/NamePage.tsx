@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {renamePolicyTax, validateTaxName} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -38,7 +38,7 @@ function NamePage({
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [name, setName] = useState(() => parseHtmlToMarkdown(currentTaxRate?.name ?? ''));
+    const [name, setName] = useState(() => Parser.htmlToMarkdown(currentTaxRate?.name ?? ''));
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
 

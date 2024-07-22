@@ -140,7 +140,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
         App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
         // We only care when the component renders the first time
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -211,7 +211,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with FeatureEnabledAccessOrNotFoundComponent.
+    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
@@ -284,6 +284,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.reportFields',
+            icon: Expensicons.Pencil,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
+    }
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
@@ -292,15 +301,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.reportFields',
-            icon: Expensicons.Pencil,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
         });
     }
 

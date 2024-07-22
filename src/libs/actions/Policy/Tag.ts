@@ -1,11 +1,20 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled, SetPolicyTagsRequired} from '@libs/API/parameters';
+import type {
+    EnablePolicyTagsParams,
+    OpenPolicyTagsPageParams,
+    RenamePolicyTaglistParams,
+    RenamePolicyTagsParams,
+    SetPolicyTagsEnabled,
+    SetPolicyTagsRequired,
+    UpdatePolicyTagGLCodeParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -181,6 +190,24 @@ function createPolicyTag(policyID: string, tagName: string) {
 function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
+    const optimisticPolicyTagsData = {
+        ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+            acc[key] = {
+                ...policyTag.tags[key],
+                ...tagsToUpdate[key],
+                errors: null,
+                pendingFields: {
+                    ...policyTag.tags[key].pendingFields,
+                    enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            };
+
+            return acc;
+        }, {}),
+    };
+    const shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions({...policyTag.tags, ...optimisticPolicyTagsData});
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -188,22 +215,8 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        tags: {
-                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
-                                acc[key] = {
-                                    ...policyTag.tags[key],
-                                    ...tagsToUpdate[key],
-                                    errors: null,
-                                    pendingFields: {
-                                        ...policyTag.tags[key].pendingFields,
-                                        enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                    },
-                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                };
-
-                                return acc;
-                            }, {}),
-                        },
+                        ...(shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+                        tags: optimisticPolicyTagsData,
                     },
                 },
             },
@@ -214,6 +227,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
+                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -240,6 +254,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
+                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -363,7 +378,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: n
     });
 }
 
-function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
+function clearPolicyTagListErrorField(policyID: string, tagListIndex: number, errorField: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
     if (!policyTag.name) {
@@ -375,6 +390,20 @@ function clearPolicyTagListError(policyID: string, tagListIndex: number, errorFi
             errorFields: {
                 [errorField]: null,
             },
+        },
+    });
+}
+
+function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [policyTag.name]: {
+            errors: null,
         },
     });
 }
@@ -569,7 +598,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
                     [oldName]: null,
                 },
             },
@@ -589,12 +618,12 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    errors: {
-                        [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                    },
                     [newName]: null,
-                    [oldName]: oldPolicyTags,
+                    [oldName]: {
+                        ...oldPolicyTags,
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    },
                 },
             },
         ],
@@ -610,6 +639,9 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
 }
 
 function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -652,6 +684,26 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
             },
         ],
     };
+
+    if (isMultiLevelTags) {
+        const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
+                    acc[key] = {
+                        ...acc[key],
+                        required,
+                    };
+                    return acc;
+                }, {}),
+            },
+        });
+
+        onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
+        onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
+        onyxData.successData?.push(getUpdatedTagsData(requiresTag));
+    }
 
     const parameters = {
         policyID,
@@ -719,19 +771,96 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
+function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[tagListIndex];
+    const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                ...policyTagToUpdate,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'GL Code': glCode,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                errors: null,
+                                pendingAction: null,
+                                pendingFields: {
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    'GL Code': null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                ...policyTagToUpdate,
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyTagGLCodeParams = {
+        policyID,
+        tagName,
+        tagListName,
+        tagListIndex,
+        glCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
     setPolicyTagsRequired,
     createPolicyTag,
     clearPolicyTagErrors,
-    clearPolicyTagListError,
+    clearPolicyTagListErrors,
+    clearPolicyTagListErrorField,
     deletePolicyTags,
     enablePolicyTags,
     openPolicyTagsPage,
     renamePolicyTag,
     renamePolicyTaglist,
     setWorkspaceTagEnabled,
+    setPolicyTagGLCode,
 };
 
 export type {NewCustomUnit};
