@@ -305,6 +305,14 @@ function clearPaymentCard3dsVerification() {
 }
 
 /**
+ * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
+ *
+ */
+function verifySetupIntent(accountID: number) {
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID});
+}
+
+/**
  * Set currency for payments
  *
  */
@@ -549,4 +557,5 @@ export {
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
     setPaymentCardForm,
+    verifySetupIntent,
 };

@@ -36,6 +36,7 @@ const WRITE_COMMANDS = {
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
     ADD_PAYMENT_CARD: 'AddPaymentCard',
     ADD_PAYMENT_CARD_GBP: 'AddPaymentCardGBP',
+    VERIFY_SETUP_INTENT: 'User_VerifySetupIntent',
     TRANSFER_WALLET_BALANCE: 'TransferWalletBalance',
     DELETE_PAYMENT_CARD: 'DeletePaymentCard',
     UPDATE_PRONOUNS: 'UpdatePronouns',
@@ -343,6 +344,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP]: Parameters.AddPaymentCardParams;
+    [WRITE_COMMANDS.VERIFY_SETUP_INTENT]: Parameters.VerifySetupIntentParams;
     [WRITE_COMMANDS.DELETE_PAYMENT_CARD]: Parameters.DeletePaymentCardParams;
     [WRITE_COMMANDS.UPDATE_PRONOUNS]: Parameters.UpdatePronounsParams;
     [WRITE_COMMANDS.UPDATE_DISPLAY_NAME]: Parameters.UpdateDisplayNameParams;

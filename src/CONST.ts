@@ -5290,6 +5290,7 @@ const CONST = {
         GBP: 'GBP',
         NZD: 'NZD',
     },
+    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
