@@ -78,7 +78,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 },
             },
             {
-                icon: Expensicons.CardsAndDomains,
+                icon: Expensicons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
