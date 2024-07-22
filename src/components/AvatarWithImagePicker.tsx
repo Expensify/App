@@ -176,6 +176,7 @@ function AvatarWithImagePicker({
     });
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
+
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
             validationError: error,
@@ -251,6 +252,7 @@ function AvatarWithImagePicker({
     const hideAvatarCropModal = () => {
         setIsAvatarCropModalOpen(false);
     };
+
     /**
      * Create menu items list for avatar menu
      */

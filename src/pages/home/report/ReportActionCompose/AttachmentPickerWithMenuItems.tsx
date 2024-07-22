@@ -316,6 +316,7 @@ function AttachmentPickerWithMenuItems({
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
                                 onItemSelected();
+
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
