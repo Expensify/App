@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
+import type {OpenPickerFunction} from '@components/AttachmentPicker/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -211,29 +212,39 @@ function AttachmentPickerWithMenuItems({
         setMenuVisibility(false);
     }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
+    const triggerAttachmentPicker = useCallback(
+        (openPicker: OpenPickerFunction) => {
+            onTriggerAttachmentPicker();
+            openPicker({
+                onPicked: displayFileInModal,
+                onCanceled: onCanceledAttachmentPicker,
+            });
+        },
+        [displayFileInModal, onCanceledAttachmentPicker, onTriggerAttachmentPicker],
+    );
+
+    const onSelected = useCallback(
+        (openPicker: OpenPickerFunction) => () => {
+            Modal.close(() => {
+                if (Browser.isSafari()) {
+                    return;
+                }
+                triggerAttachmentPicker(openPicker);
+            });
+        },
+        [triggerAttachmentPicker],
+    );
+
     return (
         <AttachmentPicker>
             {({openPicker}) => {
-                const triggerAttachmentPicker = () => {
-                    onTriggerAttachmentPicker();
-                    openPicker({
-                        onPicked: displayFileInModal,
-                        onCanceled: onCanceledAttachmentPicker,
-                    });
-                };
                 const menuItems = [
                     ...moneyRequestOptions,
                     ...taskOption,
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () =>
-                            Modal.close(() => {
-                                if (Browser.isSafari()) {
-                                    return;
-                                }
-                                triggerAttachmentPicker();
-                            }),
+                        onSelected: onSelected(openPicker),
                     },
                 ];
                 return (
@@ -321,7 +332,7 @@ function AttachmentPickerWithMenuItems({
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
                                 if (index === menuItems.length - 1 && Browser.isSafari()) {
-                                    triggerAttachmentPicker();
+                                    triggerAttachmentPicker(openPicker);
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}

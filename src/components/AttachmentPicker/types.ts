@@ -43,3 +43,4 @@ type AttachmentPickerProps = {
 };
 
 export default AttachmentPickerProps;
+export type {OpenPickerFunction};
