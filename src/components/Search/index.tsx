@@ -23,27 +23,25 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchColumnType, SortOrder} from './types';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from './types';
 
 type SearchProps = {
-    query: SearchQuery;
+    queryJSON: SearchQueryJSON;
     policyIDs?: string;
-    sortBy?: SearchColumnType;
-    sortOrder?: SortOrder;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
-const sortableSearchTabs: SearchQuery[] = [CONST.SEARCH.TAB.ALL];
+const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
 const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
+function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -51,7 +49,8 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
+    const {status, sortBy, sortOrder, hash} = queryJSON;
+
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     const getItemHeight = useCallback(
@@ -97,7 +96,9 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         }
 
         setCurrentSearchHash(hash);
-        SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
+
+        // TODO_SEARCH: Function below will be deprecated soon. No point in refactoring to use status instead of query.
+        SearchActions.search({hash, query: status, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
@@ -109,7 +110,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         return (
             <>
                 <SearchPageHeader
-                    query={query}
+                    status={status}
                     hash={hash}
                 />
                 <SearchRowSkeleton shouldAnimate />
@@ -123,7 +124,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         return (
             <>
                 <SearchPageHeader
-                    query={query}
+                    status={status}
                     hash={hash}
                 />
                 <EmptySearchView />
@@ -144,15 +145,27 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID));
     };
 
     const fetchMoreResults = () => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
-        const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, sortBy, sortOrder});
+
+        const currentSearchParams = SearchUtils.getCurrentSearchParams();
+        const currentQueryString = SearchUtils.getQueryStringFromParams(currentSearchParams);
+        const isCustomQuery = SearchUtils.isCustomQueryFromParams(currentSearchParams);
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentQueryString);
+
+        if (!currentQueryJSON) {
+            return;
+        }
+
+        // TODO_SEARCH: offset should be a number but it is a string.
+        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE});
+
+        navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -168,13 +181,16 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        navigation.setParams({
-            sortBy: column,
-            sortOrder: order,
-        });
+        const currentSearchParams = SearchUtils.getCurrentSearchParams();
+        const currentQueryString = SearchUtils.getQueryStringFromParams(currentSearchParams);
+        const isCustomQuery = SearchUtils.isCustomQueryFromParams(currentSearchParams);
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentQueryString);
+
+        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, sortBy: column, sortOrder: order});
+        navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
     };
 
-    const isSortingAllowed = sortableSearchTabs.includes(query);
+    const isSortingAllowed = sortableSearchTabs.includes(status);
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
@@ -182,7 +198,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
 
     return (
         <SearchListWithHeader
-            query={query}
+            status={status}
             hash={hash}
             data={sortedData}
             searchType={searchResults?.search?.type as SearchDataTypes}

@@ -148,7 +148,7 @@ function CardSection() {
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
                         style={styles.mt5}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}

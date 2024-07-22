@@ -64,6 +64,17 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
+
+    /** The status of the search results to show */
+    statusToShow: {
+        // eslint-disable-next-line jsdoc/require-jsdoc
+        expense: {
+            // eslint-disable-next-line jsdoc/require-jsdoc
+            drafts: boolean;
+            // eslint-disable-next-line jsdoc/require-jsdoc
+            approved: boolean;
+        };
+    };
 };
 
 /** Model of personal details search result */
@@ -243,9 +254,6 @@ type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
-/** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
-
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -261,7 +269,6 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    SearchQuery,
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,

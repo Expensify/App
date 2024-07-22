@@ -19,15 +19,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getDownloadOption from './SearchActionOptionsUtils';
 import {useSearchContext} from './SearchContext';
-import type {SelectedTransactions} from './types';
+import type {SearchStatus, SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
-    query: SearchQuery;
+    status: SearchStatus;
     selectedTransactions?: SelectedTransactions;
     selectedReports?: Array<SearchReport['reportID']>;
     clearSelectedItems?: () => void;
@@ -42,7 +42,7 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-const headerContent: {[key in SearchQuery]: {icon: IconAsset; titleTx: TranslationPaths}} = {
+const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: TranslationPaths}} = {
     all: {icon: Illustrations.MoneyReceipts, titleTx: 'common.expenses'},
     shared: {icon: Illustrations.SendMoney, titleTx: 'common.shared'},
     drafts: {icon: Illustrations.Pencil, titleTx: 'common.drafts'},
@@ -50,7 +50,7 @@ const headerContent: {[key in SearchQuery]: {icon: IconAsset; titleTx: Translati
 };
 
 function SearchPageHeader({
-    query,
+    status,
     selectedTransactions = {},
     hash,
     clearSelectedItems,
@@ -80,19 +80,19 @@ function SearchPageHeader({
 
     const headerTitle = useMemo(() => {
         if (isSearchResultsMode) {
-            return SearchUtils.getSearchHeaderTitle(query, false);
+            return SearchUtils.getSearchHeaderTitle(status, false);
         }
 
-        return translate(headerContent[query]?.titleTx);
-    }, [isSearchResultsMode, query, translate]);
+        return translate(headerContent[status]?.titleTx);
+    }, [isSearchResultsMode, status, translate]);
 
     const headerIcon = useMemo(() => {
         if (isSearchResultsMode) {
             return Illustrations.Filters;
         }
 
-        return headerContent[query]?.icon;
-    }, [isSearchResultsMode, query]);
+        return headerContent[status]?.icon;
+    }, [isSearchResultsMode, status]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
 
@@ -110,7 +110,7 @@ function SearchPageHeader({
                 return;
             }
 
-            SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
+            SearchActions.exportSearchItemsToCSV(status, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
                 setDownloadErrorModalOpen?.();
             });
         });
@@ -138,7 +138,7 @@ function SearchPageHeader({
                         setIsMobileSelectionModeActive?.(false);
                     }
                     setSelectedTransactionIDs(selectedTransactionsKeys);
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(query));
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
         }
@@ -205,6 +205,7 @@ function SearchPageHeader({
 
         return options;
     }, [
+        status,
         selectedTransactionsKeys,
         selectedTransactions,
         translate,
@@ -216,7 +217,6 @@ function SearchPageHeader({
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        query,
         isOffline,
         setOfflineModalOpen,
         setDownloadErrorModalOpen,

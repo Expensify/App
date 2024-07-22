@@ -13,9 +13,6 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 type SearchHoldReasonPageRouteParams = {
-    /** ID of the transaction the page was opened for */
-    transactionID: string;
-
     /** Link to previous page */
     backTo: Route;
 };

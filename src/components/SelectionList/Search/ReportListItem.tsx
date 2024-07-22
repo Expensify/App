@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchParams} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ActionCell from './ActionCell';
@@ -78,9 +77,7 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
-        const searchParams = getSearchParams();
-        const currentQuery = searchParams?.query ?? CONST.SEARCH.TAB.ALL;
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(currentQuery, transactionItem.transactionThreadReportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(transactionItem.transactionThreadReportID));
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {

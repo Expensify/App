@@ -1,11 +1,12 @@
 import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SortOrder} from '@components/Search/types';
+import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -300,34 +301,32 @@ function getSortedReportData(data: ReportListItemType[]) {
     });
 }
 
-function getSearchParams() {
+function getCurrentSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
+}
+
+// Query may be in the q or cq parameter
+function getQueryStringFromParams(params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
+    return params.q ?? params.cq;
+}
+
+function isCustomQueryFromParams(params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
+    return !!params.cq;
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
-function getQueryHashFromString(query: string): number {
+function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-type JSONQuery = {
-    input: string;
-    hash: number;
-    type: string;
-    status: string;
-    sortBy: string;
-    sortOrder: string;
-    offset: number;
-    filters: ASTNode;
-};
-
-function buildJSONQuery(query: string) {
+function buildSearchQueryJSON(query: SearchQueryString) {
     try {
         // Add the full input and hash to the results
-        const result = searchParser.parse(query) as JSONQuery;
+        const result = searchParser.parse(query) as SearchQueryJSON;
         result.input = query;
         result.hash = getQueryHashFromString(query);
         return result;
@@ -336,10 +335,33 @@ function buildJSONQuery(query: string) {
     }
 }
 
-function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
-    let jsonQuery;
+function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
+    const queryParts: string[] = [];
+    const defualtQueryJSON = buildSearchQueryJSON('');
+
+    // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
+    for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (partialQueryJSON?.[value]) {
+            queryParts.push(`${value}:${partialQueryJSON[value]}`);
+        } else if (defualtQueryJSON) {
+            queryParts.push(`${value}:${defualtQueryJSON[value]}`);
+        }
+    }
+
+    return queryParts.join(' ');
+}
+
+// Fill query string with all default params.
+function normalizeQuery(query: string) {
+    const normalizedQueryJSON = buildSearchQueryJSON(query);
+    return buildSearchQueryString(normalizedQueryJSON);
+}
+
+function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys>>) {
+    let queryAST;
+
     try {
-        jsonQuery = searchParser.parse(query) as JSONQuery;
+        queryAST = searchParser.parse(query) as SearchQueryJSON;
     } catch (e) {
         console.error(e);
         return;
@@ -349,13 +371,13 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
 
     fields.forEach((field) => {
         const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-        if (jsonQuery[rootFieldKey] === undefined) {
+        if (queryAST[rootFieldKey] === undefined) {
             return;
         }
 
         filters[field] = {
             operator: 'eq',
-            value: jsonQuery[rootFieldKey],
+            value: queryAST[rootFieldKey],
         };
     });
 
@@ -388,8 +410,8 @@ function getFilters(query: string, fields: Array<Partial<AllFieldKeys>>) {
         });
     }
 
-    if (jsonQuery.filters) {
-        traverse(jsonQuery.filters);
+    if (queryAST.filters) {
+        traverse(queryAST.filters);
     }
 
     return filters;
@@ -404,18 +426,22 @@ function getSearchHeaderTitle(query: string, isSmallScreenWidth: boolean) {
 }
 
 export {
-    buildJSONQuery,
+    isCustomQueryFromParams,
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getQueryStringFromParams,
+    getCurrentSearchParams,
     getListItem,
     getQueryHash,
     getSections,
     getSortedSections,
     getShouldShowMerchant,
     getSearchType,
-    getSearchParams,
     shouldShowYear,
     isReportListItemType,
     isTransactionListItemType,
     isSearchResultsEmpty,
     getFilters,
     getSearchHeaderTitle,
+    normalizeQuery,
 };
