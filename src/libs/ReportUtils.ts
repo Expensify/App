@@ -278,7 +278,6 @@ type OptimisticChatReport = Pick<
     | 'description'
     | 'writeCapability'
     | 'avatarUrl'
-    | 'avatarFileName'
     | 'invoiceReceiver'
     | 'isHidden'
 > & {
@@ -3323,6 +3322,11 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return Localize.translateLocal('iou.heldExpense');
     }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+        return ReportActionsUtils.getExportIntegrationLastMessageText(reportAction);
+    }
+
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return Localize.translateLocal('iou.unheldExpense');
     }
@@ -3374,6 +3378,10 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
             return formatReportLastMessageText(formattedName);
+        }
+
+        if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isOldDotReportAction(parentReportAction)) {
+            return ReportActionsUtils.getMessageOfOldDotReportAction(parentReportAction);
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -3659,6 +3667,23 @@ function addDomainToShortMention(mention: string): string | undefined {
 }
 
 /**
+ * Replaces all valid short mention found in a text to a full mention
+ *
+ * Example:
+ * "Hello \@example -> Hello \@example\@expensify.com"
+ */
+function completeShortMention(text: string): string {
+    return text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        if (!Str.isValidMention(match)) {
+            return match;
+        }
+        const mention = match.substring(1);
+        const mentionWithDomain = addDomainToShortMention(mention);
+        return mentionWithDomain ? `@${mentionWithDomain}` : match;
+    });
+}
+
+/**
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
@@ -3669,14 +3694,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         isGroupPolicyReport = isReportInGroupPolicy(currentReport);
     }
 
-    const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
-        if (!Str.isValidMention(match)) {
-            return match;
-        }
-        const mention = match.substring(1);
-        const mentionWithDomain = addDomainToShortMention(mention);
-        return mentionWithDomain ? `@${mentionWithDomain}` : match;
-    });
+    const textWithMention = completeShortMention(text);
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
         ? Parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']})
@@ -4603,7 +4621,6 @@ function buildOptimisticChatReport(
     parentReportID = '',
     description = '',
     avatarUrl = '',
-    avatarFileName = '',
     optimisticReportID = '',
     shouldShowParticipants = true,
 ): OptimisticChatReport {
@@ -4645,7 +4662,6 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
         avatarUrl,
-        avatarFileName,
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
@@ -4663,7 +4679,6 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
-    avatarFileName: string,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -4682,7 +4697,6 @@ function buildOptimisticGroupChatReport(
         undefined,
         undefined,
         avatarUri,
-        avatarFileName,
         optimisticReportID,
     );
 }
@@ -5062,7 +5076,6 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         undefined,
         undefined,
         undefined,
-        undefined,
         expenseReportId,
     );
     const expenseChatReportID = expenseChatData.reportID;
@@ -5173,7 +5186,6 @@ function buildTransactionThread(
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReport?.reportID,
-        '',
         '',
         '',
         '',
@@ -5571,16 +5583,13 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
 
-        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (
-            participantAccountIDs.length === 0 ||
-            isChatThread(report) ||
-            isTaskReport(report) ||
-            isMoneyRequestReport(report) ||
-            isChatRoom(report) ||
-            isPolicyExpenseChat(report) ||
-            (isGroupChat(report) && !shouldIncludeGroupChats)
-        ) {
+        // Skip if it's not a 1:1 chat
+        if (!shouldIncludeGroupChats && !isOneOnOneChat(report)) {
+            return false;
+        }
+
+        // If we are looking for a group chat, then skip non-group chat report
+        if (shouldIncludeGroupChats && !isGroupChat(report)) {
             return false;
         }
 
@@ -7146,6 +7155,7 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
 
 export {
     addDomainToShortMention,
+    completeShortMention,
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
