@@ -33,7 +33,6 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     return {
         reportActions,
         linkedAction,
-        sortedAllReportActions,
     };
 }
 
