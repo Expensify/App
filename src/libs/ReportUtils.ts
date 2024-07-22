@@ -1583,8 +1583,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
  * Checks whether the supplied report supports adding more transactions to it.
  * Return true if:
  * - report is a non-settled IOU
- * - report is a draft
- * - report is a processing expense report and its policy has Instant reporting frequency
+ * - report is a non-approved IOU
  */
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
@@ -1597,10 +1596,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
     }
 
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
-        return false;
-    }
-
-    if (isReportInGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
         return false;
     }
 
