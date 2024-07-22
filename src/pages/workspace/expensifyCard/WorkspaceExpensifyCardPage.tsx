@@ -15,7 +15,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID ?? '-1';
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
 
-    // @ts-expect-error this error should no longer occur after is merged
     const paymentBankAccountID = cardSettings?.paymentBankAccountID as number;
 
     return (

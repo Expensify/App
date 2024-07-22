@@ -372,14 +372,6 @@ function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: nu
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
 }
 
-// TODO: remove this function, a proper implementation will be added in https://github.com/Expensify/App/pull/45415
-function updateSettlementAccount(policyID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
-        // @ts-expect-error this error should no longer occur after is merged
-        paymentBankAccountID: accountID,
-    });
-}
-
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -387,7 +379,6 @@ export {
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
     updateSettlementFrequency,
-    updateSettlementAccount,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
