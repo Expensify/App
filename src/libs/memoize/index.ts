@@ -42,7 +42,7 @@ class Memoize {
  * @param opts - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key>(fn: Fn, opts?: ClientOptions<Fn, MaxArgs, Key>) {
+function memoize<Fn extends MemoizeFnPredicate, Key, MaxArgs extends number = Parameters<Fn>['length']>(fn: Fn, opts?: ClientOptions<Fn, MaxArgs, Key>) {
     const options = mergeOptions<Fn, MaxArgs, Key>(opts);
 
     const cache = ArrayCache<Key, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
