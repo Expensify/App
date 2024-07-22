@@ -55,7 +55,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
     if (!reportFieldsEnabled || !reportField || !report || isDisabled) {
         return (
