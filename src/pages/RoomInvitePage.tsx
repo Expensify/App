@@ -60,7 +60,7 @@ function RoomInvitePage({
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation

@@ -116,6 +116,7 @@ const usePanGesture = ({
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityX.value) !== 0) {
                 // Phase out the pan animation
+                // eslint-disable-next-line react-compiler/react-compiler
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [horizontalBoundaries.min, horizontalBoundaries.max],

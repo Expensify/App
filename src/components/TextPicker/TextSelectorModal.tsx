@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import type {TextInput as TextInputType} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -23,6 +24,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
     const paddingStyle = usePaddingStyle();
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
+    const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const hide = useCallback(() => {
@@ -32,11 +34,16 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
         }
     }, [onClose, shouldClearOnClose]);
 
+    useEffect(() => {
+        inputValueRef.current = currentValue;
+    }, [currentValue]);
+
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
                 if (inputRef.current && isVisible) {
                     inputRef.current.focus();
+                    (inputRef.current as TextInputType).setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
                 }
                 return () => {
                     if (!focusTimeoutRef.current || !isVisible) {

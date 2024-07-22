@@ -280,6 +280,40 @@ xdescribe('Sidebar', () => {
             );
         });
 
+        it('filter paycheck and bill report', () => {
+            const report1: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+            };
+            const report2: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                errorFields: {
+                    notFound: {
+                        error: 'Report not found',
+                    },
+                },
+            };
+            const report3: Report = LHNTestUtils.getFakeReport();
+            LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+            };
+            return (
+                waitForBatchedUpdates()
+                    .then(() => Onyx.multiSet(reportCollectionDataSet))
+
+                    // Then the reports 1 and 2 are hidden and 3 is not
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        expect(optionRows).toHaveLength(1);
+                    })
+            );
+        });
+
         // NOTE: This is also for #focus mode, should we move this test block?
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
