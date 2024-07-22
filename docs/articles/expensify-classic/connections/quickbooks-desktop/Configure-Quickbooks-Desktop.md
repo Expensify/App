@@ -65,9 +65,9 @@ Items can be imported from QuickBooks as categories alongside your expense accou
 
 {% include faq-begin.md %}
 ## How do I sync my connection?
-1: Ensure that both the Expensify Sync Manager and QuickBooks Desktop are running.
-2: On the Expensify website, navigate to **Settings** > **Policies** > **Group** > _[Policy Name]_ > **Connections** > **QuickBooks Desktop**, and click **Sync now**.
-3: Wait for the syncing process to finish. Typically, this takes about 2-5 minutes, but it might take longer, depending on when you last synced and the size of your QuickBooks company file. The page will refresh automatically once syncing is complete.
+1. Ensure that both the Expensify Sync Manager and QuickBooks Desktop are running.
+2. On the Expensify website, navigate to **Settings** > **Policies** > **Group** > _[Policy Name]_ > **Connections** > **QuickBooks Desktop**, and click **Sync now**.
+3. Wait for the syncing process to finish. Typically, this takes about 2-5 minutes, but it might take longer, depending on when you last synced and the size of your QuickBooks company file. The page will refresh automatically once syncing is complete.
 
 We recommend syncing at least once a week or whenever you make changes in QuickBooks Desktop that could impact how your reports export from Expensify. Changes could include adjustments to your Chart of Accounts, Vendors, Employees, Customers/Jobs, or Items. Remember, both the Sync Manager and QuickBooks Desktop need to be running for syncing or exporting to work.
 
