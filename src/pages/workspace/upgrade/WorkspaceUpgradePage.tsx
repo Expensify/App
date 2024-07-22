@@ -34,7 +34,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     }
 
     const upgradeToCorporate = () => {
-        Policy.upgradeToCorporate(policy.id, feature.id);
+        Policy.upgradeToCorporate(policy.id, feature.name);
     };
 
     const confirmUpgrade = () => {
