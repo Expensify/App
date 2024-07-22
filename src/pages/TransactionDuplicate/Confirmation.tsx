@@ -4,6 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
@@ -35,6 +36,8 @@ function Confirmation() {
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID ?? '-1') ?? '-1';
 
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const mergeDuplicates = useCallback(() => {
@@ -59,34 +62,36 @@ function Confirmation() {
             testID={Confirmation.displayName}
             shouldShowOfflineIndicator
         >
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ScrollView style={styles.mb3}>
-                <View style={[styles.ph5, styles.pb8]}>
-                    <Text
-                        family="EXP_NEW_KANSAS_MEDIUM"
-                        fontSize={variables.fontSizeLarge}
-                        style={styles.pb5}
-                    >
-                        {translate('violations.confirmDetails')}
-                    </Text>
-                    <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
-                </View>
-                {/* We need that provider here becuase MoneyRequestView component require that */}
-                <ShowContextMenuContext.Provider value={contextValue}>
-                    <MoneyRequestView
-                        report={report}
-                        shouldShowAnimatedBackground={false}
-                        readonly
-                        updatedTransaction={transaction as OnyxEntry<Transaction>}
+            <FullPageNotFoundView shouldShow={!isLoadingReportData && transactionID === '-1'}>
+                <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                <ScrollView style={styles.mb3}>
+                    <View style={[styles.ph5, styles.pb8]}>
+                        <Text
+                            family="EXP_NEW_KANSAS_MEDIUM"
+                            fontSize={variables.fontSizeLarge}
+                            style={styles.pb5}
+                        >
+                            {translate('violations.confirmDetails')}
+                        </Text>
+                        <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                    </View>
+                    {/* We need that provider here becuase MoneyRequestView component require that */}
+                    <ShowContextMenuContext.Provider value={contextValue}>
+                        <MoneyRequestView
+                            report={report}
+                            shouldShowAnimatedBackground={false}
+                            readonly
+                            updatedTransaction={transaction as OnyxEntry<Transaction>}
+                        />
+                    </ShowContextMenuContext.Provider>
+                    <Button
+                        text={translate('common.confirm')}
+                        success
+                        style={[styles.ph5, styles.mt2]}
+                        onPress={mergeDuplicates}
                     />
-                </ShowContextMenuContext.Provider>
-                <Button
-                    text={translate('common.confirm')}
-                    success
-                    style={[styles.ph5, styles.mt2]}
-                    onPress={mergeDuplicates}
-                />
-            </ScrollView>
+                </ScrollView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
