@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
-index 55b770d..7677336 100644
+index 55b770d..1df5807 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
 @@ -464,6 +464,11 @@ export type NativeProps = $ReadOnly<{|
@@ -7,10 +7,10 @@ index 55b770d..7677336 100644
    >,
  
 +  /**
-+   * Callback that is called when the clipboard content is pasted.
++   * Invoked when the user performs the paste action.
 +   */
 +  onPaste?: ?DirectEventHandler<$ReadOnly<{|target: Int32|}>>,
-+
++  
    /**
     * The string that will be rendered before text input has been entered.
     */
@@ -55,7 +55,7 @@ index 88d3cc8..615c11f 100644
        onKeyPressSync: true,
        onTextInput: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index 2c0c099..e5fbc79 100644
+index 2c0c099..3fd345e 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 @@ -804,6 +804,11 @@ export interface TextInputProps
@@ -63,7 +63,7 @@ index 2c0c099..e5fbc79 100644
      | undefined;
  
 +  /**
-+   * Callback that is called when the clipboard content is pasted.
++   * Invoked when the user performs the paste action.
 +   */
 +  onPaste?: ((e: NativeSyntheticEvent<TargetedEvent>) => void) | undefined;
 +
@@ -71,7 +71,7 @@ index 2c0c099..e5fbc79 100644
     * The string that will be rendered before text input has been entered
     */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
-index 9adbfe9..69ac611 100644
+index 9adbfe9..31ef086 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
 @@ -796,6 +796,11 @@ export type Props = $ReadOnly<{|
@@ -79,7 +79,7 @@ index 9adbfe9..69ac611 100644
    onScroll?: ?(e: ScrollEvent) => mixed,
  
 +  /**
-+   * Callback that is called when the clipboard content is pasted.
++   * Invoked when the user performs the paste action.
 +   */
 +  onPaste?: ?(e: TargetEvent) => mixed,
 +
@@ -87,7 +87,7 @@ index 9adbfe9..69ac611 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index 481938f..3f92f75 100644
+index 481938f..7709bd1 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 @@ -838,6 +838,11 @@ export type Props = $ReadOnly<{|
@@ -95,7 +95,7 @@ index 481938f..3f92f75 100644
    onScroll?: ?(e: ScrollEvent) => mixed,
  
 +  /**
-+   * Callback that is called when the clipboard content is pasted.
++   * Invoked when the user performs the paste action.
 +   */
 +  onPaste?: ?(e: TargetEvent) => mixed,
 +
@@ -103,17 +103,17 @@ index 481938f..3f92f75 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 582b49c..43c6c7d 100644
+index 582b49c..5076951 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -167,6 +167,7 @@ - (void)paste:(id)sender
+@@ -166,6 +166,7 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
+ - (void)paste:(id)sender
  {
    _textWasPasted = YES;
-   [super paste:sender];
 +  [_textInputDelegateAdapter didPaste];
+   [super paste:sender];
  }
  
- // Turn off scroll animation to fix flaky scrolling.
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
 index 7187177..aaa6a17 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
@@ -218,17 +218,17 @@ index a19b555..8146c0d 100644
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 4d0afd9..10009ff 100644
+index 4d0afd9..07179be 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -205,6 +205,7 @@ - (void)paste:(id)sender
+@@ -204,6 +204,7 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
+ - (void)paste:(id)sender
  {
    _textWasPasted = YES;
-   [super paste:sender];
 +  [_textInputDelegateAdapter didPaste];
+   [super paste:sender];
  }
  
- #pragma mark - Layout
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 index 7ce04da..97c502d 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
@@ -271,7 +271,7 @@ index 0000000..7eacc51
 +  public void onPaste();
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 081f2b8..98c0f0d 100644
+index 081f2b8..c50912a 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 @@ -110,6 +110,7 @@ public class ReactEditText extends AppCompatEditText {
@@ -290,25 +290,23 @@ index 081f2b8..98c0f0d 100644
      mTextAttributes = new TextAttributes();
  
      applyTextAttributes();
-@@ -307,10 +309,15 @@ public class ReactEditText extends AppCompatEditText {
+@@ -307,10 +309,13 @@ public class ReactEditText extends AppCompatEditText {
     */
    @Override
    public boolean onTextContextMenuItem(int id) {
 -    if (id == android.R.id.paste) {
 +    if (id == android.R.id.paste || id == android.R.id.pasteAsPlainText) {
++      if (mPasteWatcher != null) {
++        mPasteWatcher.onPaste();
++      }
        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
          id = android.R.id.pasteAsPlainText;
 -      } else {
-+        boolean actionPerformed = super.onTextContextMenuItem(id);
-+        if (mPasteWatcher != null) {
-+          mPasteWatcher.onPaste();
-+        }
-+        return actionPerformed;
 +      } else if (id == android.R.id.paste) {
          ClipboardManager clipboard =
              (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
          ClipData previousClipData = clipboard.getPrimaryClip();
-@@ -389,6 +396,10 @@ public class ReactEditText extends AppCompatEditText {
+@@ -389,6 +394,10 @@ public class ReactEditText extends AppCompatEditText {
      mScrollWatcher = scrollWatcher;
    }
  
