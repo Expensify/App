@@ -79,6 +79,9 @@ function memoize<Fn extends MemoizeFnPredicate, Key, MaxArgs extends number = Pa
         return cached.value;
     };
 
+    /**
+     * Cache API attached to the memoized function. Currently there is an issue with typing cache keys, but the functionality works as expected.
+     */
     memoized.cache = cache;
 
     memoized.startMonitoring = () => stats.startMonitoring();

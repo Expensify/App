@@ -17,6 +17,13 @@ type Options<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key> = {
     monitor: boolean;
     maxArgs?: MaxArgs;
     monitoringName?: string;
+    /**
+     * Function to transform the arguments into a key, which is used to reference the result in the cache.
+     * When called with constructable (e.g. class, `new` keyword) functions, it won't get proper types for `truncatedArgs`
+     * Any viable fixes are welcome!
+     * @param truncatedArgs - Tuple of arguments passed to the memoized function (truncated to `maxArgs`). Does not work with constructable (see description).
+     * @returns - Key to use for caching
+     */
     transformKey?: (truncatedArgs: TakeFirst<Parameters<Fn>, MaxArgs>) => Key;
 } & InternalOptions;
 
