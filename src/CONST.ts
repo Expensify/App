@@ -664,6 +664,7 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
+        MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -842,6 +843,8 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+        },
+        UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
             BILL: 'bill',
         },
@@ -2346,6 +2349,8 @@ const CONST = {
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
+
+        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
     },
 
     PRONOUNS: {
@@ -5186,12 +5191,16 @@ const CONST = {
             REPORT: 'report',
         },
         ACTION_TYPES: {
-            DONE: 'done',
-            PAID: 'paid',
             VIEW: 'view',
             REVIEW: 'review',
+            DONE: 'done',
+            PAID: 'paid',
+        },
+        BULK_ACTION_TYPES: {
+            EXPORT: 'export',
             HOLD: 'hold',
             UNHOLD: 'unhold',
+            DELETE: 'delete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -5221,15 +5230,6 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
-        },
-        BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            HOLD: 'hold',
-            UNHOLD: 'unhold',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
-            EXPORT: 'export',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -5368,6 +5368,10 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 
