@@ -27,7 +27,7 @@ Please follow these steps if exporting as Expense Reports with **user-based perm
 3. Set up Employees in Sage Intacct **(Required if exporting as Expense Reports)**.
 4. Set up Expense Types in Sage Intacct **(Required if exporting as Expense Reports)**.
 5. Enable Customization Services (only applicable if you don't already use Platform Services).
-6. Create a test workspace and download the [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage).
+6. Create a test workspace and download the [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage).
 7. Upload the Package in Sage Intacct.
 8. Add web services authorization.
 9. Enter credentials and connect Expensify and Sage Intacct.
@@ -118,7 +118,7 @@ To enable Customization Services go to **Company > Subscriptions > Customization
    - If you already have Platform Services enabled, you can skip this step.
 
 
-### Step 6: Create a Test Workspace in Expensify and Download the [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage)
+### Step 6: Create a Test Workspace in Expensify and Download the [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage)
 Creating a test workspace in Expensify allows you to have a sandbox environment for testing before implementing the integration live. If you are already using Expensify, creating a test workspace ensures that your existing group workspace rules and approval workflows remain intact. Here's how to set it up:
 1. Go to **expensify.com > Settings > Workspaces > New Workspace**.
 2. Name the workspace something like "Sage Intacct Test Workspace."
@@ -160,7 +160,7 @@ Next, you’ll configure the Export, Coding, and Advanced tabs of the connection
 In this setup guide, we'll take you through the steps to establish your connection for Vendor Bills with user-based permissions. Please follow this checklist of items to complete:
 1. Create a web services user and set up permissions.
 2. Enable Customization Services (only required if you don't already use Platform Services).
-3. Create a test workspace in Expensify and download the [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage)
+3. Create a test workspace in Expensify and download the [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage)
 4. Upload the Package in Sage Intacct.
 5. Add web services authorization.
 6. Enter credentials and connect Expensify and Sage Intacct.
@@ -200,12 +200,12 @@ These are the permissions the user needs to have if exporting reimbursable expen
 To enable Customization Services go to **Company > Subscriptions > Customization Services**.
    - If you already have Platform Services enabled, you can skip this step.
 
-### Step 3: Create a Test Workspace in Expensify and Download [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage)
+### Step 3: Create a Test Workspace in Expensify and Download [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage)
 Creating a test workspace in Expensify allows you to establish a sandbox environment for testing before implementing the integration in a live environment. If you're already using Expensify, creating a test workspace ensures that your existing company workspace rules and approval workflows remain intact. Here's how to set it up:
 1. Go to **expensify.com > Settings > Workspaces > Groups > New Workspace**.
 2. Name the workspace something like "Sage Intacct Test Workspace."
 3. Go to **Connections > Sage Intacct > Connect to Sage Intacct**.
-4. Select "I've completed these" if you've downloaded the  [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage) and completed the previous steps in Sage Intacct.
+4. Select "I've completed these" if you've downloaded the  [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage) and completed the previous steps in Sage Intacct.
 5. Select **Download Package** (You only need to download the file; we'll upload it from your Downloads folder later).
 
 ### Step 4: Upload the Package in Sage Intacct
@@ -247,7 +247,7 @@ For this setup guide, we're going to walk you through how to get your connection
 3. Set up Employees in Sage Intacct
 4. Set up Expense Types in Sage Intacct
 5. Enable Customization Services (only applicable if you don't already use Platform Services)
-6. Create a test workspace and download the [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage)
+6. Create a test workspace and download the [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage)
 7. Upload the Package in Sage Intacct
 8. Add web services authorization
 9. Enter credentials and connect Expensify and Sage Intacct
@@ -329,7 +329,7 @@ Once you've setup your Chart of Accounts, to set Expense Types, go to **Time & E
 
 To enable, go **Company > Subscriptions > Customization Services** (if you already have Platform Services enabled, you will skip this step).
 
-### Step 6: Create a test workspace in Expensify and download  [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage)
+### Step 6: Create a test workspace in Expensify and download  [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage)
 
 The test workspace will be used as a sandbox environment where we can test before going live with the integration. If you're already using Expensify, creating a test workspace will ensure that your existing group workspace rules, approval workflow, etc remain intact. In order to set this up:
 
@@ -366,7 +366,7 @@ Follow the steps below to set up Sage Intacct with role-based permissions and ex
 
 1. Create a web services user and configure permissions.
 2. Enable Customization Services (if not using Platform Services).
-3. Create a test workspace in Expensify and download the [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage).
+3. Create a test workspace in Expensify and download the [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage).
 4. Upload the Package in Sage Intacct.
 5. Add web services authorization.
 6. Enter credentials and connect Expensify and Sage Intacct.
@@ -408,7 +408,7 @@ These are the permissions required for a user to export reimbursable expenses as
 Only required if you don't already use Platform Services:
 - To enable, go to **Company > Subscriptions > Customization Services**
 
-### Step 3: Create a test workspace in Expensify and download the  [Expensify Package](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fwww.expensify.com%2Ftools%2Fintegrations%2FdownloadPackage)
+### Step 3: Create a test workspace in Expensify and download the  [Expensify Package](https://www.expensify.com/tools/integrations/downloadPackage)
 
 Create a test workspace in Expensify:
 - Go to **Settings > Workspaces** and click **New Workspace** on the Expensify website.
