@@ -7412,11 +7412,61 @@ function mergeDuplicates(params: TransactionMergeParams) {
         };
     });
 
+    console.log('RORY_DEBUG reportID', params.reportID);
+    console.log('RORY_DEBUG transactionIDList', params.transactionIDList);
+    console.log('RORY_DEBUG reportActionsForReport', allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]);
+
+    const reportActionsToDelete = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.filter(
+        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                console.log(`RORY_DEBUG skipping reportAction ${reportAction.reportActionID} because it's not an IOU action`);
+                return false;
+            }
+            const message = ReportActionsUtils.getOriginalMessage(reportAction);
+            if (!message?.IOUTransactionID) {
+                console.log(`RORY_DEBUG skipping reportAction ${reportAction.reportActionID} because it doesn't have an IOUTransactionID`);
+                return false;
+            }
+            console.log(
+                `RORY_DEBUG reportAction ${reportAction.reportActionID} ${
+                    params.transactionIDList.includes(message.IOUTransactionID) ? 'will' : 'will not'
+                } be included because its IOUTransactionID does not match`,
+            );
+            return params.transactionIDList.includes(message.IOUTransactionID);
+        },
+    );
+
+    console.log('RORY_DEBUG reportActionsToDelete', reportActionsToDelete);
+
+    const deletedTime = DateUtils.getDBTime();
+    const optimisticReportActionsData: OnyxUpdate[] = reportActionsToDelete.map(({reportActionID}) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
+        value: {
+            [reportActionID]: {
+                originalMessage: {
+                    deleted: deletedTime,
+                },
+            },
+        },
+    }));
+    const failureReportActionsData: OnyxUpdate[] = reportActionsToDelete.map(({reportActionID}) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
+        value: {
+            [reportActionID]: {
+                originalMessage: {
+                    deleted: null,
+                },
+            },
+        },
+    }));
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations);
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations);
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations, ...optimisticReportActionsData);
+    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, ...failureReportActionsData);
 
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
