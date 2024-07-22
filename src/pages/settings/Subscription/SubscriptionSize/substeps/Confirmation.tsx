@@ -23,8 +23,10 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
+    const subscriptionSizeDraft = subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0;
+    const subscriptionSize = subscriptionSizeDraft || (privateSubscription?.userCount ?? 0);
 
-    const isTryingToIncreaseSubscriptionSize = (subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0) > (privateSubscription?.userCount ?? 0);
+    const isTryingToIncreaseSubscriptionSize = subscriptionSizeDraft > (privateSubscription?.userCount ?? 0);
     const canChangeSubscriptionSize = (account?.canDowngrade ?? false) || (isTryingToIncreaseSubscriptionSize && isEditing);
     const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
@@ -41,7 +43,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
                     <MenuItemWithTopDescription
                         interactive={false}
                         description={translate('subscription.subscriptionSize.subscriptionSize')}
-                        title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0})}
+                        title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSize})}
                     />
                     <MenuItemWithTopDescription
                         interactive={false}

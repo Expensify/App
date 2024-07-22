@@ -24,7 +24,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
-        [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
+        [SCREENS.REPORT_AVATAR]: {
+            path: ROUTES.REPORT_AVATAR.route,
+            parse: {
+                isNewGroupChat: (isNewGroupChat: string) => isNewGroupChat === 'true',
+            },
+        },
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
@@ -476,6 +481,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
