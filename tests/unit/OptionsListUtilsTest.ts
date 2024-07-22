@@ -2,6 +2,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SelectedTagOption} from '@components/TagPicker';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -153,6 +154,8 @@ describe('OptionsListUtils', () => {
             // This indicates that the report is archived
             stateNum: 2,
             statusNum: 2,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            private_isArchived: DateUtils.getDBTime(),
         },
     };
 
