@@ -220,7 +220,7 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const linkedReportActionID = route.params?.reportActionID ?? '-1';
+    const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -271,7 +271,9 @@ function ReportActionsList({
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
-                Navigation.setParams({referrer: undefined});
+                if (isFromNotification) {
+                    Navigation.setParams({referrer: undefined});
+                }
             } else {
                 readActionSkipped.current = true;
             }

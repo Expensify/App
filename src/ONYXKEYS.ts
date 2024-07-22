@@ -134,7 +134,7 @@ const ONYXKEYS = {
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
-    NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
+    NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
@@ -320,6 +320,9 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding error message to be displayed to the user */
+    ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
+
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
 
@@ -375,6 +378,9 @@ const ONYXKEYS = {
 
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
+
+    /** Stores the last export method for policy */
+    LAST_EXPORT_METHOD: 'lastExportMethod',
 
     /** Stores the information about the state of issuing a new card */
     ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
@@ -446,8 +452,11 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'card_',
 
-        /** The bank account that Expensify Card payments will be reconciled against */
+        /** Stores which connection is set up to use Continuous Reconciliation */
         SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',
+
+        /** The value that indicates whether Continuous Reconciliation should be used on the domain */
+        SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'sharedNVP_expensifyCard_useContinuousReconciliation_',
     },
 
     /** List of Form ids */
@@ -555,6 +564,8 @@ const ONYXKEYS = {
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
         WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
+        WORKSPACE_TAX_CODE_FORM: 'workspaceTaxCodeForm',
+        WORKSPACE_TAX_CODE_FORM_DRAFT: 'workspaceTaxCodeFormDraft',
         WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
         WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
@@ -564,6 +575,10 @@ const ONYXKEYS = {
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
         ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCard',
         ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardDraft',
+        EDIT_EXPENSIFY_CARD_NAME_FORM: 'editExpensifyCardName',
+        EDIT_EXPENSIFY_CARD_NAME_DRAFT_FORM: 'editExpensifyCardNameDraft',
+        EDIT_EXPENSIFY_CARD_LIMIT_FORM: 'editExpensifyCardLimit',
+        EDIT_EXPENSIFY_CARD_LIMIT_DRAFT_FORM: 'editExpensifyCardLimitDraft',
         SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
         SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
         NETSUITE_CUSTOM_FIELD_FORM: 'netSuiteCustomFieldForm',
@@ -636,10 +651,13 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM]: FormTypes.PolicyDistanceRateTaxReclaimableOnEditForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM]: FormTypes.WorkspaceTaxCodeForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
+    [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
+    [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
@@ -695,7 +713,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.BankAccount;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
 };
 
 type OnyxValuesMapping = {
@@ -748,6 +767,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
+    [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
@@ -801,6 +821,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
+    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;

@@ -22,6 +22,9 @@ export default {
     t0: {
         top: 0,
     },
+    t5: {
+        top: 20,
+    },
     tn4: {
         top: -16,
     },

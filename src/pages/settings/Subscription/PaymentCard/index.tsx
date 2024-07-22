@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import usePrevious from '@hooks/usePrevious';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +54,17 @@ function AddPaymentCard() {
         };
         PaymentMethods.addSubscriptionPaymentCard(cardData);
     }, []);
+
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
+
+    useEffect(() => {
+        if (prevFormDataSetupComplete || !formData?.setupComplete) {
+            return;
+        }
+
+        PaymentMethods.continueSetup();
+    }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
         <ScreenWrapper testID={AddPaymentCard.displayName}>
