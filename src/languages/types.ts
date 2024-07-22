@@ -1,5 +1,5 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {ConnectionName, Unit} from '@src/types/onyx/Policy';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
@@ -311,7 +311,7 @@ type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
-type ExportedToIntegrationParams = {label: ConnectionName};
+type ExportedToIntegrationParams = {label: string};
 
 type ForwardedParams = {amount: string; currency: string};
 
