@@ -42,6 +42,8 @@ type ConnectionWithLastSyncData = {
     lastSync?: ConnectionLastSync;
 };
 
+type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
+
 let allPolicies: OnyxCollection<Policy>;
 
 Onyx.connect({
@@ -521,11 +523,8 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function areXeroSettingsInErrorFields(
-    settings: Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>,
-    errorFields?: ErrorFields,
-) {
-    if (errorFields === undefined) {
+function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+    if (settings === undefined || errorFields === undefined) {
         return false;
     }
 
@@ -533,11 +532,8 @@ function areXeroSettingsInErrorFields(
     return settings.some((setting) => keys.includes(setting));
 }
 
-function xeroSettingsPendingAction(
-    settings: Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>,
-    pendingFields?: PendingFields<string>,
-): PendingAction | undefined {
-    if (pendingFields === undefined) {
+function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+    if (settings === undefined || pendingFields === undefined) {
         return null;
     }
 
@@ -890,4 +886,4 @@ export {
     xeroSettingsPendingAction,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, XeroSettings};
