@@ -217,7 +217,10 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const currentUnreadMarker = useMemo(() => {
+    /**
+     * The reportActionID the unread marker should display above
+     */
+    const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
             // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
             const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
@@ -310,7 +313,7 @@ function ReportActionsList({
             }
         }
 
-        if (!!currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
+        if (!!unreadMarkerReportActionID || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
         }
 
@@ -403,7 +406,7 @@ function ReportActionsList({
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker) {
+        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
             setIsFloatingMessageCounterVisible(true);
         }
 
@@ -452,8 +455,8 @@ function ReportActionsList({
      * This is so that it will not be conflicting with header's separator line.
      */
     const shouldHideThreadDividerLine = useMemo(
-        (): boolean => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline) === currentUnreadMarker,
-        [sortedReportActions, isOffline, currentUnreadMarker],
+        (): boolean => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline) === unreadMarkerReportActionID,
+        [sortedReportActions, isOffline, unreadMarkerReportActionID],
     );
 
     const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
@@ -528,7 +531,7 @@ function ReportActionsList({
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={reportAction.reportActionID === currentUnreadMarker}
+                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                 shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
@@ -546,15 +549,15 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
-            currentUnreadMarker,
+            unreadMarkerReportActionID,
         ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = useMemo(
-        () => [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report, reportNameValuePairs)],
-        [currentUnreadMarker, isSmallScreenWidth, report, reportNameValuePairs],
+        () => [isSmallScreenWidth ? unreadMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(report, reportNameValuePairs)],
+        [unreadMarkerReportActionID, isSmallScreenWidth, report, reportNameValuePairs],
     );
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
@@ -641,7 +644,7 @@ function ReportActionsList({
     return (
         <>
             <FloatingMessageCounter
-                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || canScrollToNewerComments}
+                isActive={(isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
