@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -21,6 +21,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -36,13 +37,10 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationOnyxProps = {
-    /** The policy collection */
-    allPolicies: OnyxEntry<OnyxCollection<Policy>>;
-
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
 
@@ -64,7 +62,6 @@ type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 function IOURequestStepConfirmation({
-    allPolicies,
     policy: policyReal,
     policyDraft,
     policyTags,
@@ -196,14 +193,9 @@ function IOURequestStepConfirmation({
     }, [transactionID, requestType, defaultCategory]);
 
     const navigateBack = useCallback(() => {
-        // If the action is categorize and there's no policies except personal one, we simply call goBack(), i.e: dismiss the whole flow together
-        if (
-            action === CONST.IOU.ACTION.CATEGORIZE &&
-            Object.values(allPolicies ?? {}).filter(
-                (individualPolicy) =>
-                    individualPolicy && individualPolicy.type !== CONST.POLICY.TYPE.PERSONAL && individualPolicy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            ).length === 0
-        ) {
+        // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
+        // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
+        if (action === CONST.IOU.ACTION.CATEGORIZE && PolicyUtils.hasNoPolicyOtherThanPersonalType()) {
             Navigation.goBack();
             return;
         }
@@ -215,7 +207,7 @@ function IOURequestStepConfirmation({
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [transaction, iouType, requestType, transactionID, reportID, action, allPolicies]);
+    }, [transaction, iouType, requestType, transactionID, reportID, action]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -647,9 +639,6 @@ function IOURequestStepConfirmation({
 IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
-    allPolicies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
     policy: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },

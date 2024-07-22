@@ -755,6 +755,13 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
+function hasNoPolicyOtherThanPersonalType() {
+    return (
+        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .length === 0
+    );
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -837,6 +844,7 @@ export {
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
+    hasNoPolicyOtherThanPersonalType,
 };
 
 export type {MemberEmailsToAccountIDs};
