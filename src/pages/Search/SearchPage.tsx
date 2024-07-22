@@ -3,6 +3,7 @@ import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import SearchV2 from '@components/Search/SearchV2';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,7 +12,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
-import SearchV2 from '@components/Search/SearchV2';
 
 type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 

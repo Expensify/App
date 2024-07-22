@@ -125,7 +125,7 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
-        showSubtitleAboveTitle
+        showSubtitleAboveTitle,
     ]);
 
     return (
