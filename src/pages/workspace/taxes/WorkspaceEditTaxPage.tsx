@@ -61,6 +61,7 @@ function WorkspaceEditTaxPage({
     if (!currentTaxRate) {
         return <NotFoundPage />;
     }
+    const taxCodeToShow = PolicyUtils.isControlPolicy(policy) ? taxID : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -130,7 +131,7 @@ function WorkspaceEditTaxPage({
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={taxID}
+                            title={taxCodeToShow}
                             description={translate('workspace.taxes.taxCode')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
