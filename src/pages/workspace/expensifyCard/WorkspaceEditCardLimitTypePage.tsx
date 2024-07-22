@@ -10,10 +10,12 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -117,7 +119,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.card.issueNewCard.limitType')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.card.issueNewCard.limitType')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
+                />
                 <SelectionList
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => setTypeSelected(value)}
