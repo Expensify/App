@@ -50,15 +50,14 @@ function SearchPageBottomTab() {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {!isMobileSelectionModeActive ? (
+                {!isMobileSelectionModeActive && queryJSON ? (
                     <>
                         <TopBar
                             activeWorkspaceID={policyIDs}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                        <SearchStatuses status={queryJSON!.status} />
+                        <SearchStatuses status={queryJSON.status} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -66,10 +65,9 @@ function SearchPageBottomTab() {
                         onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
                     />
                 )}
-                {isSmallScreenWidth && (
+                {isSmallScreenWidth && queryJSON && (
                     <Search
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        queryJSON={queryJSON!}
+                        queryJSON={queryJSON}
                         policyIDs={policyIDs}
                         isMobileSelectionModeActive={isMobileSelectionModeActive}
                         setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}

@@ -40,12 +40,12 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <Search
-                    // We won't show the Search if the query is undefined.
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    queryJSON={queryJSON!}
-                    policyIDs={route.params.policyIDs}
-                />
+                {queryJSON && (
+                    <Search
+                        queryJSON={queryJSON}
+                        policyIDs={route.params.policyIDs}
+                    />
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
