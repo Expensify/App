@@ -343,7 +343,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onPress={openRoleSelectionModal}
                                     />
                                     <MenuItem
-                                        style={styles.mv5}
+                                        style={styles.mb5}
                                         title={translate('common.profile')}
                                         icon={Expensicons.Info}
                                         onPress={navigateToProfile}
