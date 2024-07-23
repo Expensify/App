@@ -153,9 +153,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         }
 
         const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryString = SearchUtils.getQueryStringFromParams(currentSearchParams);
-        const isCustomQuery = SearchUtils.isCustomQueryFromParams(currentSearchParams);
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentQueryString);
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q);
 
         if (!currentQueryJSON) {
             return;
@@ -163,7 +161,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
         const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: String(Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE)});
 
-        navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
+        navigation.setParams({q: newQuery});
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -180,12 +178,10 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryString = SearchUtils.getQueryStringFromParams(currentSearchParams);
-        const isCustomQuery = SearchUtils.isCustomQueryFromParams(currentSearchParams);
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentQueryString);
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q);
 
         const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, sortBy: column, sortOrder: order});
-        navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
+        navigation.setParams({q: newQuery});
     };
 
     const isSortingAllowed = sortableSearchTabs.includes(status);

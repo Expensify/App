@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON, getQueryStringFromParams} from '@libs/SearchUtils';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -18,7 +18,7 @@ function SearchPage({route}: SearchPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(getQueryStringFromParams(route.params)), [route.params]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 

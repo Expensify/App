@@ -1,6 +1,6 @@
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {QueryKind, SearchQueryString} from './components/Search/types';
-import CONST from './CONST';
+import type {SearchQueryString} from './components/Search/types';
+import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
@@ -37,8 +37,8 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, queryKind = CONST.SEARCH.QUERY_KIND.CANNED_QUERY, policyIDs}: {query: SearchQueryString; queryKind?: QueryKind; policyIDs?: string}) =>
-            `search?${queryKind === CONST.SEARCH.QUERY_KIND.CANNED_QUERY ? 'q' : 'cq'}=${query}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
+        getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
+            `search?q=${query}&isCustomQuery=${isCustomQuery}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
     },
 
     SEARCH_ADVANCED_FILTERS: 'search/filters',

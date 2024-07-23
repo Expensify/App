@@ -5271,10 +5271,6 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
         },
-        QUERY_KIND: {
-            CANNED_QUERY: 'cannedQuery',
-            CUSTOM_QUERY: 'customQuery',
-        },
     },
 
     REFERRER: {

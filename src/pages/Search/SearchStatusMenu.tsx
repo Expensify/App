@@ -64,7 +64,7 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
     if (isSmallScreenWidth) {
         return (
             <SearchStatusMenuNarrow
-                filterItems={statusMenuItems}
+                statusMenuItems={statusMenuItems}
                 activeItemIndex={activeItemIndex}
             />
         );

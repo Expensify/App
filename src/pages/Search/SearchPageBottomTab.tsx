@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON, getQueryStringFromParams} from '@libs/SearchUtils';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +32,7 @@ function SearchPageBottomTab() {
         const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
 
         return {
-            queryJSON: buildSearchQueryJSON(getQueryStringFromParams(searchParams)),
+            queryJSON: buildSearchQueryJSON(searchParams.q),
             policyIDs: searchParams.policyIDs,
         };
     }, [activeCentralPaneRoute]);

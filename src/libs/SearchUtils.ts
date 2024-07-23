@@ -5,7 +5,6 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -305,15 +304,6 @@ function getCurrentSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-// Query may be in the q or cq parameter
-function getQueryStringFromParams(params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
-    return params.q ?? params.cq;
-}
-
-function isCustomQueryFromParams(params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
-    return !!params.cq;
-}
-
 function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
@@ -417,10 +407,8 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys
 }
 
 export {
-    isCustomQueryFromParams,
     buildSearchQueryJSON,
     buildSearchQueryString,
-    getQueryStringFromParams,
     getCurrentSearchParams,
     getListItem,
     getQueryHash,

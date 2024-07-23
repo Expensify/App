@@ -70,7 +70,11 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
 
     // Param types of the search central pane are also used for the search bottom tab screen.
-    [SCREENS.SEARCH.CENTRAL_PANE]: ({cq: SearchQueryString; q?: never} | {q: SearchQueryString; cq?: never}) & {policyIDs?: string};
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        q: SearchQueryString;
+        isCustomQuery: boolean;
+        policyIDs?: string;
+    };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
