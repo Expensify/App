@@ -52,7 +52,7 @@ type MoneyRequestViewTransactionOnyxProps = {
     /** The transaction associated with the transactionThread */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** The transaction backup of current transaction */
+    /** Backup version of the original transaction */
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Violations detected in this transaction */
