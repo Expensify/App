@@ -13,8 +13,8 @@ const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
 };
 
-const GRACE_PERIOD_DATE = new Date().getTime() + 1000;
-const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000*3600;
+const GRACE_PERIOD_DATE = new Date().getTime() + 1000*3600;
+const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
 
 const AMOUNT_OWED = 100;
 const STRIPE_CUSTOMER_ID: StripeCustomerID = {
