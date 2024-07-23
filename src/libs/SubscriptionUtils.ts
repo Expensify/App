@@ -203,7 +203,7 @@ function hasInsufficientFundsError() {
  * @returns The card to be used for subscription billing.
  */
 function getCardForSubscriptionBilling(): Fund | undefined {
-    return Object.values(fundList ?? {}).find((card) => card?.isDefault);
+    return Object.values(fundList ?? {}).find((card) => card?.accountData?.additionalData?.isBillingCard);
 }
 
 /**
@@ -363,7 +363,8 @@ function calculateRemainingFreeTrialDays(): number {
     }
 
     const currentDate = new Date();
-    const diffInSeconds = differenceInSeconds(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate), currentDate);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
+    const diffInSeconds = differenceInSeconds(lastDayFreeTrialDate, currentDate);
     const diffInDays = Math.ceil(diffInSeconds / 86400);
 
     return diffInDays < 0 ? 0 : diffInDays;
@@ -378,8 +379,10 @@ function isUserOnFreeTrial(): boolean {
     }
 
     const currentDate = new Date();
-    const firstDayFreeTrialDate = parseDate(firstDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+
+    // Free Trials are stored in UTC so the below code will convert the provided UTC datetime to local time
+    const firstDayFreeTrialDate = new Date(`${firstDayFreeTrial}Z`);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
     return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
 }

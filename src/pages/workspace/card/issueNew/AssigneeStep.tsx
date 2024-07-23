@@ -22,6 +22,7 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
@@ -56,7 +57,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
         Card.clearIssueNewCardFlow();
     };
 

@@ -392,7 +392,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
@@ -432,6 +432,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         policy,
         connectedIntegration,
         isPolicyAdmin,
+        isSingleTransactionView,
         canModifyTask,
         shouldShowMenuItem,
         isTaskReport,
@@ -712,22 +713,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         promotedActions={promotedActions}
                     />
 
-                    {menuItems.map((item) => {
-                        const brickRoadIndicator =
-                            ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    {menuItems.map((item) => (
+                        <MenuItem
+                            key={item.key}
+                            title={translate(item.translationKey)}
+                            subtitle={item.subtitle}
+                            icon={item.icon}
+                            onPress={item.action}
+                            isAnonymousAction={item.isAnonymousAction}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                        />
+                    ))}
 
                     {shouldShowDeleteButton && (
                         <MenuItem
