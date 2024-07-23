@@ -179,6 +179,7 @@ type GetOptionsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     action?: IOUAction;
+    shouldAcceptName?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -189,6 +190,7 @@ type GetUserToInviteConfig = {
     betas: OnyxEntry<Beta[]>;
     reportActions?: ReportActions;
     showChatPreviewLine?: boolean;
+    shouldAcceptName?: boolean;
 };
 
 type MemberForList = {
@@ -222,7 +224,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 
 type FilterOptionsConfig = Pick<
     GetOptionsConfig,
-    'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
+    'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'
 > & {preferChatroomsOverThreads?: boolean; includeChatRoomsByParticipants?: boolean};
 
 type HasText = {
@@ -1698,6 +1700,7 @@ function canCreateOptimisticPersonalDetailOption({
  * We create a new user option if the following conditions are satisfied:
  * - There's no matching recent report and personal detail option
  * - The searchValue is a valid email or phone number
+ * - If prop shouldAcceptName = true, the searchValue can be also a normal string
  * - The searchValue isn't the current personal detail login
  * - We can use chronos or the search value is not the chronos email
  */
@@ -1709,6 +1712,7 @@ function getUserToInviteOption({
     betas,
     reportActions = {},
     showChatPreviewLine = false,
+    shouldAcceptName = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
     const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
@@ -1723,7 +1727,7 @@ function getUserToInviteOption({
         !searchValue ||
         isCurrentUserLogin ||
         isInSelectedOption ||
-        (!isValidEmail && !isValidPhoneNumber) ||
+        (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) ||
         isInOptionToExclude ||
         (isChronosEmail && !Permissions.canUseChronos(betas)) ||
         excludeUnknownUsers
@@ -1744,7 +1748,7 @@ function getUserToInviteOption({
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
-    userToInvite.login = searchValue;
+    userToInvite.login = isValidEmail || isValidPhoneNumber ? searchValue : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     userToInvite.text = userToInvite.text || searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2481,6 +2485,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         excludeLogins = [],
         preferChatroomsOverThreads = false,
         includeChatRoomsByParticipants = false,
+        shouldAcceptName = false,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
@@ -2586,6 +2591,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 betas,
                 selectedOptions: config?.selectedOptions,
                 optionsToExclude,
+                shouldAcceptName,
             });
         }
     }
