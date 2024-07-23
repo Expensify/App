@@ -8,7 +8,7 @@ on:
 
 jobs:
   check:
-    name: conformity
+    name: 🧬 Conformity
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,9 @@ jobs:
         uses: ./.github/actions/composite/setupNode
       - name: Get list of compiled files (PR)
         id: new-list
-        run: echo "NEW_LIST=$(npx react-compiler-healthcheck --json)" >> "$GITHUB_OUTPUT"
+        run: |
+          NEW_LIST=$(npx react-compiler-healthcheck --json | jq -c .)
+          echo "NEW_LIST=$NEW_LIST" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
