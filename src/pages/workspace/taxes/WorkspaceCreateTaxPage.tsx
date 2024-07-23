@@ -97,6 +97,7 @@ function WorkspaceCreateTaxPage({
                                     maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
+                                    shouldSaveDraft
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}
@@ -110,6 +111,7 @@ function WorkspaceCreateTaxPage({
                                     // We increase the amount max length to support the extra decimals.
                                     amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                                     extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    shouldSaveDraft
                                 />
                             </View>
                         </FormProvider>
