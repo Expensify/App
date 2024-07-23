@@ -544,10 +544,10 @@ function ReportActionsList({
         const areSomeReportActionsUnread = sortedVisibleReportActions.some((reportAction) => {
             /**
              * The archived reports should not be marked as unread. So we are checking if the report is archived or not.
-             * If the report is archived and unread, we will mark the report as read.
+             * If the report is archived, we will mark the report as read.
              */
-            const isUnreadArchivedReport = ReportUtils.isArchivedRoom(report) && ReportUtils.isUnread(report);
-            const isUnread = isUnreadArchivedReport || (newMessageTimeReference && newMessageTimeReference < reportAction.created);
+            const isArchivedReport = ReportUtils.isArchivedRoom(report);
+            const isUnread = isArchivedReport || (newMessageTimeReference && newMessageTimeReference < reportAction.created);
             return (
                 isUnread && (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID()
             );
