@@ -226,14 +226,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
+    const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
+
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if (PolicyUtils.hasAccountingConnections(policy)) {
+        if (isMoneyRequestExported) {
             setIsUnapproveModalVisible(true);
             return;
         }
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [moneyRequestReport, policy]);
+    }, [isMoneyRequestExported, moneyRequestReport]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
@@ -392,7 +395,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
@@ -432,6 +435,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         policy,
         connectedIntegration,
         isPolicyAdmin,
+        isSingleTransactionView,
         canModifyTask,
         shouldShowMenuItem,
         isTaskReport,
@@ -488,6 +492,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
+                    shouldDisableViewPhoto
                     onImageRemoved={() => {
                         // Calling this without a file will remove the avatar
                         Report.updateGroupChatAvatar(report.reportID ?? '');
@@ -501,7 +506,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '-1')}
                     shouldUseStyleUtilityForAnchorPosition
                     style={[styles.w100, styles.mb3]}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 />
             );
         }
@@ -712,22 +716,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         promotedActions={promotedActions}
                     />
 
-                    {menuItems.map((item) => {
-                        const brickRoadIndicator =
-                            ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    {menuItems.map((item) => (
+                        <MenuItem
+                            key={item.key}
+                            title={translate(item.translationKey)}
+                            subtitle={item.subtitle}
+                            icon={item.icon}
+                            onPress={item.action}
+                            isAnonymousAction={item.isAnonymousAction}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                        />
+                    ))}
 
                     {shouldShowDeleteButton && (
                         <MenuItem

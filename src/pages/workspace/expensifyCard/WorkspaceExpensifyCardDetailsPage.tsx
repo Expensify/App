@@ -1,9 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -45,6 +46,7 @@ type WorkspaceExpensifyCardDetailsPageProps = StackScreenProps<SettingsNavigator
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
 
+    const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -59,6 +61,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const formattedLimit = CurrencyUtils.convertToDisplayString(card.nameValuePairs?.limit);
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card.nameValuePairs?.limitType);
+
+    const deactivateCard = () => {
+        setIsDeactivateModalVisible(false);
+
+        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407841
+
+        Navigation.goBack();
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -122,7 +132,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 description={translate('workspace.card.issueNewCard.limitType')}
                                 title={translationForLimitType ? translate(translationForLimitType) : ''}
                                 shouldShowRightIcon
-                                onPress={() => {}} // TODO: navigate to Edit limit type page https://github.com/Expensify/App/issues/44328
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.card.issueNewCard.cardName')}
@@ -135,7 +145,18 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 iconFill={theme.icon}
                                 title={translate('workspace.expensifyCard.deactivate')}
                                 style={styles.mv1}
-                                onPress={() => {}} // TODO: create Deactivate card logic https://github.com/Expensify/App/issues/44320
+                                onPress={() => setIsDeactivateModalVisible(true)}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.card.deactivateCardModal.deactivateCard')}
+                                isVisible={isDeactivateModalVisible}
+                                onConfirm={deactivateCard}
+                                onCancel={() => setIsDeactivateModalVisible(false)}
+                                shouldSetModalVisibility={false}
+                                prompt={translate('workspace.card.deactivateCardModal.deactivateConfirmation')}
+                                confirmText={translate('workspace.card.deactivateCardModal.deactivate')}
+                                cancelText={translate('common.cancel')}
+                                danger
                             />
                         </ScrollView>
                     </>
