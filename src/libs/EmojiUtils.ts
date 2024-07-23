@@ -42,7 +42,7 @@ Onyx.connect({
                     }
                     const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
                     if (!emojiWithSkinTones) {
-                        return null
+                        return null;
                     }
                     return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
