@@ -3580,6 +3580,7 @@ export default {
                 before: (date: string) => `Before ${date || ''}`,
                 after: (date: string) => `After ${date || ''}`,
             },
+            status: 'Status',
         },
     },
     genericErrorPage: {

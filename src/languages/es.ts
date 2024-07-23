@@ -3637,6 +3637,7 @@ export default {
                 before: (date: string) => `Antes de ${date || ''}`,
                 after: (date: string) => `Después de ${date || ''}`,
             },
+            status: 'Estado',
         },
     },
     genericErrorPage: {
