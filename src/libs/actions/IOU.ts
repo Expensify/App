@@ -63,7 +63,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type Nullable from '@src/types/utils/Nullable';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
@@ -7482,7 +7481,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const expenseReportActionsFailureData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
-        value: iouActionsToDelete.reduce<Record<string, Nullable<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
+        value: iouActionsToDelete.reduce<Record<string, NullishDeep<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
             // eslint-disable-next-line no-param-reassign
             val[reportAction.reportActionID] = {
                 originalMessage: {
