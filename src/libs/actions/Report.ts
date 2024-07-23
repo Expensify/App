@@ -1860,6 +1860,8 @@ function clearReportFieldErrors(reportID: string, reportField: PolicyReportField
 
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    const reportViolations = ReportUtils.getReportViolations(reportID);
+    const fieldViolation = ReportUtils.getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
@@ -1876,6 +1878,18 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             },
         },
     ];
+
+    if (fieldViolation) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`,
+            value: {
+                [fieldViolation]: {
+                    [reportField.fieldID]: null,
+                },
+            },
+        });
+    }
 
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({

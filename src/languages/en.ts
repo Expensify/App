@@ -4009,6 +4009,9 @@ export default {
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
         hold: 'Hold',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marked this receipt as cash.',

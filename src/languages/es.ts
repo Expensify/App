@@ -4530,6 +4530,9 @@ export default {
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Bloqueado',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} es obligatorio`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',
