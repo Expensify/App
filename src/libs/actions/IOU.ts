@@ -7509,7 +7509,13 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations, ...expenseReportOptimisticData, ...expenseReportActionsOptimisticData);
+    optimisticData.push(
+        optimisticTransactionData,
+        ...optimisticTransactionDuplicatesData,
+        ...optimisticTransactionViolations,
+        ...expenseReportOptimisticData,
+        ...expenseReportActionsOptimisticData,
+    );
     failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, ...expenseReportFailureData, ...expenseReportActionsFailureData);
 
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
