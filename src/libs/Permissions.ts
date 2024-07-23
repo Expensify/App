@@ -15,10 +15,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
-}
-
 function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
 }
