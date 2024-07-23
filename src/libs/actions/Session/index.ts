@@ -2,7 +2,7 @@ import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking, NativeModules} from 'react-native';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
@@ -95,6 +95,12 @@ let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
+});
+
+let activePolicyID: OnyxEntry<string> = '';
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (val) => (activePolicyID = val ?? ''),
 });
 
 function isSupportAuthToken(): boolean {
@@ -950,8 +956,8 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
             return;
         }
 
-        const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
-        Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => {
+        const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS, `${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
+        Onyx.clear(keysToPreserveWithPrivatePersonalDetails as OnyxKey[]).then(() => {
             // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
             updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
 
