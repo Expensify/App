@@ -278,7 +278,6 @@ type OptimisticChatReport = Pick<
     | 'description'
     | 'writeCapability'
     | 'avatarUrl'
-    | 'avatarFileName'
     | 'invoiceReceiver'
     | 'isHidden'
 > & {
@@ -1868,6 +1867,9 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 }
 
 const hiddenTranslation = Localize.translateLocal('common.hidden');
+
+const phoneNumberCache: Record<string, string> = {};
+
 /**
  * Get the displayName for a single report participant.
  */
@@ -1877,8 +1879,20 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     }
 
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+    if (!personalDetails) {
+        return '';
+    }
+
+    const login = personalDetails.login ?? '';
+
+    // Check if the phone number is already cached
+    let formattedLogin = phoneNumberCache[login];
+    if (!formattedLogin) {
+        formattedLogin = LocalePhoneNumber.formatPhoneNumber(login);
+        // Store the formatted phone number in the cache
+        phoneNumberCache[login] = formattedLogin;
+    }
+
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
@@ -3354,6 +3368,11 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return Localize.translateLocal('iou.heldExpense');
     }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+        return ReportActionsUtils.getExportIntegrationLastMessageText(reportAction);
+    }
+
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return Localize.translateLocal('iou.unheldExpense');
     }
@@ -3405,6 +3424,10 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
             return formatReportLastMessageText(formattedName);
+        }
+
+        if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isOldDotReportAction(parentReportAction)) {
+            return ReportActionsUtils.getMessageOfOldDotReportAction(parentReportAction);
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -4644,7 +4667,6 @@ function buildOptimisticChatReport(
     parentReportID = '',
     description = '',
     avatarUrl = '',
-    avatarFileName = '',
     optimisticReportID = '',
     shouldShowParticipants = true,
 ): OptimisticChatReport {
@@ -4686,7 +4708,6 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
         avatarUrl,
-        avatarFileName,
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
@@ -4704,7 +4725,6 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
-    avatarFileName: string,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -4723,7 +4743,6 @@ function buildOptimisticGroupChatReport(
         undefined,
         undefined,
         avatarUri,
-        avatarFileName,
         optimisticReportID,
     );
 }
@@ -5103,7 +5122,6 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         undefined,
         undefined,
         undefined,
-        undefined,
         expenseReportId,
     );
     const expenseChatReportID = expenseChatData.reportID;
@@ -5214,7 +5232,6 @@ function buildTransactionThread(
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReport?.reportID,
-        '',
         '',
         '',
         '',

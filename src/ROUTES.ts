@@ -254,10 +254,7 @@ const ROUTES = {
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
-        getRoute: (reportID: string, isNewGroupChat?: boolean, policyID?: string) => {
-            if (isNewGroupChat) {
-                return `r/${reportID}/avatar?isNewGroupChat=${isNewGroupChat}` as const;
-            }
+        getRoute: (reportID: string, policyID?: string) => {
             if (policyID) {
                 return `r/${reportID}/avatar?policyID=${policyID}` as const;
             }

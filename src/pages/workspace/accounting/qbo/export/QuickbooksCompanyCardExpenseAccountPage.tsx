@@ -35,7 +35,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                 includeSafeAreaPaddingBottom={false}
                 testID={QuickbooksCompanyCardExpenseAccountPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.exportCompanyCard')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
                     <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesExportDestination}>

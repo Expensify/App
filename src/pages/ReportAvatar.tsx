@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -20,46 +20,15 @@ type ReportAvatarOnyxProps = {
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, route}: ReportAvatarProps) {
-    const policyID = route.params.policyID;
+function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true}: ReportAvatarProps) {
+    const policyID = route.params.policyID ?? '-1';
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    let title;
-    let avatarURL;
-    let fileName;
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    let shouldShowNotFoundPage;
-
-    const shouldUseGroupChatDraft = !!route.params.isNewGroupChat;
-
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initWithStoredValues: shouldUseGroupChatDraft});
-
-    if (shouldUseGroupChatDraft) {
-        avatarURL = groupChatDraft?.avatarUri ?? undefined;
-        fileName = groupChatDraft?.avatarFileName ?? undefined;
-        // When user enters custom group name, it typically stored in groupChatDraft.reportName
-        // If that is null then we will use ReportUtils.getGroupChatName to get the name
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-        title = groupChatDraft?.reportName || ReportUtils.getGroupChatName(groupChatDraft?.participants.map((participant) => participant.accountID) ?? [], true);
-        shouldShowNotFoundPage = !isLoadingApp && !groupChatDraft;
-    } else {
-        if (policy) {
-            avatarURL = policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name);
-        } else {
-            avatarURL = report.policyID ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
-        }
-        // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
-        if (policy) {
-            fileName = policy?.originalFileName ?? policyID;
-        } else {
-            fileName = report?.policyID ?? report?.avatarFileName;
-        }
-        title = policy ? ReportUtils.getPolicyName(report, false, policy) : ReportUtils.getReportName(report);
-        shouldShowNotFoundPage = !isLoadingApp && !report?.reportID;
-    }
+    const policyName = ReportUtils.getPolicyName(report, false, policy);
+    const avatarURL = ReportUtils.getWorkspaceAvatar(report);
 
     return (
         <AttachmentModal
-            headerTitle={title}
+            headerTitle={policyName}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={() => {
@@ -67,8 +36,9 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
             }}
             isWorkspaceAvatar
             maybeIcon
-            originalFileName={fileName}
-            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
+            originalFileName={policy?.originalFileName ?? policy?.id ?? report?.policyID}
+            shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
     );
