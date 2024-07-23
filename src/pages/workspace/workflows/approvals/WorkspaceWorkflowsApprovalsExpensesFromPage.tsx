@@ -20,6 +20,9 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const {translate} = useLocalize();
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -30,7 +33,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
             >
                 <FullPageNotFoundView
-                    shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}

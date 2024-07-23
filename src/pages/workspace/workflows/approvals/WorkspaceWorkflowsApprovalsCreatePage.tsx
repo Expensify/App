@@ -20,6 +20,9 @@ type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoading
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const {translate} = useLocalize();
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -30,7 +33,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                 testID={WorkspaceWorkflowsApprovalsCreatePage.displayName}
             >
                 <FullPageNotFoundView
-                    shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
