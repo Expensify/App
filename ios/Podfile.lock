@@ -1343,27 +1343,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.3.3):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - react-native-pager-view/common (= 6.3.3)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-pager-view/common (6.3.3):
+  - react-native-pager-view (6.2.3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1891,7 +1871,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.105):
+  - RNLiveMarkdown (0.1.107):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1909,9 +1889,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.105)
+    - RNLiveMarkdown/common (= 0.1.107)
     - Yoga
-  - RNLiveMarkdown/common (0.1.105):
+  - RNLiveMarkdown/common (0.1.107):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2054,7 +2034,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (14.1.0):
+  - RNSVG (15.4.0):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2072,9 +2052,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 14.1.0)
+    - RNSVG/common (= 15.4.0)
     - Yoga
-  - RNSVG/common (14.1.0):
+  - RNSVG/common (15.4.0):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2588,7 +2568,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: 47c01b0741ae5fc84e53cf282e61cfa5c2edb19b
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 02d31de0e08ab043d48f2a1a8baade109d7b6ca5
-  react-native-pager-view: c7372cab7caef173f7f81d78520fe21f08805020
+  react-native-pager-view: ccd4bbf9fc7effaf8f91f8dae43389844d9ef9fa
   react-native-pdf: 762369633665ec02ac227aefe2f4558b92475c23
   react-native-performance: fb21ff0c9bd7a10789c69d948f25b0067d29f7a9
   react-native-plaid-link-sdk: ba40d1b13cca4b946974fafd9ae278e0fb697d87
@@ -2634,7 +2614,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: bae86068a0b80cda3d4875ac2a5a398955a94922
+  RNLiveMarkdown: f0c641a0bcf5fdea3ec1bb52a64b30ff88d25c1f
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: d2392b754e67bc14491f5b12588bef2864e783f3
@@ -2643,7 +2623,7 @@ SPEC CHECKSUMS:
   RNScreens: abd354e98519ed267600b7ee64fdcb8e060b1218
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 18f1381e046be2f1c30b4724db8d0c966238089f
+  RNSVG: 8c067e7203053d4c82f456cbeab1fe509ac797dd
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c

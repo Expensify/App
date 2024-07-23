@@ -6,7 +6,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Localize from './Localize';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
@@ -158,6 +159,13 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
+function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountList>) {
+    if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+        return [];
+    }
+    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -171,4 +179,5 @@ export {
     hasDetectedFraud,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    getEligibleBankAccountsForCard,
 };
