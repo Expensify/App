@@ -91,6 +91,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !isVisible || !isFocused) {
             return;
         }
+        setTimeRemaining(30);
         inputValidateCodeRef.current.focus();
     }, [isVisible, isFocused]);
 
