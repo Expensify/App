@@ -8,9 +8,9 @@ description: Configure Quickbooks Online
 A connection to QuickBooks Online lets you combine the power of Expensify's expense management features with QuickBooks’s accounting capabilities. By following the recommended best practices below, your finances will be automatically categorized correctly and accounted for in the right place. 
 
 - Configure your setup immediately after making the connection, and review each settings tab thoroughly.
-Keep Auto Sync enabled.
-- The daily auto sync will update Expensify with any changes to your chart of accounts, customers/projects, or bank accounts in QuickBooks Online.
-- Finalized reports will be exported to QuickBooks Online automatically, saving your admin team time with every report.
+- Keep Auto Sync enabled.
+    - The daily sync will update Expensify with any changes to your chart of accounts, customers/projects, or bank accounts in QuickBooks Online.
+    - Finalized reports will be exported to QuickBooks Online automatically, saving your admin team time with every report.
 - Set your preferred exporter to a user who is both a workspace and domain admin. 
 - Configure your coding settings and enforce them by requiring categories and tags on expenses. 
 
@@ -79,7 +79,7 @@ The following steps help you determine the advanced settings for your connection
 
 1. Click the **Configure** button under the QuickBooks Online connection to open the settings menu.
 2. Under the Advanced tab, review each of the following settings and configure the options you wish to use:
-    - Auto Sync: When enabled, the connection will sync daily to ensure that the data shared between the two systems is up-to-date. 
+    - _Auto Sync_: When enabled, the connection will sync daily to ensure that the data shared between the two systems is up-to-date. 
         - New report approvals/reimbursements will be synced during the next auto-sync period. 
         - Reimbursable expenses will export after reimbursement occurs or the report is marked as reimbursed outside Expensify when using Direct or Indirect reimbursement.
         - Non-reimbursable expenses will export automatically after the report is final approved. 
