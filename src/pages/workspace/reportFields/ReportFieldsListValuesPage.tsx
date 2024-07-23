@@ -22,6 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -97,6 +98,7 @@ function ReportFieldsListValuesPage({
         return [{data, isDisabled: false}];
     }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
 
@@ -136,7 +138,7 @@ function ReportFieldsListValuesPage({
     };
 
     const openListValuePage = (valueItem: ValueListItem) => {
-        if (valueItem.index === undefined) {
+        if (valueItem.index === undefined || hasAccountingConnections) {
             return;
         }
 
@@ -145,12 +147,26 @@ function ReportFieldsListValuesPage({
         setSelectedValues({});
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
-            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-        </View>
-    );
+    const getCustomListHeader = () => {
+        const header = (
+            <View
+                style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    !hasAccountingConnections && styles.pl3,
+                ]}
+            >
+                <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+            </View>
+        );
+        if (!hasAccountingConnections) {
+            return header;
+        }
+        return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -269,9 +285,9 @@ function ReportFieldsListValuesPage({
                     title={translate('workspace.reportFields.listValues')}
                     onBackButtonPress={Navigation.goBack}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
@@ -285,7 +301,7 @@ function ReportFieldsListValuesPage({
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionList
-                        canSelectMultiple
+                        canSelectMultiple={!hasAccountingConnections}
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}

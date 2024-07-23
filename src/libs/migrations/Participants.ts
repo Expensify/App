@@ -36,8 +36,8 @@ export default function (): Promise<void> {
         }
 
         const collection = Object.entries(reports).reduce<OldReportCollection>((reportsCollection, [onyxKey, report]) => {
-            // If we have participantAccountIDs then this report is eligible for migration
-            if (report?.participantAccountIDs) {
+            // If we have non-empty participantAccountIDs then this report is eligible for migration
+            if (report?.participantAccountIDs?.length) {
                 const participants: NullishDeep<Participants> = {};
 
                 const deprecatedParticipants = new Set(report.participantAccountIDs);
