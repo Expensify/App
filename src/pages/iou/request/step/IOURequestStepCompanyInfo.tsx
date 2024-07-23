@@ -7,14 +7,17 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import Navigation from '@navigation/Navigation';
-import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import withFullTransactionOrNotFound, {type WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
-import withWritableReportOrNotFound, {type WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepCompanyInfoProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO>;
@@ -39,10 +42,10 @@ function IOURequestStepCompanyInfo({route, transaction}: IOURequestStepCompanyIn
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
-                onSubmit={() => {}}
-                validate={() => {
-                    return {};
+                onSubmit={() => {
+                    playSound(SOUNDS.DONE);
                 }}
+                validate={() => ({})}
                 submitButtonText={translate('iou.sendInvoice', {amount: formattedAmount})}
                 enabledWhenOffline
             >

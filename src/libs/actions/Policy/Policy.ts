@@ -203,6 +203,13 @@ function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefine
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
 
+/** Check if the policy has invoicing company details */
+function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
+    // TODO: uncomment when invoicing details inside a policy are supported.
+    // return !!policy.invoice.companyName && !!policy.invoice.companyWebsite;
+    return true;
+}
+
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
@@ -3225,6 +3232,7 @@ export {
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
+    hasInvoicingDetails,
 };
 
 export type {NewCustomUnit};
