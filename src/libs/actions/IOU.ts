@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {PartialDeep, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -63,6 +63,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type Nullable from '@src/types/utils/Nullable';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
@@ -7412,10 +7413,6 @@ function mergeDuplicates(params: TransactionMergeParams) {
         };
     });
 
-    console.log('RORY_DEBUG reportID', params.reportID);
-    console.log('RORY_DEBUG transactionIDList', params.transactionIDList);
-    console.log('RORY_DEBUG reportActionsForReport', allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]);
-
     const duplicateTransactionTotals = params.transactionIDList.reduce((total, id) => {
         const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
         if (!duplicateTransaction) {
@@ -7425,53 +7422,41 @@ function mergeDuplicates(params: TransactionMergeParams) {
     }, 0);
 
     const expenseReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
-    const expenseReportOptimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
-            value: {
-                total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
-            },
+    const expenseReportOptimisticData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+        value: {
+            total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
         },
-    ];
-    const expenseReportFailureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
-            value: {
-                total: expenseReport?.total,
-            },
+    };
+    const expenseReportFailureData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+        value: {
+            total: expenseReport?.total,
         },
-    ];
+    };
 
     const iouActionsToDelete = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.filter(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                console.log(`RORY_DEBUG skipping reportAction ${reportAction.reportActionID} because it's not an IOU action`);
                 return false;
             }
             const message = ReportActionsUtils.getOriginalMessage(reportAction);
             if (!message?.IOUTransactionID) {
-                console.log(`RORY_DEBUG skipping reportAction ${reportAction.reportActionID} because it doesn't have an IOUTransactionID`);
                 return false;
             }
-            console.log(
-                `RORY_DEBUG reportAction ${reportAction.reportActionID} ${
-                    params.transactionIDList.includes(message.IOUTransactionID) ? 'will' : 'will not'
-                } be included because its IOUTransactionID does not match`,
-            );
             return params.transactionIDList.includes(message.IOUTransactionID);
         },
     );
 
-    console.log('RORY_DEBUG reportActionsToDelete', iouActionsToDelete);
-
     const deletedTime = DateUtils.getDBTime();
-    const expenseReportActionsOptimisticData: OnyxUpdate[] = iouActionsToDelete.map((reportAction) => ({
+    const expenseReportActionsOptimisticData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
-        value: {
-            [reportAction.reportActionID]: {
+        value: iouActionsToDelete.reduce<Record<string, PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
+            // eslint-disable-next-line no-param-reassign
+            val[reportAction.reportActionID] = {
                 originalMessage: {
                     deleted: deletedTime,
                 },
@@ -7490,21 +7475,24 @@ function mergeDuplicates(params: TransactionMergeParams) {
                         deleted: deletedTime,
                     },
                 }),
-            },
-        },
-    }));
-    const expenseReportActionsFailureData: OnyxUpdate[] = iouActionsToDelete.map((reportAction) => ({
+            };
+            return val;
+        }, {}),
+    };
+    const expenseReportActionsFailureData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
-        value: {
-            [reportAction.reportActionID]: {
+        value: iouActionsToDelete.reduce<Record<string, Nullable<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
+            // eslint-disable-next-line no-param-reassign
+            val[reportAction.reportActionID] = {
                 originalMessage: {
                     deleted: null,
                 },
                 message: reportAction.message,
-            },
-        },
-    }));
+            };
+            return val;
+        }, {}),
+    };
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -7513,10 +7501,10 @@ function mergeDuplicates(params: TransactionMergeParams) {
         optimisticTransactionData,
         ...optimisticTransactionDuplicatesData,
         ...optimisticTransactionViolations,
-        ...expenseReportOptimisticData,
-        ...expenseReportActionsOptimisticData,
+        expenseReportOptimisticData,
+        expenseReportActionsOptimisticData,
     );
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, ...expenseReportFailureData, ...expenseReportActionsFailureData);
+    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData);
 
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
