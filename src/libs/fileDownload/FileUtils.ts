@@ -1,5 +1,4 @@
 import {Str} from 'expensify-common';
-import {manipulateAsync} from 'expo-image-manipulator';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
@@ -7,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
@@ -305,17 +305,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
     if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         return Promise.resolve(file);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) =>
-        manipulateAsync(file.uri ?? '', [{resize: {width, height}}]).then((result) =>
-            fetch(result.uri)
-                .then((res) => res.blob())
-                .then((blob) => {
-                    const resizedFile = new File([blob], `${file.name}.jpeg`, {type: 'image/jpeg'});
-                    resizedFile.uri = URL.createObjectURL(resizedFile);
-                    return resizedFile;
-                }),
-        ),
-    );
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
 export {
     showGeneralErrorAlert,
