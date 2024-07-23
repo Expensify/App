@@ -343,6 +343,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onPress={openRoleSelectionModal}
                                     />
                                     <MenuItem
+                                        style={styles.mv5}
                                         title={translate('common.profile')}
                                         icon={Expensicons.Info}
                                         onPress={navigateToProfile}
@@ -366,6 +367,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     title={card.nameValuePairs?.cardTitle}
                                                     badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
                                                     icon={ExpensifyCardImage}
+                                                    displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
                                                     contentFit="contain"
                                                     iconWidth={variables.cardIconWidth}
