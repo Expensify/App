@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 const HEADER_HEIGHT = 80;
@@ -28,10 +29,16 @@ function EmptyCardView() {
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={Illustrations.EmptyCardState}
-                    headerStyles={[{overflow: 'hidden'}, isSmallScreenWidth && {maxHeight: 350}]}
+                    headerStyles={[
+                        {
+                            overflow: 'hidden',
+                            backgroundColor: colors.green700,
+                        },
+                        isSmallScreenWidth && {maxHeight: 250},
+                    ]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
-                    emptyStateContentStyles={isSmallScreenWidth ? {top: -BUTTON_HEIGHT} : undefined}
+                    emptyStateForegroundStyles={isSmallScreenWidth && {justifyContent: 'flex-start'}}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
