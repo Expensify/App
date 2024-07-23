@@ -36,7 +36,6 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     }
 
     if (fieldName === INPUT_IDS.TYPE) {
-        // return filters[fieldName] ? filters[fieldName].toUpperCase() : '';
         return filters[fieldName];
     }
 
