@@ -163,10 +163,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
-        (name) =>
-            !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration),
-    );
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration));
 
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
