@@ -5433,7 +5433,7 @@ function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
     const accountIDs = Object.entries(report?.participants ?? {}).map(([accountID]) => Number(accountID));
     const adminAccounts = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs).filter((login) => !PolicyUtils.isExpensifyTeam(login));
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '');
-    if ((ReportActionsUtils.isCreatedAction(lastVisibleAction) || report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED) && adminAccounts.length <= 1) {
+    if ((lastVisibleAction ? ReportActionsUtils.isCreatedAction(lastVisibleAction) : report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED) && adminAccounts.length <= 1) {
         return false;
     }
     return true;
