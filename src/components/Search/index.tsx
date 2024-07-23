@@ -161,7 +161,6 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
             return;
         }
 
-        // TODO_SEARCH: offset should be a number but it is a string.
         const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: String(Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE)});
 
         navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
