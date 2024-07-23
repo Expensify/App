@@ -10,11 +10,13 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,20 +31,22 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
 
     const policyID = route.params.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {config} = policy?.connections?.intacct ?? {};
+    const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const isReimbursable = route.params.reimbursable === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
 
     let defaultVendor;
     let settingName: keyof Connections['intacct']['config']['export'];
     if (!isReimbursable) {
-        const {nonReimbursable} = policy?.connections?.intacct?.config.export ?? {};
+        const {nonReimbursable} = exportConfig ?? {};
         defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
         settingName =
             nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
                 ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
                 : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
     } else {
-        const {reimbursableExpenseReportDefaultVendor} = policy?.connections?.intacct?.config.export ?? {};
+        const {reimbursableExpenseReportDefaultVendor} = exportConfig ?? {};
         defaultVendor = reimbursableExpenseReportDefaultVendor;
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
@@ -103,6 +107,10 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={config?.pendingFields?.[settingName]}
+            errors={ErrorUtils.getLatestErrorField(config, settingName)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, settingName)}
         />
     );
 }

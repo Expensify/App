@@ -85,7 +85,7 @@ function NetSuiteImportMappingPage({
                 updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
             }
 
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
         },
         [importField, importValue, policyID],
     );
@@ -93,7 +93,7 @@ function NetSuiteImportMappingPage({
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteImportMappingPage.displayName}
             sections={[{data: inputSectionData}]}

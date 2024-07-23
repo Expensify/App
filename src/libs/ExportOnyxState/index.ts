@@ -4,7 +4,7 @@ import common from './common';
 const readFromOnyxDatabase = () =>
     new Promise<Record<string, unknown>>((resolve) => {
         let db: IDBDatabase;
-        const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME, 1);
+        const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME);
         openRequest.onsuccess = () => {
             db = openRequest.result;
             const transaction = db.transaction(CONST.DEFAULT_TABLE_NAME);

@@ -7,10 +7,12 @@ import BillingBanner from './BillingBanner';
 function TrialStartedBillingBanner() {
     const {translate} = useLocalize();
 
+    const subtitle = !SubscriptionUtils.doesUserHavePaymentCardAdded() ? translate('subscription.billingBanner.trialStarted.subtitle') : '';
+
     return (
         <BillingBanner
             title={translate('subscription.billingBanner.trialStarted.title', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-            subtitle={translate('subscription.billingBanner.trialStarted.subtitle')}
+            subtitle={subtitle}
             icon={Illustrations.TreasureChest}
         />
     );

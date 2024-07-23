@@ -19,11 +19,19 @@ const CENTRAL_PANE_SCREEN_NAMES = new Set([
 
 const ONBOARDING_SCREEN_NAMES = new Set([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK, SCREENS.ONBOARDING_MODAL.ONBOARDING]);
 
+const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
+    const stateCopy = cloneDeep(state);
+    const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
+    if (bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
+        delete bottomTabRoute.params.policyID;
+    }
+    return stateCopy;
+};
+
 function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
     if (!screen) {
         return false;
     }
-
     return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
 }
 
@@ -34,14 +42,5 @@ function isOnboardingFlowName(screen: string | undefined): screen is OnboardingF
 
     return ONBOARDING_SCREEN_NAMES.has(screen as OnboardingFlowName);
 }
-
-const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
-    const stateCopy = cloneDeep(state);
-    const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
-    if (bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
-        delete bottomTabRoute.params.policyID;
-    }
-    return stateCopy;
-};
 
 export {isCentralPaneName, removePolicyIDParamFromState, isOnboardingFlowName};

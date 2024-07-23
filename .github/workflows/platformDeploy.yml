@@ -62,7 +62,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -80,37 +80,41 @@ jobs:
       - name: Set version in ENV
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
 
-      - name: Run Fastlane beta
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android beta
+      - name: Run Fastlane
+        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
         env:
+          RUBYOPT: '-rostruct'
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
-
-      - name: Run Fastlane production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android production
-        env:
           VERSION: ${{ env.VERSION_CODE }}
 
       - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-sourcemap-${{ github.ref_name }}
           path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
-      - name: Upload Android version to GitHub artifacts
+      - name: Upload Android build to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-production-release.aab
           path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
 
-      - name: Upload Android version to Browser Stack
+      - name: Upload Android build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload Android build to GitHub Release
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
+          gh run download "$RUN_ID" --name app-production-release.aab
+          gh release upload ${{ github.event.release.tag_name }} app-production-release.aab
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -147,9 +151,13 @@ jobs:
         env:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
-      - name: Build production desktop app
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build
+      - name: Build desktop app
+        run: |
+          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+            npm run desktop-build
+          else
+            npm run desktop-build-staging
+          fi
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -159,18 +167,23 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
 
+      - name: Upload desktop build to GitHub Workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: NewExpensify.dmg
+          path: desktop-build/NewExpensify.dmg
 
-      - name: Build staging desktop app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging
+      - name: Upload desktop build to GitHub Release
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: gh release upload ${{ github.event.release.tag_name }} desktop-build/NewExpensify.dmg
         env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Archive desktop sourcemaps
+        uses: actions/upload-artifact@v3
+        with:
+          name: desktop-sourcemap-${{ github.ref_name }}
+          path: desktop/dist/www/merged-source-map.js.map
 
   iOS:
     name: Build and deploy iOS
@@ -191,7 +204,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
+        uses: ruby/setup-ruby@v1.187.0
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -236,43 +249,45 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - name: Set iOS version in ENV
+        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
+
       - name: Run Fastlane
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios beta
+        run: bundle exec fastlane ios ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+          VERSION: ${{ env.IOS_VERSION }}
 
       - name: Archive iOS sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemap-${{ github.ref_name }}
           path: main.jsbundle.map
 
-      - name: Upload iOS version to GitHub artifacts
+      - name: Upload iOS build to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: New Expensify.ipa
           path: /Users/runner/work/App/App/New Expensify.ipa
 
-      - name: Upload iOS version to Browser Stack
+      - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Set iOS version in ENV
+      - name: Upload iOS build to GitHub Release
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
-
-      - name: Run Fastlane for App Store release
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios production
+        run: |
+          RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
+          gh run download "$RUN_ID" --name 'New Expensify.ipa'
+          gh release upload ${{ github.event.release.tag_name }} 'New Expensify.ipa'
         env:
-          VERSION: ${{ env.IOS_VERSION }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -314,41 +329,39 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Build web for production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run build
+      - name: Build web
+        run: |
+          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+            npm run build
+          else
+            npm run build-staging
+          fi
 
-      - name: Build web for staging
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run build-staging
-
-      - name: Build storybook docs for production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run storybook-build
+      - name: Build storybook docs
         continue-on-error: true
+        run: |
+          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+            npm run storybook-build
+          else
+            npm run storybook-build-staging
+          fi
 
-      - name: Build storybook docs for staging
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run storybook-build-staging
-        continue-on-error: true
-
-      - name: Deploy production to S3
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/.well-known/apple-app-site-association && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://expensify-cash/.well-known/apple-app-site-association s3://expensify-cash/apple-app-site-association
-
-      - name: Deploy staging to S3
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://staging-expensify-cash/ && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/.well-known/apple-app-site-association && aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE s3://staging-expensify-cash/.well-known/apple-app-site-association s3://staging-expensify-cash/apple-app-site-association
-
-      - name: Purge production Cloudflare cache
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      - name: Deploy to S3
+        run: |
+          aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist ${{ env.S3_URL }}/
+          aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
+          aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+          S3_URL: s3://${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && '' || 'staging-' }}expensify-cash
 
-      - name: Purge staging Cloudflare cache
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      - name: Archive web sourcemaps
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-sourcemap-${{ github.ref_name }}
+          path: dist/merged-source-map.js.map
+
+      - name: Purge Cloudflare cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && '' || 'staging.' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
