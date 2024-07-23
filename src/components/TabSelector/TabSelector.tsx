@@ -4,19 +4,19 @@ import type {Animated} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabSelectorItem from './TabSelectorItem';
-import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
 
-   registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
+    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 type IconAndTitle = {
@@ -86,12 +86,16 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, regist
     }, [defaultAffectedAnimatedTabs, state.index]);
 
     return (
-        <View style={styles.tabSelector} ref={(viewNode) => {
-            if(viewNode) {
-                const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+        <View
+            style={styles.tabSelector}
+            ref={(viewNode) => {
+                if (!viewNode) {
+                    return;
+                }
+                const unregister = registerFocusTrapContainer?.(viewNode);
                 return () => unregister?.();
-            }
-        }}>
+            }}
+        >
             {state.routes.map((route, index) => {
                 const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);

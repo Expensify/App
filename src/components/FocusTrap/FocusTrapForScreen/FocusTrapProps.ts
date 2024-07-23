@@ -1,4 +1,4 @@
-import type FocusTrap from "focus-trap-react";
+import type FocusTrap from 'focus-trap-react';
 
 type FocusTrapForScreenProps = {
     children: React.ReactNode;

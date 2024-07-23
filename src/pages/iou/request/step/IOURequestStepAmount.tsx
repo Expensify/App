@@ -5,6 +5,7 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -26,7 +27,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type AmountParams = {
     amount: string;

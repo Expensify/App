@@ -1,9 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type IOURequestStepOnyxProps = {
     user: OnyxEntry<OnyxTypes.User>;

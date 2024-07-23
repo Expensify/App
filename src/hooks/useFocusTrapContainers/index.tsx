@@ -1,7 +1,5 @@
-import { UseFocusTrapContainers } from "./type"
+import type {UseFocusTrapContainers} from './type';
 
-const useFocusTrapContainers: UseFocusTrapContainers = () => {
-  return [[], () => () => {}]
-}
+const useFocusTrapContainers: UseFocusTrapContainers = () => [[], () => () => {}];
 
 export default useFocusTrapContainers;

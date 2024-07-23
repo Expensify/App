@@ -11,6 +11,7 @@ import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInp
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
+import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
@@ -69,7 +69,7 @@ type MoneyRequestAmountFormProps = {
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback
+    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -95,7 +95,7 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
-        registerFocusTrapContainer
+        registerFocusTrapContainer,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -255,12 +255,16 @@ function MoneyRequestAmountForm(
     }, [selectedTab]);
 
     return (
-        <ScrollView ref={(scrollViewNode) => {
-            if(scrollViewNode) {
-                const unregister = registerFocusTrapContainer?.(scrollViewNode as unknown as HTMLElement);
+        <ScrollView
+            ref={(scrollViewNode) => {
+                if (!scrollViewNode) {
+                    return;
+                }
+                const unregister = registerFocusTrapContainer?.(scrollViewNode);
                 return () => unregister?.();
-            }
-        }} contentContainerStyle={styles.flexGrow1}>
+            }}
+            contentContainerStyle={styles.flexGrow1}
+        >
             <View
                 id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}

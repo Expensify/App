@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -9,7 +10,6 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
-import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */

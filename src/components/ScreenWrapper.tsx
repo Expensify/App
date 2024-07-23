@@ -20,13 +20,13 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
+import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
 import withNavigationFallback from './withNavigationFallback';
-import FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -129,7 +129,7 @@ function ScreenWrapper(
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
-        focusTrapSettings
+        focusTrapSettings,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {

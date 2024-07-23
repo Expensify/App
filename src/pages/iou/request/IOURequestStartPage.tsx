@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -7,19 +6,20 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useFocusTrapContainers from '@hooks/useFocusTrapContainers';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as KeyDownPressListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as IOU from '@userActions/IOU';
 import type {IOURequestType} from '@userActions/IOU';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -29,7 +29,6 @@ import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
-import useFocusTrapContainers from '@hooks/useFocusTrapContainers';
 
 type IOURequestStartPageOnyxProps = {
     /** The report that holds the transaction */
@@ -77,21 +76,6 @@ function IOURequestStartPage({
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
-    // useFocusEffect(
-    //     useCallback(() => {
-    //         const handler = (event: KeyboardEvent) => {
-    //             if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-    //                 return;
-    //             }
-    //             event.preventDefault();
-    //             event.stopPropagation();
-    //         };
-    //         KeyDownPressListener.addKeyDownPressListener(handler);
-
-    //         return () => KeyDownPressListener.removeKeyDownPressListener(handler);
-    //     }, []),
-    // );
-
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction?.reportID === reportID) {
@@ -118,19 +102,32 @@ function IOURequestStartPage({
         [policy, reportID, isFromGlobalCreate, transaction],
     );
 
-    const [containers, addContainer] = useFocusTrapContainers();
+    const [otherContainers, addOtherContainer] = useFocusTrapContainers();
     const [manualTabContainers, addManualTabContainer] = useFocusTrapContainers();
     const [scanTabContainers, addScanTabContainer] = useFocusTrapContainers();
     const [distanceTabContainers, addDistanceTabContainer] = useFocusTrapContainers();
 
-    const focusTrapContainers = [
-        ...containers,
-        ...(selectedTab === CONST.TAB_REQUEST.MANUAL ? manualTabContainers : []),
-        ...(selectedTab === CONST.TAB_REQUEST.SCAN ? scanTabContainers : []),
-        ...(selectedTab === CONST.TAB_REQUEST.DISTANCE ? distanceTabContainers : []),
-    ]
+    const focusTrapContainers = useMemo<HTMLElement[]>(
+        () =>
+            [
+                ...otherContainers,
+                ...(selectedTab === CONST.TAB_REQUEST.MANUAL ? manualTabContainers : []),
+                ...(selectedTab === CONST.TAB_REQUEST.SCAN ? scanTabContainers : []),
+                ...(selectedTab === CONST.TAB_REQUEST.DISTANCE ? distanceTabContainers : []),
+            ] as HTMLElement[],
+        [otherContainers, manualTabContainers, scanTabContainers, distanceTabContainers, selectedTab],
+    );
 
-    console.log(focusTrapContainers);
+    const TabSelectorWithFocusTrapInclusion = useCallback(
+        (props: TabSelectorProps) => (
+            <TabSelector
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                registerFocusTrapContainer={addOtherContainer}
+            />
+        ),
+        [addOtherContainer],
+    );
 
     if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
@@ -163,18 +160,13 @@ function IOURequestStartPage({
                             <HeaderWithBackButton
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
-                                registerFocusTrapContainer={addContainer}
+                                registerFocusTrapContainer={addOtherContainer}
                             />
                             {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}
-                                    tabBar={(props) => (
-                                        <TabSelector
-                                            {...props}
-                                            registerFocusTrapContainer={addContainer}
-                                        />
-                                    )}
+                                    tabBar={TabSelectorWithFocusTrapInclusion}
                                 >
                                     <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                         {() => (
@@ -185,8 +177,24 @@ function IOURequestStartPage({
                                             />
                                         )}
                                     </TopTab.Screen>
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan registerFocusTrapContainer={addScanTabContainer} route={route} />}</TopTab.Screen>
-                                    {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} registerFocusTrapContainer={addDistanceTabContainer} />}</TopTab.Screen>}
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
+                                        {() => (
+                                            <IOURequestStepScan
+                                                registerFocusTrapContainer={addScanTabContainer}
+                                                route={route}
+                                            />
+                                        )}
+                                    </TopTab.Screen>
+                                    {shouldDisplayDistanceRequest && (
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                            {() => (
+                                                <IOURequestStepDistance
+                                                    route={route}
+                                                    registerFocusTrapContainer={addDistanceTabContainer}
+                                                />
+                                            )}
+                                        </TopTab.Screen>
+                                    )}
                                 </OnyxTabNavigator>
                             ) : (
                                 <IOURequestStepAmount

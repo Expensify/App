@@ -13,6 +13,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -37,7 +38,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import { RegisterFocusTrapContainerCallback } from '@hooks/useFocusTrapContainers/type';
 
 type IOURequestStepDistanceOnyxProps = {
     /** backup version of the original transaction  */
@@ -469,12 +469,16 @@ function IOURequestStepDistance({
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
-                <View style={styles.flex1} ref={(viewNode) => {
-                    if(viewNode) {
-                        const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+                <View
+                    style={styles.flex1}
+                    ref={(viewNode) => {
+                        if (!viewNode) {
+                            return;
+                        }
+                        const unregister = registerFocusTrapContainer?.(viewNode);
                         return () => unregister?.();
-                    }
-                }}>
+                    }}
+                >
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}

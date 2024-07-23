@@ -690,12 +690,16 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <View ref={(viewNode) => {
-                    if (viewNode) {
-                        const unregister = registerFocusTrapContainer?.(viewNode as unknown as HTMLElement);
+                <View
+                    ref={(viewNode) => {
+                        if (!viewNode) {
+                            return;
+                        }
+                        const unregister = registerFocusTrapContainer?.(viewNode);
                         return () => unregister?.();
-                    }
-                }} style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                    }}
+                    style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}
+                >
                     {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                     <ReceiptDropUI
                         onDrop={(e) => {
