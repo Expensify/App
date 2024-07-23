@@ -19,9 +19,9 @@ function ChangeBillingCurrency() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
-    const changeBillingCurrency = useCallback((currency?: ValueOf<typeof CONST.CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
+    const changeBillingCurrency = useCallback((currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
         if (values?.securityCode) {
-            PaymentMethods.updateBillingCurrency(currency ?? CONST.CURRENCY.USD, values.securityCode);
+            PaymentMethods.updateBillingCurrency(currency ?? CONST.PAYMENT_CARD_CURRENCY.USD, values.securityCode);
         }
         Navigation.goBack();
     }, []);

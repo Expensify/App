@@ -3,7 +3,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
+import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +43,7 @@ function StateSelector(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const stateFromUrl = useGeographicalStateFromRoute();
+    const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const didOpenStateSelector = useRef(false);
     const isFocused = useIsFocused();
@@ -71,7 +71,7 @@ function StateSelector(
         // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
     const title = stateCode && Object.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';

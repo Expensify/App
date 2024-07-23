@@ -23,6 +23,9 @@ type SwitchProps = {
 
     /** Whether to show the lock icon even if the switch is enabled */
     showLockIcon?: boolean;
+
+    /** Callback to fire when the switch is toggled in disabled state */
+    disabledAction?: () => void;
 };
 
 const OFFSET_X = {
@@ -30,13 +33,17 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
     const theme = useTheme();
 
     const handleSwitchPress = () => {
         InteractionManager.runAfterInteractions(() => {
+            if (disabled) {
+                disabledAction?.();
+                return;
+            }
             onToggle(!isOn);
         });
     };
@@ -51,7 +58,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon}: Sw
 
     return (
         <PressableWithFeedback
-            disabled={disabled}
+            disabled={!disabledAction && disabled}
             style={[styles.switchTrack, !isOn && styles.switchInactive]}
             onPress={handleSwitchPress}
             onLongPress={handleSwitchPress}

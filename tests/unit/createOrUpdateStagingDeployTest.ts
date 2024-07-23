@@ -34,7 +34,7 @@ beforeAll(() => {
     const moctokit = {
         rest: {
             issues: {
-                create: jest.fn().mockImplementation((arg) =>
+                create: jest.fn().mockImplementation((arg: Arguments) =>
                     Promise.resolve({
                         data: {
                             ...arg,

@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,7 +12,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +30,13 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected, onboardingAdminsChatReportID}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({
+    currentUserPersonalDetails,
+    shouldUseNativeStyles,
+    onboardingPurposeSelected,
+    onboardingAdminsChatReportID,
+    onboardingPolicyID,
+}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -40,7 +45,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {accountID} = useSession();
 
-    useDisableModalDismissOnEscape();
+    useEffect(() => {
+        Welcome.setOnboardingErrorMessage('');
+    }, []);
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -61,6 +68,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     lastName,
                 },
                 onboardingAdminsChatReportID ?? undefined,
+                onboardingPolicyID,
             );
 
             Welcome.setOnboardingAdminsChatReportID();
@@ -84,7 +92,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -193,6 +201,9 @@ export default withCurrentUserPersonalDetails(
         },
         onboardingAdminsChatReportID: {
             key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
+        },
+        onboardingPolicyID: {
+            key: ONYXKEYS.ONBOARDING_POLICY_ID,
         },
     })(BaseOnboardingPersonalDetails),
 );

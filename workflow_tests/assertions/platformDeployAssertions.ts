@@ -49,32 +49,30 @@ function assertAndroidJobExecuted(workflowResult: Step[], didExecute = true, isP
         createStepAssertion('Decrypt keystore', true, null, 'ANDROID', 'Decrypting keystore', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         createStepAssertion('Decrypt json key', true, null, 'ANDROID', 'Decrypting JSON key', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         createStepAssertion('Set version in ENV', true, null, 'ANDROID', 'Setting version in ENV'),
-    ];
-
-    if (!isProduction) {
-        steps.push(
-            createStepAssertion('Run Fastlane beta', true, null, 'ANDROID', 'Running Fastlane beta', null, [
-                {key: 'MYAPP_UPLOAD_STORE_PASSWORD', value: '***'},
-                {key: 'MYAPP_UPLOAD_KEY_PASSWORD', value: '***'},
-            ]),
-        );
-    } else {
-        steps.push(createStepAssertion('Run Fastlane production', true, null, 'ANDROID', 'Running Fastlane production', null, [{key: 'VERSION', value: '1.2.3'}]));
-    }
-    steps.push(
+        createStepAssertion('Run Fastlane', true, null, 'ANDROID', 'Running Fastlane', null, [
+            {key: 'RUBYOPT', value: '-rostruct'},
+            {key: 'MYAPP_UPLOAD_STORE_PASSWORD', value: '***'},
+            {key: 'MYAPP_UPLOAD_KEY_PASSWORD', value: '***'},
+            {key: 'VERSION', value: '1.2.3'},
+        ]),
         createStepAssertion('Archive Android sourcemaps', true, null, 'ANDROID', 'Archiving Android sourcemaps', [
             // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
             {key: 'name', value: 'android-sourcemap-1.2.3'},
             {key: 'path', value: 'android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map'},
         ]),
-    );
-    if (!isProduction) {
+    ];
+
+    if (isProduction) {
         steps.push(
-            createStepAssertion('Upload Android version to GitHub artifacts', true, null, 'ANDROID', 'Upload Android version to GitHub artifacts', [
+            createStepAssertion('Upload Android build to GitHub Release', true, null, 'ANDROID', 'Uploading Android build to GitHub Release', null, [{key: 'GITHUB_TOKEN', value: '***'}]),
+        );
+    } else {
+        steps.push(
+            createStepAssertion('Upload Android build to GitHub artifacts', true, null, 'ANDROID', 'Uploading Android build to GitHub artifacts', [
                 {key: 'name', value: 'app-production-release.aab'},
                 {key: 'path', value: 'android/app/build/outputs/bundle/productionRelease/app-production-release.aab'},
             ]),
-            createStepAssertion('Upload Android version to Browser Stack', true, null, 'ANDROID', 'Uploading Android version to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]),
+            createStepAssertion('Upload Android build to Browser Stack', true, null, 'ANDROID', 'Uploading Android build to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]),
         );
     }
 
@@ -115,31 +113,33 @@ function assertDesktopJobExecuted(workflowResult: Step[], didExecute = true, isP
         createStepAssertion('Checkout', true, null, 'DESKTOP', 'Checking out'),
         createStepAssertion('Setup Node', true, null, 'DESKTOP', 'Setting up Node'),
         createStepAssertion('Decrypt Developer ID Certificate', true, null, 'DESKTOP', 'Decrypting developer id certificate', null, [{key: 'DEVELOPER_ID_SECRET_PASSPHRASE', value: '***'}]),
+        createStepAssertion('Build desktop app', true, null, 'DESKTOP', 'Building desktop app', null, [
+            {key: 'CSC_LINK', value: '***'},
+            {key: 'CSC_KEY_PASSWORD', value: '***'},
+            {key: 'APPLE_ID', value: '***'},
+            {key: 'APPLE_APP_SPECIFIC_PASSWORD', value: '***'},
+            {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+            {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+        ]),
+        createStepAssertion('Upload desktop build to GitHub Workflow', true, null, 'DESKTOP', 'Uploading desktop build to GitHub Workflow', [
+            {key: 'name', value: 'NewExpensify.dmg'},
+            {key: 'path', value: 'desktop-build/NewExpensify.dmg'},
+        ]),
     ];
 
     if (isProduction) {
         steps.push(
-            createStepAssertion('Build production desktop app', true, null, 'DESKTOP', 'Building production desktop app', null, [
-                {key: 'CSC_LINK', value: '***'},
-                {key: 'CSC_KEY_PASSWORD', value: '***'},
-                {key: 'APPLE_ID', value: '***'},
-                {key: 'APPLE_APP_SPECIFIC_PASSWORD', value: '***'},
-                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
-            ]),
-        );
-    } else {
-        steps.push(
-            createStepAssertion('Build staging desktop app', true, null, 'DESKTOP', 'Building staging desktop app', null, [
-                {key: 'CSC_LINK', value: '***'},
-                {key: 'CSC_KEY_PASSWORD', value: '***'},
-                {key: 'APPLE_ID', value: '***'},
-                {key: 'APPLE_APP_SPECIFIC_PASSWORD', value: '***'},
-                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
-            ]),
+            createStepAssertion('Upload desktop build to GitHub Release', true, null, 'DESKTOP', 'Uploading desktop build to GitHub Release', null, [{key: 'GITHUB_TOKEN', value: '***'}]),
         );
     }
+
+    steps.push(
+        createStepAssertion('Archive desktop sourcemaps', true, null, 'DESKTOP', 'Archiving desktop sourcemaps', [
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'desktop-sourcemap-1.2.3'},
+            {key: 'path', value: 'desktop/dist/www/merged-source-map.js.map'},
+        ]),
+    );
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -174,37 +174,30 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
         createStepAssertion('Decrypt AppStore Notification Service profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypting certificate', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         createStepAssertion('Decrypt App Store Connect API key', true, null, 'IOS', 'Decrypting App Store API key', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
-    ];
-
-    if (!isProduction) {
-        steps.push(
-            createStepAssertion('Run Fastlane', true, null, 'IOS', 'Running Fastlane', null, [
-                {key: 'APPLE_CONTACT_EMAIL', value: '***'},
-                {key: 'APPLE_CONTACT_PHONE', value: '***'},
-                {key: 'APPLE_DEMO_EMAIL', value: '***'},
-                {key: 'APPLE_DEMO_PASSWORD', value: '***'},
-            ]),
-        );
-    }
-    steps.push(
+        createStepAssertion('Set iOS version in ENV', true, null, 'IOS', 'Setting iOS version'),
+        createStepAssertion('Run Fastlane', true, null, 'IOS', 'Running Fastlane', null, [
+            {key: 'APPLE_CONTACT_EMAIL', value: '***'},
+            {key: 'APPLE_CONTACT_PHONE', value: '***'},
+            {key: 'APPLE_DEMO_EMAIL', value: '***'},
+            {key: 'APPLE_DEMO_PASSWORD', value: '***'},
+            {key: 'VERSION', value: '1.2.3'},
+        ]),
         createStepAssertion('Archive iOS sourcemaps', true, null, 'IOS', 'Archiving sourcemaps', [
             // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
             {key: 'name', value: 'ios-sourcemap-1.2.3'},
             {key: 'path', value: 'main.jsbundle.map'},
         ]),
-    );
-    if (!isProduction) {
+    ];
+
+    if (isProduction) {
+        steps.push(createStepAssertion('Upload iOS build to GitHub Release', true, null, 'IOS', 'Uploading iOS build to GitHub Release', null, [{key: 'GITHUB_TOKEN', value: '***'}]));
+    } else {
         steps.push(
-            createStepAssertion('Upload iOS version to GitHub artifacts', true, null, 'IOS', 'Upload iOS version to GitHub artifacts', [
+            createStepAssertion('Upload iOS build to GitHub artifacts', true, null, 'IOS', 'Uploading iOS build to GitHub artifacts', [
                 {key: 'name', value: 'New Expensify.ipa'},
                 {key: 'path', value: '/Users/runner/work/App/App/New Expensify.ipa'},
             ]),
-            createStepAssertion('Upload iOS version to Browser Stack', true, null, 'IOS', 'Uploading version to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]),
-        );
-    } else {
-        steps.push(
-            createStepAssertion('Set iOS version in ENV', true, null, 'IOS', 'Setting iOS version'),
-            createStepAssertion('Run Fastlane for App Store release', true, null, 'IOS', 'Running Fastlane for release', null, [{key: 'VERSION', value: '1.2.3'}]),
+            createStepAssertion('Upload iOS build to Browser Stack', true, null, 'IOS', 'Uploading build to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]),
         );
     }
 
@@ -240,7 +233,7 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
     });
 }
 
-function assertWebJobExecuted(workflowResult: Step[], didExecute = true, isProduction = true) {
+function assertWebJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
         createStepAssertion('Checkout', true, null, 'WEB', 'Checking out'),
         createStepAssertion('Setup Node', true, null, 'WEB', 'Setting up Node'),
@@ -252,21 +245,17 @@ function assertWebJobExecuted(workflowResult: Step[], didExecute = true, isProdu
         ]),
     ];
 
-    if (isProduction) {
-        steps.push(
-            createStepAssertion('Build web for production', true, null, 'WEB', 'Building web for production'),
-            createStepAssertion('Build storybook docs for production', true, null, 'WEB', 'Build storybook docs for production'),
-            createStepAssertion('Deploy production to S3', true, null, 'WEB', 'Deploying production to S3'),
-            createStepAssertion('Purge production Cloudflare cache', true, null, 'WEB', 'Purging production Cloudflare cache', null, [{key: 'CF_API_KEY', value: '***'}]),
-        );
-    } else {
-        steps.push(
-            createStepAssertion('Build web for staging', true, null, 'WEB', 'Building web for staging'),
-            createStepAssertion('Build storybook docs for staging', true, null, 'WEB', 'Build storybook docs for staging'),
-            createStepAssertion('Deploy staging to S3', true, null, 'WEB', 'Deploying staging to S3'),
-            createStepAssertion('Purge staging Cloudflare cache', true, null, 'WEB', 'Purging staging Cloudflare cache', null, [{key: 'CF_API_KEY', value: '***'}]),
-        );
-    }
+    steps.push(
+        createStepAssertion('Build web', true, null, 'WEB', 'Building web'),
+        createStepAssertion('Build storybook docs', true, null, 'WEB', 'Build storybook docs'),
+        createStepAssertion('Deploy to S3', true, null, 'WEB', 'Deploying to S3'),
+        createStepAssertion('Archive web sourcemaps', true, null, 'WEB', 'Archiving web sourcemaps', null, [
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'web-sourcemap-1.2.3'},
+            {key: 'path', value: 'dist/merged-source-map.js.map'},
+        ]),
+        createStepAssertion('Purge Cloudflare cache', true, null, 'WEB', 'Purging Cloudflare cache', null, [{key: 'CF_API_KEY', value: '***'}]),
+    );
 
     steps.forEach((expectedStep) => {
         if (didExecute) {

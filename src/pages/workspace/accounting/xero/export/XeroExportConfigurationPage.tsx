@@ -33,7 +33,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const menuItems: MenuItem[] = [
         {
-            description: translate('workspace.xero.preferredExporter'),
+            description: translate('workspace.accounting.preferredExporter'),
             onPress: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
             },
@@ -43,7 +43,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             errorText: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
         },
         {
-            description: translate('workspace.xero.exportExpenses'),
+            description: translate('workspace.accounting.exportOutOfPocket'),
             title: translate('workspace.xero.purchaseBill'),
             interactive: false,
             shouldShowRightIcon: false,
@@ -72,7 +72,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
         {
-            description: translate('workspace.xero.exportCompanyCard'),
+            description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),
             shouldShowRightIcon: false,
             interactive: false,
@@ -91,7 +91,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     return (
         <ConnectionLayout
             displayName={XeroExportConfigurationPage.displayName}
-            headerTitle="workspace.xero.export"
+            headerTitle="workspace.accounting.export"
             headerSubtitle={currentXeroOrganizationName}
             title="workspace.xero.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

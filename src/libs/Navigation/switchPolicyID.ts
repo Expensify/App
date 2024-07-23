@@ -3,7 +3,7 @@ import type {NavigationAction, NavigationContainerRef, NavigationState, PartialS
 import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -32,11 +32,11 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
         return;
     }
 
-    let name;
+    let name: string | undefined;
     let params: Record<string, string | undefined>;
     if (isCentralPaneName(action.payload.name)) {
         name = action.payload.name;
-        params = action.payload.params;
+        params = action.payload.params as Record<string, string | undefined>;
     } else {
         const actionPayloadParams = action.payload.params as ActionPayloadParams;
         name = actionPayloadParams.screen;
@@ -84,7 +84,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
-        newPath = ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL);
+        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL);
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
