@@ -3,7 +3,7 @@ title: Certinia
 description: Connect Expensify to Certinia
 order: 1
 ---
-[Cetinia](https://use.expensify.com/financialforce) (formerly known as FinancialForce) is a cloud-based software solution that provides a range of financial management and accounting applications built on the Salesforce platform. There are two versions: PSA/SRP and FFA -- Expensify supports connections to both. 
+[Certinia](https://use.expensify.com/financialforce) (formerly known as FinancialForce) is a cloud-based software solution that provides a range of financial management and accounting applications built on the Salesforce platform. There are two versions: PSA/SRP and FFA -- Expensify supports connections to both. 
 
 **Before connecting to Certinia:**
 Install the Expensify bundle in Certinia using the relevant installer:
