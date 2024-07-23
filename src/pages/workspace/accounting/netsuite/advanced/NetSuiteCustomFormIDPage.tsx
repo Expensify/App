@@ -6,6 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
@@ -21,6 +22,8 @@ import ROUTES from '@src/ROUTES';
 
 function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const route = useRoute();
@@ -82,6 +85,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
+                        ref={inputCallbackRef}
                         inputID={params.expenseType}
                         label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
                         aria-label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
