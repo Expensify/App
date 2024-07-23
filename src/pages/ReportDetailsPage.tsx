@@ -602,6 +602,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     interactive={!shouldDisableRename}
                     title={reportName}
                     titleStyle={styles.newKansasLarge}
+                    titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
