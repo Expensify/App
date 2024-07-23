@@ -51,6 +51,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -78,6 +79,8 @@ type AccountingIntegration = {
     onAdvancedPagePress: () => void;
     subscribedAdvancedSettings?: XeroSettings;
     onCardReconciliationPagePress: () => void;
+    pendingFields?: PendingFields<string>;
+    errorFields?: ErrorFields;
 };
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -133,6 +136,8 @@ function accountingIntegrationData(
                     CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
                     CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
                 ],
+                pendingFields: policy?.connections?.xero?.config?.pendingFields,
+                errorFields: policy?.connections?.xero?.config?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
@@ -163,8 +168,21 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.EXPORTER,
+                    CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    policy?.connections?.intacct?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+                        : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+                pendingFields: policy?.connections?.intacct?.config?.pendingFields,
+                errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
         default:
             return undefined;
@@ -365,10 +383,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
                       },
                       {
                           icon: Expensicons.Send,
@@ -377,10 +395,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
                       },
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -398,10 +416,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
                       },
                   ]),
         ];
