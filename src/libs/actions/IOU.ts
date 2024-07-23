@@ -5500,14 +5500,11 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         });
     }
 
-    // added the operation to delete associated transaction violations
-    if (Permissions.canUseViolations(betas)) {
-        onyxUpdates.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
+    onyxUpdates.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
 
     // added the operation to delete transaction thread
     if (shouldDeleteTransactionThread) {
