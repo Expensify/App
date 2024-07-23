@@ -5,7 +5,7 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-function getTripReservationIcon(reservationType: ReservationType): IconAsset {
+function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
             return Expensicons.Plane;
@@ -23,6 +23,25 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .map((item) => item?.receipt?.reservationList ?? [])
         .filter((item) => item.length > 0)
         .flat();
+}
+
+type ReservationWithDetails = {
+    reservation: Reservation;
+    transactionID: string;
+    reservationIndex: number;
+};
+
+function getReservationsFromTripTransactionsWithIndexAndID(transactions: Transaction[]): ReservationWithDetails[] {
+    return transactions.flatMap((transaction) => {
+        const transactionID = transaction.transactionID;
+        const reservationList = transaction?.receipt?.reservationList ?? [];
+
+        return reservationList.map((reservation, index) => ({
+            reservation,
+            transactionID,
+            reservationIndex: index,
+        }));
+    });
 }
 
 type TripEReceiptData = {
@@ -47,4 +66,6 @@ function getTripEReceiptData(transaction?: Transaction): TripEReceiptData {
     }
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptData};
+export type {ReservationWithDetails};
+
+export {getTripReservationIcon, getReservationsFromTripTransactions, getReservationsFromTripTransactionsWithIndexAndID, getTripEReceiptData};

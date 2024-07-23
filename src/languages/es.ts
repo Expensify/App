@@ -2044,6 +2044,11 @@ export default {
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
+        travel: 'Viajes',
+        details: ({type}) => `${type} Detalles`,
+        tripSupport: 'Soporte de viaje',
+        confirmationNo: 'No. de confirmación',
+        itineraryNo: 'Itinerario No.',
     },
     workspace: {
         common: {

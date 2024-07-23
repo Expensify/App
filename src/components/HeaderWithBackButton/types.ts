@@ -38,6 +38,15 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
      * */
     icon?: IconAsset;
 
+    /** Icon Width */
+    iconWidth?: number;
+
+    /** Icon Height */
+    iconHeight?: number;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
@@ -70,6 +79,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should disable threedots button */
     shouldDisableThreeDotsButton?: boolean;
+
+    /** Whether we should use isCentralPaneSettings for headers containing an icon */
+    shouldUseCentralPaneSettings?: boolean;
 
     /** Whether we should set modal visibility when three dot menu opens */
     shouldSetModalVisibility?: boolean;

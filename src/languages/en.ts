@@ -2009,6 +2009,11 @@ export default {
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
+        travel: 'Travel',
+        details: ({type}) => `${type} Details`,
+        tripSupport: 'Trip support',
+        confirmationNo: 'Confirmation No.',
+        itineraryNo: 'Itinerary No.',
     },
     workspace: {
         common: {

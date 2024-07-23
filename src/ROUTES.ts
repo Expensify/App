@@ -934,6 +934,10 @@ const ROUTES = {
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DETAILS: {
+        route: 'r/:reportID/trip/:transactionID/reservation/:reservationIndex',
+        getRoute: (reportID: string, transactionID: string, reservationIndex: number) => `r/${reportID}/trip/${transactionID}/reservation/${reservationIndex}` as const,
+    },
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',
     ONBOARDING_ROOT: 'onboarding',

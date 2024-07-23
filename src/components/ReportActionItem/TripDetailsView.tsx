@@ -11,11 +11,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
+import type {ReservationWithDetails} from '@src/libs/TripReservationUtils';
+import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 
 type TripDetailsViewProps = {
@@ -27,10 +30,20 @@ type TripDetailsViewProps = {
 };
 
 type ReservationViewProps = {
+    /** The reportID of the transaction and reservation */
+    reportID: string;
+
+    /** The transactionID of reservations transaction */
+    transactionID: string;
+
+    /** Reservation object to be displayed in the view */
     reservation: Reservation;
+
+    /** Index of reservation from the reservationList */
+    reservationIndex: number;
 };
 
-function ReservationView({reservation}: ReservationViewProps) {
+function ReservationView({reportID, transactionID, reservation, reservationIndex}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -122,6 +135,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             wrapperStyle={[styles.taskDescriptionMenuItem]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
+            onPress={() => Navigation.navigate(ROUTES.TRAVEL_DETAILS.getRoute(reportID, transactionID, reservationIndex))}
             interactive
             shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
@@ -139,7 +153,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
     const {translate} = useLocalize();
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
-    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    const reservations: ReservationWithDetails[] = TripReservationUtils.getReservationsFromTripTransactionsWithIndexAndID(tripTransactions);
 
     return (
         <View>
@@ -154,9 +168,14 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                 </View>
             </View>
             <>
-                {reservations.map((reservation) => (
+                {reservations.map(({reservation, transactionID, reservationIndex}) => (
                     <OfflineWithFeedback>
-                        <ReservationView reservation={reservation} />
+                        <ReservationView
+                            reportID={tripRoomReportID ?? '-1'}
+                            transactionID={transactionID}
+                            reservation={reservation}
+                            reservationIndex={reservationIndex}
+                        />
                     </OfflineWithFeedback>
                 ))}
                 <SpacerView

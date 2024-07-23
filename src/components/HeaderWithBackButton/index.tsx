@@ -25,6 +25,9 @@ import type HeaderWithBackButtonProps from './types';
 function HeaderWithBackButton({
     icon,
     iconFill,
+    iconStyles,
+    iconWidth,
+    iconHeight,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -44,6 +47,7 @@ function HeaderWithBackButton({
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldUseCentralPaneSettings = true,
     stepCounter,
     subtitle = '',
     title = '',
@@ -102,7 +106,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseCentralPaneSettings && isCentralPaneSettings && styles.textHeadlineH2]}
             />
         );
     }, [
@@ -111,6 +115,7 @@ function HeaderWithBackButton({
         policy,
         progressBarPercentage,
         report,
+        shouldUseCentralPaneSettings,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -170,12 +175,14 @@ function HeaderWithBackButton({
                     </Tooltip>
                 )}
                 {icon && (
-                    <Icon
-                        src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
-                    />
+                    <View style={iconStyles ?? styles.mr2}>
+                        <Icon
+                            src={icon}
+                            fill={iconFill ?? theme.icon}
+                            width={iconWidth ?? variables.iconHeader}
+                            height={iconHeight ?? variables.iconHeader}
+                        />
+                    </View>
                 )}
                 {policyAvatar && (
                     <Avatar
