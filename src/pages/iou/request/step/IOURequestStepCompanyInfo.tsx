@@ -1,6 +1,8 @@
-import React from 'react';
+import {Str} from 'expensify-common';
+import React, {useCallback} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -8,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +34,40 @@ function IOURequestStepCompanyInfo({route, transaction}: IOURequestStepCompanyIn
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
+    const extractUrlDomain = (url: string): string | undefined => {
+        const DOMAIN_BASE_REGEX = '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)';
+        const match = String(url).match(DOMAIN_BASE_REGEX);
+
+        if (!match) {
+            return undefined;
+        }
+
+        return match[1];
+    };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE]);
+
+            if (values.companyWebsite) {
+                if (!ValidationUtils.isValidWebsite(values.companyWebsite)) {
+                    errors.companyWebsite = translate('bankAccount.error.website');
+                } else {
+                    const domain = extractUrlDomain(values.companyWebsite);
+
+                    if (!domain || !Str.isValidDomainName(domain)) {
+                        errors.companyWebsite = translate('iou.invalidDomainError');
+                    } else if (ValidationUtils.isPublicDomain(domain)) {
+                        errors.companyWebsite = translate('iou.publicDomainError');
+                    }
+                }
+            }
+
+            return errors;
+        },
+        [translate],
+    );
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.companyInfo')}
@@ -45,7 +82,7 @@ function IOURequestStepCompanyInfo({route, transaction}: IOURequestStepCompanyIn
                 onSubmit={() => {
                     playSound(SOUNDS.DONE);
                 }}
-                validate={() => ({})}
+                validate={validate}
                 submitButtonText={translate('iou.sendInvoice', {amount: formattedAmount})}
                 enabledWhenOffline
             >
