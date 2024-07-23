@@ -17,6 +17,7 @@ import {clearSageIntacctErrorField, editSageIntacctUserDimensions, removeSageInt
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -85,8 +86,8 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                 shouldValidateOnChange
             >
                 <OfflineWithFeedback
-                    pendingAction={config?.pendingFields?.[`dimension_${editedUserDimensionName}`]}
-                    errors={config?.errorFields?.[`dimension_${editedUserDimensionName}`]}
+                    pendingAction={settingsPendingAction([`dimension_${editedUserDimensionName}`], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, `dimension_${editedUserDimensionName}`)}
                     onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
                 >
                     <View style={[styles.mb4]}>
@@ -108,14 +109,14 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                             defaultValue={editedUserDimension?.mapping}
                         />
                     </View>
-                    <View style={[styles.mhn5]}>
-                        <MenuItem
-                            title={translate('common.remove')}
-                            icon={Expensicons.Trashcan}
-                            onPress={() => setIsDeleteModalOpen(true)}
-                        />
-                    </View>
                 </OfflineWithFeedback>
+                <View style={[styles.mhn5]}>
+                    <MenuItem
+                        title={translate('common.remove')}
+                        icon={Expensicons.Trashcan}
+                        onPress={() => setIsDeleteModalOpen(true)}
+                    />
+                </View>
                 <ConfirmModal
                     title={translate('workspace.intacct.removeDimension')}
                     isVisible={isDeleteModalOpen}

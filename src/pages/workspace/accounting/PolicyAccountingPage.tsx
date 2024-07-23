@@ -167,6 +167,12 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS,
+                    ...Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS),
+                    CONST.SAGE_INTACCT_CONFIG.TAX,
+                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `dimension_${dimension.dimension}`),
+                ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.SAGE_INTACCT_CONFIG.EXPORTER,
@@ -181,6 +187,13 @@ function accountingIntegrationData(
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED,
+                    CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES,
+                    CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                ],
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
