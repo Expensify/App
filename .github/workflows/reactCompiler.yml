@@ -16,8 +16,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-      # - name: Temporarily patch react-compiler-healthcheck
-      #  run: patch -p1 -i patches/react-compiler-healthcheck+0.0.0-experimental-b130d5f-20240625+004+json-stringify.patch
       - name: Get list of compiled files (PR)
         id: new-list
         run: |
@@ -29,8 +27,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
+      # - name: Setup Node
+      #   uses: ./.github/actions/composite/setupNode
       - name: Get list of compiled files (main)
         id: old-list
         run: |
