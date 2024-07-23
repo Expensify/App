@@ -659,9 +659,6 @@ function updateGroupChatName(reportID: string, reportName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
-                errors: {
-                    reportName: Localize.translateLocal('common.genericErrorMessage'),
-                },
                 pendingFields: {
                     reportName: null,
                 },
@@ -2611,6 +2608,7 @@ function openReportFromDeepLink(url: string) {
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         if (!hasCompletedGuidedSetupFlow) {
+                            Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
                             return;
                         }
 
@@ -2767,12 +2765,6 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
-
-    // If this is the leave action from a workspace room or chat thread, simply dismiss the modal, i.e., allow the user to view the room/thread and join again immediately.
-    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
-        return;
-    }
-    // In other cases, the report is deleted and we should move the user to another report.
     navigateToMostRecentReport(report);
 }
 

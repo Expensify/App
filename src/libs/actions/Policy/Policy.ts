@@ -60,7 +60,18 @@ import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingAct
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyCategory, ReimbursementAccount, Report, ReportAction, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {
+    InvitedEmailsToAccountIDs,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategory,
+    ReimbursementAccount,
+    Report,
+    ReportAction,
+    Request,
+    TaxRatesWithDefault,
+    Transaction,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, Rate, TaxRate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1094,23 +1105,26 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     };
 
     const persistedRequests = PersistedRequests.getAll();
+    const createWorkspaceRequestChangedIndex = persistedRequests.findIndex(
+        (request) => request.data?.policyID === policyID && request.command === WRITE_COMMANDS.CREATE_WORKSPACE && request.data?.policyName !== name,
+    );
 
-    persistedRequests.forEach((request, index) => {
-        const {command, data} = request;
+    const createWorkspaceRequest = persistedRequests[createWorkspaceRequestChangedIndex];
+    if (createWorkspaceRequest) {
+        const workspaceRequest: Request = {
+            ...createWorkspaceRequest,
+            data: {
+                ...createWorkspaceRequest.data,
+                policyName: name,
+            },
+        };
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            name,
+        });
 
-        if (command === WRITE_COMMANDS.CREATE_WORKSPACE && data?.policyID === policyID) {
-            if (data.policyName !== name) {
-                const createWorkspaceRequest = {
-                    ...request,
-                    data: {
-                        ...data,
-                        policyName: name,
-                    },
-                };
-                PersistedRequests.update(index, createWorkspaceRequest);
-            }
-        }
-    });
+        PersistedRequests.update(createWorkspaceRequestChangedIndex, workspaceRequest);
+        return;
+    }
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
         optimisticData,

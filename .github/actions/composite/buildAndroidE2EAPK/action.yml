@@ -72,6 +72,8 @@ runs:
     - name: Build APK
       run: npm run ${{ inputs.PACKAGE_SCRIPT_NAME }}
       shell: bash
+      env:
+        RUBYOPT: '-rostruct'
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
