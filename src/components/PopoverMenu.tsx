@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -168,6 +168,13 @@ function PopoverMenu({
         );
     };
 
+    const renderHeaderText = () => {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
+            return;
+        }
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
+    };
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
@@ -220,7 +227,7 @@ function PopoverMenu({
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
+                    {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
@@ -232,7 +239,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
-                            titleStyle={item.titleStyle}
+                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
                             numberOfLinesDescription={item.numberOfLinesDescription}

@@ -340,6 +340,9 @@ const styles = (theme: ThemeColors) =>
         appBG: {
             backgroundColor: theme.appBG,
         },
+        fontSizeLabel: {
+            fontSize: variables.fontSizeLabel,
+        },
 
         h4: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -502,6 +505,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
             fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
             textAlign: 'center',
+        },
+
+        textWrap: {
+            ...whiteSpace.preWrap,
         },
 
         textNoWrap: {
@@ -883,6 +890,16 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        cardBadge: {
+            position: 'absolute',
+            top: 20,
+            left: 16,
+            marginLeft: 0,
+            paddingHorizontal: 8,
+            minHeight: 20,
+            borderColor: colors.productDark500,
+        },
+
         environmentBadge: {
             minHeight: 12,
             borderRadius: 14,
@@ -946,6 +963,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        cardBadgeText: {
+            color: colors.white,
+            fontSize: variables.fontSizeExtraSmall,
         },
 
         activeItemBadge: {
@@ -1033,6 +1055,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 61,
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        invisiblePDF: {
+            position: 'absolute',
+            opacity: 0,
+            width: 1,
+            height: 1,
         },
 
         headerAnonymousFooter: {
@@ -2086,7 +2115,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatFooterFullCompose: {
-            flex: 1,
+            height: '100%',
+            paddingTop: 20,
         },
 
         chatItemDraft: {
@@ -4024,6 +4054,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
             borderRadius: 20,
             width: 335,
+            overflow: 'hidden',
         },
 
         eReceiptBackgroundThumbnail: {
@@ -5078,15 +5109,9 @@ const styles = (theme: ThemeColors) =>
             height: 172,
         },
 
-        reportListItemSeparator: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.activeComponentBG,
-        },
-
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontWeight: FontUtils.fontWeight.bold,
         },
 
         skeletonBackground: {

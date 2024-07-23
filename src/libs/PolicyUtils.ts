@@ -11,6 +11,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     CustomUnit,
     NetSuiteAccount,
@@ -340,6 +341,29 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * This gets a "corrected" value for autoReportingFrequency. The purpose of this function is to encapsulate some logic around the "immediate" frequency.
+ *
+ * - "immediate" is actually not immediate. For that you want "instant".
+ * - (immediate && harvesting.enabled) === daily
+ * - (immediate && !harvesting.enabled) === manual
+ *
+ * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
+ */
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+    if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
+        return policy?.autoReportingFrequency;
+    }
+
+    if (policy?.harvesting?.enabled) {
+        // This is actually not really "immediate". It's "daily". Surprise!
+        return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+    }
+
+    // "manual" is really just "immediate" (aka "daily") with harvesting disabled
+    return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+}
+
+/**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
 function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -425,12 +449,25 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+/**
+ * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ */
+function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
+    return getAccountIDsByLogins([reimburserEmail])[0];
+}
+
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+    if (!policy || !policy.employeeList) {
+        return [];
+    }
+    return Object.keys(policy.employeeList)
+        .map((email) => ({...policy.employeeList?.[email], email}))
+        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -648,6 +685,12 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
+function getCurrentSageIntacctEntityName(policy?: Policy): string | undefined {
+    const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    const entities = policy?.connections?.intacct?.data?.entities;
+    return entities?.find((entity) => entity.id === currentEntityID)?.name;
+}
+
 function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
     const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
     return (bankAccounts ?? []).map(({id, name}) => ({
@@ -722,6 +765,14 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
+}
+
+function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
+}
+
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
@@ -735,6 +786,13 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
+function hasNoPolicyOtherThanPersonalType() {
+    return (
+        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .length === 0
+    );
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -742,6 +800,7 @@ export {
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,
+    getConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
@@ -763,6 +822,7 @@ export {
     hasAccountingConnections,
     hasCustomUnitsError,
     hasEmployeeListError,
+    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,
@@ -771,6 +831,7 @@ export {
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
     isInstantSubmitEnabled,
+    getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -810,10 +871,13 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
+    getCurrentSageIntacctEntityName,
+    hasNoPolicyOtherThanPersonalType,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -9,6 +9,12 @@ type SelectedTransactionInfo = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be put on hold */
+    canHold: boolean;
+
+    /** If the transaction can be removed from hold */
+    canUnhold: boolean;
+
     /** The action that can be performed for the transaction */
     action: string;
 };
@@ -23,7 +29,7 @@ type SearchContext = {
     currentSearchHash: number;
     selectedTransactionIDs: string[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIds: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
 };
 
 type ASTNode = {

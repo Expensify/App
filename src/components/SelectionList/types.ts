@@ -99,6 +99,9 @@ type ListItem = {
     /** User login */
     login?: string | null;
 
+    /** Element to show on the left side of the item */
+    leftElement?: ReactNode;
+
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
 
@@ -412,6 +415,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles to apply to SectionList component */
+    sectionListStyle?: StyleProp<ViewStyle>;
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;

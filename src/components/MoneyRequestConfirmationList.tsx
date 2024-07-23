@@ -1,7 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import type {TextStyle} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -213,7 +211,6 @@ function MoneyRequestConfirmationList({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
@@ -300,7 +297,19 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory;
-    const [shouldResetAmount, setShouldResetAmount] = useState(false);
+
+    const shouldDisableParticipant = (participant: Participant): boolean => {
+        if (ReportUtils.isDraftReport(participant.reportID)) {
+            return true;
+        }
+
+        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+            return true;
+        }
+
+        return false;
+    };
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -443,6 +452,7 @@ function MoneyRequestConfirmationList({
                 return {
                     ...participantOption,
                     isSelected: false,
+                    isInteractive: !shouldDisableParticipant(participantOption),
                     rightElement: (
                         <View style={[styles.flexWrap, styles.pl2]}>
                             <Text style={[styles.textLabel]}>{amount ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
@@ -453,14 +463,13 @@ function MoneyRequestConfirmationList({
         }
 
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
-        const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
-        const amountWidth = StyleUtils.getWidthStyle(formattedTotalAmount.length * 9 + prefixPadding);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
             tabIndex: -1,
             isSelected: false,
+            isInteractive: !shouldDisableParticipant(participantOption),
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
@@ -473,14 +482,13 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
-                    inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer, amountWidth]}
+                    inputStyle={[styles.optionRowAmountInput]}
+                    containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
-                    shouldResetAmount={shouldResetAmount}
-                    onResetAmount={(resetValue) => setShouldResetAmount(resetValue)}
+                    contentWidth={formattedTotalAmount.length * 8}
                 />
             ),
         }));
@@ -490,7 +498,6 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         currencyList,
         iouCurrencyCode,
-        StyleUtils,
         iouAmount,
         selectedParticipants,
         styles.flexWrap,
@@ -503,7 +510,6 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
-        shouldResetAmount,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -521,7 +527,6 @@ function MoneyRequestConfirmationList({
                     <PressableWithFeedback
                         onPress={() => {
                             IOU.resetSplitShares(transaction);
-                            setShouldResetAmount(true);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
@@ -547,18 +552,6 @@ function MoneyRequestConfirmationList({
             translate,
         ],
     );
-
-    const shouldDisableParticipant = (participant: Participant): boolean => {
-        if (ReportUtils.isDraftReport(participant.reportID)) {
-            return true;
-        }
-
-        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
-            return true;
-        }
-
-        return false;
-    };
 
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
@@ -746,6 +739,17 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const confirmButtonRef = useRef<View>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                confirmButtonRef.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
+
     const footerContent = useMemo(() => {
         if (isReadOnly) {
             return;
@@ -777,6 +781,7 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                buttonRef={confirmButtonRef}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}

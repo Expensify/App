@@ -384,6 +384,7 @@ function ReportActionCompose({
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
+                    shouldDisableOpacity
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
