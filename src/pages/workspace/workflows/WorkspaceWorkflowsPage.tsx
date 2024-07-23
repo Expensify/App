@@ -9,7 +9,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -51,7 +50,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
     const policyApproverEmail = policy?.approver;
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
-    const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
+    const containerStyle = useMemo(() => [styles.ph8, styles.mhn5, styles.ml0, styles.pv3, styles.pr0, styles.pl2, styles.mr0, styles.widthAuto, styles.mt4, styles.pb0], [styles]);
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
@@ -252,13 +251,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         theme,
     ]);
 
-    const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
-        <View
-            style={styles.mt7}
-            key={`toggleSettingOptionItem-${index}`}
-        >
+    const renderOptionItem = (item: ToggleSettingOptionRowProps) => (
+        <Section containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}>
             <ToggleSettingOptionRow
-                icon={item.icon}
                 title={item.title}
                 titleStyle={styles.textStrong}
                 subtitle={item.subtitle}
@@ -270,7 +265,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 errors={item.errors}
                 onCloseError={item.onCloseError}
             />
-        </View>
+        </Section>
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -293,26 +288,19 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 shouldUseScrollView
             >
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('workflowsPage.workflowTitle')}
-                        titleStyles={styles.textStrong}
-                        containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                    >
-                        <View>
-                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                            {optionItems.map(renderOptionItem)}
-                            <ConfirmModal
-                                title={translate('workspace.bankAccount.workspaceCurrency')}
-                                isVisible={isCurrencyModalOpen}
-                                onConfirm={confirmCurrencyChangeAndHideModal}
-                                onCancel={() => setIsCurrencyModalOpen(false)}
-                                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                                confirmText={translate('workspace.bankAccount.updateToUSD')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                            />
-                        </View>
-                    </Section>
+                    <View>
+                        {optionItems.map(renderOptionItem)}
+                        <ConfirmModal
+                            title={translate('workspace.bankAccount.workspaceCurrency')}
+                            isVisible={isCurrencyModalOpen}
+                            onConfirm={confirmCurrencyChangeAndHideModal}
+                            onCancel={() => setIsCurrencyModalOpen(false)}
+                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                            confirmText={translate('workspace.bankAccount.updateToUSD')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                    </View>
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
