@@ -2723,10 +2723,18 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(186));
 const run = function () {
-    const oldList = core.getInput('OLD_LIST', { required: true });
-    const newList = core.getInput('NEW_LIST', { required: true });
-    console.log(`Old list: ${oldList}`);
-    console.log(`New list: ${newList}`);
+    const oldList = JSON.parse(core.getInput('OLD_LIST', { required: true }));
+    const newList = JSON.parse(core.getInput('NEW_LIST', { required: true }));
+    const errors = [];
+    oldList.success.forEach((file) => {
+        if (newList.failure.includes(file)) {
+            errors.push(file);
+        }
+    });
+    if (errors.length > 0) {
+        errors.forEach((error) => console.error(error));
+        throw new Error('Some files could be compiled with react-compiler before successfully, but now they can not be compiled.');
+    }
     return Promise.resolve();
 };
 if (require.main === require.cache[eval('__filename')]) {

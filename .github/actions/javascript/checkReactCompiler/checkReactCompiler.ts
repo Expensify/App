@@ -1,12 +1,27 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 
-const run = function (): Promise<void> {
-    const oldList = core.getInput('OLD_LIST', {required: true});
-    const newList = core.getInput('NEW_LIST', {required: true});
+type ReactCompilerOutput = {
+    success: string[];
+    failure: string[];
+};
 
-    console.log(`Old list: ${oldList}`);
-    console.log(`New list: ${newList}`);
+const run = function (): Promise<void> {
+    const oldList = JSON.parse(core.getInput('OLD_LIST', {required: true})) as ReactCompilerOutput;
+    const newList = JSON.parse(core.getInput('NEW_LIST', {required: true})) as ReactCompilerOutput;
+
+    const errors: string[] = [];
+
+    oldList.success.forEach((file) => {
+        if (newList.failure.includes(file)) {
+            errors.push(file);
+        }
+    });
+
+    if (errors.length > 0) {
+        errors.forEach((error) => console.error(error));
+        throw new Error('Some files could be compiled with react-compiler before successfully, but now they can not be compiled.');
+    }
 
     return Promise.resolve();
 };
