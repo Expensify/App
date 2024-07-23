@@ -79,6 +79,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                 {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                     <>
                         {ReportUtils.isPaidGroupPolicyExpenseReport(report) &&
+                            policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
