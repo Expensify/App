@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -31,19 +31,22 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     }, [privateStripeCustomerID]);
 
-    useEffect(() => {
-        window.addEventListener(
-            'message',
-            (event: MessageEvent<string>) => {
-                if (event.data !== CONST.GBP_AUTHENTICATION_COMPLETE) {
-                    return;
-                }
-
+    const handleGBPAuthentication = useCallback(
+        (event: MessageEvent<string>) => {
+            const message = event.data;
+            if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
                 PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
-            },
-            false,
-        );
-    }, [session?.accountID]);
+            }
+        },
+        [session?.accountID],
+    );
+
+    useEffect(() => {
+        window.addEventListener('message', handleGBPAuthentication);
+        return () => {
+            window.removeEventListener('message', handleGBPAuthentication);
+        };
+    }, [handleGBPAuthentication]);
 
     const onModalClose = () => {
         PaymentMethods.clearPaymentCard3dsVerification();
