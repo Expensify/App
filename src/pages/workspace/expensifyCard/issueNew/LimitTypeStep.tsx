@@ -107,6 +107,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 sections={[{data}]}
                 shouldDebounceRowSelect
                 initiallyFocusedOptionKey={typeSelected}
+                shouldUpdateFocusedIndex
             />
             <Button
                 success

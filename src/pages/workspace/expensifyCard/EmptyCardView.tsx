@@ -23,12 +23,12 @@ function EmptyCardView() {
 
     return (
         <ScrollView>
-            <View style={{height: windowHeight - headerHeight}}>
+            <View style={[{height: windowHeight - headerHeight}, styles.mt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={Illustrations.EmptyCardState}
-                    headerStyles={[{overflow: 'hidden'}, isSmallScreenWidth && {maxHeight: 300}]}
+                    headerStyles={[{overflow: 'hidden'}, isSmallScreenWidth && {maxHeight: 350}]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
                     emptyStateContentStyles={isSmallScreenWidth ? {top: -BUTTON_HEIGHT} : undefined}
