@@ -97,7 +97,6 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
         setCurrentSearchHash(hash);
 
-        // TODO_SEARCH: Function below will be deprecated soon. No point in refactoring to use status instead of query.
         SearchActions.search({hash, query: status, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
@@ -163,7 +162,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         }
 
         // TODO_SEARCH: offset should be a number but it is a string.
-        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE});
+        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: String(Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE)});
 
         navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
     };

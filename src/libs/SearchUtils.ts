@@ -336,14 +336,14 @@ function buildSearchQueryJSON(query: SearchQueryString) {
 
 function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
     const queryParts: string[] = [];
-    const defualtQueryJSON = buildSearchQueryJSON('');
+    const defaultQueryJSON = buildSearchQueryJSON('');
 
     // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
     for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         if (partialQueryJSON?.[value]) {
             queryParts.push(`${value}:${partialQueryJSON[value]}`);
-        } else if (defualtQueryJSON) {
-            queryParts.push(`${value}:${defualtQueryJSON[value]}`);
+        } else if (defaultQueryJSON) {
+            queryParts.push(`${value}:${defaultQueryJSON[value]}`);
         }
     }
 

@@ -33,7 +33,7 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
 
-    const filterItems: SearchStatusMenuItem[] = [
+    const statusMenuItems: SearchStatusMenuItem[] = [
         {
             title: translate('common.expenses'),
             status: CONST.SEARCH.STATUS.ALL,
@@ -59,12 +59,12 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
         },
     ];
-    const activeItemIndex = filterItems.findIndex((item) => item.status === status);
+    const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
     if (isSmallScreenWidth) {
         return (
             <SearchStatusMenuNarrow
-                filterItems={filterItems}
+                filterItems={statusMenuItems}
                 activeItemIndex={activeItemIndex}
             />
         );
@@ -72,7 +72,7 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
 
     return (
         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-            {filterItems.map((item, index) => {
+            {statusMenuItems.map((item, index) => {
                 const onPress = singleExecution(() => Navigation.navigate(item.route));
 
                 return (
