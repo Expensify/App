@@ -1281,6 +1281,15 @@ export default {
         autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
         monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
+    workflowsCreateApprovalsPage: {
+        title: 'Añadir flujo de aprobación',
+    },
+    workflowsEditApprovalsPage: {
+        title: 'Edicion flujo de aprobación',
+    },
+    workflowsExpensesFromPage: {
+        title: 'Gastos de',
+    },
     workflowsApprovalPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
