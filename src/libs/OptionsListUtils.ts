@@ -1706,7 +1706,6 @@ function getUserToInviteOption({
     excludeUnknownUsers = false,
     optionsToExclude = [],
     selectedOptions = [],
-    betas,
     reportActions = {},
     showChatPreviewLine = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
