@@ -12,7 +12,6 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
-    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
