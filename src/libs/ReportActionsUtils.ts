@@ -1,4 +1,4 @@
-import {fastMerge} from 'expensify-common';
+import {fastMerge, Str} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -68,6 +68,7 @@ Onyx.connect({
 });
 
 let currentUserAccountID: number | undefined;
+let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -77,6 +78,7 @@ Onyx.connect({
         }
 
         currentUserAccountID = value.accountID;
+        currentEmail = value?.email ?? '';
     },
 });
 
@@ -1440,6 +1442,23 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '-1');
 }
 
+function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.mentionedAccountIDs ?? [] : [];
+}
+
+function getMentionedEmailsFromMessage(message: string) {
+    const mentionEmailRegex = /<mention-user>(.*?)<\/mention-user>/g;
+    const matches = [...message.matchAll(mentionEmailRegex)];
+    return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
+}
+
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>) {
+    const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
+    const message = getReportActionMessage(reportAction)?.html ?? '';
+    const emailsFromMessage = getMentionedEmailsFromMessage(message);
+    return accountIDsFromMessage.includes(currentUserAccountID ?? -1) || emailsFromMessage.includes(currentEmail) || message.includes('<mention-here>');
+}
+
 /**
  * Check if the current user is the requestor of the action
  */
@@ -1648,6 +1667,7 @@ export {
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
+    didMessageMentionCurrentUser,
 };
 
 export type {LastVisibleMessage};
