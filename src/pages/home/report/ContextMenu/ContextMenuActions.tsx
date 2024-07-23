@@ -218,16 +218,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
-<<<<<<< HEAD
         onPress: (closePopover, {reportID, transactionThreadReportID}) => {
             Report.readNewestAction(reportID);
-            if (transactionThreadReportID && transactionThreadReportID !== '0') {
+            if (transactionThreadReportID && transactionThreadReportID !== '-1') {
                 Report.readNewestAction(transactionThreadReportID);
             }
-=======
-        onPress: (closePopover, {reportID}) => {
-            Report.readNewestAction(reportID, true);
->>>>>>> main
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
