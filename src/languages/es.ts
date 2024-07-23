@@ -2741,6 +2741,12 @@ export default {
                 `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta que apruebes antiguos gastos de la tarjeta.`,
             monthlyLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta el próximo mes.`,
             fixedLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, se rechazarán las nuevas transacciones.`,
+            changeCardLimitType: 'Modificar el tipo de límite de la tarjeta',
+            changeLimitType: 'Modificar el tipo de límite',
+            changeCardSmartLimitTypeWarning: (limit: string) =>
+                `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
+            changeCardMonthlyLimitTypeWarning: (limit: string) =>
+                `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
