@@ -781,9 +781,7 @@ function ComposerWithSuggestions(
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
-                        if (isKeyboardShown) {
-                            textInputRef.current?.blur();
-                        }
+                        textInputRef.current?.blur();
                         displayFileInModal(file);
                     }}
                     shouldClear={textInputShouldClear}
