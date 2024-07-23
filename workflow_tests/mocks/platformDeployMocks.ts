@@ -34,24 +34,23 @@ const PLATFORM_DEPLOY__ANDROID__SETUP_RUBY__STEP_MOCK = createMockStep('Setup Ru
 const PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK = createMockStep('Decrypt keystore', 'Decrypting keystore', 'ANDROID', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK = createMockStep('Decrypt json key', 'Decrypting JSON key', 'ANDROID', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__ANDROID__SET_VERSION__STEP_MOCK = createMockStep('Set version in ENV', 'Setting version in ENV', 'ANDROID', null, null, null, {VERSION_CODE: '1.2.3'});
-const PLATFORM_DEPLOY__ANDROID__FASTLANE_BETA__STEP_MOCK = createMockStep('Run Fastlane beta', 'Running Fastlane beta', 'ANDROID', null, [
+const PLATFORM_DEPLOY__ANDROID__FASTLANE__STEP_MOCK = createMockStep('Run Fastlane', 'Running Fastlane', 'ANDROID', null, [
+    'RUBYOPT',
     'MYAPP_UPLOAD_STORE_PASSWORD',
     'MYAPP_UPLOAD_KEY_PASSWORD',
+    'VERSION',
 ]);
 const PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive Android sourcemaps', 'Archiving Android sourcemaps', 'ANDROID', ['name', 'path']);
-const PLATFORM_DEPLOY__ANDROID__UPLOAD_ANDROID_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockStep(
-    'Upload Android version to GitHub artifacts',
-    'Upload Android version to GitHub artifacts',
-    'ANDROID',
-    ['name', 'path'],
-);
-const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK = createMockStep(
-    'Upload Android version to Browser Stack',
-    'Uploading Android version to Browser Stack',
-    'ANDROID',
-    null,
-    ['BROWSERSTACK'],
-);
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockStep('Upload Android build to GitHub artifacts', 'Uploading Android build to GitHub artifacts', 'ANDROID', [
+    'name',
+    'path',
+]);
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK = createMockStep('Upload Android build to Browser Stack', 'Uploading Android build to Browser Stack', 'ANDROID', null, [
+    'BROWSERSTACK',
+]);
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload Android build to GitHub Release', 'Uploading Android build to GitHub Release', 'ANDROID', null, [
+    'GITHUB_TOKEN',
+]);
 const PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK = createMockStep(
     'Warn deployers if Android production deploy failed',
     'Warning deployers of failed production deploy',
@@ -68,10 +67,11 @@ const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
     PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__SET_VERSION__STEP_MOCK,
-    PLATFORM_DEPLOY__ANDROID__FASTLANE_BETA__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__FASTLANE__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK,
-    PLATFORM_DEPLOY__ANDROID__UPLOAD_ANDROID_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_GH_RELEASE__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK,
 ];
 
@@ -81,7 +81,7 @@ const PLATFORM_DEPLOY__DESKTOP__SETUP_NODE__STEP_MOCK = createMockStep('Setup No
 const PLATFORM_DEPLOY__DESKTOP__DECRYPT_ID__STEP_MOCK = createMockStep('Decrypt Developer ID Certificate', 'Decrypting developer id certificate', 'DESKTOP', null, [
     'DEVELOPER_ID_SECRET_PASSPHRASE',
 ]);
-const PLATFORM_DEPLOY__DESKTOP__BUILD_PRODUCTION__STEP_MOCK = createMockStep('Build production desktop app', 'Building production desktop app', 'DESKTOP', null, [
+const PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK = createMockStep('Build desktop app', 'Building desktop app', 'DESKTOP', null, [
     'CSC_LINK',
     'CSC_KEY_PASSWORD',
     'APPLE_ID',
@@ -89,20 +89,22 @@ const PLATFORM_DEPLOY__DESKTOP__BUILD_PRODUCTION__STEP_MOCK = createMockStep('Bu
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
 ]);
-const PLATFORM_DEPLOY__DESKTOP__BUILD_STAGING__STEP_MOCK = createMockStep('Build staging desktop app', 'Building staging desktop app', 'DESKTOP', null, [
-    'CSC_LINK',
-    'CSC_KEY_PASSWORD',
-    'APPLE_ID',
-    'APPLE_APP_SPECIFIC_PASSWORD',
-    'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY',
+const PLATFORM_DEPLOY__DESKTOP__UPLOAD_WORKFLOW__STEP_MOCK = createMockStep('Upload desktop build to GitHub Workflow', 'Uploading desktop build to GitHub Workflow', 'DESKTOP', [
+    'name',
+    'path',
 ]);
+const PLATFORM_DEPLOY__DESKTOP__UPLOAD_GH_RELEASE__STEP_MOCK = createMockStep('Upload desktop build to GitHub Release', 'Uploading desktop build to GitHub Release', 'DESKTOP', null, [
+    'GITHUB_TOKEN',
+]);
+const PLATFORM_DEPLOY__DESKTOP__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive desktop sourcemaps', 'Archiving desktop sourcemaps', 'DESKTOP', ['name', 'path']);
 const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
     PLATFORM_DEPLOY__DESKTOP__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__DECRYPT_ID__STEP_MOCK,
-    PLATFORM_DEPLOY__DESKTOP__BUILD_PRODUCTION__STEP_MOCK,
-    PLATFORM_DEPLOY__DESKTOP__BUILD_STAGING__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__UPLOAD_WORKFLOW__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__UPLOAD_GH_RELEASE__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__ARCHIVE_SOURCEMAPS__STEP_MOCK,
 ];
 
 // ios
@@ -125,20 +127,21 @@ const PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = createMockStep('Dec
 const PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK = createMockStep('Decrypt App Store Connect API key', 'Decrypting App Store API key', 'IOS', null, [
     'LARGE_SECRET_PASSPHRASE',
 ]);
+const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
 const PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK = createMockStep('Run Fastlane', 'Running Fastlane', 'IOS', null, [
     'APPLE_CONTACT_EMAIL',
     'APPLE_CONTACT_PHONE',
     'APPLE_DEMO_EMAIL',
     'APPLE_DEMO_PASSWORD',
+    'VERSION',
 ]);
 const PLATFORM_DEPLOY__IOS__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive iOS sourcemaps', 'Archiving sourcemaps', 'IOS', ['name', 'path']);
-const PLATFORM_DEPLOY__IOS__UPLOAD_IOS_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockStep('Upload iOS version to GitHub artifacts', 'Upload iOS version to GitHub artifacts', 'IOS', [
+const PLATFORM_DEPLOY__IOS__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK = createMockStep('Upload iOS build to GitHub artifacts', 'Uploading iOS build to GitHub artifacts', 'IOS', [
     'name',
     'path',
 ]);
-const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = createMockStep('Upload iOS version to Browser Stack', 'Uploading version to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
-const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
-const PLATFORM_DEPLOY__IOS__RELEASE_FASTLANE__STEP_MOCK = createMockStep('Run Fastlane for App Store release', 'Running Fastlane for release', 'IOS', null, ['VERSION']);
+const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = createMockStep('Upload iOS build to Browser Stack', 'Uploading build to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
+const PLATFORM_DEPLOY__IOS__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload iOS build to GitHub Release', 'Uploading iOS build to GitHub Release', 'IOS', null, ['GITHUB_TOKEN']);
 const PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK = createMockStep(
     'Warn deployers if iOS production deploy failed',
     'Warning developers of failed deploy',
@@ -158,12 +161,12 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__DECRYPT_APPSTORE_NSE_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__ARCHIVE_SOURCEMAPS__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__UPLOAD_IOS_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__UPLOAD_TO_GITHUB_ARTIFACTS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__RELEASE_FASTLANE__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__UPLOAD_TO_GH_RELEASE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK,
 ];
 
@@ -176,27 +179,21 @@ const PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK = createMockStep('Configu
     'aws-secret-access-key',
     'aws-region',
 ]);
-const PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK = createMockStep('Build web for production', 'Building web for production', 'WEB');
-const PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK = createMockStep('Build web for staging', 'Building web for staging', 'WEB');
-const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_PRODUCTION__STEP_MOCK = createMockStep('Build storybook docs for production', 'Build storybook docs for production', 'WEB');
-const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_STAGING__STEP_MOCK = createMockStep('Build storybook docs for staging', 'Build storybook docs for staging', 'WEB');
-const PLATFORM_DEPLOY__WEB__DEPLOY_PRODUCTION_S3__STEP_MOCK = createMockStep('Deploy production to S3', 'Deploying production to S3', 'WEB');
-const PLATFORM_DEPLOY__WEB__DEPLOY_STAGING_S3__STEP_MOCK = createMockStep('Deploy staging to S3', 'Deploying staging to S3', 'WEB');
-const PLATFORM_DEPLOY__WEB__PURGE_PRODUCTION_CACHE__STEP_MOCK = createMockStep('Purge production Cloudflare cache', 'Purging production Cloudflare cache', 'WEB', null, ['CF_API_KEY']);
-const PLATFORM_DEPLOY__WEB__PURGE_STAGING_CACHE__STEP_MOCK = createMockStep('Purge staging Cloudflare cache', 'Purging staging Cloudflare cache', 'WEB', null, ['CF_API_KEY']);
+const PLATFORM_DEPLOY__WEB__BUILD__STEP_MOCK = createMockStep('Build web', 'Building web', 'WEB');
+const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS__STEP_MOCK = createMockStep('Build storybook docs', 'Build storybook docs', 'WEB');
+const PLATFORM_DEPLOY__WEB__DEPLOY_S3__STEP_MOCK = createMockStep('Deploy to S3', 'Deploying to S3', 'WEB');
+const PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK = createMockStep('Purge Cloudflare cache', 'Purging Cloudflare cache', 'WEB', null, ['CF_API_KEY']);
+const PLATFORM_DEPLOY__WEB__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive web sourcemaps', 'Archiving web sourcemaps', 'WEB', ['name', 'path']);
 const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__CLOUDFLARE__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_PRODUCTION__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_STAGING__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__DEPLOY_PRODUCTION_S3__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__DEPLOY_STAGING_S3__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__PURGE_PRODUCTION_CACHE__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__PURGE_STAGING_CACHE__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__BUILD__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__DEPLOY_S3__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__ARCHIVE_SOURCEMAPS__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK,
 ];
 
 // post slack message on failure

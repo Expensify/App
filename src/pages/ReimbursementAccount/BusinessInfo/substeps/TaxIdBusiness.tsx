@@ -28,8 +28,8 @@ const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '-1';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? -1;
+    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '';
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
     const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
 
     const validate = useCallback(

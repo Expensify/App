@@ -274,10 +274,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     };
 
     useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
-
-    useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
         if (!network.isOffline) {
             updateShouldShowLoadingSpinner();
@@ -343,7 +339,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
-    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
+    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
 
     return (
         <>
