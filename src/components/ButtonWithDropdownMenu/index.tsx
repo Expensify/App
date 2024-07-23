@@ -139,7 +139,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => {
-                        setIsMenuVisible(false)
+                        setIsMenuVisible(false);
                         onOptionsMenuHide?.();
                     }}
                     onModalShow={onOptionsMenuShow}
