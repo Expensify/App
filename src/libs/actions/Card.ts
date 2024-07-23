@@ -379,9 +379,9 @@ export {
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
     updateSettlementFrequency,
-    updateSettlementAccount,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
+    updateSettlementAccount,
 };
 export type {ReplacementReason};

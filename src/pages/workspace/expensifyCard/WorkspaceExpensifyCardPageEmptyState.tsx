@@ -82,7 +82,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={Illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
-                    contentPaddingOnLargeScreens={styles.p5}
                 />
             </View>
         </WorkspacePageWithSections>
