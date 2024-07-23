@@ -182,6 +182,8 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
+
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
     },
@@ -664,6 +666,7 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
+        MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -905,7 +908,11 @@ const CONST = {
         },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -2246,6 +2253,10 @@ const CONST = {
         CARD_TYPE: {
             PHYSICAL: 'physical',
             VIRTUAL: 'virtual',
+        },
+        FREQUENCY_SETTING: {
+            DAILY: 'daily',
+            MONTHLY: 'monthly',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -5361,6 +5372,10 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 
