@@ -1,6 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -298,6 +298,18 @@ function MoneyRequestConfirmationList({
 
     const isCategoryRequired = !!policy?.requiresCategory;
 
+    const shouldDisableParticipant = (participant: Participant): boolean => {
+        if (ReportUtils.isDraftReport(participant.reportID)) {
+            return true;
+        }
+
+        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+            return true;
+        }
+
+        return false;
+    };
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -440,6 +452,7 @@ function MoneyRequestConfirmationList({
                 return {
                     ...participantOption,
                     isSelected: false,
+                    isInteractive: !shouldDisableParticipant(participantOption),
                     rightElement: (
                         <View style={[styles.flexWrap, styles.pl2]}>
                             <Text style={[styles.textLabel]}>{amount ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
@@ -456,6 +469,7 @@ function MoneyRequestConfirmationList({
             ...participantOption,
             tabIndex: -1,
             isSelected: false,
+            isInteractive: !shouldDisableParticipant(participantOption),
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
@@ -538,18 +552,6 @@ function MoneyRequestConfirmationList({
             translate,
         ],
     );
-
-    const shouldDisableParticipant = (participant: Participant): boolean => {
-        if (ReportUtils.isDraftReport(participant.reportID)) {
-            return true;
-        }
-
-        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
-            return true;
-        }
-
-        return false;
-    };
 
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
@@ -737,6 +739,17 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const confirmButtonRef = useRef<View>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                confirmButtonRef.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
+
     const footerContent = useMemo(() => {
         if (isReadOnly) {
             return;
@@ -768,6 +781,7 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                buttonRef={confirmButtonRef}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}

@@ -41,6 +41,7 @@ function RadioListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
         >
             <>
+                {!!item.leftElement && item.leftElement}
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}

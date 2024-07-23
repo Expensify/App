@@ -44,6 +44,26 @@ Onyx.connect({
                     return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
+
+        // On AddComment API response, each variant of the same emoji (with different skin tones) is
+        // treated as a separate entry due to unique emoji codes for each variant.
+        // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
+        const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
+        frequentlyUsedEmojis.forEach((emoji) => {
+            const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+            if (existingEmoji) {
+                existingEmoji.count += emoji.count;
+                existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+            } else {
+                frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+            }
+        });
+        frequentlyUsedEmojis = Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+            if (a.count !== b.count) {
+                return b.count - a.count;
+            }
+            return b.lastUpdatedAt - a.lastUpdatedAt;
+        });
     },
 });
 

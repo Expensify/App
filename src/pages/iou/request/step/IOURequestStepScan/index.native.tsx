@@ -17,6 +17,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -66,6 +67,8 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
@@ -384,8 +387,13 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (originalFile: FileObject) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated: boolean) => {
         if (!validateReceipt(originalFile)) {
+            return;
+        }
+
+        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+            setPdfFile(originalFile);
             return;
         }
 
@@ -461,6 +469,26 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
+            {pdfFile && (
+                <PDFThumbnail
+                    style={styles.invisiblePDF}
+                    previewSourceURL={pdfFile?.uri ?? ''}
+                    onLoadSuccess={() => {
+                        setPdfFile(null);
+                        if (pdfFile) {
+                            setReceiptAndNavigate(pdfFile, true);
+                        }
+                    }}
+                    onPassword={() => {
+                        setPdfFile(null);
+                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                    }}
+                    onLoadError={() => {
+                        setPdfFile(null);
+                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                    }}
+                />
+            )}
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <ImageSVG
