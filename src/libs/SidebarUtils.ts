@@ -18,19 +18,12 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import Parser from './Parser';
-import Permissions from './Permissions';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; messageText?: string; messageHtml?: string};
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;

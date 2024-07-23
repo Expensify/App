@@ -12,7 +12,6 @@ import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';

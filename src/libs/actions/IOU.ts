@@ -40,7 +40,6 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
-import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -153,12 +152,6 @@ type GPSPoint = {
     lat: number;
     long: number;
 };
-
-let betas: OnyxTypes.Beta[] = [];
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (betas = value ?? []),
-});
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({

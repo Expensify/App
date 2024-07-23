@@ -58,18 +58,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [
-        fullReport,
-        lastReportActionTransaction,
-        reportActions,
-        personalDetails,
-        preferredLocale,
-        policy,
-        parentReportAction,
-        transaction,
-        transactionViolations,
-        receiptTransactions,
-    ]);
+    }, [fullReport, lastReportActionTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, receiptTransactions]);
 
     return (
         <OptionRowLHN

@@ -16,7 +16,6 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -153,7 +152,8 @@ function ReportPreview({
     const hasErrors =
         hasMissingSmartscanFields ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations)) ||
+        ReportUtils.hasViolations(iouReportID, transactionViolations) ||
+        ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
