@@ -507,6 +507,10 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
+        textWrap: {
+            ...whiteSpace.preWrap,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
@@ -1051,6 +1055,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 61,
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        invisiblePDF: {
+            position: 'absolute',
+            opacity: 0,
+            width: 1,
+            height: 1,
         },
 
         headerAnonymousFooter: {
@@ -2104,7 +2115,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatFooterFullCompose: {
-            flex: 1,
+            height: '100%',
+            paddingTop: 20,
         },
 
         chatItemDraft: {

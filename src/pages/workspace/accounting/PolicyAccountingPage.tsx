@@ -30,6 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {findCurrentXeroOrganization, getCurrentSageIntacctEntityName, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -167,7 +168,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration) || (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration)),
     );
 
-    const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+
     const policyID = policy?.id ?? '-1';
     const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
 
@@ -200,7 +202,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [getDatetimeToRelative, successfulDate]);
 
     const integrationSpecificMenuItems = useMemo(() => {
-        const sageIntacctEntityListLength = policy?.connections?.intacct?.data?.entities?.length;
+        const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -240,23 +242,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     },
                 };
             case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                return {
-                    description: translate('workspace.intacct.entity'),
-                    iconRight: Expensicons.ArrowRight,
-                    title: getCurrentSageIntacctEntityName(policy),
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    titleStyle: styles.fontWeightNormal,
-                    shouldShowRightIcon: !!sageIntacctEntityListLength,
-                    shouldShowDescriptionOnTop: true,
-                    pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
-                    brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    onPress: () => {
-                        if (!sageIntacctEntityListLength) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
-                    },
-                };
+                return !sageIntacctEntityList.length
+                    ? {}
+                    : {
+                          description: translate('workspace.intacct.entity'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: getCurrentSageIntacctEntityName(policy),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: true,
+                          shouldShowDescriptionOnTop: true,
+                          pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
+                          brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: () => {
+                              if (!sageIntacctEntityList.length) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
+                          },
+                      };
             default:
                 return undefined;
         }
@@ -320,7 +324,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     </View>
                 ),
             },
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError ? [] : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [

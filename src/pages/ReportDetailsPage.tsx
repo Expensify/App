@@ -84,11 +84,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const styles = useThemeStyles();
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
-    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || '-1'}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || '-1'}`);
     const {reportActions} = usePaginatedReportActions(report.reportID || '-1');
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -132,11 +133,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
         return ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
     }, [report, isGroupChat, isSystemChat]);
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -215,13 +218,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const leaveChat = useCallback(() => {
         Navigation.dismissModal();
-        if (isChatRoom) {
-            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        if (isRootGroupChat) {
+            Report.leaveGroupChat(report.reportID);
             return;
         }
-        Report.leaveGroupChat(report.reportID);
-    }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+        const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+        Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
         if (PolicyUtils.hasAccountingConnections(policy)) {
@@ -232,8 +235,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         IOU.unapproveExpenseReport(moneyRequestReport);
     }, [moneyRequestReport, policy]);
 
-    const shouldShowLeaveButton =
-        !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
+    const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
 
@@ -380,12 +382,24 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 icon: Expensicons.Exit,
                 isAnonymousAction: true,
                 action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isGroupChat) {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
 
                     leaveChat();
+                },
+            });
+        }
+
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
+                translationKey: 'common.export',
+                icon: Expensicons.Upload,
+                isAnonymousAction: false,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
                 },
             });
         }
@@ -404,24 +418,28 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
+        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
-        canModifyTask,
         isSystemChat,
         isPolicyExpenseChat,
-        shouldShowMenuItem,
         isMoneyRequestReport,
         isInvoiceReport,
+        policy,
+        connectedIntegration,
+        isPolicyAdmin,
+        isSingleTransactionView,
+        canModifyTask,
+        shouldShowMenuItem,
         isTaskReport,
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
         shouldShowCancelPaymentButton,
-        isPolicyAdmin,
         session,
         leaveChat,
         canUnapproveRequest,
@@ -445,7 +463,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
     const unapproveWarningText = (
         <Text>
@@ -696,22 +713,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         promotedActions={promotedActions}
                     />
 
-                    {menuItems.map((item) => {
-                        const brickRoadIndicator =
-                            ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    {menuItems.map((item) => (
+                        <MenuItem
+                            key={item.key}
+                            title={translate(item.translationKey)}
+                            subtitle={item.subtitle}
+                            icon={item.icon}
+                            onPress={item.action}
+                            isAnonymousAction={item.isAnonymousAction}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                        />
+                    ))}
 
                     {shouldShowDeleteButton && (
                         <MenuItem
@@ -760,7 +773,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         if (!navigateBackToAfterDelete.current) {
                             Navigation.dismissModal();
                         } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current);
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
                         }
                     }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}

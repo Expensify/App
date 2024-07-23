@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -113,7 +114,7 @@ function CardSection() {
                                 medium
                             />
                             <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
+                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName,
@@ -148,7 +149,7 @@ function CardSection() {
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
                         style={styles.mt5}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}

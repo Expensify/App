@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -55,11 +56,14 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
+import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
@@ -95,6 +99,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -654,9 +659,6 @@ function updateGroupChatName(reportID: string, reportName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
-                errors: {
-                    reportName: Localize.translateLocal('common.genericErrorMessage'),
-                },
                 pendingFields: {
                     reportName: null,
                 },
@@ -1519,10 +1521,12 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
         return newCommentText;
     }
 
-    const htmlForNewComment = Parser.replace(newCommentText, {
+    const textWithMention = ReportUtils.completeShortMention(newCommentText);
+
+    const htmlForNewComment = Parser.replace(textWithMention, {
         extras: {videoAttributeCache},
     });
-    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
+    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, textWithMention);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
@@ -2578,28 +2582,48 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
-                    Session.signOutAndRedirectToSignIn(true);
-                    return;
-                }
+            Onyx.connect({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (onboarding) => {
+                    Navigation.waitForProtectedRoutes().then(() => {
+                        if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
+                            Session.signOutAndRedirectToSignIn(true);
+                            return;
+                        }
 
-                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                // which is already called when AuthScreens mounts.
-                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
-                    return;
-                }
+                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                        // which is already called when AuthScreens mounts.
+                        if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            return;
+                        }
 
-                if (shouldSkipDeepLinkNavigation(route)) {
-                    return;
-                }
+                        if (shouldSkipDeepLinkNavigation(route)) {
+                            return;
+                        }
 
-                if (isAuthenticated) {
-                    return;
-                }
+                        const state = navigationRef.getRootState();
+                        const currentFocusedRoute = findFocusedRoute(state);
+                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
 
-                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
+                        if (!hasCompletedGuidedSetupFlow) {
+                            Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
+                            return;
+                        }
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                            return;
+                        }
+
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    });
+                },
             });
         });
     });
@@ -3221,7 +3245,7 @@ function completeOnboarding(
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
-            undefined,
+            currentUserAccountID,
             targetChatReportID,
             task.title,
             taskDescription,
@@ -3584,6 +3608,11 @@ function searchForReports(searchInput: string, policyID?: string) {
     const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID: policyID ?? '-1'};
     const searchForReportsParams: SearchForReportsParams = {searchInput, canCancel: true};
 
+    // We want to cancel all pending SearchForReports API calls before making another one
+    if (!policyID) {
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+    }
+
     API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : READ_COMMANDS.SEARCH_FOR_REPORTS, policyID ? searchForRoomToMentionParams : searchForReportsParams, {
         successData,
         failureData,
@@ -3777,6 +3806,21 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
+function exportToIntegration(reportID: string, connectionName: ConnectionName) {
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, {
+        reportIDList: reportID,
+        connectionName,
+        type: 'MANUAL',
+    });
+}
+
+function markAsManuallyExported(reportID: string) {
+    API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, {
+        reportIDList: reportID,
+        markedManually: true,
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -3860,5 +3904,7 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    exportToIntegration,
+    markAsManuallyExported,
     handleReportChanged,
 };
