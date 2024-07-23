@@ -1,4 +1,3 @@
-import {getUnixTime} from 'date-fns';
 import {Str} from 'expensify-common';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
@@ -45,6 +44,26 @@ Onyx.connect({
                     return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
+
+        // On AddComment API response, each variant of the same emoji (with different skin tones) is
+        // treated as a separate entry due to unique emoji codes for each variant.
+        // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
+        const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
+        frequentlyUsedEmojis.forEach((emoji) => {
+            const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+            if (existingEmoji) {
+                existingEmoji.count += emoji.count;
+                existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+            } else {
+                frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+            }
+        });
+        frequentlyUsedEmojis = Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+            if (a.count !== b.count) {
+                return b.count - a.count;
+            }
+            return b.lastUpdatedAt - a.lastUpdatedAt;
+        });
     },
 });
 
@@ -233,37 +252,6 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
 
     const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
-}
-
-/**
- * Get the updated frequently used emojis list by usage
- */
-function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji[] {
-    let frequentEmojiList = [...frequentlyUsedEmojis];
-
-    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-
-    const currentTimestamp = getUnixTime(new Date());
-    (Array.isArray(newEmoji) ? [...newEmoji] : [newEmoji]).forEach((emoji) => {
-        let currentEmojiCount = 1;
-        const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
-        if (emojiIndex >= 0) {
-            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
-            frequentEmojiList.splice(emojiIndex, 1);
-        }
-
-        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
-
-        // We want to make sure the current emoji is added to the list
-        // Hence, we take one less than the current frequent used emojis
-        frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
-        frequentEmojiList.push(updatedEmoji);
-
-        // Sort the list by count and lastUpdatedAt in descending order
-        frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
-    });
-
-    return frequentEmojiList;
 }
 
 /**
@@ -601,7 +589,6 @@ export {
     getLocalizedEmojiName,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
-    getFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,

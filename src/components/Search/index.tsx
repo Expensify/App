@@ -1,11 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
+import lodashMemoize from 'lodash/memoize';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -23,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
@@ -34,6 +34,8 @@ type SearchProps = {
     policyIDs?: string;
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
+    isMobileSelectionModeActive?: boolean;
+    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 const sortableSearchTabs: SearchQuery[] = [CONST.SEARCH.TAB.ALL];
@@ -41,14 +43,16 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-
-function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
+function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
+
+    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -70,8 +74,15 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         [isLargeScreenWidth],
     );
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
-    const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const getItemHeightMemoized = lodashMemoize(
+        (item: TransactionListItemType | ReportListItemType) => getItemHeight(item),
+        (item) => {
+            // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
+            // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
+            const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
+            return `${hash}-${item.keyForList}-${screenSizeHash}`;
+        },
+    );
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
@@ -90,21 +101,23 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultsEmpty(searchResults);
+    const isDataLoaded = searchResults?.data !== undefined;
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
-    if (isLoadingItems) {
+    if (shouldShowLoadingState) {
         return (
             <>
                 <SearchPageHeader
                     query={query}
                     hash={hash}
                 />
-                <TableListItemSkeleton shouldAnimate />
+                <SearchRowSkeleton shouldAnimate />
             </>
         );
     }
+
+    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (shouldShowEmptyState) {
         return (
@@ -135,7 +148,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     };
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults || isLoadingItems || isLoadingMoreItems) {
+        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
@@ -165,6 +178,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeActive : true;
+
     return (
         <SearchListWithHeader
             query={query}
@@ -172,17 +187,19 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             data={sortedData}
             searchType={searchResults?.search?.type as SearchDataTypes}
             customListHeader={
-                <SearchTableHeader
-                    data={searchResults?.data}
-                    metadata={searchResults?.search}
-                    onSortPress={onSortPress}
-                    sortOrder={sortOrder}
-                    isSortingAllowed={isSortingAllowed}
-                    sortBy={sortBy}
-                    shouldShowYear={shouldShowYear}
-                />
+                !isLargeScreenWidth ? null : (
+                    <SearchTableHeader
+                        data={searchResults?.data}
+                        metadata={searchResults?.search}
+                        onSortPress={onSortPress}
+                        sortOrder={sortOrder}
+                        isSortingAllowed={isSortingAllowed}
+                        sortBy={sortBy}
+                        shouldShowYear={shouldShowYear}
+                    />
+                )
             }
-            canSelectMultiple={isLargeScreenWidth}
+            canSelectMultiple={canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
@@ -197,7 +214,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             onSelectRow={openReport}
-            getItemHeight={getItemHeight}
+            getItemHeight={getItemHeightMemoized}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
@@ -205,9 +222,11 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
+            setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
+            isMobileSelectionModeActive={isMobileSelectionModeActive}
             listFooterContent={
-                isLoadingMoreItems ? (
-                    <TableListItemSkeleton
+                shouldShowLoadingMoreItems ? (
+                    <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
                     />

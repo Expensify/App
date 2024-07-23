@@ -5,7 +5,8 @@ description: Details on requesting the Expensify Card as an employee
 To start using the Expensify Card, do the following:
 1. **Enable Expensify Cards:** An admin must first enable the cards. Then, an admin can assign you a card by setting a limit, which allows access to the card.
 2. **Request the Card:**
-   - If you haven’t been assigned a limit, look for the task on your account’s homepage that says, “Ask your admin for the card!” Use this task to message your admin team.
+   - If you haven’t been assigned a limit, look for the task on your account’s homepage that says, “Ask your admin for the card!”
+   - Completing that task will send an in-product notification to your admin team that you requested the card. 
    - Once you’re assigned a card limit, you’ll receive an email notification. Click the link in the email to provide your shipping address on your account’s homepage.
    - Enter your address, and the physical card will be shipped within 3-5 business days.
 3. **Activate the Card:** When your physical card arrives, activate it in Expensify by entering the last four digits of the card in the activation task on your homepage.

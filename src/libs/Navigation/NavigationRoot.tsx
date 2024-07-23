@@ -8,6 +8,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
@@ -80,14 +81,20 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {setActiveWorkspaceID} = useActiveWorkspace();
+    const [user] = useOnyx(ONYXKEYS.USER);
 
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
     const initialState = useMemo(() => {
+        if (!user || user.isFromPublicDomain) {
+            return;
+        }
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        if (!hasCompletedGuidedSetupFlow) {
+        // We also make sure that the user is authenticated.
+        if (!hasCompletedGuidedSetupFlow && authenticated) {
             const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
             return adaptedState;
         }
@@ -143,6 +150,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
+        const currentRoute = navigationRef.getCurrentRoute();
+        Firebase.log(`[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`);
+
         const activeWorkspaceID = getPolicyIDFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
