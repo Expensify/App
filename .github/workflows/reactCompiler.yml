@@ -12,17 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout to current branch
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-      - name: Get list of compiled files (PR)
-        id: new-list
-        run: |
-          RAW_OUTPUT=$(npx react-compiler-healthcheck --json 2>/dev/null)
-          echo "Raw output: $RAW_OUTPUT"
-          NEW_LIST=$(echo "$RAW_OUTPUT" | jq -c .)
-          echo "NEW_LIST=$NEW_LIST" >> "$GITHUB_OUTPUT"
       - name: Checkout to target branch
         uses: actions/checkout@v4
         with:
@@ -36,6 +25,17 @@ jobs:
           echo "Raw output: $RAW_OUTPUT"
           OLD_LIST=$(echo "$RAW_OUTPUT" | jq -c .)
           echo "OLD_LIST=$OLD_LIST" >> "$GITHUB_OUTPUT"
+      - name: Checkout to current branch
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+      - name: Get list of compiled files (PR)
+        id: new-list
+        run: |
+          RAW_OUTPUT=$(npx react-compiler-healthcheck --json 2>/dev/null)
+          echo "Raw output: $RAW_OUTPUT"
+          NEW_LIST=$(echo "$RAW_OUTPUT" | jq -c .)
+          echo "NEW_LIST=$NEW_LIST" >> "$GITHUB_OUTPUT"
       - name: Check for react compiler changes
         id: checkReactCompiler
         uses: ./.github/actions/javascript/checkReactCompiler
