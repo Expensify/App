@@ -9,7 +9,7 @@ import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
+import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -45,7 +45,7 @@ type Item = {
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
  */
-const imagePickerOptions = {
+const imagePickerOptions: Partial<CameraOptions | ImageLibraryOptions> = {
     includeBase64: false,
     saveToPhotos: false,
     selectionLimit: 1,
@@ -165,28 +165,33 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
                     const targetAsset = response.assets?.[0];
 
-                    console.log('TARGET ASSET ', targetAsset);
-                    const fileContent = await RNFS.read(targetAsset?.uri, 12, 0, 'base64');
-                    const hexSignature = Array.from(decode(fileContent))
-                        .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
-                        .slice(0, 32)
-                        .join('')
-                        .toUpperCase();
+                    if (!targetAsset?.uri) {
+                        return resolve();
+                    }
 
-                    const isHEIC = hexSignature.startsWith(CONST.HEIC_SIGNATURE);
+                    if (targetAsset?.type?.startsWith('image')) {
+                        const fileContent = await RNFS.read(targetAsset.uri, 12, 0, 'base64');
+                        const hexSignature = Array.from(decode(fileContent))
+                            .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+                            .slice(0, 32)
+                            .join('')
+                            .toUpperCase();
 
-                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                    if (isHEIC) {
-                        const manipResult = await manipulateAsync(targetAsset?.uri, [], {format: SaveFormat.JPEG});
+                        const isHEIC = hexSignature.startsWith(CONST.HEIC_SIGNATURE);
 
-                        const convertedAsset = {
-                            uri: manipResult.uri,
-                            type: 'image/jpeg',
-                            width: manipResult.width,
-                            height: manipResult.height,
-                        };
+                        // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                        if (isHEIC) {
+                            const manipResult = await manipulateAsync(targetAsset.uri, [], {format: SaveFormat.JPEG});
 
-                        return resolve([convertedAsset]);
+                            const convertedAsset = {
+                                uri: manipResult.uri,
+                                type: 'image/jpeg',
+                                width: manipResult.width,
+                                height: manipResult.height,
+                            };
+
+                            return resolve([convertedAsset]);
+                        }
                     }
 
                     return resolve(response.assets);
