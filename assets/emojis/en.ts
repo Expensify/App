@@ -128,6 +128,9 @@ const enEmojis: EmojisList = {
     '😑': {
         keywords: ['face', 'inexpressive', 'unexpressive'],
     },
+    '🫨': {
+        keywords: ['shaking', 'face', 'shock', 'vibration', 'tremble', 'emotion'],
+    },
     '😶': {
         keywords: ['mute', 'silence', 'face', 'mouth', 'quiet', 'silent'],
     },
@@ -425,6 +428,15 @@ const enEmojis: EmojisList = {
     '❤️': {
         keywords: ['love'],
     },
+    '🩷': {
+        keywords: ['pink', 'heart', 'love', 'affection', 'romance', 'valentine'],
+    },
+    '🩵': {
+        keywords: ['light blue', 'heart', 'love', 'affection', 'calm', 'tranquility'],
+    },
+    '🩶': {
+        keywords: ['grey', 'heart', 'love', 'affection', 'neutral', 'balance'],
+    },
     '🧡': {
         keywords: [],
     },
@@ -583,6 +595,12 @@ const enEmojis: EmojisList = {
     },
     '🤜': {
         keywords: ['fist', 'rightwards'],
+    },
+    '🫷': {
+        keywords: ['leftwards', 'pushing', 'hand', 'gesture', 'stop', 'block'],
+    },
+    '🫸': {
+        keywords: ['rightwards', 'pushing', 'hand', 'gesture', 'stop', 'block'],
     },
     '👏': {
         keywords: ['praise', 'applause', 'body', 'hand'],
@@ -1643,6 +1661,25 @@ const enEmojis: EmojisList = {
     '🦄': {
         keywords: ['face'],
     },
+    '🫎': {
+        keywords: ['moose', 'animal', 'wildlife', 'antlers', 'forest', 'nature'],
+    },
+    '🫏': {
+        keywords: ['donkey', 'animal', 'mule', 'farm', 'stubborn', 'nature'],
+    },
+    '🪽': {
+        keywords: ['wing', 'bird', 'fly', 'angel', 'freedom', 'flight'],
+    },
+    '🐦‍⬛': {
+        keywords: ['black', 'bird', 'animal', 'crow', 'raven', 'flight'],
+    },
+    '🪿': {
+        keywords: ['goose', 'animal', 'bird', 'waterfowl', 'nature', 'pond'],
+    },
+    '🪼': {
+        keywords: ['jellyfish', 'animal', 'sea', 'ocean', 'tentacles', 'marine'],
+    },
+
     '🦓': {
         keywords: [],
     },
@@ -1949,6 +1986,9 @@ const enEmojis: EmojisList = {
     '🥀': {
         keywords: ['flower', 'wilted'],
     },
+    '🪻': {
+        keywords: ['hyacinth', 'flower', 'plant', 'blossom', 'garden', 'nature'],
+    },
     '🪷': {
         keywords: ['lotus', 'flower', 'bloom', 'plant'],
     },
@@ -2242,6 +2282,12 @@ const enEmojis: EmojisList = {
     },
     '🍠': {
         keywords: ['potato', 'roasted', 'sweet'],
+    },
+    '🫚': {
+        keywords: ['ginger', 'root', 'spice', 'food', 'cooking', 'health'],
+    },
+    '🫛': {
+        keywords: ['pea', 'pod', 'vegetable', 'food', 'plant', 'garden'],
     },
     '🍢': {
         keywords: ['kebab', 'seafood', 'skewer', 'stick'],
@@ -3095,6 +3141,9 @@ const enEmojis: EmojisList = {
     '🎎': {
         keywords: ['activity', 'celebration', 'doll', 'entertainment', 'festival', 'japanese'],
     },
+    '🪭': {
+        keywords: ['folding', 'hand', 'fan', 'cool', 'breeze', 'accessory'],
+    },
     '🎏': {
         keywords: ['activity', 'carp', 'celebration', 'entertainment', 'flag', 'streamer'],
     },
@@ -3521,11 +3570,17 @@ const enEmojis: EmojisList = {
     '🎹': {
         keywords: ['piano', 'activity', 'entertainment', 'instrument', 'keyboard', 'music'],
     },
+    '🪇': {
+        keywords: ['maracas', 'instrument', 'music', 'percussion', 'rhythm', 'shake'],
+    },
     '🎺': {
         keywords: ['activity', 'entertainment', 'instrument', 'music'],
     },
     '🎻': {
         keywords: ['activity', 'entertainment', 'instrument', 'music'],
+    },
+    '🪈': {
+        keywords: ['flute', 'instrument', 'music', 'wind', 'melody', 'play'],
     },
     '🪕': {
         keywords: [],
@@ -4028,6 +4083,9 @@ const enEmojis: EmojisList = {
     '🪒': {
         keywords: [],
     },
+    '🪮': {
+        keywords: ['hair', 'pick', 'comb', 'grooming', 'accessory', 'style'],
+    },
     '🧴': {
         keywords: [],
     },
@@ -4117,6 +4175,9 @@ const enEmojis: EmojisList = {
     },
     '🛅': {
         keywords: ['baggage', 'left luggage', 'locker', 'luggage'],
+    },
+    '🛜': {
+        keywords: ['wireless', 'network', 'signal', 'connection', 'internet', 'wifi'],
     },
     '⚠️': {
         keywords: ['wip'],
@@ -4234,6 +4295,9 @@ const enEmojis: EmojisList = {
     },
     '☸️': {
         keywords: ['buddhist', 'dharma', 'religion', 'wheel'],
+    },
+    '🪯': {
+        keywords: ['khanda', 'sikh', 'symbol', 'religion', 'faith', 'sikhism'],
     },
     '☯️': {
         keywords: [],

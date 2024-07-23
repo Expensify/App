@@ -170,6 +170,10 @@ const esEmojis: EmojisList = {
         name: 'inexpresivo',
         keywords: ['cara', 'inexpresión', 'inexpresiva', 'inexpresivo', 'cara sin expresión'],
     },
+    '🫨': {
+        name: 'cara_temblorosa',
+        keywords: ['cara', 'temblorosa', 'sacudida', 'temblor'],
+    },
     '😶': {
         name: 'prohibido_hablar',
         keywords: ['boca', 'callado', 'cara', 'silencio', 'cara sin boca'],
@@ -566,6 +570,18 @@ const esEmojis: EmojisList = {
         name: 'corazón',
         keywords: ['corazón', 'emoción', 'rojo'],
     },
+    '🩷': {
+        name: 'corazón_rosa',
+        keywords: ['corazón', 'rosa', 'amor', 'afecto'],
+    },
+    '🩵': {
+        name: 'corazón_azul_claro',
+        keywords: ['corazón', 'azul', 'claro', 'amor', 'afecto'],
+    },
+    '🩶': {
+        name: 'corazón_gris',
+        keywords: ['corazón', 'gris', 'amor', 'afecto'],
+    },
     '🧡': {
         name: 'corazón_naranja',
         keywords: ['corazón', 'emoción', 'naranja'],
@@ -777,6 +793,14 @@ const esEmojis: EmojisList = {
     '🤜': {
         name: 'puño_hacia_la_derecha',
         keywords: ['derecha', 'puño', 'puño hacia la derecha'],
+    },
+    '🫷': {
+        name: 'mano_empujando_hacia_la_izquierda',
+        keywords: ['mano', 'empujando', 'izquierda', 'gesto'],
+    },
+    '🫸': {
+        name: 'mano_empujando_hacia_la_derecha',
+        keywords: ['mano', 'empujando', 'derecha', 'gesto'],
     },
     '👏': {
         name: 'aplauso',
@@ -2191,6 +2215,30 @@ const esEmojis: EmojisList = {
         name: 'cara_de_unicornio',
         keywords: ['cara', 'unicornio'],
     },
+    '🫎': {
+        name: 'alce',
+        keywords: ['alce', 'animal', 'cuernos', 'naturaleza'],
+    },
+    '🫏': {
+        name: 'burro',
+        keywords: ['burro', 'animal', 'granja', 'naturaleza'],
+    },
+    '🪽': {
+        name: 'ala',
+        keywords: ['ala', 'volar', 'pájaro', 'ángel'],
+    },
+    '🐦‍⬛': {
+        name: 'pájaro_negro',
+        keywords: ['pájaro', 'negro', 'animal', 'naturaleza'],
+    },
+    '🪿': {
+        name: 'ganso',
+        keywords: ['ganso', 'animal', 'ave', 'naturaleza'],
+    },
+    '🪼': {
+        name: 'medusa',
+        keywords: ['medusa', 'animal', 'mar', 'naturaleza'],
+    },
     '🦓': {
         name: 'cara_zebra',
         keywords: ['raya', 'cebra'],
@@ -2599,6 +2647,10 @@ const esEmojis: EmojisList = {
         name: 'flor_marchita',
         keywords: ['flor', 'marchita', 'marchitada', 'marchitarse'],
     },
+    '🪻': {
+        name: 'jacinto',
+        keywords: ['jacinto', 'flor', 'planta', 'naturaleza'],
+    },
     '🪷': {
         name: 'flor_de_loto',
         keywords: ['loto', 'flor', 'florecer', 'planta'],
@@ -2990,6 +3042,14 @@ const esEmojis: EmojisList = {
     '🍠': {
         name: 'batata',
         keywords: ['asada', 'papa asada', 'patata', 'restaurante'],
+    },
+    '🫚': {
+        name: 'jengibre',
+        keywords: ['jengibre', 'especia', 'planta', 'cocina'],
+    },
+    '🫛': {
+        name: 'vaina_de_guisante',
+        keywords: ['vaina', 'guisante', 'vegetal', 'planta'],
     },
     '🍢': {
         name: 'oden',
@@ -4127,6 +4187,10 @@ const esEmojis: EmojisList = {
         name: 'muñecas',
         keywords: ['celebración', 'festival', 'hinamatsuri', 'muñecas', 'muñecas japonesas'],
     },
+    '🪭': {
+        name: 'abanico_plegable',
+        keywords: ['abanico', 'plegable', 'viento', 'accesorio'],
+    },
     '🎏': {
         name: 'banderas',
         keywords: ['banderín', 'carpa', 'celebración', 'koinobori', 'banderín de carpas'],
@@ -4695,6 +4759,10 @@ const esEmojis: EmojisList = {
         name: 'teclado_musical',
         keywords: ['instrumento', 'instrumento musical', 'música', 'teclado', 'piano', 'teclado musical'],
     },
+    '🪇': {
+        name: 'maracas',
+        keywords: ['maracas', 'música', 'instrumento', 'ritmo'],
+    },
     '🎺': {
         name: 'trompeta',
         keywords: ['instrumento', 'instrumento musical', 'música', 'trompeta'],
@@ -4702,6 +4770,10 @@ const esEmojis: EmojisList = {
     '🎻': {
         name: 'violín',
         keywords: ['instrumento', 'instrumento musical', 'música', 'violín'],
+    },
+    '🪈': {
+        name: 'flauta',
+        keywords: ['flauta', 'música', 'instrumento', 'viento'],
     },
     '🪕': {
         name: 'banjo',
@@ -5371,6 +5443,10 @@ const esEmojis: EmojisList = {
         name: 'cuchilla_de_afeitar',
         keywords: ['afeitado', 'afeitar', 'afilado', 'barbero', 'navaja', 'cuchilla de afeitar'],
     },
+    '🪮': {
+        name: 'peine_para_cabello',
+        keywords: ['peine', 'cabello', 'herramienta', 'accesorio'],
+    },
     '🧴': {
         name: 'bote_de_crema',
         keywords: ['champú', 'crema', 'hidratante', 'protector solar', 'bote de crema'],
@@ -5490,6 +5566,10 @@ const esEmojis: EmojisList = {
     '🛅': {
         name: 'consigna',
         keywords: ['depósito', 'equipaje', 'servicio de equipaje en depósito', 'consigna'],
+    },
+    '🛜': {
+        name: 'inalámbrico',
+        keywords: ['inalámbrico', 'conexión', 'wifi', 'red'],
     },
     '⚠️': {
         name: 'advertencia',
@@ -5646,6 +5726,10 @@ const esEmojis: EmojisList = {
     '☸️': {
         name: 'rueda_del_dharma',
         keywords: ['budismo', 'dharma', 'religión', 'rueda', 'rueda del dharma'],
+    },
+    '🪯': {
+        name: 'khanda',
+        keywords: ['khanda', 'símbolo', 'sijismo', 'religión'],
     },
     '☯️': {
         name: 'yin_yang',

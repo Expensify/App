@@ -2589,10 +2589,6 @@ const emojis: PickerEmojis = [
         code: '🪼',
     },
     {
-        name: 'hyacinth',
-        code: '🪻',
-    },
-    {
         name: 'zebra',
         code: '🦓',
     },
@@ -2999,6 +2995,10 @@ const emojis: PickerEmojis = [
     {
         name: 'wilted_flower',
         code: '🥀',
+    },
+    {
+        name: 'hyacinth',
+        code: '🪻',
     },
     {
         name: 'lotus',
@@ -6105,7 +6105,6 @@ const emojis: PickerEmojis = [
         name: 'khanda',
         code: '🪯',
     },
-
     {
         name: 'yin_yang',
         code: '☯️',
