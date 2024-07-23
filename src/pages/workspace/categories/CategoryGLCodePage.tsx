@@ -36,7 +36,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                Category.updatePolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
+                Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
             }
             Navigation.goBack();
         },

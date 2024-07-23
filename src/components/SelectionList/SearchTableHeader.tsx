@@ -26,6 +26,12 @@ const SearchColumns: SearchColumnConfig[] = [
         isColumnSortable: false,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TYPE,
+        translationKey: 'common.type',
+        shouldShow: () => true,
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
         shouldShow: () => true,
@@ -70,12 +76,6 @@ const SearchColumns: SearchColumnConfig[] = [
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: 'common.total',
         shouldShow: () => true,
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.TYPE,
-        translationKey: 'common.type',
-        shouldShow: () => true,
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,

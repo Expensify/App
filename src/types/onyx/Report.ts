@@ -289,6 +289,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The trip ID in spotnana */
             tripID: string;
         };
+
+        /** Whether the report is archived */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived?: string;
     },
     PolicyReportField['fieldID']
 >;
