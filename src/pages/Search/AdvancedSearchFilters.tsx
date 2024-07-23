@@ -62,6 +62,11 @@ function AdvancedSearchFilters() {
                 description: 'common.date' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, 'status', translate),
+                description: 'search.filters.status' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
+            },
         ],
         [searchAdvancedFilters, translate],
     );

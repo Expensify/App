@@ -55,6 +55,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
 
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
+
     SEARCH_REPORT: {
         route: 'search/:query/view/:reportID',
         getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
