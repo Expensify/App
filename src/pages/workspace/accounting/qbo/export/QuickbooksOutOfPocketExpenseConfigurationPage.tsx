@@ -57,7 +57,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                 includeSafeAreaPaddingBottom={false}
                 testID={QuickbooksOutOfPocketExpenseConfigurationPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.exportExpenses')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.exportOutOfPocket')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>
                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesExportDestination}>

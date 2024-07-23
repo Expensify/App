@@ -908,7 +908,11 @@ const CONST = {
         },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,

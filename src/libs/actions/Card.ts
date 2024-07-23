@@ -388,10 +388,10 @@ export {
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
     updateSettlementFrequency,
-    updateSettlementAccount,
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
+    updateSettlementAccount,
     startIssueNewCardFlow,
 };
 export type {ReplacementReason};

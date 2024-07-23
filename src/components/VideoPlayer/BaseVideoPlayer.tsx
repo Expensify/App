@@ -59,7 +59,7 @@ function BaseVideoPlayer({
         shareVideoPlayerElements,
         currentVideoPlayerRef,
         updateCurrentlyPlayingURL,
-        videoResumeTryNumber,
+        videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
@@ -86,7 +86,7 @@ function BaseVideoPlayer({
     const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
-        videoResumeTryNumber.current = 0;
+        videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
         } else if (isPlaying) {
@@ -94,7 +94,7 @@ function BaseVideoPlayer({
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
@@ -118,16 +118,16 @@ function BaseVideoPlayer({
     // fix for iOS mWeb: preventing iOS native player default behavior from pausing the video when exiting fullscreen
     const preventPausingWhenExitingFullscreen = useCallback(
         (isVideoPlaying: boolean) => {
-            if (videoResumeTryNumber.current === 0 || isVideoPlaying) {
+            if (videoResumeTryNumberRef.current === 0 || isVideoPlaying) {
                 return;
             }
-            if (videoResumeTryNumber.current === 1) {
+            if (videoResumeTryNumberRef.current === 1) {
                 playVideo();
             }
             // eslint-disable-next-line react-compiler/react-compiler
-            videoResumeTryNumber.current -= 1;
+            videoResumeTryNumberRef.current -= 1;
         },
-        [playVideo, videoResumeTryNumber],
+        [playVideo, videoResumeTryNumberRef],
     );
 
     const handlePlaybackStatusUpdate = useCallback(
@@ -186,11 +186,11 @@ function BaseVideoPlayer({
                 if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
                     pauseVideo();
                     playVideo();
-                    videoResumeTryNumber.current = 3;
+                    videoResumeTryNumberRef.current = 3;
                 }
             }
         },
-        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumberRef, updateVolume, currentVideoPlayerRef],
     );
 
     const bindFunctions = useCallback(() => {
