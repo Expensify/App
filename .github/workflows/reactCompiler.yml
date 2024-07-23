@@ -1,0 +1,35 @@
+name: 🔮 React Compiler
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/reactCompiler.yml"
+      - "src/**"
+
+jobs:
+  check:
+    name: conformity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+      - name: Get list of compiled files (PR)
+        id: new-list
+        run: echo "NEW_LIST=$(npx react-compiler-healthcheck --json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+      - name: Get list of compiled files (main)
+        id: old-list
+        run: echo "OLD_LIST=$(npx react-compiler-healthcheck --json)" >> "$GITHUB_OUTPUT"
+      - name: Check for react compiler changes
+        id: checkReactCompiler
+        uses: ./.github/actions/javascript/checkReactCompiler
+        with:
+          NEW_LIST: ${{ steps.new-list.outputs.NEW_LIST }}
+          OLD_LIST: ${{ steps.old-list.outputs.OLD_LIST }}
