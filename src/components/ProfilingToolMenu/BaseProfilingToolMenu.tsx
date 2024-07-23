@@ -1,10 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import DeviceInfo from 'react-native-device-info';
-import RNFS from 'react-native-fs';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
-import Share from 'react-native-share';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -18,6 +16,8 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../package.json';
+import RNFS from './RNFS';
+import Share from './Share';
 
 type BaseProfilingToolMenuOnyxProps = {
     isProfilingInProgress: OnyxEntry<boolean>;
@@ -28,6 +28,8 @@ type BaseProfilingToolMenuProps = {
     pathToBeUsed: string;
     /** Path used to display location of saved file */
     displayPath: string;
+    /** Whether to show the share button */
+    showShareButton?: boolean;
 } & BaseProfilingToolMenuOnyxProps;
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -47,9 +49,9 @@ function formatBytes(bytes: number, decimals = 2) {
 // WARNING: When changing this name make sure that the "scripts/symbolicate-profile.ts" script is still working!
 const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
 
-function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
+function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
     const styles = useThemeStyles();
-    const [pathIOS, setPathIOS] = useState('');
+    const [filePath, setFilePath] = useState('');
     const [sharePath, setSharePath] = useState('');
     const [totalMemory, setTotalMemory] = useState(0);
     const [usedMemory, setUsedMemory] = useState(0);
@@ -57,8 +59,8 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const stop = useCallback(async () => {
-        const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS);
-        setPathIOS(path);
+        const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.WEB, newFileName);
+        setFilePath(path);
 
         const amountOfTotalMemory = await DeviceInfo.getTotalMemory();
         const amountOfUsedMemory = await DeviceInfo.getUsedMemory();
@@ -92,7 +94,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
     );
 
     useEffect(() => {
-        if (!pathIOS) {
+        if (!filePath) {
             return;
         }
 
@@ -112,7 +114,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
             }
 
             // Copy the file to a new location with the desired filename
-            await RNFS.copyFile(pathIOS, newFilePath)
+            await RNFS.copyFile(filePath, newFilePath)
                 .then(() => {
                     Log.hmmm('[ProfilingToolMenu] file copied successfully');
                 })
@@ -124,7 +126,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
         };
 
         rename();
-    }, [pathIOS, pathToBeUsed]);
+    }, [filePath, pathToBeUsed]);
 
     const onDownloadProfiling = useCallback(() => {
         // eslint-disable-next-line @lwc/lwc/no-async-await
@@ -158,7 +160,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
-            {!!pathIOS && (
+            {!!filePath && showShareButton && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>

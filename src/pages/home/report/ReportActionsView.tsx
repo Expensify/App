@@ -199,7 +199,6 @@ function ReportActionsView({
                 report.reportID,
                 false,
                 false,
-                {},
                 false,
                 DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
             ) as OnyxTypes.ReportAction;
@@ -314,18 +313,6 @@ function ReportActionsView({
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-
-    useEffect(() => {
-        if (!reportActionID || indexOfLinkedAction > -1) {
-            return;
-        }
-
-        // This function is triggered when a user clicks on a link to navigate to a report.
-        // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
-        Report.openReport(reportID, reportActionID);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
