@@ -1882,6 +1882,7 @@ function getSendInvoiceInformation(
 
     return {
         senderWorkspaceID,
+        iouReportActionID: iouAction.reportID,
         receiver,
         invoiceRoom: chatReport,
         createdChatReportActionID: optimisticCreatedActionForChat.reportActionID,
@@ -3603,10 +3604,21 @@ function sendInvoice(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const {senderWorkspaceID, receiver, invoiceRoom, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
-        getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
+    const {
+        senderWorkspaceID,
+        receiver,
+        invoiceRoom,
+        createdChatReportActionID,
+        invoiceReportID,
+        reportPreviewReportActionID,
+        transactionID,
+        transactionThreadReportID,
+        onyxData,
+        iouReportActionID,
+    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
     const parameters: SendInvoiceParams = {
+        iouReportActionID,
         senderWorkspaceID,
         accountID: currentUserAccountID,
         amount: transaction?.amount ?? 0,
