@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useMemo, useReducer, useState} from 'react';
+import React, {memo, useMemo, useReducer} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -29,7 +29,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
-import ConfirmModal from './ConfirmModal';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -222,9 +221,6 @@ function MoneyRequestConfirmationListFooter({
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [invalidAttachmentPrompt, setInvalidAttachmentPrompt] = useState(translate('attachmentPicker.protectedPDFNotSupported'));
 
     // A flag for showing the tags field
     // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
@@ -546,16 +542,6 @@ function MoneyRequestConfirmationListFooter({
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
-                            // We don't support scanning password protected PDF receipt
-                            enabled={!isAttachmentInvalid}
-                            onPassword={() => {
-                                setIsAttachmentInvalid(true);
-                                setInvalidAttachmentPrompt(translate('attachmentPicker.protectedPDFNotSupported'));
-                            }}
-                            onLoadError={() => {
-                                setInvalidAttachmentPrompt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                setIsAttachmentInvalid(true);
-                            }}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -590,7 +576,6 @@ function MoneyRequestConfirmationListFooter({
             translate,
             shouldDisplayReceipt,
             resolvedReceiptImage,
-            isAttachmentInvalid,
             isThumbnail,
             resolvedThumbnail,
             receiptThumbnail,
@@ -600,10 +585,6 @@ function MoneyRequestConfirmationListFooter({
             transactionID,
         ],
     );
-
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    };
 
     return (
         <>
@@ -654,15 +635,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             )}
             <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
-            <ConfirmModal
-                title={translate('attachmentPicker.attachmentError')}
-                onConfirm={navigateBack}
-                onCancel={navigateBack}
-                isVisible={isAttachmentInvalid}
-                prompt={invalidAttachmentPrompt}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }

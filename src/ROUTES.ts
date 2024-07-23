@@ -254,12 +254,7 @@ const ROUTES = {
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
-        getRoute: (reportID: string, isNewGroupChat?: boolean) => {
-            if (isNewGroupChat) {
-                return `r/${reportID}/avatar?isNewGroupChat=${isNewGroupChat}` as const;
-            }
-            return `r/${reportID}/avatar` as const;
-        },
+        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
@@ -880,6 +875,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
@@ -887,6 +886,18 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
+        route: 'settings/workspaces/:policyID/expensify-card/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/expensify-card/settings/account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/account` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
+        route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',

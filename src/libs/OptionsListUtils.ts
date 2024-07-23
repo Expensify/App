@@ -740,7 +740,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
         lastMessageTextFromReport = ReportActionUtils.getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && ReportActionUtils.isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction);
+        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');

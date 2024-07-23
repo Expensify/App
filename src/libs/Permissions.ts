@@ -36,10 +36,6 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
-}
-
 function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
@@ -71,7 +67,6 @@ export default {
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
     canUseSpotnanaTravel,
-    canUseNetSuiteIntegration,
     canUseSageIntacctIntegration,
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,

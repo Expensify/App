@@ -182,6 +182,8 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
+
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
     },
@@ -366,7 +368,6 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -906,7 +907,11 @@ const CONST = {
         },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -2247,6 +2252,10 @@ const CONST = {
         CARD_TYPE: {
             PHYSICAL: 'physical',
             VIRTUAL: 'virtual',
+        },
+        FREQUENCY_SETTING: {
+            DAILY: 'daily',
+            MONTHLY: 'monthly',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -3860,6 +3869,9 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
     },
+    STRIPE_GBP_AUTH_STATUSES: {
+        SUCCEEDED: 'succeeded',
+    },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
@@ -5278,8 +5290,10 @@ const CONST = {
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',
+        GBP: 'GBP',
         NZD: 'NZD',
     },
+    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
