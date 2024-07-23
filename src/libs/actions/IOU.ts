@@ -6379,9 +6379,8 @@ function canApproveIOU(
         return false;
     }
 
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+    if (isOnSubmitAndClosePolicy) {
         return false;
     }
 
