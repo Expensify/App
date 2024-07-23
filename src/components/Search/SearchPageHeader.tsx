@@ -11,13 +11,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getDownloadOption from './SearchActionOptionsUtils';
+import {useSearchContext} from './SearchContext';
 import type {SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
@@ -53,6 +56,8 @@ function SearchPageHeader({
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {setSelectedTransactionIDs} = useSearchContext();
+
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
         shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
@@ -85,28 +90,9 @@ function SearchPageHeader({
             options.push(downloadOption);
         }
 
-        const itemsToDelete = Object.keys(selectedTransactions ?? {}).filter((id) => selectedTransactions[id].canDelete);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
-        if (itemsToDelete.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate('search.bulkActions.delete'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setOfflineModalOpen?.();
-                        return;
-                    }
-
-                    onSelectDeleteOption?.(itemsToDelete);
-                },
-            });
-        }
-
-        const itemsToHold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].action === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-
-        if (itemsToHold.length > 0) {
+        if (shouldShowHoldOption) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
@@ -122,14 +108,15 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
-                    SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
+                    setSelectedTransactionIDs(selectedTransactionsKeys);
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(query));
                 },
             });
         }
 
-        const itemsToUnhold = selectedTransactionsKeys.filter((id) => selectedTransactions[id].action === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
-        if (itemsToUnhold.length > 0) {
+        if (shouldShowUnholdOption) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
@@ -145,7 +132,26 @@ function SearchPageHeader({
                     if (isMobileSelectionModeActive) {
                         setIsMobileSelectionModeActive?.(false);
                     }
-                    SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+                    SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                },
+            });
+        }
+
+        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
+
+        if (shouldShowDeleteOption) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate('search.bulkActions.delete'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+
+                    onSelectDeleteOption?.(selectedTransactionsKeys);
                 },
             });
         }
@@ -188,6 +194,7 @@ function SearchPageHeader({
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
+        setSelectedTransactionIDs,
     ]);
 
     if (isSmallScreenWidth) {

@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -55,12 +56,14 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
@@ -656,9 +659,6 @@ function updateGroupChatName(reportID: string, reportName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
-                errors: {
-                    reportName: Localize.translateLocal('common.genericErrorMessage'),
-                },
                 pendingFields: {
                     reportName: null,
                 },
@@ -1521,10 +1521,12 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
         return newCommentText;
     }
 
-    const htmlForNewComment = Parser.replace(newCommentText, {
+    const textWithMention = ReportUtils.completeShortMention(newCommentText);
+
+    const htmlForNewComment = Parser.replace(textWithMention, {
         extras: {videoAttributeCache},
     });
-    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
+    const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, textWithMention);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
@@ -2580,28 +2582,48 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
-                    Session.signOutAndRedirectToSignIn(true);
-                    return;
-                }
+            Onyx.connect({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (onboarding) => {
+                    Navigation.waitForProtectedRoutes().then(() => {
+                        if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
+                            Session.signOutAndRedirectToSignIn(true);
+                            return;
+                        }
 
-                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                // which is already called when AuthScreens mounts.
-                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
-                    return;
-                }
+                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                        // which is already called when AuthScreens mounts.
+                        if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            return;
+                        }
 
-                if (shouldSkipDeepLinkNavigation(route)) {
-                    return;
-                }
+                        if (shouldSkipDeepLinkNavigation(route)) {
+                            return;
+                        }
 
-                if (isAuthenticated) {
-                    return;
-                }
+                        const state = navigationRef.getRootState();
+                        const currentFocusedRoute = findFocusedRoute(state);
+                        const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
 
-                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
+                        if (!hasCompletedGuidedSetupFlow) {
+                            Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
+                            return;
+                        }
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                            return;
+                        }
+
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    });
+                },
             });
         });
     });
@@ -2743,12 +2765,6 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
-
-    // If this is the leave action from a workspace room or chat thread, simply dismiss the modal, i.e., allow the user to view the room/thread and join again immediately.
-    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
-        return;
-    }
-    // In other cases, the report is deleted and we should move the user to another report.
     navigateToMostRecentReport(report);
 }
 
