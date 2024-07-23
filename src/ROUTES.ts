@@ -363,6 +363,11 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType as string}/from/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_COMPANY_INFO: {
+        route: 'create/:iouType/company-info/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType as string}/company-info/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
