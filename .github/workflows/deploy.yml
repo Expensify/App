@@ -28,6 +28,24 @@ jobs:
 
       - name: 🚀 Push tags to trigger staging deploy 🚀
         run: git push --tags
+      
+      - name: Warn deployers if staging deploy failed
+        if: ${{ failure() }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 NewDot staging deploy failed. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   deployProduction:
     runs-on: ubuntu-latest
@@ -65,6 +83,24 @@ jobs:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 
       - name: 🚀 Create release to trigger production deploy 🚀
-        run: gh release create ${{ env.PRODUCTION_VERSION }} --generate-notes
+        run: gh release create ${{ env.PRODUCTION_VERSION }} --notes '${{ steps.getReleaseBody.outputs.RELEASE_BODY }}'
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+      
+      - name: Warn deployers if production deploy failed
+        if: ${{ failure() }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 NewDot production deploy failed. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

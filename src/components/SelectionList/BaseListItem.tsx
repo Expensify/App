@@ -32,6 +32,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldSyncFocus = true,
     onFocus = () => {},
     hoverStyle,
+    onLongPressRow,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -42,7 +43,7 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();
     };
@@ -71,6 +72,9 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
+                onLongPress={() => {
+                    onLongPressRow?.(item);
+                }}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
@@ -82,6 +86,7 @@ function BaseListItem<TItem extends ListItem>({
                     onSelectRow(item);
                 }}
                 disabled={isDisabled && !item.isSelected}
+                interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
@@ -91,8 +96,7 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>

@@ -12,9 +12,14 @@ function translateMock<TKey extends TranslationPaths>(key: TKey, ...phraseParame
     return key;
 }
 
-const CARD_ENDING = '1234';
 const AMOUNT_OWED = 100;
 const GRACE_PERIOD_DATE = 1750819200;
+
+const ACCOUNT_DATA = {
+    cardNumber: '1234',
+    cardMonth: 12,
+    cardYear: 2024,
+};
 
 const mockGetSubscriptionStatus = jest.fn();
 
@@ -68,10 +73,18 @@ describe('CardSectionUtils', () => {
 
     beforeAll(() => {
         mockGetSubscriptionStatus.mockReturnValue('');
+
+        jest.useFakeTimers();
+        // Month is zero indexed, so this is July 5th 2024
+        jest.setSystemTime(new Date(2024, 6, 5));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
     });
 
     it('should return undefined by default', () => {
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toBeUndefined();
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toBeUndefined();
     });
 
     it('should return POLICY_OWNER_WITH_AMOUNT_OWED variant', () => {
@@ -79,7 +92,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwed.subtitle',
             isError: true,
@@ -92,7 +105,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
             isError: true,
@@ -104,7 +117,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
             subtitle: 'subscription.billingBanner.policyOwnerUnderInvoicing.subtitle',
             isError: true,
@@ -117,7 +130,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.subtitle',
             isError: true,
@@ -130,7 +143,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.billingDisputePending.title',
             subtitle: 'subscription.billingBanner.billingDisputePending.subtitle',
             isError: true,
@@ -143,7 +156,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.cardAuthenticationRequired.title',
             subtitle: 'subscription.billingBanner.cardAuthenticationRequired.subtitle',
             isError: true,
@@ -156,7 +169,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.insufficientFunds.title',
             subtitle: 'subscription.billingBanner.insufficientFunds.subtitle',
             isError: true,
@@ -164,12 +177,19 @@ describe('CardSectionUtils', () => {
         });
     });
 
-    it('should return CARD_EXPIRED variant', () => {
+    it('should return CARD_EXPIRED variant with correct isRetryAvailableStatus for expired and unexpired card', () => {
         mockGetSubscriptionStatus.mockReturnValue({
             status: PAYMENT_STATUS.CARD_EXPIRED,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, {...ACCOUNT_DATA, cardYear: 2023})).toEqual({
+            title: 'subscription.billingBanner.cardExpired.title',
+            subtitle: 'subscription.billingBanner.cardExpired.subtitle',
+            isError: true,
+            isRetryAvailable: false,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
             subtitle: 'subscription.billingBanner.cardExpired.subtitle',
             isError: true,
@@ -182,7 +202,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.cardExpireSoon.title',
             subtitle: 'subscription.billingBanner.cardExpireSoon.subtitle',
             isError: false,
@@ -195,7 +215,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
             subtitle: 'subscription.billingBanner.retryBillingSuccess.subtitle',
             isError: false,
@@ -208,10 +228,11 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+        expect(CardSectionUtils.getBillingStatus(translateMock, ACCOUNT_DATA)).toEqual({
             title: 'subscription.billingBanner.retryBillingError.title',
             subtitle: 'subscription.billingBanner.retryBillingError.subtitle',
             isError: true,
+            isRetryAvailable: false,
         });
     });
 });

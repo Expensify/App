@@ -1,6 +1,8 @@
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
+import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
+import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -19,6 +21,16 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+
+// Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
+jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: {
+        ignoreLogs: jest.fn(),
+        ignoreAllLogs: jest.fn(),
+    },
+}));
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
@@ -54,5 +66,10 @@ jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('react-native-keyboard-controller', () => require('react-native-keyboard-controller/jest'));
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
+    createAnimatedPropAdapter: jest.fn,
+    useReducedMotion: jest.fn,
+}));
+
+jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));

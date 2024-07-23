@@ -139,7 +139,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = useMemo(
         () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [translate, sections],
     );
 

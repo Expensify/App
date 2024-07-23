@@ -118,6 +118,9 @@ type MoneyRequestConfirmationListFooterProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The policy tag lists */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+
+    /** The policy tag lists */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagList>>;
 
     /** The rate of the transaction */
@@ -193,6 +196,7 @@ function MoneyRequestConfirmationListFooter({
     isTypeInvoice,
     onToggleBillable,
     policy,
+    policyTags,
     policyTagLists,
     rate,
     receiptFilename,
@@ -226,6 +230,7 @@ function MoneyRequestConfirmationListFooter({
     // A flag for showing the tags field
     // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, isTypeInvoice, policyTagLists]);
+    const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -251,7 +256,8 @@ function MoneyRequestConfirmationListFooter({
     // Do not hide fields in case of paying someone
     const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
+    const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
@@ -437,8 +443,9 @@ function MoneyRequestConfirmationListFooter({
             shouldShow: shouldShowCategories,
             isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
-        ...policyTagLists.map(({name, required}, index) => {
+        ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
+            const shouldShow = shouldShowTags && (!isMultilevelTags || OptionsListUtils.hasEnabledOptions(tags));
             return {
                 item: (
                     <MenuItemWithTopDescription
@@ -458,7 +465,7 @@ function MoneyRequestConfirmationListFooter({
                         rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
                     />
                 ),
-                shouldShow: shouldShowTags,
+                shouldShow,
                 isSupplementary: !isTagRequired,
             };
         }),

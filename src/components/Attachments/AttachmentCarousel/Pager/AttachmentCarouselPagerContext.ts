@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import {createContext} from 'react';
+import type {GestureType} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
 import type {AttachmentSource} from '@components/Attachments/types';
@@ -9,6 +10,9 @@ type AttachmentCarouselPagerItems = {
     /** The source of the image is used to identify each attachment/page in the pager */
     source: AttachmentSource;
 
+    /** URL to preview-sized attachment that is also used for the thumbnail */
+    previewSource?: AttachmentSource;
+
     /** The index of the pager item determines the order of the images in the pager */
     index: number;
 
@@ -17,16 +21,28 @@ type AttachmentCarouselPagerItems = {
 };
 
 type AttachmentCarouselPagerContextValue = {
-    /** The list of items that are shown in the pager */
+    /** List of attachments displayed in the pager */
     pagerItems: AttachmentCarouselPagerItems[];
 
-    /** The index of the active page */
+    /** Index of the currently active page */
     activePage: number;
-    pagerRef?: ForwardedRef<PagerView>;
+
+    /** Ref to the active attachment */
+    pagerRef?: ForwardedRef<PagerView | GestureType>;
+
+    /** Indicates if the pager is currently scrolling */
     isPagerScrolling: SharedValue<boolean>;
+
+    /** Indicates if scrolling is enabled for the attachment */
     isScrollEnabled: SharedValue<boolean>;
+
+    /** Function to call after a tap event */
     onTap: () => void;
+
+    /** Function to call when the scale changes */
     onScaleChanged: (scale: number) => void;
+
+    /** Function to call after a swipe down event */
     onSwipeDown: () => void;
 };
 

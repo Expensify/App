@@ -10,9 +10,11 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
-type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES>;
+type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
-type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES>;
+type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
+
+type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type DropdownOption<TValueType> = {
     value: TValueType;
@@ -23,6 +25,11 @@ type DropdownOption<TValueType> = {
     iconDescription?: string;
     onSelected?: () => void;
     disabled?: boolean;
+    iconFill?: string;
+    interactive?: boolean;
+    numberOfLinesTitle?: number;
+    titleStyle?: ViewStyle;
+    shouldCloseModalOnSelect?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -77,6 +84,17 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};
+export type {
+    PaymentType,
+    WorkspaceMemberBulkActionType,
+    WorkspaceDistanceRatesBulkActionType,
+    DropdownOption,
+    ButtonWithDropdownMenuProps,
+    WorkspaceTaxRatesBulkActionType,
+    ReportExportType,
+};

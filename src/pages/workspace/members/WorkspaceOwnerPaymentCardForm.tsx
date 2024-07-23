@@ -50,7 +50,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                 PaymentMethods.clearPaymentCardFormErrorAndSubmit();
             };
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -61,7 +61,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const addPaymentCard = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
             const cardData = {
-                cardNumber: values.cardNumber,
+                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
                 cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
                 cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,

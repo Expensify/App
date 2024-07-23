@@ -7,29 +7,9 @@ description: International Reimbursements
 If your company’s business bank account is in the US, Canada, the UK, Europe, or Australia, you now have the option to send direct reimbursements to nearly any country across the globe! 
 The process to enable global reimbursements is dependent on the currency of your reimbursement bank account, so be sure to review the corresponding instructions below. 
 
-# How to request international reimbursements
-
-## The reimbursement account is in USD
-
-If your reimbursement bank account is in USD, the first step is connecting the bank account to Expensify. 
-The individual who plans on sending reimbursements internationally should head to **Settings > Account > Payments > Add Verified Bank Account**. From there, you will provide company details, input personal information, and upload a copy of your ID. 
-
-Once the USD bank account is verified (or if you already had a USD business bank account connected), click the support icon in your Expensify account to inform your Setup Specialist, Account Manager, or Concierge that you’d like to enable international reimbursements. From there, Expensify will ask you to confirm the currencies of the reimbursement and employee bank accounts.
-
-Our team will assess your account, and if you meet the criteria, international reimbursements will be enabled.
-
-## The reimbursement account is in AUD, CAD, GBP, EUR
-
-To request international reimbursements, contact Expensify Support to make that request.  
-
-You can do this by clicking on the support icon and informing your Setup Specialist, Account Manager, or Concierge that you’d like to set up global reimbursements on your account. 
-From there, Expensify will ask you to confirm both the currencies of the reimbursement and employee bank accounts.
-
-Our team will assess your account, and if you meet the criteria, international reimbursements will be enabled.
-
 # How to verify the bank account for sending international payments 
 
-Once international payments are enabled on your Expensify account, the next step is verifying the bank account to send the reimbursements. 
+The steps for USD accounts and non-USD accounts differ slightly.
 
 ## The reimbursement account is in USD
 
@@ -38,9 +18,9 @@ First, confirm the workspace settings are set up correctly by doing the followin
 2. Under **Settings > Workspaces > Group > _[Workspace Name]_ > Reimbursements**, set the reimbursement method to direct
 3. Under **Settings > Workspaces > Group > _[Workspace Name]_ > Reimbursements**, set the USD bank account to the default account
 
-Once that’s all set, head to **Settings > Account > Payments**, and click **Enable Global Reimbursement** on the bank account (this button may not show for up to 60 minutes after the Expensify team confirms international reimbursements are available on your account).
+Once that’s all set, head to **Settings > Account > Payments**, and click **Enable Global Reimbursement** on the bank account.
 
-From there, you’ll fill out a form via DocuSign. Once the form is complete, it is automatically sent to our Compliance Team for review.  Our Support Team will contact you with more details if additional information is required. 
+From there, you’ll fill out a form via DocuSign. Once the form is complete, it is automatically sent to our Compliance Team for review.  If additional information is required, our Support Team will contact you with more details. 
 
 ## The reimbursement account is in AUD, CAD, GBP, EUR
 
@@ -53,7 +33,7 @@ Next, add the bank account to Expensify:
 4. Enter the bank account details 
 5. Click **Save & Continue**
 
-From there, you’ll fill out a form via DocuSign. Once the form is complete, it is automatically sent to our Compliance Team for review. Our Support Team will contact you with more details if additional information is required. 
+From there, you’ll fill out a form via DocuSign. Once the form is complete, it is automatically sent to our Compliance Team for review. If additional information is required, our Support Team will contact you with more details. 
 
 # How to start reimbursing internationally
 

@@ -139,9 +139,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
     sequenceNumber?: number;
 
-    /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
-    previousReportActionID?: string;
-
     /** The name (or type) of the action */
     actionName: ReportActionName;
 
