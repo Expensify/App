@@ -867,6 +867,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         reimbursable: ['reimbursable'],
     };
 
+    // Helper function thats create an array of different values for a given key in the transactions
     function getDifferentValues(items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
         return [
             ...new Set(
@@ -883,6 +884,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
             ),
         ];
     }
+
     // Helper function to check if all comments are equal
     function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
         return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
@@ -907,7 +909,6 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         }
     }
 
-    // Main refactoring logic
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];

@@ -8,14 +8,12 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
@@ -38,7 +36,6 @@ function Confirmation() {
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const mergeDuplicates = useCallback(() => {
@@ -63,43 +60,40 @@ function Confirmation() {
             testID={Confirmation.displayName}
             shouldShowOfflineIndicator
         >
-            <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-                        <ScrollView>
-                            <View style={[styles.ph5, styles.pb8]}>
-                                <Text
-                                    family="EXP_NEW_KANSAS_MEDIUM"
-                                    fontSize={variables.fontSizeLarge}
-                                    style={styles.pb5}
-                                >
-                                    {translate('violations.confirmDetails')}
-                                </Text>
-                                <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
-                            </View>
-                            {/* We need that provider here becuase MoneyRequestView component requires that */}
-                            <ShowContextMenuContext.Provider value={contextValue}>
-                                <MoneyRequestView
-                                    report={report}
-                                    shouldShowAnimatedBackground={false}
-                                    readonly
-                                    updatedTransaction={transaction as OnyxEntry<Transaction>}
-                                />
-                            </ShowContextMenuContext.Provider>
-                        </ScrollView>
-                        <FixedFooter style={styles.mtAuto}>
-                            <Button
-                                text={translate('common.confirm')}
-                                success
-                                onPress={mergeDuplicates}
-                                medium={isExtraSmallScreenHeight}
-                                large={!isExtraSmallScreenHeight}
+            {({safeAreaPaddingBottomStyle}) => (
+                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                    <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                    <ScrollView>
+                        <View style={[styles.ph5, styles.pb8]}>
+                            <Text
+                                family="EXP_NEW_KANSAS_MEDIUM"
+                                fontSize={variables.fontSizeLarge}
+                                style={styles.pb5}
+                            >
+                                {translate('violations.confirmDetails')}
+                            </Text>
+                            <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                        </View>
+                        {/* We need that provider here becuase MoneyRequestView component requires that */}
+                        <ShowContextMenuContext.Provider value={contextValue}>
+                            <MoneyRequestView
+                                report={report}
+                                shouldShowAnimatedBackground={false}
+                                readonly
+                                updatedTransaction={transaction as OnyxEntry<Transaction>}
                             />
-                        </FixedFooter>
-                    </View>
-                )}
-            </SafeAreaConsumer>
+                        </ShowContextMenuContext.Provider>
+                    </ScrollView>
+                    <FixedFooter style={styles.mtAuto}>
+                        <Button
+                            text={translate('common.confirm')}
+                            success
+                            onPress={mergeDuplicates}
+                            large
+                        />
+                    </FixedFooter>
+                </View>
+            )}
         </ScreenWrapper>
     );
 }
