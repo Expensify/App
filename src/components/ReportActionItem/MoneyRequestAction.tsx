@@ -83,9 +83,9 @@ function MoneyRequestAction({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
+
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = action.reportActionID ?? '-1';
