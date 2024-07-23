@@ -111,7 +111,7 @@ function exportSearchItemsToCSV(query: string, reportIDList: Array<string | unde
 }
 
 /**
-* Updates the form values for the advanced search form.
+ * Updates the form values for the advanced search form.
  */
 function updateAdvancedFilters(values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
