@@ -88,7 +88,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldStartIntegrationFlow]);
 
-    return (
+    return shouldStartIntegrationFlow ? (
         <>
             <PopoverMenu
                 isVisible={isReuseConnectionsPopoverOpen}
@@ -98,6 +98,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
                 withoutOverlay
                 menuItems={connectionOptions}
                 onItemSelected={(item) => {
+                    startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                     if (!item?.onSelected) {
                         return;
                     }
@@ -110,6 +111,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
                         if (!hasPoliciesConnectedToSageIntacct) {
@@ -131,7 +133,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
                 />
             )}
         </>
-    );
+    ) : null;
 }
 
 export default ConnectToSageIntacctFlow;
