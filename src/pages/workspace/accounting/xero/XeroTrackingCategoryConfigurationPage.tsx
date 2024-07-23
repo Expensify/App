@@ -10,6 +10,7 @@ import {getTrackingCategories} from '@libs/actions/connections/ConnectToXero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areXeroSettingsInErrorFields, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -32,7 +33,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             id: category.id,
             description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
-            title: translate(`workspace.xero.trackingCategoriesOptions.${!!category.value ? category.value.toLowerCase() : 'default'}` as TranslationPaths),
+            title: translate(`workspace.xero.trackingCategoriesOptions.${!StringUtils.isEmptyString(category.value) ? category.value.toLowerCase() : 'default'}` as TranslationPaths),
         }));
     }, [translate, policy, policyID]);
 
