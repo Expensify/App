@@ -190,7 +190,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() => startIntegrationFlow({name: integration})}
+                            onPress={() => startIntegrationFlow({name: integration, isActive: true})}
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small

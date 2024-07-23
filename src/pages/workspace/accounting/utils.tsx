@@ -17,6 +17,7 @@ function accountingIntegrationData(
     translate: LocaleContextProps['translate'],
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
+    isActive?: boolean,
 ): AccountingIntegration | undefined {
     const key = Math.random();
     switch (connectionName) {
@@ -29,6 +30,7 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
+                        isActive={isActive}
                         key={key}
                     />
                 ),
