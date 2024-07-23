@@ -4,6 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -61,38 +62,40 @@ function Confirmation() {
             shouldShowOfflineIndicator
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-                    <ScrollView>
-                        <View style={[styles.ph5, styles.pb8]}>
-                            <Text
-                                family="EXP_NEW_KANSAS_MEDIUM"
-                                fontSize={variables.fontSizeLarge}
-                                style={styles.pb5}
-                            >
-                                {translate('violations.confirmDetails')}
-                            </Text>
-                            <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
-                        </View>
-                        {/* We need that provider here becuase MoneyRequestView component requires that */}
-                        <ShowContextMenuContext.Provider value={contextValue}>
-                            <MoneyRequestView
-                                report={report}
-                                shouldShowAnimatedBackground={false}
-                                readonly
-                                updatedTransaction={transaction as OnyxEntry<Transaction>}
+                <FullPageNotFoundView shouldShow={!reviewDuplicates}>
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                        <ScrollView>
+                            <View style={[styles.ph5, styles.pb8]}>
+                                <Text
+                                    family="EXP_NEW_KANSAS_MEDIUM"
+                                    fontSize={variables.fontSizeLarge}
+                                    style={styles.pb5}
+                                >
+                                    {translate('violations.confirmDetails')}
+                                </Text>
+                                <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                            </View>
+                            {/* We need that provider here becuase MoneyRequestView component requires that */}
+                            <ShowContextMenuContext.Provider value={contextValue}>
+                                <MoneyRequestView
+                                    report={report}
+                                    shouldShowAnimatedBackground={false}
+                                    readonly
+                                    updatedTransaction={transaction as OnyxEntry<Transaction>}
+                                />
+                            </ShowContextMenuContext.Provider>
+                        </ScrollView>
+                        <FixedFooter style={styles.mtAuto}>
+                            <Button
+                                text={translate('common.confirm')}
+                                success
+                                onPress={mergeDuplicates}
+                                large
                             />
-                        </ShowContextMenuContext.Provider>
-                    </ScrollView>
-                    <FixedFooter style={styles.mtAuto}>
-                        <Button
-                            text={translate('common.confirm')}
-                            success
-                            onPress={mergeDuplicates}
-                            large
-                        />
-                    </FixedFooter>
-                </View>
+                        </FixedFooter>
+                    </View>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
