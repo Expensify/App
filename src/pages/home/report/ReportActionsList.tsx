@@ -170,7 +170,7 @@ function ReportActionsList({
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
-    const userActiveSince = useRef<string | null>(null);
+    const userActiveSince = useRef<string | null>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
