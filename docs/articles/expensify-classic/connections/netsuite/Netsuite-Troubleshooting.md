@@ -161,23 +161,6 @@ NetSuite requires billable expenses to be assigned to a Customer or a Project th
 5. Make any necessary adjustments to the billable expenses and try the export again. 
 
 
-# ExpensiError NS0059: Elimination Settings for X Do Not Match
-
-This error occurs when an Intercompany Payable account is set as the default in the Default Payable Account field in the NetSuite subsidiary preferences, and the Accounting Approval option is enabled for Expense Reports.
-
-## How to Fix ExpensiError NS0059
-Set the Default Payable Account for Expense Reports on each subsidiary in NetSuite to ensure the correct payable account is active.
-1. Navigate to Subsidiaries:
-   - Go to Setup > Company > Subsidiaries.
-2. Edit Subsidiary Preferences:
-    - Click Edit for the desired subsidiary.
-    - Go to the Preferences tab.
-3. Set Default Payable Account:
-    - Choose the preferred account for Default Payable Account for Expense Reports.
-
-Repeat these steps for each subsidiary to ensure the settings are correct, and then sync Expensify to NetSuite to update the connection.
-
-
 # ExpensiError NS0059: A credit card account has not been selected for corporate card expenses.
 
 **To resolve this error:**
@@ -379,6 +362,21 @@ This error indicates that the credentials or role used to connect NetSuite to Ex
 3. Sync the NetSuite connection in Expensify
 4. Export the report again.
 
+# Elimination Settings for X Do Not Match
+
+This error occurs when an Intercompany Payable account is set as the default in the Default Payable Account field in the NetSuite subsidiary preferences, and the Accounting Approval option is enabled for Expense Reports.
+
+**To resolve this error:**
+Set the Default Payable Account for Expense Reports on each subsidiary in NetSuite to ensure the correct payable account is active.
+1. Navigate to Subsidiaries:
+   - Go to Setup > Company > Subsidiaries.
+2. Edit Subsidiary Preferences:
+    - Click Edit for the desired subsidiary.
+    - Go to the Preferences tab.
+3. Set Default Payable Account:
+    - Choose the preferred account for Default Payable Account for Expense Reports.
+
+Repeat these steps for each subsidiary to ensure the settings are correct, and then sync Expensify to NetSuite to update the connection.
 
 # Why are reports exporting as `Accounting Approved` instead of `Paid in Full`?
 

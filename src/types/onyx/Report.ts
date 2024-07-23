@@ -71,11 +71,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
-        /** The file name of the Group Chat report custom avatar
-         *  This field is not coming from backend, so it's for client side only
-         */
-        avatarFileName?: string;
-
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
