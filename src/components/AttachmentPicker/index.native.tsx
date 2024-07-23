@@ -1,9 +1,13 @@
+/* eslint-disable @lwc/lwc/no-async-await */
+import {decode} from 'base-64';
 import {Str} from 'expensify-common';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
@@ -46,6 +50,7 @@ const imagePickerOptions = {
     saveToPhotos: false,
     selectionLimit: 1,
     includeExtra: false,
+    assetRepresentationMode: 'current',
 };
 
 /**
@@ -140,7 +145,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type), (response: ImagePickerResponse) => {
+                imagePickerFunc(getImagePickerOptions(type), async (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -156,6 +161,32 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                         }
 
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
+                    }
+
+                    const targetAsset = response.assets?.[0];
+
+                    console.log('TARGET ASSET ', targetAsset);
+                    const fileContent = await RNFS.read(targetAsset?.uri, 12, 0, 'base64');
+                    const hexSignature = Array.from(decode(fileContent))
+                        .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+                        .slice(0, 32)
+                        .join('')
+                        .toUpperCase();
+
+                    const isHEIC = hexSignature.startsWith(CONST.HEIC_SIGNATURE);
+
+                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                    if (isHEIC) {
+                        const manipResult = await manipulateAsync(targetAsset?.uri, [], {format: SaveFormat.JPEG});
+
+                        const convertedAsset = {
+                            uri: manipResult.uri,
+                            type: 'image/jpeg',
+                            width: manipResult.width,
+                            height: manipResult.height,
+                        };
+
+                        return resolve([convertedAsset]);
                     }
 
                     return resolve(response.assets);
