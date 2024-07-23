@@ -10,6 +10,7 @@ import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,9 +21,10 @@ type ConnectToSageIntacctFlowProps = {
     policyID: string;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: PolicyConnectionName;
+    shouldStartIntegrationFlow?: boolean;
 };
 
-function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToSageIntacctFlowProps) {
+function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect, shouldStartIntegrationFlow}: ConnectToSageIntacctFlowProps) {
     const {translate} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -34,6 +36,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
+    const {startIntegrationFlow} = useAccountingContext();
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
@@ -54,6 +57,10 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
     ];
 
     useEffect(() => {
+        if (!shouldStartIntegrationFlow) {
+            return;
+        }
+
         if (!isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
             return;
@@ -76,9 +83,10 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
             });
         }
         setIsReuseConnectionsPopoverOpen(true);
+        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldStartIntegrationFlow]);
 
     return (
         <>

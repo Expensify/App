@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToNetSuiteFlowProps} from './types';
 
-function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToNetSuiteFlowProps) {
+function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect, shouldStartIntegrationFlow}: ConnectToNetSuiteFlowProps) {
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
@@ -26,7 +26,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const {ref: threeDotsMenuContainerRef} = useAccountingContext();
+    const {startIntegrationFlow, ref: threeDotsMenuContainerRef} = useAccountingContext();
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
@@ -47,6 +47,10 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
     ];
 
     useEffect(() => {
+        if (!shouldStartIntegrationFlow) {
+            return;
+        }
+
         if (!isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias));
             return;
@@ -71,9 +75,10 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
             });
         }
         setIsReuseConnectionsPopoverOpen(true);
+        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.NETSUITE, shouldStartIntegrationFlow: false});
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldStartIntegrationFlow]);
 
     return (
         <>

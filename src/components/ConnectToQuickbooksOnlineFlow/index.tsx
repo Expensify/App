@@ -9,30 +9,29 @@ import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-function ConnectToQuickbooksOnlineFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect, isActive}: ConnectToQuickbooksOnlineFlowProps) {
+function ConnectToQuickbooksOnlineFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect, shouldStartIntegrationFlow}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const {startIntegrationFlow} = useAccountingContext();
 
     useEffect(() => {
-        if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
-            setIsDisconnectModalOpen(true);
+        if (!shouldStartIntegrationFlow) {
             return;
         }
 
-        if (!isActive) {
+        if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+            setIsDisconnectModalOpen(true);
             return;
         }
 
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         PolicyAction.enablePolicyTaxes(policyID, false);
         Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
-
-        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO, isActive: false});
+        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO, shouldStartIntegrationFlow: false});
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive]);
+    }, [shouldStartIntegrationFlow]);
 
     if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen) {
         return (

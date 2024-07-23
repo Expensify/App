@@ -17,7 +17,7 @@ function accountingIntegrationData(
     translate: LocaleContextProps['translate'],
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
-    isActive?: boolean,
+    shouldStartIntegrationFlow?: boolean,
 ): AccountingIntegration | undefined {
     const key = Math.random();
     switch (connectionName) {
@@ -30,7 +30,7 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
-                        isActive={isActive}
+                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),
@@ -48,6 +48,7 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
+                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),
@@ -65,6 +66,7 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
+                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),
@@ -82,6 +84,7 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
+                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),

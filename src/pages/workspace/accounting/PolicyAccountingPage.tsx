@@ -80,7 +80,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
+                          onSelected: () => startIntegrationFlow({name: connectedIntegration, shouldStartIntegrationFlow: true}),
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: true,
@@ -190,7 +190,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() => startIntegrationFlow({name: integration, isActive: true})}
+                            onPress={() => startIntegrationFlow({name: integration, shouldStartIntegrationFlow: true})}
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small
@@ -323,7 +323,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 title: integrationData?.title,
                 rightComponent: (
                     <Button
-                        onPress={() => startIntegrationFlow({name: integration, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true})}
+                        onPress={() =>
+                            startIntegrationFlow({
+                                name: integration,
+                                integrationToDisconnect: connectedIntegration,
+                                shouldDisconnectIntegrationBeforeConnecting: true,
+                                shouldStartIntegrationFlow: true,
+                            })
+                        }
                         text={translate('workspace.accounting.setup')}
                         style={styles.justifyContentCenter}
                         small

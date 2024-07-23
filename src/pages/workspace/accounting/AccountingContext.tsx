@@ -11,7 +11,7 @@ type ActiveIntegration = {
     name: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: ConnectionName;
-    isActive?: boolean;
+    shouldStartIntegrationFlow?: boolean;
 };
 
 type AccountingContextType = {
@@ -52,7 +52,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, activeIntegration.isActive)?.setupConnectionButton;
+        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, activeIntegration.shouldStartIntegrationFlow)
+            ?.setupConnectionButton;
     };
 
     return (
