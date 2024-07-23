@@ -73,7 +73,7 @@ function ReportListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
-        styles.pv2half,
+        styles.pv1half,
         styles.ph0,
         styles.overflowHidden,
         item.isSelected && styles.activeComponentBG,
@@ -151,10 +151,10 @@ function ReportListItem<TItem extends ListItem>({
                         participantToDisplayName={participantToDisplayName}
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
-                        containerStyle={[styles.ph3, styles.pt2half, styles.mb2half]}
+                        containerStyle={[styles.ph3, styles.pt1half, styles.mb1half]}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv2half]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
@@ -200,7 +200,7 @@ function ReportListItem<TItem extends ListItem>({
                         }}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
-                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv2half]}
+                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
                         isChildListItem
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
