@@ -31,14 +31,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
-    areXeroSettingsInErrorFields,
+    areSettingsInErrorFields,
     findCurrentXeroOrganization,
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
-    xeroSettingsPendingAction,
+    settingsPendingAction,
 } from '@libs/PolicyUtils';
 import type {XeroSettings} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -248,8 +248,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                     },
-                    pendingAction: xeroSettingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
-                    brickRoadIndicator: areXeroSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
+                    pendingAction: settingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
+                    brickRoadIndicator: areSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                         : undefined,
                 };
@@ -365,10 +365,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
-                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.pendingFields),
                       },
                       {
                           icon: Expensicons.Send,
@@ -377,10 +377,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
-                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.pendingFields),
                       },
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -398,10 +398,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
-                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.pendingFields),
                       },
                   ]),
         ];

@@ -45,7 +45,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                 onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, !xeroConfig?.importCustomers)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
-                pendingAction={PolicyUtils.xeroSettingsPendingAction([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], xeroConfig?.pendingFields)}
+                pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], xeroConfig?.pendingFields)}
             />
         </ConnectionLayout>
     );

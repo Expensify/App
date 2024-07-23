@@ -94,7 +94,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
                     key={menuItem.description}
-                    pendingAction={PolicyUtils.xeroSettingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
+                    pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={menuItem.title}
@@ -102,7 +102,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={PolicyUtils.areXeroSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         helperText={menuItem?.helperText}
                     />
                 </OfflineWithFeedback>

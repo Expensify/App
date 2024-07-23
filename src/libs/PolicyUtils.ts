@@ -43,6 +43,7 @@ type ConnectionWithLastSyncData = {
 };
 
 type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
+type SageIntacctSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.SAGE_INTACCT_CONFIG, 'MAPPINGS'>>, string>>;
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -523,7 +524,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+function areSettingsInErrorFields(settings?: XeroSettings | SageIntacctSettings, errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
     }
@@ -532,7 +533,7 @@ function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: Err
     return settings.some((setting) => keys.includes(setting));
 }
 
-function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+function settingsPendingAction(settings?: XeroSettings | SageIntacctSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
     if (settings === undefined || pendingFields === undefined) {
         return null;
     }
@@ -890,8 +891,8 @@ export {
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
-    areXeroSettingsInErrorFields,
-    xeroSettingsPendingAction,
+    areSettingsInErrorFields,
+    settingsPendingAction,
 };
 
 export type {MemberEmailsToAccountIDs, XeroSettings};
