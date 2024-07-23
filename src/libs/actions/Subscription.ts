@@ -300,7 +300,7 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
             value: [
                 ...cancellationDetails,
                 {
-                    errors: undefined,
+                    cancellationReason,
                 },
             ],
         },
@@ -310,12 +310,7 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-            value: [
-                ...cancellationDetails,
-                {
-                    cancellationType: undefined,
-                },
-            ],
+            value: [...cancellationDetails],
         },
     ];
 

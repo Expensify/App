@@ -8,7 +8,7 @@ type CancellationDetails = {
     cancellationDate?: string;
 
     /** Cancellation reason */
-    cancellationReason?: FeedbackSurveyOptionID;
+    cancellationReason: FeedbackSurveyOptionID;
 
     /** Cancellation type (manual/automatic/none) */
     cancellationType?: CancellationType;
