@@ -44,11 +44,11 @@ QuickBooks Online requires all expenses exported from Expensify to use a categor
 
 ## How to fix it
 
-1. Sync your QuickBooks Online connection in Expensify from Settings > Workspaces > [click workspace] > Connections, and click the Sync Now button.
-2. Review the expenses on the report. If any appear with a red Category no longer valid violation, recategorize the expense until all expenses are violation-free.
-3. Click the Export to button and then the QuickBooks Online option.
-If you receive the same error, continue.
-4. Note the categories used on the expenses and check the Settings > Workspaces > [click workspace] > Categories page to confirm the exact categories used on the report are enabled and connected to QuickBooks Online (you'll see a green QB icon next to all connected categories). 
+1. Sync your QuickBooks Online connection in Expensify from Settings > Workspaces > [click workspace] > Connections, and click the **Sync Now** button.
+2. Review the expenses on the report. If any appear with a red _Category no longer valid_ violation, recategorize the expense until all expenses are violation-free.
+3. Click the **Export t**o button and then the **QuickBooks Online** option.
+    - If you receive the same error, continue.
+4. Note the categories used on the expenses and check the Settings > Workspaces > [workspace name] > Categories page to confirm the exact categories used on the report are enabled and connected to QuickBooks Online (you'll see a green QB icon next to all connected categories). 
 5. Confirm the categories used on the expenses in the report match exactly the accounts in your QuickBooks Online chart of accounts.
 6. If you make any changes in QuickBooks Online or in Expensify, always sync the connection and then try to export again. 
 
@@ -83,7 +83,7 @@ This error occurs when you are exporting reimbursable expenses as Journal Entrie
 
 ## How to fix it
 
-There are two different ways you can resolve this error.
+There are three different ways you can resolve this error.
 - Select a different type of export for reimbursable expenses under Settings > Workspaces > [worksapce name] > Connections > Configure > Export tab. 
 - Enable _Automatically Create Entities_ under Settings > Workspaces > [worksapce name] > Connections > Configure > Advanced to create vendor records automatically.
 - Manually create vendor records in QuickBooks Online for each employee.
