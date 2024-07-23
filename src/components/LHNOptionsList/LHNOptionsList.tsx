@@ -127,7 +127,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
             const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, itemReportActions);
-            const transactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+            const transactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
