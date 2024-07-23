@@ -3,6 +3,7 @@ import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
+import * as Browser from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -56,6 +57,8 @@ const usePanGesture = ({
     // We need to keep track of the velocity to properly phase out/decay the pan animation
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
+
+    const isMobileBrowser = Browser.isMobile();
 
     // Disable "swipe down to close" gesture when content is bigger than the canvas
     const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomedContentHeight.value, [canvasSize.height]);
@@ -113,6 +116,7 @@ const usePanGesture = ({
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityX.value) !== 0) {
                 // Phase out the pan animation
+                // eslint-disable-next-line react-compiler/react-compiler
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [horizontalBoundaries.min, horizontalBoundaries.max],
@@ -207,7 +211,9 @@ const usePanGesture = ({
             panVelocityY.value = evt.velocityY;
 
             if (!isSwipingDownToClose.value) {
-                panTranslateX.value += evt.changeX;
+                if (!isMobileBrowser || (isMobileBrowser && zoomScale.value !== 1)) {
+                    panTranslateX.value += evt.changeX;
+                }
             }
 
             if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {

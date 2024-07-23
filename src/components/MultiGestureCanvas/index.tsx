@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
@@ -40,7 +41,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
     shouldDisableTransformationGestures?: SharedValue<boolean>;
 
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
-    pagerRef?: ForwardedRef<PagerView>; // TODO: For TS migration: Exclude<GestureRef, number>
+    pagerRef?: ForwardedRef<PagerView | GestureType>; // TODO: For TS migration: Exclude<GestureRef, number>
 
     /** Handles scale changed event */
     onScaleChanged?: OnScaleChangedCallback;
@@ -48,6 +49,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** Handles scale changed event */
     onTap?: OnTapCallback;
 
+    /** Handles swipe down event */
     onSwipeDown?: OnSwipeDownCallback;
 };
 
@@ -119,6 +121,7 @@ function MultiGestureCanvas({
     const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
         stopAnimation();
 
+        // eslint-disable-next-line react-compiler/react-compiler
         offsetX.value = 0;
         offsetY.value = 0;
         pinchScale.value = 1;
@@ -242,11 +245,12 @@ function MultiGestureCanvas({
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
                 <View
                     collapsable={false}
+                    onTouchEnd={(e) => e.preventDefault()}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}
                 >
                     <Animated.View
                         collapsable={false}
-                        style={animatedStyles}
+                        style={[animatedStyles, styles.canvasContainer]}
                     >
                         {children}
                     </Animated.View>

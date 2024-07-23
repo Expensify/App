@@ -9,7 +9,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,13 +26,11 @@ import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-
-    useDisableModalDismissOnEscape();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -41,11 +38,17 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: 
                 return;
             }
             const work = values.work.trim();
-            const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
-            Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
+            if (!onboardingPolicyID) {
+                const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, work);
+                Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
+                Welcome.setOnboardingPolicyID(policyID);
+            } else {
+                Policy.updateGeneralSettings(onboardingPolicyID, work);
+            }
+
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
-        [onboardingPurposeSelected],
+        [onboardingPurposeSelected, onboardingPolicyID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -53,11 +56,11 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: 
         const work = values.work.trim();
 
         if (!ValidationUtils.isRequiredFulfilled(work)) {
-            errors.work = 'workspace.editor.nameIsRequiredError';
+            errors.work = translate('workspace.editor.nameIsRequiredError');
         } else if ([...work].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            ErrorUtils.addErrorMessage(errors, 'work', ['common.error.characterLimitExceedCounter', {length: [...work].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'work', translate('common.error.characterLimitExceedCounter', {length: [...work].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
 
         return errors;
@@ -117,5 +120,8 @@ BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
     onboardingPurposeSelected: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+    onboardingPolicyID: {
+        key: ONYXKEYS.ONBOARDING_POLICY_ID,
     },
 })(BaseOnboardingWork);

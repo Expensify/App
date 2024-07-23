@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -54,17 +54,10 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
-    };
 
-function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, newAmount: number) {
-    if (!transaction?.amount) {
-        return;
-    }
-    const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode ?? defaultTaxCode) ?? '';
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
-}
+        /** Whether the user input should be kept or not */
+        shouldKeepUserInput?: boolean;
+    };
 
 function IOURequestStepAmount({
     report,
@@ -78,17 +71,20 @@ function IOURequestStepAmount({
     splitDraftTransaction,
     skipConfirmation,
     draftTransaction,
+    shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
     const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
@@ -99,8 +95,8 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation]);
+        return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
+    }, [report, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -127,9 +123,9 @@ function IOURequestStepAmount({
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -173,7 +169,11 @@ function IOURequestStepAmount({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
+
+        // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
+        // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
+        IOU.setMoneyRequestTaxAmount(transactionID, null);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -183,10 +183,10 @@ function IOURequestStepAmount({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -201,7 +201,7 @@ function IOURequestStepAmount({
                         amount: backendAmount,
                         comment: '',
                         currency,
-                        merchant: '',
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         tag: '',
                         category: '',
                         created: transaction?.created ?? '',
@@ -279,21 +279,27 @@ function IOURequestStepAmount({
         }
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
-            Navigation.dismissModal();
+        const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
+        if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
+            navigateBack();
             return;
         }
+
+        // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+        const transactionTaxCode = ReportUtils.getTransactionDetails(currentTransaction)?.taxCode;
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
+        const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+        const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency});
-            Navigation.goBack(backTo);
+            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
+            navigateBack();
             return;
         }
 
-        const taxAmount = getTaxAmount(transaction, policy, newAmount);
-
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount});
-        Navigation.dismissModal();
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
+        navigateBack();
     };
 
     return (
@@ -310,9 +316,10 @@ function IOURequestStepAmount({
                 amount={Math.abs(transactionAmount)}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
-                policyID={policy?.id ?? ''}
+                policyID={policy?.id ?? '-1'}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
+                shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
@@ -326,7 +333,7 @@ IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
@@ -338,7 +345,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },
@@ -346,7 +353,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
 })(IOURequestStepAmount);
 

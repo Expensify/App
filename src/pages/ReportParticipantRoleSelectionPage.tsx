@@ -29,8 +29,8 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const accountID = Number(route?.params?.accountID) ?? 0;
-    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '', accountID);
+    const accountID = Number(route?.params?.accountID) ?? -1;
+    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '-1', accountID);
     const member = report.participants?.[accountID];
 
     if (!member) {
@@ -68,6 +68,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
                     sections={[{data: items}]}
                     ListItem={RadioListItem}
                     onSelectRow={changeRole}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
                 />
             </View>

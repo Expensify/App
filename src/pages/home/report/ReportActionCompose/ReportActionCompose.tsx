@@ -1,11 +1,10 @@
-import {PortalHost} from '@gorhom/portal';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -24,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import {forceClearInput} from '@libs/ComponentUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
@@ -49,7 +49,7 @@ import SendButton from './SendButton';
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: (text: string, shouldAddTrailSpace: boolean) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
     prepareCommentAndResetComposer: () => string;
     isFocused: () => boolean;
 };
@@ -61,6 +61,7 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    getIsSuggestionsMenuVisible: () => boolean;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -73,9 +74,9 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
-        onSubmit: (newComment: string | undefined) => void;
+        onSubmit: (newComment: string) => void;
 
         /** The report currently being looked at */
         report: OnyxEntry<OnyxTypes.Report>;
@@ -91,6 +92,9 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** A method to call when the input is blur */
         onComposerBlur?: () => void;
+
+        /** Should the input be disabled  */
+        disabled?: boolean;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -101,14 +105,13 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
     blockedFromConcierge,
-    currentUserPersonalDetails = {},
-    disabled,
+    currentUserPersonalDetails,
+    disabled = false,
     isComposerFullSize = false,
     onSubmit,
     pendingAction,
     report,
     reportID,
-    listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     isEmptyChat,
@@ -196,7 +199,7 @@ function ReportActionCompose({
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
         () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -239,7 +242,7 @@ function ReportActionCompose({
             containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isComposerFullSize],
     );
 
@@ -335,12 +338,12 @@ function ReportActionCompose({
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID ?? '')) {
+            if (!EmojiPickerActions.isActive(report?.reportID ?? '-1')) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -364,7 +367,7 @@ function ReportActionCompose({
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
+        forceClearInput(animatedRef);
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
@@ -381,8 +384,8 @@ function ReportActionCompose({
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <PortalHost name="suggestions" />
                 <OfflineWithFeedback
+                    shouldDisableOpacity
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
@@ -435,7 +438,7 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        policyID={report?.policyID ?? ''}
+                                        policyID={report?.policyID ?? '-1'}
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
@@ -458,7 +461,6 @@ function ReportActionCompose({
                                         onFocus={onFocus}
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
                                         onValueChange={(value) => {
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);
@@ -482,7 +484,6 @@ function ReportActionCompose({
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
                                 onModalHide={focus}
-                                //  @ts-expect-error TODO: Remove this once EmojiPickerButton (https://github.com/Expensify/App/issues/25155) is migrated to TypeScript.
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}

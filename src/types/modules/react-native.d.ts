@@ -4,16 +4,25 @@
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 // eslint-disable-next-line no-restricted-imports
-import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
+import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, TouchEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
+import type {GestureResponderEvent, LayoutRectangle, NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
+import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
+import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
+    completeOnboarding: (status: boolean) => void;
+    exitApp: () => void;
+};
+
+type RNTextInputResetModule = {
+    resetKeyboardInput: (nodeHandle: number | null) => void;
 };
 
 declare module 'react-native' {
-    // <------ REACT NATIVE WEB (0.19.0) ------>
+    // <------ REACT NATIVE WEB (0.19.12) ------>
     // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
     type idRef = string;
     type idRefList = idRef | idRef[];
@@ -44,7 +53,7 @@ declare module 'react-native' {
         'aria-label'?: string;
         'aria-labelledby'?: idRef;
         'aria-level'?: number;
-        'aria-live'?: 'assertive' | 'none' | 'polite';
+        'aria-live'?: 'assertive' | 'off' | 'polite';
         'aria-modal'?: boolean;
         'aria-multiline'?: boolean;
         'aria-multiselectable'?: boolean;
@@ -66,7 +75,6 @@ declare module 'react-native' {
         'aria-valuemin'?: number;
         'aria-valuenow'?: number;
         'aria-valuetext'?: string;
-        role?: string;
 
         // @deprecated
         accessibilityActiveDescendant?: idRef;
@@ -103,7 +111,6 @@ declare module 'react-native' {
         accessibilityPressed?: boolean | 'mixed';
         accessibilityReadOnly?: boolean;
         accessibilityRequired?: boolean;
-        accessibilityRole?: string;
         accessibilityRoleDescription?: string;
         accessibilityRowCount?: number;
         accessibilityRowIndex?: number;
@@ -120,9 +127,9 @@ declare module 'react-native' {
     // https://necolas.github.io/react-native-web/docs/interactions/#pointerevent-props-api
     // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
     // Extracted types from @types/react, index.d.ts
-    interface PointerProps {
-        onAuxClick?: MouseEventHandler;
+    interface ClickProps {
         onClick?: MouseEventHandler;
+        onAuxClick?: MouseEventHandler;
         onContextMenu?: MouseEventHandler;
         onGotPointerCapture?: PointerEventHandler;
         onLostPointerCapture?: PointerEventHandler;
@@ -134,6 +141,31 @@ declare module 'react-native' {
         onPointerOut?: PointerEventHandler;
         onPointerOver?: PointerEventHandler;
         onPointerUp?: PointerEventHandler;
+        onScroll?: UIEventHandler;
+        onWheel?: WheelEventHandler;
+    }
+
+    // https://necolas.github.io/react-native-web/docs/interactions/#focusevent-props-api
+    // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
+    // Extracted types from @types/react, index.d.ts
+    interface FocusProps {
+        onBlur?: FocusEventHandler;
+        onFocus?: FocusEventHandler;
+    }
+
+    // https://necolas.github.io/react-native-web/docs/interactions/#keyboardevent-props-api
+    // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
+    // Extracted types from @types/react, index.d.ts
+    interface KeyboardProps {
+        onKeyDown?: KeyboardEventHandler;
+        onKeyDownCapture?: KeyboardEventHandler;
+        onKeyUp?: KeyboardEventHandler;
+        onKeyUpCapture?: KeyboardEventHandler;
+    }
+
+    // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
+    // Extracted types from @types/react, index.d.ts
+    interface MouseProps {
         onMouseDown?: MouseEventHandler;
         onMouseEnter?: MouseEventHandler;
         onMouseLeave?: MouseEventHandler;
@@ -141,8 +173,19 @@ declare module 'react-native' {
         onMouseOver?: MouseEventHandler;
         onMouseOut?: MouseEventHandler;
         onMouseUp?: MouseEventHandler;
-        onScroll?: UIEventHandler;
-        onWheel?: WheelEventHandler;
+    }
+
+    // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
+    // Extracted types from @types/react, index.d.ts
+    interface TouchProps {
+        onTouchCancel?: TouchEventHandler;
+        onTouchCancelCapture?: TouchEventHandler;
+        onTouchEnd?: TouchEventHandler;
+        onTouchEndCapture?: TouchEventHandler;
+        onTouchMove?: TouchEventHandler;
+        onTouchMoveCapture?: TouchEventHandler;
+        onTouchStart?: TouchEventHandler;
+        onTouchStartCapture?: TouchEventHandler;
     }
 
     // https://necolas.github.io/react-native-web/docs/interactions/#responderevent-props-api
@@ -226,29 +269,16 @@ declare module 'react-native' {
         onSelectionChangeShouldSetResponderCapture?: (e: ResponderEvent) => boolean;
     }
 
-    // https://necolas.github.io/react-native-web/docs/interactions/#focusevent-props-api
-    // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
-    // Extracted types from @types/react, index.d.ts
-    interface FocusProps {
-        onBlur?: FocusEventHandler;
-        onFocus?: FocusEventHandler;
-    }
+    // @ts-expect-error We override this type in order to provide "target" to onLayout event.
+    type LayoutChangeEvent = NativeSyntheticEvent<{layout: LayoutRectangle; target?: unknown}>;
 
-    // https://necolas.github.io/react-native-web/docs/interactions/#keyboardevent-props-api
-    // Extracted properties from react-native-web, packages/react-native-web/src/exports/View/types.js and packages/react-native-web/src/modules/forwardedProps/index.js
-    // Extracted types from @types/react, index.d.ts
-    interface KeyboardProps {
-        onKeyDown?: KeyboardEventHandler;
-        onKeyDownCapture?: KeyboardEventHandler;
-        onKeyUp?: KeyboardEventHandler;
-        onKeyUpCapture?: KeyboardEventHandler;
-    }
+    interface EventProps extends ClickProps, FocusProps, KeyboardProps, MouseProps, TouchProps, ResponderProps {}
 
     /**
      * Shared props
      * Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
      */
-    interface WebSharedProps extends AccessibilityProps, PointerProps, ResponderProps, FocusProps, KeyboardProps {
+    interface WebSharedProps extends AccessibilityProps, EventProps {
         dataSet?: Record<string, unknown>;
         href?: string;
         hrefAttrs?: {
@@ -283,11 +313,10 @@ declare module 'react-native' {
      * Extracted from react-native-web, packages/react-native-web/src/exports/TextInput/types.js
      */
     interface WebTextInputProps extends WebSharedProps {
+        dir?: 'auto' | 'ltr' | 'rtl';
         disabled?: boolean;
     }
-    interface TextInputProps extends WebTextInputProps {
-        isFullComposerAvailable?: boolean;
-    }
+    interface TextInputProps extends WebTextInputProps {}
 
     /**
      * Image
@@ -316,27 +345,18 @@ declare module 'react-native' {
         readonly hovered: boolean;
         readonly pressed: boolean;
     }
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {
-        readonly isScreenReaderActive: boolean;
-        readonly isDisabled: boolean;
-    }
+    interface PressableStateCallbackType extends WebPressableStateCallbackType {}
 
     // Extracted from react-native-web, packages/react-native-web/src/exports/Pressable/index.js
     interface WebPressableProps extends WebSharedProps {
+        /** Duration (in milliseconds) from `onPressStart` is called after pointerdown. */
         delayPressIn?: number;
+        /** Duration (in milliseconds) from `onPressEnd` is called after pointerup. */
         delayPressOut?: number;
-        onPressMove?: null | ((event: GestureResponderEvent) => void);
-        onPressEnd?: null | ((event: GestureResponderEvent) => void);
+        /** Called when a touch is moving, after `onPressIn`. */
+        onPressMove?: (event: GestureResponderEvent) => void;
     }
     interface PressableProps extends WebPressableProps {}
-
-    interface AppStateStatic {
-        emitCurrentTestState: (status: string) => void;
-    }
-
-    interface LinkingStatic {
-        setInitialURL: (url: string) => void;
-    }
 
     /**
      * Styles
@@ -354,10 +374,41 @@ declare module 'react-native' {
     interface ViewStyle extends WebStyle {}
     interface TextStyle extends WebStyle {}
     interface ImageStyle extends WebStyle {}
-    // <------ REACT NATIVE WEB (0.19.0) ------>
+    // <------ REACT NATIVE WEB (0.19.12) ------>
+
+    interface TextInputFocusEventData extends TargetedEvent {
+        text: string;
+        eventCount: number;
+        relatedTarget?: {
+            id?: string;
+        };
+    }
+
+    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+        readonly isScreenReaderActive: boolean;
+        readonly isDisabled: boolean;
+    }
+
+    interface AppStateStatic {
+        emitCurrentTestState: (status: string) => void;
+    }
+
+    interface LinkingStatic {
+        setInitialURL: (url: string) => void;
+    }
 
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
         HybridAppModule: HybridAppModule;
+        StartupTimer: StartupTimer;
+        RNTextInputReset: RNTextInputResetModule;
+        EnvironmentChecker: EnvironmentCheckerModule;
+    }
+
+    namespace Animated {
+        interface AnimatedInterpolation<OutputT extends number | string> extends AnimatedWithChildren {
+            interpolate(config: InterpolationConfigType): AnimatedInterpolation<OutputT>;
+            __getValue: () => OutputT;
+        }
     }
 }

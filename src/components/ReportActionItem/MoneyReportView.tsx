@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -7,12 +7,12 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -28,24 +28,32 @@ type MoneyReportViewProps = {
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
+
+    /** Indicates whether the iou report is a combine report */
+    isCombinedReport?: boolean;
+
+    /** Indicates whether the total should be shown */
+    shouldShowTotal?: boolean;
+
+    /** Flag to show, hide the thread divider line */
+    shouldHideThreadDividerLine: boolean;
 };
 
-function MoneyReportView({report, policy}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
-    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
+    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
     const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
-    const isPartiallyPaid = Boolean(report?.pendingFields?.partial);
+    const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -59,16 +67,26 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
+    const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));
+    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
+    const shouldShowReportField =
+        !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.isPaidGroupPolicyExpenseReport(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
+
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.overflowHidden]}>
-            <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
+        <>
+            <View style={[styles.pRelative]}>
+                <AnimatedEmptyStateBackground />
                 {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                     <>
-                        {ReportUtils.reportFieldsEnabled(report) &&
+                        {ReportUtils.isPaidGroupPolicyExpenseReport(report) &&
+                            policy?.areReportFieldsEnabled &&
+                            (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
-                                const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
-                                const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
+                                if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
+                                    return null;
+                                }
+
+                                const fieldValue = reportField.value ?? reportField.defaultValue;
                                 const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
                                 const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
@@ -83,7 +101,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
                                             title={fieldValue}
-                                            onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
+                                            onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', reportField.fieldID))}
                                             shouldShowRightIcon
                                             disabled={isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -98,33 +116,36 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                                     </OfflineWithFeedback>
                                 );
                             })}
-                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
-                            <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                <Text
-                                    style={[styles.textLabelSupporting]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('common.total')}
-                                </Text>
+                        {shouldShowTotal && (
+                            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+                                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate('common.total')}
+                                    </Text>
+                                </View>
+                                <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                    {isSettled && !isPartiallyPaid && (
+                                        <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={theme.success}
+                                            />
+                                        </View>
+                                    )}
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                                    >
+                                        {formattedTotalAmount}
+                                    </Text>
+                                </View>
                             </View>
-                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                {isSettled && !isPartiallyPaid && (
-                                    <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={theme.success}
-                                        />
-                                    </View>
-                                )}
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
-                                >
-                                    {formattedTotalAmount}
-                                </Text>
-                            </View>
-                        </View>
-                        {Boolean(shouldShowBreakdown) && (
+                        )}
+
+                        {!!shouldShowBreakdown && (
                             <>
                                 <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                                     <View style={[styles.flex1, styles.justifyContentCenter]}>
@@ -167,7 +188,13 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                     </>
                 )}
             </View>
-        </View>
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                />
+            )}
+        </>
     );
 }
 

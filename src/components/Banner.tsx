@@ -82,7 +82,7 @@ function Banner({
                             containerStyles,
                         ]}
                     >
-                        <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
                             {shouldShowIcon && icon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
@@ -93,17 +93,18 @@ function Banner({
                             )}
                             {content && content}
 
-                            {shouldRenderHTML && text ? (
-                                <RenderHTML html={text} />
-                            ) : (
-                                <Text
-                                    style={textStyles}
-                                    onPress={onPress}
-                                    suppressHighlighting
-                                >
-                                    {text}
-                                </Text>
-                            )}
+                            {text &&
+                                (shouldRenderHTML ? (
+                                    <RenderHTML html={text} />
+                                ) : (
+                                    <Text
+                                        style={[styles.flex1, styles.flexWrap, textStyles]}
+                                        onPress={onPress}
+                                        suppressHighlighting
+                                    >
+                                        {text}
+                                    </Text>
+                                ))}
                         </View>
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>

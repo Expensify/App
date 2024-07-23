@@ -23,7 +23,7 @@ describe('TransactionUtils', () => {
             it('returns the "modifiedCreated" date with the correct format', () => {
                 const expectedResult = '2023-10-25';
 
-                const result = TransactionUtils.getCreated(transaction);
+                const result = TransactionUtils.getFormattedCreated(transaction);
 
                 expect(result).toEqual(expectedResult);
             });
@@ -39,7 +39,7 @@ describe('TransactionUtils', () => {
                 it('returns the "created" date with the correct format', () => {
                     const expectedResult = '2023-10-01';
 
-                    const result = TransactionUtils.getCreated(transaction);
+                    const result = TransactionUtils.getFormattedCreated(transaction);
 
                     expect(result).toEqual(expectedResult);
                 });
@@ -54,7 +54,7 @@ describe('TransactionUtils', () => {
                 it('returns an empty string', () => {
                     const expectedResult = '';
 
-                    const result = TransactionUtils.getCreated(transaction);
+                    const result = TransactionUtils.getFormattedCreated(transaction);
 
                     expect(result).toEqual(expectedResult);
                 });

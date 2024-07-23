@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -34,21 +35,22 @@ function AnimatedEmptyStateBackground() {
          */
         const {x, y} = animatedSensor.sensor.value;
         // The x vs y here seems wrong but is the way to make it feel right to the user
+        // eslint-disable-next-line react-compiler/react-compiler
         xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
         yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
-            // On Android, scroll view sub views gets clipped beyond container bounds. Set the top position so that image wouldn't get clipped
-            top: IMAGE_OFFSET_Y,
             transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 
     return (
-        <Animated.Image
-            source={illustrations.EmptyStateBackgroundImage}
-            style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
-            resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
-        />
+        <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
+            <Animated.Image
+                source={illustrations.EmptyStateBackgroundImage}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
+                resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
+            />
+        </View>
     );
 }
 

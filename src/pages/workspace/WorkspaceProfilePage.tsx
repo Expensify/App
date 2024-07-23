@@ -1,4 +1,5 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -15,36 +16,38 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkSpaceProfilePageOnyxProps = {
+type WorkspaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
-const parser = new ExpensiMark();
-
-function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -52,6 +55,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
 
+    // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
+    const policy = policyDraft?.id ? policyDraft : policyProp;
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -62,18 +67,18 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
             ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
             : '';
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '-1')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
     const policyDescription =
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        parser.replace(
+        Parser.replace(
             translate('workspace.common.welcomeNote', {
                 workspaceName: policy?.name ?? '',
             }),
@@ -81,6 +86,23 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || formattedAddress;
+
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
+        Policy.openPolicyProfilePage(route.params.policyID);
+    }, [policyDraft?.id, route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
+    // as well as in the wide layout when looking at policy settings.
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const DefaultAvatar = useCallback(
         () => (
@@ -92,7 +114,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
-                accountID={policy?.id ?? ''}
+                avatarID={policy?.id}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
@@ -115,6 +137,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -138,8 +161,9 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             resizeMode="cover"
                         />
                         <AvatarWithImagePicker
-                            onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
+                            onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? '-1'))}
                             source={policy?.avatarURL ?? ''}
+                            avatarID={policy?.id}
                             size={CONST.AVATAR_SIZE.XLARGE}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
@@ -154,12 +178,12 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
                             isUsingDefaultAvatar={!policy?.avatarURL ?? false}
-                            onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
-                            onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
+                            onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '-1', file as File)}
+                            onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '-1')}
                             editorMaskImage={Expensicons.ImageCropSquareMask}
                             pendingAction={policy?.pendingFields?.avatarURL}
                             errors={policy?.errorFields?.avatarURL}
-                            onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
+                            onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '-1')}
                             previewSource={UserUtils.getFullSizeAvatar(policy?.avatarURL ?? '')}
                             headerTitle={translate('workspace.common.workspaceAvatar')}
                             originalFileName={policy?.originalFileName}
@@ -184,7 +208,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.description}
                                 errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
-                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
                             >
                                 <MenuItemWithTopDescription
                                     title={policyDescription}
@@ -202,7 +226,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.generalSettings}
                             errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
-                            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
+                            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             errorRowStyles={[styles.mt2]}
                         >
                             <View>
@@ -274,7 +298,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
-    withOnyx<WorkSpaceProfilePageProps, WorkSpaceProfilePageOnyxProps>({
+    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );

@@ -8,7 +8,7 @@ function FocusableMenuItem(props: MenuItemProps) {
     const ref = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(ref, Boolean(props.focused));
+    useSyncFocus(ref, !!props.focused);
 
     return (
         <MenuItem

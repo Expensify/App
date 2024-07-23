@@ -52,6 +52,9 @@ type ContextMenuItemProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Handles what to do when the item loose focus */
+    onBlur?: () => void;
 };
 
 type ContextMenuItemHandle = {
@@ -74,6 +77,7 @@ function ContextMenuItem(
         shouldPreventDefaultFocusOnPress = true,
         buttonRef = {current: null},
         onFocus = () => {},
+        onBlur = () => {},
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -130,6 +134,7 @@ function ContextMenuItem(
             focused={isFocused}
             interactive={isThrottledButtonActive}
             onFocus={onFocus}
+            onBlur={onBlur}
         />
     );
 }

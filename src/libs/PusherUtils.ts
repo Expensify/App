@@ -17,6 +17,7 @@ function subscribeToMultiEvent(eventType: string, callback: Callback) {
 
 function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<void> {
     if (!multiEventCallbackMapping[eventType]) {
+        Log.warn('[PusherUtils] Received unexpected multi-event', {eventType});
         return Promise.resolve();
     }
     return multiEventCallbackMapping[eventType](data);

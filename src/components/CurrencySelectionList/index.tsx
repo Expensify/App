@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
@@ -48,6 +48,7 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
             textInputValue={searchValue}
             onChangeText={setSearchValue}
             onSelectRow={onSelect}
+            shouldDebounceRowSelect
             headerMessage={headerMessage}
             initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
             showScrollIndicator

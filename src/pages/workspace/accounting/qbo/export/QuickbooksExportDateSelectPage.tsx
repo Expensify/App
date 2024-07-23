@@ -22,7 +22,7 @@ type CardListItem = ListItem & {
 function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {exportDate} = policy?.connections?.quickbooksOnline?.config ?? {};
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
@@ -58,6 +58,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportDate}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>

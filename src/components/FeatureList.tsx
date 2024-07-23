@@ -32,11 +32,20 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
+    /** Text of the secondary button button */
+    secondaryButtonText?: string;
+
+    /** Accessibility label for the secondary button */
+    secondaryButtonAccessibilityLabel?: string;
+
+    /** Action to call on secondary button press */
+    onSecondaryButtonPress?: () => void;
+
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
-    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation;
+    /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
+    illustration: DotLottieAnimation | IconAsset;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
@@ -57,6 +66,9 @@ function FeatureList({
     ctaText = '',
     ctaAccessibilityLabel = '',
     onCtaPress,
+    secondaryButtonText = '',
+    secondaryButtonAccessibilityLabel = '',
+    onSecondaryButtonPress,
     menuItems,
     illustration,
     illustrationStyle,
@@ -99,6 +111,15 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
+                {secondaryButtonText && (
+                    <Button
+                        text={secondaryButtonText}
+                        onPress={onSecondaryButtonPress}
+                        accessibilityLabel={secondaryButtonAccessibilityLabel}
+                        style={[styles.w100, styles.mb3]}
+                        large
+                    />
+                )}
                 <Button
                     text={ctaText}
                     onPress={onCtaPress}

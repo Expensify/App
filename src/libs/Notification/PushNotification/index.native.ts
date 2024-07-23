@@ -31,7 +31,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
 
     // On Android, some notification payloads are sent as a JSON string rather than an object
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as string;
     }
 
     const data = payload as PushNotificationData;
@@ -130,7 +130,7 @@ const register: Register = (notificationID) => {
             // Refresh notification opt-in status NVP for the new user.
             refreshNotificationOptInStatus();
         })
-        .catch((error) => {
+        .catch((error: Record<string, unknown>) => {
             Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
         });
 };

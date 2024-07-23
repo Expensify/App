@@ -32,7 +32,11 @@ type PlaidAccountProps = {
     [INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID]: string;
 };
 
-type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps>;
+type OnfidoStepProps = {
+    isOnfidoSetupComplete: boolean;
+};
+
+type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps;
 
 export type {BankAccountStepProps, PlaidAccountProps, PersonalBankAccountForm};
 

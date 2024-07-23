@@ -1,4 +1,4 @@
-import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {MockStep} from '@kie/act-js';
 import {MockGithub} from '@kie/mock-github';
 import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';

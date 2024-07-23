@@ -10,13 +10,13 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setPolicyCustomTaxName} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {setPolicyCustomTaxName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,16 +36,19 @@ function WorkspaceTaxesSettingsCustomTaxName({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME> = {};
-        const customTaxName = values[INPUT_IDS.NAME];
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME> = {};
+            const customTaxName = values[INPUT_IDS.NAME];
 
-        if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
-            errors.name = 'workspace.taxes.error.customNameRequired';
-        }
+            if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
+                errors.name = translate('workspace.taxes.error.customNameRequired');
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = ({name}: WorkspaceTaxCustomName) => {
         setPolicyCustomTaxName(policyID, name);

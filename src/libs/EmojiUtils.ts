@@ -1,5 +1,4 @@
-import {getUnixTime} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,12 +9,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type EmojiTrie from './EmojiTrie';
+import type {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
+type EmojiTrieModule = {default: typeof EmojiTrie};
+
+const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
+
+const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
@@ -27,16 +33,39 @@ Onyx.connect({
         frequentlyUsedEmojis =
             val
                 ?.map((item) => {
-                    const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
-                    return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                    let emoji = item;
+                    if (!item.code) {
+                        emoji = {...emoji, ...findEmojiByName(item.name)};
+                    }
+                    if (!item.name) {
+                        emoji = {...emoji, ...findEmojiByCode(item.code)};
+                    }
+                    const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                    return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
+
+        // On AddComment API response, each variant of the same emoji (with different skin tones) is
+        // treated as a separate entry due to unique emoji codes for each variant.
+        // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
+        const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
+        frequentlyUsedEmojis.forEach((emoji) => {
+            const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+            if (existingEmoji) {
+                existingEmoji.count += emoji.count;
+                existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+            } else {
+                frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+            }
+        });
+        frequentlyUsedEmojis = Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+            if (a.count !== b.count) {
+                return b.count - a.count;
+            }
+            return b.lastUpdatedAt - a.lastUpdatedAt;
+        });
     },
 });
-
-const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
-
-const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
     if (!emoji) {
@@ -208,39 +237,21 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...frequentlyUsedEmojis, ...emojis];
-    return addSpacesToEmojiCategories(mergedEmojis);
-}
-
-/**
- * Get the updated frequently used emojis list by usage
- */
-function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji[] {
-    let frequentEmojiList = [...frequentlyUsedEmojis];
-
-    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-
-    const currentTimestamp = getUnixTime(new Date());
-    (Array.isArray(newEmoji) ? [...newEmoji] : [newEmoji]).forEach((emoji) => {
-        let currentEmojiCount = 1;
-        const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
-        if (emojiIndex >= 0) {
-            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
-            frequentEmojiList.splice(emojiIndex, 1);
+    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
+        // Frequently used emojis in the old format will have name/types/code stored with them
+        // The back-end may not always have both, so we'll need to fill them in.
+        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByName(frequentlyUsedEmoji.name);
+        }
+        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByCode(frequentlyUsedEmoji.code);
         }
 
-        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
-
-        // We want to make sure the current emoji is added to the list
-        // Hence, we take one less than the current frequent used emojis
-        frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
-        frequentEmojiList.push(updatedEmoji);
-
-        // Sort the list by count and lastUpdatedAt in descending order
-        frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
+        return frequentlyUsedEmoji;
     });
 
-    return frequentEmojiList;
+    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
+    return addSpacesToEmojiCategories(mergedEmojis);
 }
 
 /**
@@ -312,9 +323,9 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require('./EmojiTrie').default;
+    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang];
+    const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
         return {text, emojis: []};
     }
@@ -390,9 +401,9 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  */
 function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require('./EmojiTrie').default;
+    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang];
+    const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
         return [];
     }
@@ -431,7 +442,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (value: string | number | null): number => {
+const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
     if (value !== null && Number.isInteger(Number(value))) {
         return Number(value);
     }
@@ -517,13 +528,13 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
  */
 function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
     if (skinTone === undefined) {
-        return Boolean(usersReactions[accountID]);
+        return !!usersReactions[accountID];
     }
     const userReaction = usersReactions[accountID];
     if (!userReaction?.skinTones || !Object.values(userReaction?.skinTones ?? {}).length) {
         return false;
     }
-    return Boolean(userReaction.skinTones[skinTone]);
+    return !!userReaction.skinTones[skinTone];
 }
 
 /**
@@ -578,7 +589,6 @@ export {
     getLocalizedEmojiName,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
-    getFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,

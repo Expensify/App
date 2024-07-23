@@ -1,4 +1,4 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -13,20 +13,20 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -61,7 +61,9 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.TAXES
         | typeof SCREENS.WORKSPACE.MORE_FEATURES
         | typeof SCREENS.WORKSPACE.PROFILE
-        | typeof SCREENS.WORKSPACE.MEMBERS;
+        | typeof SCREENS.WORKSPACE.MEMBERS
+        | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
+        | typeof SCREENS.WORKSPACE.REPORT_FIELDS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -85,16 +87,15 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
+    const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
-    const {canUseAccountingIntegrations} = usePermissions();
     const {isOffline} = useNetwork();
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -106,11 +107,28 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
 
-    const policyID = policy?.id ?? '';
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
+        Policy.openPolicyInitialPage(route.params.policyID);
+    }, [policyDraft?.id, route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
+
+    const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
@@ -122,7 +140,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
         App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
         // We only care when the component renders the first time
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -142,7 +160,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
-    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
+    const {login} = useCurrentUserPersonalDetails();
+    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
@@ -192,7 +211,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with FeatureEnabledAccessOrNotFoundComponent.
+    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
@@ -214,6 +233,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             icon: Expensicons.Car,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.expensifyCard',
+            icon: Expensicons.CreditCard,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
         });
     }
 
@@ -256,7 +284,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canUseAccountingIntegrations) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.reportFields',
+            icon: Expensicons.Pencil,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
@@ -320,7 +357,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '',
+            id: policy.id ?? '-1',
         };
     }, [policy]);
 
@@ -399,7 +436,7 @@ export default withPolicyAndFullscreenLoading(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
         },
     })(WorkspaceInitialPage),
 );

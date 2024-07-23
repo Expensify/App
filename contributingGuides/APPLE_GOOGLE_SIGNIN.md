@@ -96,6 +96,79 @@ These steps are covered in more detail in the "testing" section below.
 
 Due to some technical constraints, Apple and Google sign-in may require additional configuration to be able to work in the development environment as expected. This document describes any additional steps for each platform. 
 
+## Show Apple / Google SSO buttons development environment
+
+The Apple/Google Sign In button renders differently in development mode. To prevent confusion
+for developers about a possible regression, we decided to not render third party buttons in
+development mode.
+
+To re-enable the SSO buttons in development mode, remove this [condition](https://github.com/Expensify/App/blob/c2a718c9100e704c89ad9564301348bc53a49777/src/pages/signin/LoginForm/BaseLoginForm.tsx#L300) so that we always render the SSO button components:
+
+```diff
+diff --git a/src/pages/signin/LoginForm/BaseLoginForm.tsx b/src/pages/signin/LoginForm/BaseLoginForm.tsx
+index 4286a26033..850f8944ca 100644
+--- a/src/pages/signin/LoginForm/BaseLoginForm.tsx
++++ b/src/pages/signin/LoginForm/BaseLoginForm.tsx
+@@ -288,7 +288,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
+                            // for developers about possible regressions, we won't render buttons in development mode.
+                            // For more information about these differences and how to test in development mode,
+                            // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
+-                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
++                            (
+                                <View style={[getSignInWithStyles()]}>
+                                    <Text
+                                        accessibilityElementsHidden
+```
+
+## Desktop-specific setup
+
+1. Update `NEW_EXPENSIFY_URL` in `.env.staging`, setting it to the URL where the development web app can be found. This URL will vary based on whether you're testing for Apple or Google
+    - For Google, use http://localhost:8082 (make sure the port matches whatever you see in the browser when you run `npm run web`)
+    - For Apple, see [Configure the SSH tunneling](#configure-the-ssh-tunneling)
+2. Download and install the latest version of [SwiftDefaultApps](https://github.com/Lord-Kamina/SwiftDefaultApps?tab=readme-ov-file#installing--uninstalling).
+3. Open `System Settings` => `Swift Default Apps` => `URI Schemes` => `new-expensify` and select `New Expensify.app`
+4. Note that a dev build of the desktop app will not work. You'll create and install a local staging build:
+   1. Update `build-desktop.sh` replacing `--publish always` with `--publish never`. 
+   2. Run `npm run desktop-build-staging` and install the locally-generated desktop app to test.
+5. (Google only) apply the following diff:
+
+    ```diff
+    diff --git a/src/components/DeeplinkWrapper/index.website.tsx b/src/components/DeeplinkWrapper/index.website.tsx
+    index 765fbab038..4318528b4c 100644
+    --- a/src/components/DeeplinkWrapper/index.website.tsx
+    +++ b/src/components/DeeplinkWrapper/index.website.tsx
+    @@ -63,14 +63,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState}: DeeplinkWra
+             const isUnsupportedDeeplinkRoute = routeRegex.test(window.location.pathname);
+     
+             // Making a few checks to exit early before checking authentication status
+    -        if (
+    -            !isMacOSWeb() ||
+    -            isUnsupportedDeeplinkRoute ||
+    -            hasShownPrompt ||
+    -            CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV ||
+    -            autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED ||
+    -            Session.isAnonymousUser()
+    -        ) {
+    +        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || hasShownPrompt || autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED || Session.isAnonymousUser()) {
+                 return;
+             }
+             // We want to show the prompt immediately if the user is already authenticated.
+    diff --git a/src/libs/Navigation/linkingConfig/prefixes.ts b/src/libs/Navigation/linkingConfig/prefixes.ts
+    index ca2da6f56b..2c191598f0 100644
+    --- a/src/libs/Navigation/linkingConfig/prefixes.ts
+    +++ b/src/libs/Navigation/linkingConfig/prefixes.ts
+    @@ -8,6 +8,7 @@ const prefixes: LinkingOptions<RootStackParamList>['prefixes'] = [
+         'https://www.expensify.cash',
+         'https://staging.expensify.cash',
+         'https://dev.new.expensify.com',
+    +    'http://localhost',
+         CONST.NEW_EXPENSIFY_URL,
+         CONST.STAGING_NEW_EXPENSIFY_URL,
+     ];
+    ```
+
+6. Run `npm run web`
+
 ## Apple
 
 #### Port requirements
@@ -193,57 +266,11 @@ This is required because the desktop app needs to know the address of the web ap
 
 Note that changing this value to a domain that isn't configured for use with Expensify will cause Android to break, as it is still using the real client ID, but now has an incorrect value for `redirectURI`.
 
-#### Set Environment to something other than "Development"
+## Google
 
-The `DeepLinkWrapper` component will not handle deep links in the development environment. To be able to test deep linking, you must set the environment to something other than "Development".
+Unlike with Apple, to test Google Sign-In we don't need to set up any http/ssh tunnels. We can just use `localhost`. But we need to set up the web and desktop environments to use `localhost` instead of `dev.new.expensify.com`
 
-Within the `.env` file, set `envName` to something other than "Development", for example:
-
-```
-envName=Staging
-```
-
-Alternatively, within the `DeepLinkWrapper/index.website.js` file, you can set the `CONFIG.ENVIRONMENT` to something other than "Development".
-
-#### Handle deep links in dev on MacOS
-
-If developing on MacOS, the development desktop app can't handle deeplinks correctly. To be able to test deeplinking back to the app, follow these steps:
-
-1. Create a "real" build of the desktop app, which can handle deep links, open the build folder, and install the dmg there:
-
-```shell
-npm run desktop-build
-open desktop-build
-# Then double-click "NewExpensify.dmg" in Finder window
-```
-
-2. Even with this build, the deep link may not be handled by the correct app, as the development Electron config seems to intercept it sometimes. To manage this, install [SwiftDefaultApps](https://github.com/Lord-Kamina/SwiftDefaultApps), which adds a preference pane that can be used to configure which app should handle deep links.
-
-### Test the Apple / Google SSO buttons in development environment
-
-The Apple/Google Sign In button renders differently in development mode. To prevent confusion
-for developers about a possible regression, we decided to not render third party buttons in
-development mode.
-
-Here's how you can re-enable the SSO buttons in development mode:
-
-- Remove this [condition](https://github.com/Expensify/App/blob/c2a718c9100e704c89ad9564301348bc53a49777/src/pages/signin/LoginForm/BaseLoginForm.tsx#L300) so that we always render the SSO button components
-    ```diff
-    diff --git a/src/pages/signin/LoginForm/BaseLoginForm.tsx b/src/pages/signin/LoginForm/BaseLoginForm.tsx
-    index 4286a26033..850f8944ca 100644
-    --- a/src/pages/signin/LoginForm/BaseLoginForm.tsx
-    +++ b/src/pages/signin/LoginForm/BaseLoginForm.tsx
-    @@ -288,7 +288,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
-                                // for developers about possible regressions, we won't render buttons in development mode.
-                                // For more information about these differences and how to test in development mode,
-                                // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
-    -                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
-    +                            (
-                                    <View style={[getSignInWithStyles()]}>
-                                        <Text
-                                            accessibilityElementsHidden
-    ```
-- Update the webpack.dev.ts [config](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.js#L47-L49) to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
+- (web/desktop) Update the webpack.dev.ts [config](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.js#L47-L49) to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
     ```diff
     diff --git a/config/webpack/webpack.dev.ts b/config/webpack/webpack.dev.ts
     index e28383eff5..b14f6f34aa 100644
@@ -262,7 +289,49 @@ Here's how you can re-enable the SSO buttons in development mode:
                             key: path.join(__dirname, 'key.pem'),
                             cert: path.join(__dirname, 'certificate.pem'),
     ```
+  
+- (desktop) Update the start script to use localhost:
 
-#### Set Environment to something other than "Development"
+    ```diff
+    diff --git a/desktop/start.ts b/desktop/start.ts
+    index 030bee95ce..7f7e115cf3 100644
+    --- a/desktop/start.ts
+    +++ b/desktop/start.ts
+    @@ -34,7 +34,7 @@ portfinder
+    env,
+    },
+    {
+    -                command: `wait-port dev.new.expensify.com:${port} && npx electronmon ./desktop/dev.js`,
+    +                command: `wait-port localhost:${port} && npx electronmon ./desktop/dev.js`,
+                     name: 'Electron',
+                     prefixColor: 'cyan.dim',
+                     env,
+    ```
+  
+- (desktop) Update the main process to use localhost w/ http:
 
-The DeepLinkWrapper component will not handle deep links in the development environment. To be able to test deep linking, you must set the environment to something other than "Development".
+    ```diff
+    diff --git a/desktop/main.ts b/desktop/main.ts
+    index 0f4774d3b7..4cb7fe3683 100644
+    --- a/desktop/main.ts
+    +++ b/desktop/main.ts
+    @@ -98,7 +98,7 @@ Object.assign(console, log.functions);
+     // until it detects that it has been upgraded to the correct version.
+     
+     const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
+    -const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
+    +const APP_DOMAIN = __DEV__ ? `http://localhost:${port}` : 'app://-';
+     
+     let expectedUpdateVersion: string;
+     process.argv.forEach((arg) => {
+    @@ -246,7 +246,7 @@ const mainWindow = (): Promise<void> => {
+         let deeplinkUrl: string;
+         let browserWindow: BrowserWindow;
+     
+    -    const loadURL = __DEV__ ? (win: BrowserWindow): Promise<void> => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
+    +    const loadURL = __DEV__ ? (win: BrowserWindow): Promise<void> => win.loadURL(`http://localhost:${port}`) : serve({directory: `${__dirname}/www`});
+     
+         // Prod and staging set the icon in the electron-builder config, so only update it here for dev
+         if (__DEV__) {
+    ```
+

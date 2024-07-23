@@ -191,7 +191,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
-                methodID: methodID ?? '',
+                methodID: methodID ?? '-1',
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
@@ -242,9 +242,9 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? 0, 0, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? 0, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? -1, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
         paymentMethod.methodID,
@@ -272,10 +272,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const navigateToWalletOrTransferBalancePage = (source?: Source) => {
         Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
-
-    useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
@@ -343,7 +339,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
-    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
+    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
 
     return (
         <>
@@ -467,7 +463,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                         <Button
                                                             ref={buttonRef as ForwardedRef<View>}
                                                             text={translate('walletPage.enableWallet')}
-                                                            onPress={triggerKYCFlow}
+                                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS)}
                                                             isDisabled={network.isOffline}
                                                             success
                                                             large

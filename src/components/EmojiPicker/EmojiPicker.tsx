@@ -6,12 +6,14 @@ import type {Emoji} from '@assets/emojis/types';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
 import * as Browser from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
@@ -43,7 +45,8 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>();
     const emojiSearchInput = useRef<BaseTextInputRef | null>();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Get the popover anchor ref
@@ -85,19 +88,23 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
         const anchorOriginValue = anchorOrigin ?? DEFAULT_ANCHOR_ORIGIN;
 
+        // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
+        // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
         calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
-            onWillShow?.();
-            setIsEmojiPickerVisible(true);
-            setEmojiPopoverAnchorPosition({
-                horizontal: value.horizontal,
-                vertical: value.vertical,
+            Modal.close(() => {
+                onWillShow?.();
+                setIsEmojiPickerVisible(true);
+                setEmojiPopoverAnchorPosition({
+                    horizontal: value.horizontal,
+                    vertical: value.vertical,
+                });
+                emojiAnchorDimension.current = {
+                    width: value.width,
+                    height: value.height,
+                };
+                setEmojiPopoverAnchorOrigin(anchorOriginValue);
+                setActiveID(id);
             });
-            emojiAnchorDimension.current = {
-                width: value.width,
-                height: value.height,
-            };
-            setEmojiPopoverAnchorOrigin(anchorOriginValue);
-            setActiveID(id);
         });
     };
 
@@ -113,6 +120,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             if (currOnModalHide) {
                 currOnModalHide();
             }
+            // eslint-disable-next-line react-compiler/react-compiler
             emojiPopoverAnchorRef.current = null;
         };
         setIsEmojiPickerVisible(false);
@@ -160,7 +168,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             const emojiPopoverAnchor = getEmojiPopoverAnchor();
             if (!emojiPopoverAnchor?.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
-                if (isEmojiPickerVisible && !isSmallScreenWidth) {
+                if (isEmojiPickerVisible && !shouldUseNarrowLayout) {
                     hideEmojiPicker();
                 }
                 return;
@@ -182,7 +190,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
+    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out

@@ -1,5 +1,5 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import _ from 'lodash';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -65,11 +65,11 @@ function StateSelectionPage() {
                     Navigation.goBack();
                 } else {
                     // "backTo" provided: navigate back to "backTo" with state parameter.
-                    Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
+                    Navigation.goBack(appendParam(backTo, 'state', option.value));
                 }
             } else if (!_.isEmpty(backTo)) {
                 // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
-                Navigation.navigate(appendParam(backTo, 'state', option.value) as Route);
+                Navigation.navigate(appendParam(backTo, 'state', option.value));
             } else {
                 // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
                 // Navigation stack has multiple routes but no "backTo" defined: default back navigation.
@@ -91,13 +91,12 @@ function StateSelectionPage() {
                 shouldShowBackButton
                 onBackButtonPress={() => {
                     const backTo = params?.backTo ?? '';
-                    let backToRoute = '';
+                    let backToRoute: Route | undefined;
 
                     if (backTo) {
                         backToRoute = appendParam(backTo, 'state', currentState ?? '');
                     }
 
-                    // @ts-expect-error Navigation.goBack does take a param
                     Navigation.goBack(backToRoute);
                 }}
             />
@@ -106,6 +105,7 @@ function StateSelectionPage() {
 
             <SelectionList
                 onSelectRow={selectCountryState}
+                shouldDebounceRowSelect
                 headerMessage={headerMessage}
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

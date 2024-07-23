@@ -50,6 +50,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    TRIP_ROOM: 'tripRoom',
     GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
@@ -73,14 +74,22 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
-    MERGED_ACCOUNT_PREFIX: 'MERGED_',
+    RECENT_WAYPOINTS_NUMBER: 20,
+    DEFAULT_DB_NAME: 'OnyxDB',
+    DEFAULT_TABLE_NAME: 'keyvaluepairs',
+    DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
-    ANIMATED_HIGHLIGHT_DELAY: 500,
-    ANIMATED_HIGHLIGHT_DURATION: 500,
+    WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
+    ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
+    ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
+    ANIMATED_HIGHLIGHT_START_DELAY: 10,
+    ANIMATED_HIGHLIGHT_START_DURATION: 300,
+    ANIMATED_HIGHLIGHT_END_DELAY: 800,
+    ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
@@ -91,6 +100,7 @@ const CONST = {
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
+    SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -146,6 +156,7 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
+        EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
 
     GPS: {
@@ -166,7 +177,12 @@ const CONST = {
 
     PULL_REQUEST_NUMBER,
 
+    // Regex to get link in href prop inside of <a/> component
+    REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
+
+    MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
@@ -200,27 +216,12 @@ const CONST = {
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
+        OVERLAP: 60,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
-            CONTAINER_MINHEIGHT: 200,
-            VIEW_HEIGHT: 240,
         },
         WIDE_SCREEN: {
             IMAGE_HEIGHT: 450,
-            CONTAINER_MINHEIGHT: 500,
-            VIEW_HEIGHT: 390,
-        },
-        MONEY_OR_TASK_REPORT: {
-            SMALL_SCREEN: {
-                IMAGE_HEIGHT: 300,
-                CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 240,
-            },
-            WIDE_SCREEN: {
-                IMAGE_HEIGHT: 450,
-                CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 390,
-            },
         },
     },
 
@@ -336,6 +337,8 @@ const CONST = {
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
             VERIFYING: 'VERIFYING',
+            VALIDATING: 'VALIDATING',
+            SETUP: 'SETUP',
             PENDING: 'PENDING',
             OPEN: 'OPEN',
         },
@@ -361,12 +364,15 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
-        REPORT_FIELDS: 'reportFields',
+        DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
-        XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
+        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
+        REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
+        WORKSPACE_FEEDS: 'workspaceFeeds',
+        NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -528,6 +534,16 @@ const CONST = {
             shortcutKey: 'Tab',
             modifiers: [],
         },
+        DEBUG: {
+            descriptionKey: 'openDebug',
+            shortcutKey: 'D',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'd', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'd', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
+            },
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -572,12 +588,14 @@ const CONST = {
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
     ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
     WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    BANCORP_WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
+    SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
@@ -592,6 +610,11 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
+    HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    PRICING: `https://www.expensify.com/pricing`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -599,7 +622,6 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
-        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
     },
 
     SIGN_IN_FORM_WIDTH: 300,
@@ -644,11 +666,13 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
+        MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
@@ -662,12 +686,12 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
-                DONATION: 'DONATION', // OldDot Action
-                EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTED_TO_QUICK_BOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                DONATION: 'DONATION', // Deprecated OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -687,8 +711,9 @@ const CONST = {
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
-                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
-                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
+                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
+                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -700,7 +725,8 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
-                UNAPPROVED: 'UNAPPROVED', // OldDot Action
+                TRIPPREVIEW: 'TRIPPREVIEW',
+                UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
@@ -771,6 +797,7 @@ const CONST = {
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
+                    CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                 },
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -818,6 +845,10 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+        },
+        UNSUPPORTED_TYPE: {
+            PAYCHECK: 'paycheck',
+            BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -871,9 +902,17 @@ const CONST = {
             INDIVIDUAL: 'individual',
             BUSINESS: 'policy',
         },
+        EXPORT_OPTIONS: {
+            EXPORT_TO_INTEGRATION: 'exportToIntegration',
+            MARK_AS_EXPORTED: 'markAsExported',
+        },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -930,15 +969,7 @@ const CONST = {
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
-    },
-    SEARCH_TABLE_COLUMNS: {
-        DATE: 'date',
-        MERCHANT: 'merchant',
-        FROM: 'from',
-        TO: 'to',
-        TOTAL: 'total',
-        TYPE: 'type',
-        ACTION: 'action',
+        UNREAD_UPDATE_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -960,7 +991,7 @@ const CONST = {
         DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
-        DEFAULT_MERCHANT: 'Request',
+        DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -1044,6 +1075,7 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        RECHECK_INTERVAL_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
         NETWORK_STATUS: {
             ONLINE: 'online',
@@ -1107,8 +1139,6 @@ const CONST = {
     // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
     // around each header.
     EMOJI_NUM_PER_ROW: 8,
-
-    EMOJI_FREQUENT_ROW_COUNT: 3,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
 
@@ -1183,6 +1213,12 @@ const CONST = {
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
     },
+    ATTACHMENT_TYPE: {
+        REPORT: 'r',
+        NOTE: 'n',
+    },
+
+    IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
 
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
@@ -1226,6 +1262,8 @@ const CONST = {
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
+        SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
+        BIG_SCREEN_SUGGESTION_WIDTH: 300,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
@@ -1242,6 +1280,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
@@ -1264,6 +1303,8 @@ const CONST = {
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
+    CONCIERGE_DISPLAY_NAME: 'Concierge',
+
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
         NONE: 'NONE',
@@ -1271,6 +1312,7 @@ const CONST = {
         REPORT_FIELD: 'REPORT_FIELD',
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
@@ -1298,8 +1340,16 @@ const CONST = {
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
         SYNC: 'sync',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        EXPORT: 'export',
+        TENANT_ID: 'tenantID',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
+        INVOICE_STATUS: {
+            DRAFT: 'DRAFT',
+            AWAITING_APPROVAL: 'AWT_APPROVAL',
+            AWAITING_PAYMENT: 'AWT_PAYMENT',
+        },
         IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
         MAPPINGS: 'mappings',
         TRACKING_CATEGORY_PREFIX: 'trackingCategory_',
@@ -1313,11 +1363,310 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_MAPPING_VALUE: {
+        NONE: 'NONE',
+        DEFAULT: 'DEFAULT',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+    },
+
+    SAGE_INTACCT_CONFIG: {
+        MAPPINGS: {
+            DEPARTMENTS: 'departments',
+            CLASSES: 'classes',
+            LOCATIONS: 'locations',
+            CUSTOMERS: 'customers',
+            PROJECTS: 'projects',
+        },
+        SYNC_ITEMS: 'syncItems',
+        TAX: 'tax',
+        EXPORT: 'export',
+        EXPORT_DATE: 'exportDate',
+        NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
+        NON_REIMBURSABLE_VENDOR: 'nonReimbursableVendor',
+        REIMBURSABLE_VENDOR: 'reimbursableExpenseReportDefaultVendor',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        EXPORTER: 'exporter',
+        REIMBURSABLE: 'reimbursable',
+        AUTO_SYNC: 'autoSync',
+        AUTO_SYNC_ENABLED: 'enabled',
+        IMPORT_EMPLOYEES: 'importEmployees',
+        APPROVAL_MODE: 'approvalMode',
+        SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        ENTITY: 'entity',
+    },
+
+    SAGE_INTACCT: {
+        APPROVAL_MODE: {
+            APPROVAL_MANUAL: 'APPROVAL_MANUAL',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
     },
+
+    SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    XERO_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    SAGE_INTACCT_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
+        DEFAULT_VENDOR: 'defaultVendor',
+        REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
+        PAYABLE_ACCT: 'payableAcct',
+        JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
+        INVOICE_ITEM_PREFERENCE: 'invoiceItemPreference',
+        INVOICE_ITEM: 'invoiceItem',
+        TAX_POSTING_ACCOUNT: 'taxPostingAccount',
+        PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
+        ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        IMPORT_FIELDS: ['departments', 'classes', 'locations'],
+        AUTO_SYNC: 'autoSync',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT: 'collectionAccount',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
+        APPROVAL_ACCOUNT: 'approvalAccount',
+        CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
+        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_KEYS: {
+            0: 'installBundle',
+            1: 'enableTokenAuthentication',
+            2: 'enableSoapServices',
+            3: 'createAccessToken',
+            4: 'enterCredentials',
+        },
+        IMPORT_CUSTOM_FIELDS: {
+            CUSTOM_SEGMENTS: 'customSegments',
+            CUSTOM_LISTS: 'customLists',
+        },
+        CUSTOM_SEGMENT_FIELDS: ['segmentName', 'internalID', 'scriptID', 'mapping'],
+        CUSTOM_LIST_FIELDS: ['listName', 'internalID', 'transactionFieldID', 'mapping'],
+        CUSTOM_FORM_ID_TYPE: {
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'nonReimbursable',
+        },
+        SYNC_OPTIONS: {
+            SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+            SYNC_PEOPLE: 'syncPeople',
+            ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+            EXPORT_REPORTS_TO: 'exportReportsTo',
+            EXPORT_VENDOR_BILLS_TO: 'exportVendorBillsTo',
+            EXPORT_JOURNALS_TO: 'exportJournalsTo',
+            SYNC_TAX: 'syncTax',
+            CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
+            CUSTOMER_MAPPINGS: {
+                CUSTOMERS: 'customers',
+                JOBS: 'jobs',
+            },
+        },
+        NETSUITE_CUSTOM_LIST_LIMIT: 8,
+        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
+    },
+
+    NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES: {
+        CUSTOM_LISTS: {
+            CUSTOM_LIST_PICKER: 0,
+            TRANSACTION_FIELD_ID: 1,
+            MAPPING: 2,
+            CONFIRM: 3,
+        },
+        CUSTOM_SEGMENTS: {
+            SEGMENT_TYPE: 0,
+            SEGMENT_NAME: 1,
+            INTERNAL_ID: 2,
+            SCRIPT_ID: 3,
+            MAPPING: 4,
+            CONFIRM: 5,
+        },
+    },
+
+    NETSUITE_CUSTOM_RECORD_TYPES: {
+        CUSTOM_SEGMENT: 'customSegment',
+        CUSTOM_RECORD: 'customRecord',
+    },
+
+    NETSUITE_FORM_STEPS_HEADER_HEIGHT: 40,
+
+    NETSUITE_IMPORT: {
+        HELP_LINKS: {
+            CUSTOM_SEGMENTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments',
+            CUSTOM_LISTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists',
+        },
+    },
+
+    NETSUITE_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NETSUITE_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+    },
+
+    NETSUITE_MAP_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'expenseReport',
+        VENDOR_BILL: 'vendorBill',
+        JOURNAL_ENTRY: 'journalEntry',
+    },
+
+    NETSUITE_INVOICE_ITEM_PREFERENCE: {
+        CREATE: 'create',
+        SELECT: 'select',
+    },
+
+    NETSUITE_JOURNAL_POSTING_PREFERENCE: {
+        JOURNALS_POSTING_INDIVIDUAL_LINE: 'JOURNALS_POSTING_INDIVIDUAL_LINE',
+        JOURNALS_POSTING_TOTAL_LINE: 'JOURNALS_POSTING_TOTAL_LINE',
+    },
+
+    NETSUITE_EXPENSE_TYPE: {
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonreimbursable',
+    },
+
+    NETSUITE_REPORTS_APPROVAL_LEVEL: {
+        REPORTS_APPROVED_NONE: 'REPORTS_APPROVED_NONE',
+        REPORTS_SUPERVISOR_APPROVED: 'REPORTS_SUPERVISOR_APPROVED',
+        REPORTS_ACCOUNTING_APPROVED: 'REPORTS_ACCOUNTING_APPROVED',
+        REPORTS_APPROVED_BOTH: 'REPORTS_APPROVED_BOTH',
+    },
+
+    NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL: {
+        VENDOR_BILLS_APPROVED_NONE: 'VENDOR_BILLS_APPROVED_NONE',
+        VENDOR_BILLS_APPROVAL_PENDING: 'VENDOR_BILLS_APPROVAL_PENDING',
+        VENDOR_BILLS_APPROVED: 'VENDOR_BILLS_APPROVED',
+    },
+
+    NETSUITE_JOURNALS_APPROVAL_LEVEL: {
+        JOURNALS_APPROVED_NONE: 'JOURNALS_APPROVED_NONE',
+        JOURNALS_APPROVAL_PENDING: 'JOURNALS_APPROVAL_PENDING',
+        JOURNALS_APPROVED: 'JOURNALS_APPROVED',
+    },
+
+    NETSUITE_ACCOUNT_TYPE: {
+        ACCOUNTS_PAYABLE: '_accountsPayable',
+        ACCOUNTS_RECEIVABLE: '_accountsReceivable',
+        OTHER_CURRENT_LIABILITY: '_otherCurrentLiability',
+        CREDIT_CARD: '_creditCard',
+        BANK: '_bank',
+        OTHER_CURRENT_ASSET: '_otherCurrentAsset',
+        LONG_TERM_LIABILITY: '_longTermLiability',
+        EXPENSE: '_expense',
+    },
+
+    NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
+
+    /**
+     * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
+     *
+     * Should mirror the list on the OldDot.
+     */
+    NETSUITE_TAX_COUNTRIES: [
+        '_canada',
+        '_unitedKingdomGB',
+        '_unitedKingdom',
+        '_australia',
+        '_southAfrica',
+        '_india',
+        '_france',
+        '_netherlands',
+        '_germany',
+        '_singapore',
+        '_spain',
+        '_ireland',
+        '_denmark',
+        '_brazil',
+        '_japan',
+        '_philippines',
+        '_china',
+        '_argentina',
+        '_newZealand',
+        '_switzerland',
+        '_sweden',
+        '_portugal',
+        '_mexico',
+        '_israel',
+        '_thailand',
+        '_czechRepublic',
+        '_egypt',
+        '_ghana',
+        '_indonesia',
+        '_iranIslamicRepublicOf',
+        '_jordan',
+        '_kenya',
+        '_kuwait',
+        '_lebanon',
+        '_malaysia',
+        '_morocco',
+        '_myanmar',
+        '_nigeria',
+        '_pakistan',
+        '_saudiArabia',
+        '_sriLanka',
+        '_unitedArabEmirates',
+        '_vietnam',
+        '_austria',
+        '_bulgaria',
+        '_greece',
+        '_cyprus',
+        '_norway',
+        '_romania',
+        '_poland',
+        '_hongKong',
+        '_luxembourg',
+        '_lithuania',
+        '_malta',
+        '_finland',
+        '_koreaRepublicOf',
+        '_italy',
+        '_georgia',
+        '_hungary',
+        '_latvia',
+        '_estonia',
+        '_slovenia',
+        '_serbia',
+        '_croatiaHrvatska',
+        '_belgium',
+        '_turkey',
+        '_taiwan',
+        '_azerbaijan',
+        '_slovakRepublic',
+        '_costaRica',
+    ] as string[],
 
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
@@ -1403,6 +1752,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
             ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
@@ -1439,6 +1789,7 @@ const CONST = {
             CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
         MTL_WALLET_PROGRAM_ID: '760',
+        BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
             BANCORP_BANK: 'The Bancorp Bank',
@@ -1513,6 +1864,7 @@ const CONST = {
     },
 
     IOU: {
+        MAX_RECENT_REPORTS_TO_SHOW: 5,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -1554,7 +1906,7 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
-        AMOUNT_MAX_LENGTH: 10,
+        AMOUNT_MAX_LENGTH: 8,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
             OPEN: 'OPEN',
@@ -1576,6 +1928,9 @@ const CONST = {
             ROLE: {
                 ACCOUNTANT: 'accountant',
             },
+        },
+        ACCESS_VARIANTS: {
+            CREATE: 'create',
         },
     },
 
@@ -1681,29 +2036,20 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
             ARE_TAGS_ENABLED: 'areTagsEnabled',
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
-            ARE_REPORTFIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
-        },
-        CATEGORIES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        TAGS_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        DISTANCE_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -1735,11 +2081,6 @@ const CONST = {
             DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
             FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
         },
-        TAX_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
             REIMBURSER: 'reimburser',
@@ -1755,9 +2096,22 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
+                NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'intacct',
+            },
+            NAME_USER_FRIENDLY: {
+                netsuite: 'NetSuite',
+                quickbooksOnline: 'Quickbooks Online',
+                quickbooksDesktop: 'Quickbooks Desktop',
+                xero: 'Xero',
+                intacct: 'Sage Intacct',
+                financialForce: 'FinancialForce',
+                billCom: 'Bill.com',
+                zenefits: 'Zenefits',
             },
             SYNC_STAGE_NAME: {
-                STARTING_IMPORT: 'startingImport',
+                STARTING_IMPORT_QBO: 'startingImportQBO',
+                STARTING_IMPORT_XERO: 'startingImportXero',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -1784,19 +2138,47 @@ const CONST = {
                 XERO_SYNC_IMPORT_CUSTOMERS: 'xeroSyncImportCustomers',
                 XERO_SYNC_IMPORT_BANK_ACCOUNTS: 'xeroSyncImportBankAccounts',
                 XERO_SYNC_IMPORT_TAX_RATES: 'xeroSyncImportTaxRates',
+                XERO_CHECK_CONNECTION: 'xeroCheckConnection',
+                XERO_SYNC_TITLE: 'xeroSyncTitle',
+                NETSUITE_SYNC_CONNECTION: 'netSuiteSyncConnection',
+                NETSUITE_SYNC_CUSTOMERS: 'netSuiteSyncCustomers',
+                NETSUITE_SYNC_INIT_DATA: 'netSuiteSyncInitData',
+                NETSUITE_SYNC_IMPORT_TAXES: 'netSuiteSyncImportTaxes',
+                NETSUITE_SYNC_IMPORT_ITEMS: 'netSuiteSyncImportItems',
+                NETSUITE_SYNC_DATA: 'netSuiteSyncData',
+                NETSUITE_SYNC_ACCOUNTS: 'netSuiteSyncAccounts',
+                NETSUITE_SYNC_CURRENCIES: 'netSuiteSyncCurrencies',
+                NETSUITE_SYNC_CATEGORIES: 'netSuiteSyncCategories',
+                NETSUITE_SYNC_IMPORT_EMPLOYEES: 'netSuiteSyncImportEmployees',
+                NETSUITE_SYNC_REPORT_FIELDS: 'netSuiteSyncReportFields',
+                NETSUITE_SYNC_TAGS: 'netSuiteSyncTags',
+                NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
+                NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
+                NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
+                SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
+                SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
+                SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
+                SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
+                SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
+                SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
+            SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',
+            CONTROL: 'control',
         },
+        DEFAULT_MAX_EXPENSE_AGE: 90,
+        DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
+        DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
     },
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
-        MILEAGE_IRS_RATE: 0.655,
+        MILEAGE_IRS_RATE: 0.67,
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
@@ -1859,6 +2241,23 @@ const CONST = {
             MONTHLY: 'monthly',
             FIXED: 'fixed',
         },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD_TYPE: 'CardType',
+            LIMIT_TYPE: 'LimitType',
+            LIMIT: 'Limit',
+            CARD_NAME: 'CardName',
+            CONFIRMATION: 'Confirmation',
+        },
+        CARD_TYPE: {
+            PHYSICAL: 'physical',
+            VIRTUAL: 'virtual',
+        },
+        FREQUENCY_SETTING: {
+            DAILY: 'daily',
+            MONTHLY: 'monthly',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1867,6 +2266,12 @@ const CONST = {
     OPTION_MODE: {
         COMPACT: 'compact',
         DEFAULT: 'default',
+    },
+    SUBSCRIPTION: {
+        TYPE: {
+            ANNUAL: 'yearly2018',
+            PAYPERUSE: 'monthly2018',
+        },
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
@@ -1901,10 +2306,10 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        EMOJI_NAME: /:[\w+-]+:/g,
-        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
+        EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
+        EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\r|\n/g,
+        LINE_BREAK: /\r\n|\r|\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1954,6 +2359,8 @@ const CONST = {
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
+
+        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
     },
 
     PRONOUNS: {
@@ -1970,6 +2377,7 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
@@ -2012,7 +2420,7 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
-        ];
+        ].filter((id) => id !== -1);
     },
 
     // Emails that profile view is prohibited
@@ -2038,7 +2446,8 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
     TAG_NAME_LIMIT: 256,
-    REPORT_NAME_LIMIT: 256,
+    WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
+    REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -2065,12 +2474,16 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
-        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        EXPORT: 'export',
+        DELETE: 'delete',
+        MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        CANCEL_PAYMENT: 'cancelPayment',
+        UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3268,6 +3681,12 @@ const CONST = {
     },
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
+    TRAVEL_DOT_URL: 'https://travel.expensify.com',
+    STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
+    TRIP_ID_PATH: (tripID: string) => `trips/${tripID}`,
+    SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
+    STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
@@ -3355,6 +3774,11 @@ const CONST = {
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
         IMAGE: 'image',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        TEXTBOX: 'textbox',
     },
     /**
      * Acceptable values for the `role` attribute on react native components.
@@ -3417,6 +3841,8 @@ const CONST = {
         TIMER: 'timer',
         /** Use for toolbars containing action buttons or components. */
         TOOLBAR: 'toolbar',
+        /** Use for navigation elements */
+        NAVIGATION: 'navigation',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -3456,9 +3882,7 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
-    TAB_SEARCH: {
-        ALL: 'all',
-    },
+
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
@@ -3470,7 +3894,6 @@ const CONST = {
 
     NAVIGATION: {
         TYPE: {
-            FORCED_UP: 'FORCED_UP',
             UP: 'UP',
         },
         ACTION_TYPE: {
@@ -3491,10 +3914,12 @@ const CONST = {
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
-        DEFAULT_ZOOM: 10,
+        DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
+        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
@@ -3503,6 +3928,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        ON_RETURN_TO_OLD_DOT: 'onReturnToOldDot',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -3547,7 +3973,7 @@ const CONST = {
             TRACK_EXPENSE: 'track-expenses',
         },
         'track-expenses': {
-            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
+            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
     },
@@ -3563,10 +3989,10 @@ const CONST = {
     BACK_BUTTON_NATIVE_ID: 'backButton',
 
     /**
-     * The maximum count of items per page for OptionsSelector.
+     * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
@@ -3614,6 +4040,15 @@ const CONST = {
     },
 
     /**
+     * Constants with different types for the modifiedAmount violation
+     */
+    MODIFIED_AMOUNT_VIOLATION_DATA: {
+        DISTANCE: 'distance',
+        CARD: 'card',
+        SMARTSCAN: 'smartscan',
+    },
+
+    /**
      * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
@@ -3652,7 +4087,9 @@ const CONST = {
         TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
+        HOLD: 'hold',
     },
+    REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -3660,6 +4097,14 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+    },
+
+    PROMOTED_ACTIONS: {
+        PIN: 'pin',
+        SHARE: 'share',
+        JOIN: 'join',
+        MESSAGE: 'message',
+        HOLD: 'hold',
     },
 
     THUMBNAIL_IMAGE: {
@@ -3714,8 +4159,9 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
+    ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
-
+    ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
             '# Expensify is the fastest way to get paid back!\n' +
@@ -3760,7 +4206,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
                 duration: 55,
                 width: 1280,
@@ -3803,7 +4249,7 @@ const CONST = {
         [onboardingChoices.MANAGE_TEAM]: {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
                 duration: 55,
                 width: 1280,
@@ -3828,22 +4274,22 @@ const CONST = {
                     type: 'meetGuide',
                     autoCompleted: false,
                     title: 'Meet your setup specialist',
-                    description: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
+                    description: ({adminsRoomLink}: {adminsRoomLink: string}) =>
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
-                        `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
+                        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
                 },
                 {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Categories*.\n' +
                         '4. Enable and disable default categories.\n' +
                         '5. Click *Add categories* to make your own.\n' +
@@ -3854,13 +4300,13 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *More features*.\n' +
                         '4. Enable *Workflows*.\n' +
                         '5. In *Workflows*, enable *Add approvals*.\n' +
@@ -3871,13 +4317,13 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Members* > *Invite member*.\n' +
                         '4. Enter emails or phone numbers. \n' +
                         '5. Add an invite message if you want.\n' +
@@ -3889,7 +4335,7 @@ const CONST = {
         [onboardingChoices.PERSONAL_SPEND]: {
             message: 'Here’s how to track your spend in a few clicks.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
                 duration: 55,
                 width: 1280,
@@ -3917,7 +4363,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-chat-split-bills.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-chat-split-bills-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-chat-split-bills.jpg`,
                 duration: 55,
                 width: 1280,
@@ -4708,6 +5154,13 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+        ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
+    },
+
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
     },
 
     DOT_SEPARATOR: '•',
@@ -4733,6 +5186,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
 
     DOWNLOADS_PATH: '/Downloads',
+    DOWNLOADS_TIMEOUT: 5000,
     NEW_EXPENSIFY_PATH: '/New Expensify',
 
     ENVIRONMENT_SUFFIX: {
@@ -4740,18 +5194,188 @@ const CONST = {
         ADHOC: ' AdHoc',
     },
 
-    SEARCH_TRANSACTION_TYPE: {
-        CASH: 'cash',
-        CARD: 'card',
-        DISTANCE: 'distance',
-    },
-
-    SEARCH_DATA_TYPES: {
-        TRANSACTION: 'transaction',
+    SEARCH: {
+        RESULTS_PAGE_SIZE: 50,
+        DATA_TYPES: {
+            TRANSACTION: 'transaction',
+            REPORT: 'report',
+        },
+        ACTION_TYPES: {
+            VIEW: 'view',
+            REVIEW: 'review',
+            DONE: 'done',
+            PAID: 'paid',
+        },
+        BULK_ACTION_TYPES: {
+            EXPORT: 'export',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            DELETE: 'delete',
+        },
+        TRANSACTION_TYPE: {
+            CASH: 'cash',
+            CARD: 'card',
+            DISTANCE: 'distance',
+        },
+        SORT_ORDER: {
+            ASC: 'asc',
+            DESC: 'desc',
+        },
+        TAB: {
+            ALL: 'all',
+            SHARED: 'shared',
+            DRAFTS: 'drafts',
+            FINISHED: 'finished',
+        },
+        TABLE_COLUMNS: {
+            RECEIPT: 'receipt',
+            DATE: 'date',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TOTAL_AMOUNT: 'amount',
+            TYPE: 'type',
+            ACTION: 'action',
+            TAX_AMOUNT: 'taxAmount',
+        },
+        SYNTAX_OPERATORS: {
+            AND: 'and',
+            OR: 'or',
+            EQUAL_TO: 'eq',
+            NOT_EQUAL_TO: 'neq',
+            GREATER_THAN: 'gt',
+            GREATER_THAN_OR_EQUAL_TO: 'gte',
+            LOWER_THAN: 'lt',
+            LOWER_THAN_OR_EQUAL_TO: 'lte',
+        },
+        SYNTAX_ROOT_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
+            SORT_BY: 'sortBy',
+            SORT_ORDER: 'sortOrder',
+            OFFSET: 'offset',
+        },
+        SYNTAX_FILTER_KEYS: {
+            DATE: 'date',
+            AMOUNT: 'amount',
+            EXPENSE_TYPE: 'expenseType',
+            CURRENCY: 'currency',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TAX_RATE: 'taxRate',
+            CARD_ID: 'cardID',
+            REPORT_ID: 'reportID',
+            KEYWORD: 'keyword',
+        },
     },
 
     REFERRER: {
         NOTIFICATION: 'notification',
+    },
+
+    SUBSCRIPTION_SIZE_LIMIT: 20000,
+
+    PAGINATION_START_ID: '-1',
+    PAGINATION_END_ID: '-2',
+
+    PAYMENT_CARD_CURRENCY: {
+        USD: 'USD',
+        AUD: 'AUD',
+        NZD: 'NZD',
+    },
+
+    SUBSCRIPTION_PRICE_FACTOR: 2,
+    FEEDBACK_SURVEY_OPTIONS: {
+        TOO_LIMITED: {
+            ID: 'tooLimited',
+            TRANSLATION_KEY: 'feedbackSurvey.tooLimited',
+        },
+        TOO_EXPENSIVE: {
+            ID: 'tooExpensive',
+            TRANSLATION_KEY: 'feedbackSurvey.tooExpensive',
+        },
+        INADEQUATE_SUPPORT: {
+            ID: 'inadequateSupport',
+            TRANSLATION_KEY: 'feedbackSurvey.inadequateSupport',
+        },
+        BUSINESS_CLOSING: {
+            ID: 'businessClosing',
+            TRANSLATION_KEY: 'feedbackSurvey.businessClosing',
+        },
+    },
+
+    MAX_LENGTH_256: 256,
+    WORKSPACE_CARDS_LIST_LABEL_TYPE: {
+        CURRENT_BALANCE: 'currentBalance',
+        REMAINING_LIMIT: 'remainingLimit',
+        CASH_BACK: 'cashBack',
+    },
+
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+    EMPTY_STATE_MEDIA: {
+        ANIMATION: 'animation',
+        ILLUSTRATION: 'illustration',
+        VIDEO: 'video',
+    },
+    get UPGRADE_FEATURE_INTRO_MAPPING() {
+        return {
+            reportFields: {
+                id: 'reportFields' as const,
+                alias: 'report-fields',
+                name: 'Report Fields',
+                title: 'workspace.upgrade.reportFields.title' as const,
+                description: 'workspace.upgrade.reportFields.description' as const,
+                icon: 'Pencil',
+            },
+            [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
+                alias: 'netsuite',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.NETSUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.NETSUITE}.description` as const,
+                icon: 'NetSuiteSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                id: this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+                alias: 'sage-intacct',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
+                icon: 'IntacctSquare',
+            },
+            glCodes: {
+                id: 'glCodes' as const,
+                alias: 'gl-codes',
+                name: 'GL codes',
+                title: 'workspace.upgrade.glCodes.title' as const,
+                description: 'workspace.upgrade.glCodes.description' as const,
+                icon: 'Tag',
+            },
+            glAndPayrollCodes: {
+                id: 'glAndPayrollCodes' as const,
+                alias: 'gl-and-payroll-codes',
+                name: 'GL & Payroll codes',
+                title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
+                description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
+                icon: 'FolderOpen',
+            },
+        };
+    },
+    REPORT_FIELD_TYPES: {
+        TEXT: 'text',
+        DATE: 'date',
+        LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 
@@ -4760,7 +5384,10 @@ type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType};
+type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID};
 
 export default CONST;

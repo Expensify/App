@@ -46,6 +46,18 @@ Log in to QuickBooks Online and ensure all of your employees are setup as either
    <li>Enter your Intuit login details to import your settings from QuickBooks Online to Expensify.</li>
 </ol>
 
+![The toggle location to enable accounting integrations like QuickBooks Online]({{site.url}}/assets/images/ExpensifyHelp-QBO-1.png){:width="100%"}
+
+![How to enable accounting integrations like QuickBooks Online]({{site.url}}/assets/images/ExpensifyHelp-QBO-2.png){:width="100%"}
+
+![The QuickBooks Online Connect button]({{site.url}}/assets/images/ExpensifyHelp-QBO-3.png){:width="100%"}
+
+![The QuickBooks Online Connect Accounting button]({{site.url}}/assets/images/ExpensifyHelp-QBO-4.png){:width="100%"}
+
+![The QuickBooks Online Connect Connect button]({{site.url}}/assets/images/ExpensifyHelp-QBO-5.png){:width="100%"}
+
+
+
 # Step 3: Configure import settings
 
 The following steps help you determine how data will be imported from QuickBooks Online to Expensify. 

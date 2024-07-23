@@ -6,7 +6,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
+import * as ReportConnection from '@libs/ReportConnection';
+import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -56,7 +57,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         previousUpdateID,
         updates: [
             {
-                eventType: 'eventType',
+                eventType: '', // This is only needed for Pusher events
                 data: onyxData,
             },
         ],
@@ -74,7 +75,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = getReport(reportID.toString());
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 

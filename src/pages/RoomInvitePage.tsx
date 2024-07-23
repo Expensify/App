@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
@@ -18,7 +18,9 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -60,7 +62,7 @@ function RoomInvitePage({
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -92,7 +94,7 @@ function RoomInvitePage({
         setUserToInvite(inviteOptions.userToInvite);
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [betas, debouncedSearchTerm, excludedUsers, options.personalDetails]);
 
     const sections = useMemo(() => {
@@ -171,6 +173,8 @@ function RoomInvitePage({
     }, [isPolicyEmployee, reportID, role]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+
         if (!validate()) {
             return;
         }
@@ -214,7 +218,7 @@ function RoomInvitePage({
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
-        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
+        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, !!userToInvite, searchValue);
     }, [debouncedSearchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
 
     useEffect(() => {
@@ -241,7 +245,7 @@ function RoomInvitePage({
                     canSelectMultiple
                     sections={sections}
                     ListItem={UserListItem}
-                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
                         SearchInputManager.searchInput = value;
@@ -262,7 +266,6 @@ function RoomInvitePage({
                         onSubmit={inviteUsers}
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
                         enabledWhenOffline
-                        disablePressOnEnter
                         isAlertVisible={false}
                     />
                 </View>
