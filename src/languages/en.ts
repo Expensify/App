@@ -4225,5 +4225,6 @@ export default {
     },
     roomChangeLog: {
         updateRoomDescription: 'set the room description to:',
+        clearRoomDescription: 'cleared the room description',
     },
 } satisfies TranslationBase;

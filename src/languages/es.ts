@@ -4748,5 +4748,6 @@ export default {
     },
     roomChangeLog: {
         updateRoomDescription: 'establece la descripción de la sala a:',
+        clearRoomDescription: 'borrar la descripción de la habitación',
     },
 } satisfies EnglishTranslation;
