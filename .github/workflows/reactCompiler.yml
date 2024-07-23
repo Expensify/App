@@ -21,7 +21,9 @@ jobs:
       - name: Get list of compiled files (PR)
         id: new-list
         run: |
-          NEW_LIST=$(npx react-compiler-healthcheck --json 2>/dev/null | jq -c .)
+          RAW_OUTPUT=$(npx react-compiler-healthcheck --json 2>/dev/null)
+          echo "Raw output: $RAW_OUTPUT"
+          NEW_LIST=$(echo "$RAW_OUTPUT" | jq -c .)
           echo "NEW_LIST=$NEW_LIST" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - name: Setup Node
