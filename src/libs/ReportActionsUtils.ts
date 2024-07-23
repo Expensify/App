@@ -1553,7 +1553,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 
 function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
-    if (originalMessage.description) {
+    if (originalMessage?.description) {
         return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
     }
 
