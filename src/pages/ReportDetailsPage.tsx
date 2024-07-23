@@ -639,9 +639,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             key={`menuItem-${fieldKey}`}
             onClose={() => {
                 if (report.errorFields?.reportName) {
-                    Report.clearReportErrors(report.reportID, 'reportName');
+                    Report.clearPolicyRoomNameErrors(report.reportID);
                 }
-                Report.clearReportFieldErrors(report.reportID, titleField);
+                Report.clearReportFieldKeyErrors(report.reportID, fieldKey);
             }}
         >
             <View style={[styles.flex1]}>

@@ -95,7 +95,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
-                                        onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField)}
+                                        onClose={() => reportActions.clearReportFieldKeyErrors(report.reportID, fieldKey)}
                                     >
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
