@@ -10,8 +10,11 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
 
     const {maxSize, keyComparator} = config;
 
-    function getKeyIndex(key: K) {
-        // We search the array backwards because the most recently added entries are at the end, and our heuristic follows the principles of an LRU cache - that the most recently added entries are most likely to be used again.
+    /**
+     * Returns the index of the key in the cache array.
+     * We search the array backwards because the most recently added entries are at the end, and our heuristic follows the principles of an LRU cache - that the most recently added entries are most likely to be used again.
+     */
+    function getKeyIndex(key: K): number {
         for (let i = cache.length - 1; i >= 0; i--) {
             if (keyComparator(cache[i][0], key)) {
                 return i;
@@ -25,7 +28,7 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
             const index = getKeyIndex(key);
 
             if (index === -1) {
-                return;
+                return undefined;
             }
 
             const [entry] = cache.splice(index, 1);
@@ -47,7 +50,7 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
             }
         },
 
-        getSet(key: K, valueProducer: () => V) {
+        getSet(key, valueProducer) {
             const index = getKeyIndex(key);
 
             if (index !== -1) {
