@@ -368,7 +368,6 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
