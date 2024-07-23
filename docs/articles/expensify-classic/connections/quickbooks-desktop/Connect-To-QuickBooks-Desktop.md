@@ -48,7 +48,7 @@ To download the Sync Manager to your desktop, you must contact your third-party 
 
 {% include faq-begin.md %}
 
-## After connected, how do I sync QuickBooks and Expensify?
+## After connecting, how do I sync QuickBooks and Expensify?
 1. Confirm that both the Expensify Sync Manager and QuickBooks Desktop are running
 2. On the Expensify website, navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections**, and click **Sync now**
 3. Wait for the sync to complete
