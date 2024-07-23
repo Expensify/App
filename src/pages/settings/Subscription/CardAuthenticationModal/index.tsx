@@ -39,7 +39,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
                     return;
                 }
 
-                PaymentMethods.verifySetupIntent(session?.accountID ?? -1);
+                PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
             },
             false,
         );
