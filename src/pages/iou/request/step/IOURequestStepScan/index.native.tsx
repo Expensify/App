@@ -387,7 +387,7 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated: boolean) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
         if (!validateReceipt(originalFile)) {
             return;
         }
