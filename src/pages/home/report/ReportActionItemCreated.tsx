@@ -1,3 +1,4 @@
+import lodashIsEqual from 'lodash/isEqual';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -122,6 +123,7 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
             prevProps.policy?.description === nextProps.policy?.description &&
             prevProps.report?.reportName === nextProps.report?.reportName &&
             prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
+            lodashIsEqual(prevProps.report?.invoiceReceiver, nextProps.report?.invoiceReceiver) &&
             prevProps.report?.errorFields === nextProps.report?.errorFields,
     ),
 );
