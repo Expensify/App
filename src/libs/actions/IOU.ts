@@ -6205,7 +6205,7 @@ type OptimisticHoldReportExpenseActionID = {
 function getHoldReportActionsAndTransactions(reportID: string) {
     const iouReportActions = ReportActionsUtils.getAllReportActions(reportID);
     const holdReportActions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
-    const holdTransactions: Array<OnyxEntry<OnyxTypes.Transaction>> = [];
+    const holdTransactions: OnyxTypes.Transaction[] = [];
 
     Object.values(iouReportActions).forEach((action) => {
         const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? null : null;
@@ -6286,10 +6286,6 @@ function getReportFromHoldRequestsOnyxData(
 
     const updateHeldTransactions: Record<string, Pick<OnyxTypes.Transaction, 'reportID'>> = {};
     holdTransactions.forEach((transaction) => {
-        if (!transaction) {
-            return;
-        }
-
         updateHeldTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             reportID: optimisticExpenseReport.reportID,
         };
@@ -6348,6 +6344,11 @@ function getReportFromHoldRequestsOnyxData(
         bringReportActionsBack[reportAction.reportActionID] = reportAction;
     });
 
+    const bringHeldTransactionsBack: Record<string, OnyxTypes.Transaction> = {};
+    holdTransactions.forEach((transaction) => {
+        bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+    });
+
     const failureData: OnyxUpdate[] = [
         // remove added optimistic expense report
         {
@@ -6374,6 +6375,12 @@ function getReportFromHoldRequestsOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
             value: null,
+        },
+        // add hold transactions back to old iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+            value: bringHeldTransactionsBack,
         },
     ];
 
