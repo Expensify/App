@@ -6270,6 +6270,7 @@ function getReportFromHoldRequestsOnyxData(
                 ...originalMessage,
                 IOUReportID: optimisticExpenseReport.reportID,
             },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
 
         const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
