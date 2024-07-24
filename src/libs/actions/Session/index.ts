@@ -923,7 +923,7 @@ function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: stri
     openApp();
 }
 
-function validateTwoFactorAuth(twoFactorAuthCode: string, shouldResetData: boolean) {
+function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -963,7 +963,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldResetData: boole
         }
 
         // Clear onyx data if the user has just signed in and is forced to add 2FA
-        if (shouldResetData) {
+        if (shouldClearData) {
             const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
             Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
             return;
