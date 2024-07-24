@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -45,8 +45,6 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const [shouldEnableKeyboardAvoidingView, setShouldEnableKeyboardAvoidingView] = useState<boolean>();
-    const [shouldEnableMaxHeight, setShouldEnableMaxHeight] = useState<boolean>();
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID);
@@ -140,11 +138,6 @@ function IOURequestStepParticipants({
         }
     }, [iouType, transactionID, transaction, reportID, action, participants]);
 
-    const onEmptyListChange = useCallback((isEmpty: boolean) => {
-        setShouldEnableKeyboardAvoidingView(!isEmpty);
-        setShouldEnableMaxHeight(!isEmpty);
-    }, []);
-
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
     }, [iouRequestType, iouType, transactionID, reportID, action]);
@@ -165,8 +158,6 @@ function IOURequestStepParticipants({
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
-            shouldEnableMaxHeight={shouldEnableMaxHeight}
         >
             {skipConfirmation && (
                 <FormHelpMessage
@@ -180,7 +171,6 @@ function IOURequestStepParticipants({
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
-                onEmptyListChange={onEmptyListChange}
                 iouType={iouType}
                 iouRequestType={iouRequestType}
                 action={action}

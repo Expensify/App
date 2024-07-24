@@ -39,9 +39,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
 
-    /** Callback to fire when list emptiness changes */
-    onEmptyListChange?: (isEmpty: boolean) => void;
-
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
@@ -55,15 +52,7 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({
-    participants = CONST.EMPTY_ARRAY,
-    onFinish,
-    onParticipantsAdded,
-    onEmptyListChange: onEmptyListChangeProp,
-    iouType,
-    iouRequestType,
-    action,
-}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -423,13 +412,9 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const onEmptyListChange = useCallback(
-        (isEmpty: boolean) => {
-            setIsEmptyList(isEmpty);
-            onEmptyListChangeProp?.(isEmpty);
-        },
-        [onEmptyListChangeProp],
-    );
+    const onEmptyListChange = useCallback((isEmpty: boolean) => {
+        setIsEmptyList(isEmpty);
+    }, []);
 
     return (
         <SelectionList
