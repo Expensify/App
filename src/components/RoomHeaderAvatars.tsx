@@ -5,9 +5,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
