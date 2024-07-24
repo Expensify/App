@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -110,20 +111,19 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                               );
                           },
                           subMenuItems: (
-                              <MenuItem
-                                  title={translate('workflowsPage.submissionFrequency')}
-                                  titleStyle={styles.textLabelSupportingNormal}
-                                  descriptionTextStyle={styles.textNormalThemeText}
-                                  onPress={onPressAutoReportingFrequency}
-                                  // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                                  description={
+                              <MenuItemWithTopDescription
+                                  title={
                                       getAutoReportingFrequencyDisplayNames(preferredLocale)[
                                           (PolicyUtils.getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
                                       ]
                                   }
+                                  titleStyle={styles.textNormalThemeText}
+                                  descriptionTextStyle={styles.textLabelSupportingNormal}
+                                  onPress={onPressAutoReportingFrequency}
+                                  // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
+                                  description={translate('workflowsPage.submissionFrequency')}
                                   shouldShowRightIcon
-                                  wrapperStyle={containerStyle}
-                                  hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                  wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                   brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                               />
                           ),
@@ -143,15 +143,14 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
-                    <MenuItem
-                        title={translate('workflowsPage.approver')}
-                        titleStyle={styles.textLabelSupportingNormal}
-                        descriptionTextStyle={styles.textNormalThemeText}
-                        description={policyApproverName ?? ''}
+                    <MenuItemWithTopDescription
+                        title={policyApproverName ?? ''}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        description={translate('workflowsPage.approver')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         shouldShowRightIcon
-                        wrapperStyle={containerStyle}
-                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                         brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
@@ -252,10 +251,13 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps) => (
-        <Section containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}>
+        <Section
+            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+            titleStyles={styles.accountSettingsSectionTitle}
+        >
             <ToggleSettingOptionRow
                 title={item.title}
-                titleStyle={styles.textStrong}
+                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
                 subtitle={item.subtitle}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
