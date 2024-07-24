@@ -21,7 +21,6 @@
     "status": "all",
     "sortBy": "date",
     "sortOrder": "desc",
-    "offset": 0
   };
 
   function buildFilter(operator, left, right) {
@@ -101,7 +100,6 @@ key
   / "keyword" { return "keyword"; }
   / "sortBy" { return "sortBy"; }
   / "sortOrder" { return "sortOrder"; }
-  / "offset" { return "offset"; }
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }

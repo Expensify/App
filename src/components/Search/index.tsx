@@ -48,6 +48,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
+    const [offset, setOffset] = React.useState(0);
 
     const {status, sortBy, sortOrder, hash} = queryJSON;
 
@@ -97,9 +98,9 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
         setCurrentSearchHash(hash);
 
-        SearchActions.search({hash, query: status, policyIDs, offset: 0, sortBy, sortOrder});
+        SearchActions.search({hash, query: status, policyIDs, offset, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [hash, isOffline]);
+    }, [hash, isOffline, offset]);
 
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
@@ -151,17 +152,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
-
-        const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q);
-
-        if (!currentQueryJSON) {
-            return;
-        }
-
-        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: String(Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE)});
-
-        navigation.setParams({q: newQuery});
+        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);

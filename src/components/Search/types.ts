@@ -57,7 +57,6 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    offset: string;
     filters: ASTNode;
 };
 
