@@ -5,8 +5,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -69,18 +69,20 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const WorkFooterInstance = <OfflineIndicator />;
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-            <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <KeyboardAvoidingView
-                style={[styles.flex1, styles.dFlex]}
-                behavior="padding"
-            >
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            shouldEnableKeyboardAvoidingView
+            testID="BaseOnboardingWork"
+        >
+            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
+                    onBackButtonPress={Navigation.goBack}
+                />
                 <FormProvider
-                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, styles.mb5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
                     footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
@@ -110,8 +112,8 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                         />
                     </View>
                 </FormProvider>
-            </KeyboardAvoidingView>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 }
 

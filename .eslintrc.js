@@ -66,6 +66,15 @@ const restrictedImportPaths = [
             "For 'ExpensiMark', please use '@libs/Parser' instead.",
         ].join('\n'),
     },
+    {
+        name: 'lodash/memoize',
+        message: "Please use '@src/libs/memoize' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['memoize'],
+        message: "Please use '@src/libs/memoize' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
