@@ -242,6 +242,13 @@ function MoneyRequestView({
         amountTitle = translate('iou.receiptStatusTitle');
     }
 
+    const updatedTransactionDescription = useMemo(() => {
+        if (!updatedTransaction) {
+            return undefined;
+        }
+        return TransactionUtils.getDescription(updatedTransaction ?? null);
+    }, [updatedTransaction]);
+
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -512,7 +519,7 @@ function MoneyRequestView({
                     <MenuItemWithTopDescription
                         description={translate('common.description')}
                         shouldParseTitle
-                        title={TransactionUtils.getDescription(updatedTransaction ?? null) ?? transactionDescription}
+                        title={updatedTransactionDescription ?? transactionDescription}
                         interactive={canEdit && !readonly}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}

@@ -875,6 +875,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
         getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
