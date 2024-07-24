@@ -68,9 +68,6 @@ type ReportScreenOnyxProps = {
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** The report metadata loading states */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 };
 
 type OnyxHOCProps = {
@@ -110,22 +107,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID ?? '0'];
 }
 
-function ReportScreen({
-    betas = [],
-    route,
-    reportMetadata = {
-        isLoadingInitialReportActions: true,
-        isLoadingOlderReportActions: false,
-        hasLoadingOlderReportActionsError: false,
-        isLoadingNewerReportActions: false,
-        hasLoadingNewerReportActionsError: false,
-    },
-    markReadyForHydration,
-    policies = {},
-    isSidebarLoaded = false,
-    currentReportID = '',
-    navigation,
-}: ReportScreenProps) {
+function ReportScreen({betas = [], route, markReadyForHydration, policies = {}, isSidebarLoaded = false, currentReportID = '', navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
@@ -143,10 +125,19 @@ function ReportScreen({
     const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`, {initialValue: false});
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
-    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
-    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
+    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
+    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [
+        reportMetadata = {
+            isLoadingInitialReportActions: true,
+            isLoadingOlderReportActions: false,
+            hasLoadingOlderReportActionsError: false,
+            isLoadingNewerReportActions: false,
+            hasLoadingNewerReportActionsError: false,
+        },
+    ] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
@@ -447,6 +438,14 @@ function ReportScreen({
         }
 
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            console.log('shouldShowNotFoundPage', {
+                wasReportAccessibleRef: wasReportAccessibleRef.current,
+                firstRenderRef: firstRenderRef.current,
+                isOptimisticDelete,
+                reportID: report.reportID,
+                userLeavingStatus,
+                isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
+            });
             return true;
         }
 
@@ -856,16 +855,6 @@ export default withCurrentReportID(
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
-            reportMetadata: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
-                initialValue: {
-                    isLoadingInitialReportActions: true,
-                    isLoadingOlderReportActions: false,
-                    hasLoadingOlderReportActionsError: false,
-                    isLoadingNewerReportActions: false,
-                    hasLoadingNewerReportActionsError: false,
-                },
-            },
             betas: {
                 key: ONYXKEYS.BETAS,
             },
@@ -880,7 +869,6 @@ export default withCurrentReportID(
             ReportScreen,
             (prevProps, nextProps) =>
                 prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
                 lodashIsEqual(prevProps.betas, nextProps.betas) &&
                 lodashIsEqual(prevProps.policies, nextProps.policies) &&
                 prevProps.currentReportID === nextProps.currentReportID &&
