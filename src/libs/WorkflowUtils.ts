@@ -102,27 +102,27 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         approvalWorkflows[submitsTo].members.push(member);
     });
 
-    // Add isInMultipleWorkflows to each approver
-    Object.values(approvalWorkflows).forEach((workflow) =>
-        workflow.approvers.map((approver) => ({
-            ...approver,
-            isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
-        })),
-    );
+    const sortedApprovalWorkflows = Object.values(approvalWorkflows)
+        .map((workflow) => ({
+            ...workflow,
+            approvers: workflow.approvers.map((approver) => ({
+                ...approver,
+                isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
+            })),
+        }))
+        .sort((a, b) => {
+            if (a.isDefault) {
+                return -1;
+            }
 
-    const sortedApprovalWorkflows = Object.values(approvalWorkflows).sort((a, b) => {
-        if (a.isDefault) {
-            return -1;
-        }
+            if (b.isDefault) {
+                return 1;
+            }
 
-        if (b.isDefault) {
-            return 1;
-        }
-
-        const aDisplayName = b.approvers.at(0)?.displayName ?? '-1';
-        const bDisplayName = a.approvers.at(0)?.displayName ?? '-1';
-        return aDisplayName < bDisplayName ? 1 : -1;
-    });
+            const aDisplayName = b.approvers.at(0)?.displayName ?? '-1';
+            const bDisplayName = a.approvers.at(0)?.displayName ?? '-1';
+            return aDisplayName < bDisplayName ? 1 : -1;
+        });
 
     return sortedApprovalWorkflows;
 }

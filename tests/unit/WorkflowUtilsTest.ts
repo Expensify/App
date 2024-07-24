@@ -325,34 +325,89 @@ describe('WorkflowUtils', () => {
             expect(workflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
         });
 
-        it('Should mark users that are used in multiple workflows', () => {
+        it('Should mark approvers that are used in multiple workflows', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {
                     email: '1@example.com',
-                    forwardsTo: undefined,
-                    submitsTo: '4@example.com',
+                    forwardsTo: '3@example.com',
+                    submitsTo: '2@example.com',
                 },
                 '2@example.com': {
                     email: '2@example.com',
-                    forwardsTo: undefined,
+                    forwardsTo: '3@example.com',
                     submitsTo: '1@example.com',
                 },
                 '3@example.com': {
                     email: '3@example.com',
-                    forwardsTo: undefined,
+                    forwardsTo: '4@example.com',
                     submitsTo: '1@example.com',
                 },
                 '4@example.com': {
                     email: '4@example.com',
                     forwardsTo: undefined,
-                    submitsTo: '4@example.com',
+                    submitsTo: '1@example.com',
                 },
             };
             const defaultApprover = '1@example.com';
 
             const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
-            expect(workflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
+            const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
+            defaultWorkflow.approvers[0].forwardsTo = '3@example.com';
+            defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
+            defaultWorkflow.approvers[1].isInMultipleWorkflows = true;
+            defaultWorkflow.approvers[2].isInMultipleWorkflows = true;
+            const secondWorkflow = buildWorkflow([1], [2, 3, 4]);
+            secondWorkflow.approvers[0].forwardsTo = '3@example.com';
+            secondWorkflow.approvers[1].forwardsTo = '4@example.com';
+            secondWorkflow.approvers[1].isInMultipleWorkflows = true;
+            secondWorkflow.approvers[2].isInMultipleWorkflows = true;
+
+            expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
+        });
+
+        it('Should build multiple workflows with many approvers', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '4@example.com',
+                },
+                '3@example.com': {
+                    email: '3@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '4@example.com',
+                },
+                '4@example.com': {
+                    email: '4@example.com',
+                    forwardsTo: '5@example.com',
+                    submitsTo: '1@example.com',
+                },
+                '5@example.com': {
+                    email: '5@example.com',
+                    forwardsTo: '6@example.com',
+                    submitsTo: '1@example.com',
+                },
+                '6@example.com': {
+                    email: '6@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+            };
+            const defaultApprover = '1@example.com';
+
+            const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+
+            const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
+            const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
+            secondWorkflow.approvers[0].forwardsTo = '5@example.com';
+            secondWorkflow.approvers[1].forwardsTo = '6@example.com';
+            expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
     });
 });
