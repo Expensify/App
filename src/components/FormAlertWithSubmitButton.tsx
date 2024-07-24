@@ -80,11 +80,11 @@ function FormAlertWithSubmitButton({
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
-    const extraSafePaddingBottomStyle = useSafePaddingBottomStyle();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     return (
         <FormAlertWrapper
-            containerStyles={[styles.justifyContentEnd, extraSafePaddingBottomStyle, containerStyles]}
+            containerStyles={[styles.justifyContentEnd, safePaddingBottomStyle, containerStyles]}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}
