@@ -41,7 +41,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
-import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -435,6 +434,7 @@ function ReportScreen({
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
         (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted) ||
         (shouldShowSkeleton &&
