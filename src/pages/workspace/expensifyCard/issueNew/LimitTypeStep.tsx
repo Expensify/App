@@ -113,8 +113,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 success
                 large
                 pressOnEnter
-                // TODO: change the text to 'common.confirm' when editing and navigate to ConfirmationStep
-                text={translate('common.next')}
+                text={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onPress={submit}
                 style={styles.m5}
             />
