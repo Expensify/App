@@ -7,9 +7,13 @@
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^6.3.2",
+    "mime-types": "^2.1.35",
     "node-machine-id": "^1.1.12"
   },
   "author": "Expensify, Inc.",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4"
+  }
 }

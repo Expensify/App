@@ -11,6 +11,7 @@
 import type {BrowserWindow, Protocol} from 'electron';
 import {app, protocol, session} from 'electron';
 import fs from 'fs';
+import mime from 'mime-types';
 import path from 'path';
 
 type RegisterBufferProtocol = Protocol['registerBufferProtocol'];
@@ -63,11 +64,12 @@ export default function electronServe(options: ServeOptions) {
     const handler: HandlerType = async (request, callback) => {
         const filePath = path.join(mandatoryOptions.directory, decodeURIComponent(new URL(request.url).pathname));
         const resolvedPath = (await getPath(filePath)) ?? path.join(mandatoryOptions.directory, `${mandatoryOptions.file}.html`);
+        const mimeType = (mime.lookup(resolvedPath) || 'application/octet-stream') as string;
 
         try {
             const data = await fs.promises.readFile(resolvedPath);
             callback({
-                mimeType: 'text/html',
+                mimeType,
                 data: Buffer.from(data),
                 headers: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
