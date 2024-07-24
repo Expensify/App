@@ -528,7 +528,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             headerText={translate('workspace.common.members')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-            headerContent={!isSmallScreenWidth && getHeaderButtons()}
+            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             icon={Illustrations.ReceiptWrangler}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
@@ -565,7 +565,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                             shouldUseUserSkeletonView
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
-                            headerContent={!isSmallScreenWidth && getHeaderContent()}
+                            headerContent={!shouldUseNarrowLayout && getHeaderContent()}
                             onSelectRow={openMemberDetails}
                             shouldDebounceRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
@@ -576,7 +576,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                             textInputRef={textInputRef}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
                         />
                     </View>
