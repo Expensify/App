@@ -195,5 +195,19 @@ describe('WorkflowUtils', () => {
                 buildApprover(2, {forwardsTo: '3@example.com', isCircularReference: true}),
             ]);
         });
+
+        it('Should return a list of approver with circular references', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '1@example.com',
+                },
+            };
+
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(1, {forwardsTo: '1@example.com'}),
+                buildApprover(1, {forwardsTo: '1@example.com', isCircularReference: true}),
+            ]);
+        });
     });
 });
