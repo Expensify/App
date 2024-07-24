@@ -36,7 +36,9 @@ function ExpiredValidateCodeModal() {
                         {translate('validateCodeModal.or')}{' '}
                         <TextLink
                             onPress={() => {
-                                Session.beginSignIn(credentials?.login ?? '');
+                                requestAnimationFrame(() => {
+                                    Session.beginSignIn(credentials?.login ?? '');
+                                });
                                 Navigation.goBack();
                             }}
                         >
