@@ -166,7 +166,7 @@ function WorkspaceReportFieldsPage({
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
-        if (selectedReportFields.length > 0) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedReportFields.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),

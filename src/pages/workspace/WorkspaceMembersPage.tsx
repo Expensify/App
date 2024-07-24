@@ -514,7 +514,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         }
         return (
             <View style={styles.w100}>
-                {selectedEmployees.length > 0 ? (
+                {(isSmallScreenWidth ? canSelectMultiple : selectedEmployees.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
