@@ -31,9 +31,9 @@ function ReviewDescription() {
             ),
         [compareResult.change.description, translate],
     );
-    const onSelectRow = (data: FieldItemType) => {
+    const setDescription = (data: FieldItemType<'description'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({description: data.value as string});
+            setReviewDuplicatesKey({description: data.value});
         }
         navigateToNextScreen();
     };
@@ -41,12 +41,12 @@ function ReviewDescription() {
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'description'>
                 stepNames={stepNames}
                 label={translate('violations.descriptionToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setDescription}
             />
         </ScreenWrapper>
     );
