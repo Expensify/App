@@ -55,13 +55,13 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={NetSuiteTokenInputPage.displayName}
             headerTitle="workspace.netsuite.tokenInput.title"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
-            reverseConnectionEmptyCheck
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            shouldLoadForEmptyConnection
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
         >

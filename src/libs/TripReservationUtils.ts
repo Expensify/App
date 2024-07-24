@@ -1,4 +1,3 @@
-import type {EReceiptColorName} from '@styles/utils/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
@@ -25,26 +24,18 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .flat();
 }
 
-type TripEReceiptData = {
-    /** Icon asset associated with the type of trip reservation */
-    tripIcon?: IconAsset;
-
-    /** EReceipt background color associated with the type of trip reservation */
-    tripBGColor?: EReceiptColorName;
-};
-
-function getTripEReceiptData(transaction?: Transaction): TripEReceiptData {
+function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     const reservationType = transaction ? transaction.receipt?.reservationList?.[0]?.type : '';
 
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
         case CONST.RESERVATION_TYPE.CAR:
-            return {tripIcon: Expensicons.Plane, tripBGColor: CONST.ERECEIPT_COLORS.PINK};
+            return Expensicons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return {tripIcon: Expensicons.Bed, tripBGColor: CONST.ERECEIPT_COLORS.YELLOW};
+            return Expensicons.Bed;
         default:
-            return {};
+            return undefined;
     }
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptData};
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon};

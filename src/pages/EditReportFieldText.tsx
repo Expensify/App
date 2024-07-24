@@ -24,7 +24,7 @@ type EditReportFieldTextPageProps = {
     isRequired: boolean;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => void;
+    onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => void;
 };
 
 function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey}: EditReportFieldTextPageProps) {
@@ -33,8 +33,8 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM> = {};
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
             if (isRequired && values[fieldKey].trim() === '') {
                 errors[fieldKey] = translate('common.error.fieldRequired');
             }
@@ -46,7 +46,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     return (
         <FormProvider
             style={[styles.flexGrow1, styles.ph5]}
-            formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
+            formID={ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM}
             onSubmit={onSubmit}
             validate={validate}
             submitButtonText={translate('common.save')}

@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
@@ -14,6 +13,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -160,7 +160,7 @@ type MenuItemBaseProps = {
     errorTextStyle?: StyleProp<ViewStyle>;
 
     /** Hint to display at the bottom of the component */
-    hintText?: string;
+    hintText?: string | ReactNode;
 
     /** Should the error text red dot indicator be shown */
     shouldShowRedDotIndicator?: boolean;
@@ -433,16 +433,14 @@ function MenuItem(
         if (!title || !shouldParseTitle) {
             return '';
         }
-        const parser = new ExpensiMark();
-        return parser.replace(title, {shouldEscapeText});
+        return Parser.replace(title, {shouldEscapeText});
     }, [title, shouldParseTitle, shouldEscapeText]);
 
     const helperHtml = useMemo(() => {
         if (!helperText || !shouldParseHelperText) {
             return '';
         }
-        const parser = new ExpensiMark();
-        return parser.replace(helperText, {shouldEscapeText});
+        return Parser.replace(helperText, {shouldEscapeText});
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {

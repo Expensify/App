@@ -252,7 +252,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
+                    onClose={() => Tag.clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
                     pendingAction={currentPolicyTag.pendingAction}
+                    errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
                         title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}

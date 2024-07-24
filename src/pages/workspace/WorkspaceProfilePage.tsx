@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -25,6 +24,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -46,7 +46,6 @@ type WorkspaceProfilePageOnyxProps = {
 };
 
 type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
-const parser = new ExpensiMark();
 
 function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
@@ -79,7 +78,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        parser.replace(
+        Parser.replace(
             translate('workspace.common.welcomeNote', {
                 workspaceName: policy?.name ?? '',
             }),
@@ -144,12 +143,13 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
             headerText={translate('workspace.common.profile')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_PROFILE}
-            shouldShowLoading={false}
+            // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
+            shouldShowLoading={policy === undefined}
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
-            shouldSkipVBBACall={false}
+            shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>

@@ -34,10 +34,11 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
+const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'> => ({
     id: policy?.id ?? '-1',
     ownerAccountID: policy?.ownerAccountID,
     owner: policy?.owner ?? '',
+    employeeList: policy?.employeeList,
 });
 
 type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
@@ -145,7 +146,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         User.resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);

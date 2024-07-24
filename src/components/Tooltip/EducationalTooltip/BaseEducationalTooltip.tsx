@@ -1,5 +1,5 @@
 import React, {memo, useEffect, useRef} from 'react';
-import type {LayoutEvent} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
 import getBounds from './getBounds';
@@ -41,9 +41,10 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
             {...props}
         >
             {({showTooltip, hideTooltip, updateTargetBounds}) => {
+                // eslint-disable-next-line react-compiler/react-compiler
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {
-                    onLayout: (e: LayoutEvent) => {
+                    onLayout: (e: LayoutChangeEvent) => {
                         updateTargetBounds(getBounds(e));
                         showTooltip();
                     },

@@ -107,7 +107,7 @@ function ReportIDsContextProvider({
                 policyMemberAccountIDs,
             ),
         // we need reports draft in deps array for reloading of list when reportsDrafts will change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
     );
 
