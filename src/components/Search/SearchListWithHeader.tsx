@@ -75,7 +75,6 @@ function SearchListWithHeader(
     };
 
     const handleOnCancelConfirmModal = () => {
-        setSelectedTransactionsToDelete([]);
         setDeleteExpensesConfirmModalVisible(false);
     };
 
@@ -213,6 +212,7 @@ function SearchListWithHeader(
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={handleOnCancelConfirmModal}
+                onModalHide={() => setSelectedTransactionsToDelete([])}
                 title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
                 prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
                 confirmText={translate('common.delete')}
