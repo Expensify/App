@@ -6293,7 +6293,7 @@ function getReportFromHoldRequestsOnyxData(
         },
         // add new optimistic expense report
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
             value: optimisticExpenseReport,
         },
@@ -6313,7 +6313,7 @@ function getReportFromHoldRequestsOnyxData(
         },
         // add hold report actions to new iou report
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
             value: addHoldReportActions,
         },
@@ -6333,7 +6333,7 @@ function getReportFromHoldRequestsOnyxData(
     const failureData: OnyxUpdate[] = [
         // remove added optimistic expense report
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
             value: null,
         },
@@ -6353,7 +6353,7 @@ function getReportFromHoldRequestsOnyxData(
         },
         // remove hold report actions from the new iou report
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
             value: null,
         },
@@ -6533,7 +6533,7 @@ function getPayMoneyRequestParams(
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
-        // optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
     return {
