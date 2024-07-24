@@ -3,6 +3,7 @@ import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import ROUTES from '@src/ROUTES';
 
 type AppNavigatorProps = {
     /** If we have an authToken this is true */
@@ -13,7 +14,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const initUrl = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl) {
+        if (!NativeModules.HybridAppModule || !initUrl || !initUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
             return;
         }
 

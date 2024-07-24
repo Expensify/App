@@ -2,6 +2,7 @@ import React, {lazy, memo, Suspense, useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 const AuthScreens = lazy(() => import('./AuthScreens'));
 const PublicScreens = lazy(() => import('./PublicScreens'));
@@ -15,7 +16,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const initUrl = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl) {
+        if (!NativeModules.HybridAppModule || !initUrl || !initUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
             return;
         }
 

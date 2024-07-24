@@ -113,8 +113,10 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
                     Navigation.goBack();
                 }
 
-                Log.info('[HybridApp] Navigating to `exitTo` route', true, {exitTo});
-                Navigation.navigate(Navigation.parseHybridAppUrl(exitTo));
+                if (exitTo !== ROUTES.HOME) {
+                    Log.info('[HybridApp] Navigating to `exitTo` route', true, {exitTo});
+                    Navigation.navigate(Navigation.parseHybridAppUrl(exitTo));
+                }
                 setExitTo(undefined);
 
                 setTimeout(() => {
