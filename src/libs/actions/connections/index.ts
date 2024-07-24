@@ -101,7 +101,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                         },
                     },
