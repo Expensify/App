@@ -226,14 +226,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
+    const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
+
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if (PolicyUtils.hasAccountingConnections(policy)) {
+        if (isMoneyRequestExported) {
             setIsUnapproveModalVisible(true);
             return;
         }
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [moneyRequestReport, policy]);
+    }, [isMoneyRequestExported, moneyRequestReport]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
