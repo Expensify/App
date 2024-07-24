@@ -35,12 +35,15 @@ function BaseSidebarScreen() {
     }, []);
 
     const [selectedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+
     useEffect(() => {
-        if (!selectedPolicy && activeWorkspaceID !== undefined && !didResetActiveWorkspaceIDRef.current) {
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
-            updateLastAccessedWorkspace(undefined);
-            didResetActiveWorkspaceIDRef.current = true;
+        if (selectedPolicy || activeWorkspaceID === undefined || didResetActiveWorkspaceIDRef.current) {
+            return;
         }
+
+        Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        updateLastAccessedWorkspace(undefined);
+        didResetActiveWorkspaceIDRef.current = true;
     }, [selectedPolicy, activeWorkspaceID]);
 
     return (
