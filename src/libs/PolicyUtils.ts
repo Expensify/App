@@ -793,6 +793,10 @@ function hasNoPolicyOtherThanPersonalType() {
     );
 }
 
+function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -878,6 +882,7 @@ export {
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
+    getCurrentTaxID,
 };
 
 export type {MemberEmailsToAccountIDs};

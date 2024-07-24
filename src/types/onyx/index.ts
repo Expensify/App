@@ -68,6 +68,8 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
+import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
+import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
@@ -163,6 +165,9 @@ export type {
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
+    ReportViolationName,
+    ReportViolations,
+    ReportFieldsViolations,
     Request,
     Response,
     ScreenShareRequest,
