@@ -1,15 +1,19 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Function called when a pinned chat is selected.
@@ -23,11 +27,21 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
+    const didResetActiveWorkspaceIDRef = useRef(false);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
+
+    const [selectedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    useEffect(() => {
+        if (!selectedPolicy && activeWorkspaceID !== undefined && !didResetActiveWorkspaceIDRef.current) {
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+            updateLastAccessedWorkspace(undefined);
+            didResetActiveWorkspaceIDRef.current = true;
+        }
+    }, [selectedPolicy, activeWorkspaceID]);
 
     return (
         <ScreenWrapper
