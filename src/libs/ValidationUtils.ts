@@ -478,6 +478,11 @@ function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
     return !!Object.values(taxRates).find((taxRate) => taxRate.name === trimmedTaxName);
 }
 
+function isExistingTaxCode(taxCode: string, taxRates: TaxRates): boolean {
+    const trimmedTaxCode = taxCode.trim();
+    return !!Object.keys(taxRates).find((taxID) => taxID === trimmedTaxCode);
+}
+
 /**
  * Validates the given value if it is correct subscription size.
  */
@@ -528,4 +533,5 @@ export {
     isValidReportName,
     isExistingTaxName,
     isValidSubscriptionSize,
+    isExistingTaxCode,
 };
