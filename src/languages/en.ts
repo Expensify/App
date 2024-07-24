@@ -1273,6 +1273,15 @@ export default {
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
+    workflowsCreateApprovalsPage: {
+        title: 'Add approval workflow',
+    },
+    workflowsEditApprovalsPage: {
+        title: 'Edit approval workflow',
+    },
+    workflowsExpensesFromPage: {
+        title: 'Expenses from',
+    },
     workflowsApprovalPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
     },
