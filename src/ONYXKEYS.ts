@@ -134,7 +134,7 @@ const ONYXKEYS = {
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
-    NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
+    NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
@@ -320,6 +320,9 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding error message to be displayed to the user */
+    ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
+
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
 
@@ -347,6 +350,9 @@ const ONYXKEYS = {
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
 
+    /** Indicates whether we should mask fragile user data while exporting onyx state or not */
+    SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
+
     /** Stores new group chat draft */
     NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
 
@@ -372,6 +378,9 @@ const ONYXKEYS = {
 
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
+
+    /** Stores the last export method for policy */
+    LAST_EXPORT_METHOD: 'lastExportMethod',
 
     /** Stores the information about the state of issuing a new card */
     ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
@@ -411,6 +420,7 @@ const ONYXKEYS = {
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
+        REPORT_VIOLATIONS: 'reportViolations_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
@@ -443,8 +453,11 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'card_',
 
-        /** The bank account that Expensify Card payments will be reconciled against */
+        /** Stores which connection is set up to use Continuous Reconciliation */
         SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',
+
+        /** The value that indicates whether Continuous Reconciliation should be used on the domain */
+        SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'sharedNVP_expensifyCard_useContinuousReconciliation_',
     },
 
     /** List of Form ids */
@@ -552,6 +565,8 @@ const ONYXKEYS = {
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
         WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
+        WORKSPACE_TAX_CODE_FORM: 'workspaceTaxCodeForm',
+        WORKSPACE_TAX_CODE_FORM_DRAFT: 'workspaceTaxCodeFormDraft',
         WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
         WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
@@ -561,6 +576,10 @@ const ONYXKEYS = {
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
         ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCard',
         ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardDraft',
+        EDIT_EXPENSIFY_CARD_NAME_FORM: 'editExpensifyCardName',
+        EDIT_EXPENSIFY_CARD_NAME_DRAFT_FORM: 'editExpensifyCardNameDraft',
+        EDIT_EXPENSIFY_CARD_LIMIT_FORM: 'editExpensifyCardLimit',
+        EDIT_EXPENSIFY_CARD_LIMIT_DRAFT_FORM: 'editExpensifyCardLimitDraft',
         SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
         SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
         NETSUITE_CUSTOM_FIELD_FORM: 'netSuiteCustomFieldForm',
@@ -633,10 +652,13 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM]: FormTypes.PolicyDistanceRateTaxReclaimableOnEditForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM]: FormTypes.WorkspaceTaxCodeForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
+    [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
+    [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
@@ -674,6 +696,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
+    [ONYXKEYS.COLLECTION.REPORT_VIOLATIONS]: OnyxTypes.ReportViolations;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
@@ -692,7 +715,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.BankAccount;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
 };
 
 type OnyxValuesMapping = {
@@ -745,6 +769,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
+    [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
@@ -798,16 +823,19 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
+    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
+    [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;

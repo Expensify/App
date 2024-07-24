@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
-import type {OriginalMessageChangeLog} from '@src/types/onyx/OriginalMessage';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
@@ -105,6 +104,9 @@ function getOrderedReportIDs(
         if (!report) {
             return;
         }
+        if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+            return;
+        }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
@@ -187,13 +189,14 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+        const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
             draftReports.push(miniReport);
-        } else if (ReportUtils.isArchivedRoom(report)) {
+        } else if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -303,7 +306,8 @@ function getOptionData({
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -419,9 +423,11 @@ function getOptionData({
                         : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
             }
-        } else if (lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            const lastActionOriginalMessage = lastAction?.actionName ? (ReportActionsUtils.getOriginalMessage(lastAction) as OriginalMessageChangeLog | undefined) : null;
-            result.alternateText = `${lastActorDisplayName} ${Localize.translate(preferredLocale, 'roomChangeLog.updateRoomDescription')} ${lastActionOriginalMessage?.description}`.trim();
+        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
+            const lastActionOriginalMessage = ReportActionsUtils.getOriginalMessage(lastAction);
+            result.alternateText = `${lastActorDisplayName} ${Localize.translate(preferredLocale, 'roomChangeLog.updateRoomDescription')} ${Parser.htmlToText(
+                lastActionOriginalMessage?.description ?? '',
+            )}`.trim();
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -555,7 +561,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         return welcomeMessage;
     }
-    if (ReportUtils.isArchivedRoom(report)) {
+
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {

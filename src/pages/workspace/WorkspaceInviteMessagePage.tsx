@@ -84,16 +84,17 @@ function WorkspaceInviteMessagePage({
         workspaceInviteMessageDraft ||
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description ||
-        Parser.replace(
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            }),
-        );
+        Parser.htmlToMarkdown(policy?.description ?? '') ||
+        translate('workspace.common.welcomeNote', {
+            workspaceName: policy?.name ?? '',
+        });
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(Parser.htmlToMarkdown(getDefaultWelcomeNote()));
+            setWelcomeNote(getDefaultWelcomeNote());
+            return;
+        }
+        if (isEmptyObject(policy)) {
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
