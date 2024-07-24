@@ -13,9 +13,11 @@ const run = function (): Promise<void> {
     const errors: string[] = [];
 
     oldList.success.forEach((file) => {
-        if (newList.failure.includes(file)) {
-            errors.push(file);
+        if (newList.success.includes(file) || !newList.failure.includes(file)) {
+            return;
         }
+
+        errors.push(file);
     });
 
     if (errors.length > 0) {
