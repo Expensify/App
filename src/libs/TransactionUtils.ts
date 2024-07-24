@@ -579,11 +579,10 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: b
 }
 
 function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
-    // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
-    // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
-    // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    const reportTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter(
+        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID,
+    );
+    return reportTransactions;
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
