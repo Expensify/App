@@ -182,6 +182,8 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
+
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
     },
@@ -366,7 +368,6 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -664,6 +665,7 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
+        MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -905,7 +907,11 @@ const CONST = {
         },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -2247,6 +2253,10 @@ const CONST = {
             PHYSICAL: 'physical',
             VIRTUAL: 'virtual',
         },
+        FREQUENCY_SETTING: {
+            DAILY: 'daily',
+            MONTHLY: 'monthly',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2370,6 +2380,7 @@ const CONST = {
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
+        WORKSPACE_FEATURES: 'WorkspaceFeatures',
     },
     get EXPENSIFY_EMAILS() {
         return [
@@ -3859,6 +3870,9 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
     },
+    STRIPE_GBP_AUTH_STATUSES: {
+        SUCCEEDED: 'succeeded',
+    },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
@@ -4079,6 +4093,14 @@ const CONST = {
         HOLD: 'hold',
     },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
+
+    REPORT_VIOLATIONS: {
+        FIELD_REQUIRED: 'fieldRequired',
+    },
+
+    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
+        TEXT_TITLE: 'text_title',
+    },
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -5190,12 +5212,16 @@ const CONST = {
             REPORT: 'report',
         },
         ACTION_TYPES: {
-            DONE: 'done',
-            PAID: 'paid',
             VIEW: 'view',
             REVIEW: 'review',
+            DONE: 'done',
+            PAID: 'paid',
+        },
+        BULK_ACTION_TYPES: {
+            EXPORT: 'export',
             HOLD: 'hold',
             UNHOLD: 'unhold',
+            DELETE: 'delete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -5225,15 +5251,6 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
-        },
-        BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            HOLD: 'hold',
-            UNHOLD: 'unhold',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
-            EXPORT: 'export',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -5282,8 +5299,10 @@ const CONST = {
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',
+        GBP: 'GBP',
         NZD: 'NZD',
     },
+    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
@@ -5366,6 +5385,10 @@ const CONST = {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 

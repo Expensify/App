@@ -41,7 +41,7 @@ import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetai
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
@@ -68,6 +68,8 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
+import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
+import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
@@ -140,6 +142,7 @@ export type {
     PolicyCategory,
     PolicyEmployee,
     PolicyEmployeeList,
+    PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
     PolicyTag,
@@ -162,6 +165,9 @@ export type {
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
+    ReportViolationName,
+    ReportViolations,
+    ReportFieldsViolations,
     Request,
     Response,
     ScreenShareRequest,
