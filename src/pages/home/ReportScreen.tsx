@@ -438,14 +438,6 @@ function ReportScreen({betas = [], route, markReadyForHydration, policies = {}, 
         }
 
         if (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
-            console.log('shouldShowNotFoundPage', {
-                wasReportAccessibleRef: wasReportAccessibleRef.current,
-                firstRenderRef: firstRenderRef.current,
-                isOptimisticDelete,
-                reportID: report.reportID,
-                userLeavingStatus,
-                isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
-            });
             return true;
         }
 
