@@ -9,6 +9,7 @@ import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, T
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
+import type {TransactionMergeParams} from './API/parameters';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import {getCurrencyDecimals} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -578,11 +579,10 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: b
 }
 
 function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
-    // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
-    // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
-    // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    const reportTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter(
+        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID,
+    );
+    return reportTransactions;
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -857,7 +857,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
     const change: Record<string, any[]> = {};
 
     const fieldsToCompare: FieldsToCompare = {
-        merchant: ['merchant', 'modifiedMerchant'],
+        merchant: ['modifiedMerchant', 'merchant'],
         category: ['category'],
         tag: ['tag'],
         description: ['comment'],
@@ -866,7 +866,20 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         reimbursable: ['reimbursable'],
     };
 
-    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [...new Set(items.map((item) => keys.map((key) => item?.[key])).flat())];
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [
+        ...new Set(
+            items
+                .map((item) => {
+                    // Prioritize modifiedMerchant over merchant
+                    if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        return item?.modifiedMerchant || item?.merchant;
+                    }
+                    return keys.map((key) => item?.[key]);
+                })
+                .flat(),
+        ),
+    ];
 
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
@@ -911,6 +924,37 @@ function getTransactionID(threadReportID: string): string {
     const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
     return IOUTransactionID;
+}
+
+function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>): Partial<Transaction> {
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? undefined;
+    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+
+    return {
+        ...originalTransaction,
+        ...restReviewDuplicateTransaction,
+        modifiedMerchant: reviewDuplicateTransaction?.merchant,
+        merchant: reviewDuplicateTransaction?.merchant,
+        comment: {comment: reviewDuplicateTransaction?.description},
+    };
+}
+
+function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
+    return {
+        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
+        reportID: originalTransaction?.reportID ?? '',
+        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
+        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
+        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionIDList: reviewDuplicates?.duplicates ?? [],
+        billable: reviewDuplicates?.billable ?? false,
+        reimbursable: reviewDuplicates?.reimbursable ?? false,
+        category: reviewDuplicates?.category ?? '',
+        tag: reviewDuplicates?.tag ?? '',
+        merchant: reviewDuplicates?.merchant ?? '',
+        comment: reviewDuplicates?.description ?? '',
+    };
 }
 
 export {
@@ -983,6 +1027,8 @@ export {
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
+    buildNewTransactionAfterReviewingDuplicates,
+    buildTransactionsMergeParams,
     getReimbursable,
 };
 
