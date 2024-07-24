@@ -190,8 +190,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 details.accountID === report.ownerAccountID;
+            const inviteText = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
+            const existingItemIndex = result.findIndex((item) => item.alternateText === inviteText);
 
-            result.push({
+            const newItem = {
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
@@ -208,7 +210,15 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 ],
                 pendingAction: pendingChatMember?.pendingAction,
                 errors: pendingChatMember?.errors,
-            });
+            };
+
+            if (pendingChatMember?.pendingAction === undefined) {
+                if (existingItemIndex !== -1) {
+                    result[existingItemIndex] = newItem;
+                } else {
+                    result.push(newItem);
+                }
+            }
         });
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
