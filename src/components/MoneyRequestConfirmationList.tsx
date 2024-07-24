@@ -389,7 +389,7 @@ function MoneyRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
+    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, policy, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
 
     const onSplitShareChange = useCallback(
         (accountID: number, value: number) => {
@@ -746,6 +746,9 @@ function MoneyRequestConfirmationList({
             iouAmount,
             onConfirm,
             shouldPlaySound,
+            transactionID,
+            reportID,
+            policy,
         ],
     );
 
