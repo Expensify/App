@@ -3570,8 +3570,8 @@ export default {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: (date: string) => `Before ${date || ''}`,
-                after: (date: string) => `After ${date || ''}`,
+                before: (date?: string) => `Before ${date ?? ''}`,
+                after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
         },

@@ -47,7 +47,7 @@ function SearchFiltersTypePage() {
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton title={translate('common.type')} />
-                <View>
+                <View style={[styles.flex1]}>
                     <SelectionList
                         sections={[{data: filterTypeItems}]}
                         onSelectRow={(item) => {
