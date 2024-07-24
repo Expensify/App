@@ -1846,8 +1846,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
     API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
-function clearReportFieldErrors(reportID: string, reportField: PolicyReportField) {
-    const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+function clearReportFieldKeyErrors(reportID: string, fieldKey: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: {
             [fieldKey]: null,
@@ -1860,6 +1859,8 @@ function clearReportFieldErrors(reportID: string, reportField: PolicyReportField
 
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    const reportViolations = ReportUtils.getReportViolations(reportID);
+    const fieldViolation = ReportUtils.getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
@@ -1876,6 +1877,18 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             },
         },
     ];
+
+    if (fieldViolation) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`,
+            value: {
+                [fieldViolation]: {
+                    [reportField.fieldID]: null,
+                },
+            },
+        });
+    }
 
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
@@ -2773,6 +2786,13 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
+
+    // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
+    // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
+    if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
+        return;
+    }
+    // In other cases, the report is deleted and we should move the user to another report.
     navigateToMostRecentReport(report);
 }
 
@@ -3895,7 +3915,7 @@ export {
     updateReportField,
     updateReportName,
     deleteReportField,
-    clearReportFieldErrors,
+    clearReportFieldKeyErrors,
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     updateRoomVisibility,

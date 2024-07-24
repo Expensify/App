@@ -366,7 +366,7 @@ const CONST = {
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
@@ -4094,6 +4094,14 @@ const CONST = {
     },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
+    REPORT_VIOLATIONS: {
+        FIELD_REQUIRED: 'fieldRequired',
+    },
+
+    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
+        TEXT_TITLE: 'text_title',
+    },
+
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
@@ -5158,6 +5166,7 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
+        RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
     },
 
     RESERVATION_TYPE: {
@@ -5324,6 +5333,12 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+
+    CANCELLATION_TYPE: {
+        MANUAL: 'manual',
+        AUTOMATIC: 'automatic',
+        NONE: 'none',
+    },
     EMPTY_STATE_MEDIA: {
         ANIMATION: 'animation',
         ILLUSTRATION: 'illustration',
@@ -5392,7 +5407,8 @@ type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
 
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType};
 
 export default CONST;
