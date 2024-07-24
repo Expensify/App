@@ -85,21 +85,22 @@ function ProfilePage({route}: ProfilePageProps) {
         selector: (account) => account?.guideCalendarLink,
     });
 
+    const accountID = Number(route.params?.accountID ?? -1);
+    const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
-        const accountID = Number(route.params?.accountID ?? -1);
-        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
+        const reportID = isCurrentUser
+            ? ReportUtils.findSelfDMReportID()
+            : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
 
-        if ((!!session && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+        if (SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [reports, route.params?.accountID, session]);
+    }, [accountID, isCurrentUser, reports, session]);
     const [report] = useOnyx(reportKey);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const accountID = Number(route.params?.accountID ?? -1);
-    const isCurrentUser = session?.accountID === accountID;
 
     const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
@@ -174,8 +175,9 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.pin(report));
         }
 
-        if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
-            result.push(PromotedActions.message({accountID, login: loginParams}));
+        // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
+        if ((!isCurrentUser || report) && !SessionActions.isAnonymousUser()) {
+            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
