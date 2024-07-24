@@ -14,8 +14,8 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
-import type {TryNewDot} from '@src/types/onyx';
 import ROUTES from '@src/ROUTES';
+import type {TryNewDot} from '@src/types/onyx';
 
 type HybridAppMiddlewareProps = {
     authenticated: boolean;
