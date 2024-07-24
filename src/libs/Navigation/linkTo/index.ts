@@ -141,7 +141,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 }
             }
             // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
-            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR && !isNarrowLayout) {
+            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 return;
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;

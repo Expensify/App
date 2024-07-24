@@ -36,7 +36,7 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
-    SEARCH: {
+    SEARCH_CENTRAL_PANE: {
         route: '/search/:query',
         getRoute: (searchQuery: SearchQuery, queryParams?: AuthScreensParamList['Search_Central_Pane']) => {
             const {sortBy, sortOrder} = queryParams ?? {};
@@ -61,8 +61,8 @@ const ROUTES = {
     },
 
     TRANSACTION_HOLD_REASON_RHP: {
-        route: 'search/:query/hold/:transactionID',
-        getRoute: (query: string, transactionID: string) => `search/${query}/hold/${transactionID}` as const,
+        route: 'search/:query/hold',
+        getRoute: (query: string) => `search/${query}/hold` as const,
     },
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -204,7 +204,8 @@ const ROUTES = {
     },
     SETTINGS_2FA: {
         route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
 
@@ -866,6 +867,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
     },
+    WORKSPACE_EXPENSIFY_CARD_NAME: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_LIMIT: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
+        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
+        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
@@ -873,6 +886,18 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
+        route: 'settings/workspaces/:policyID/expensify-card/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/expensify-card/settings/account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/account` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
+        route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
@@ -943,8 +968,8 @@ const ROUTES = {
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
     },
     TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
-        route: 'r/:threadReportID/duplicates/confirm',
-        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+        route: 'r/:threadReportID/duplicates/review/description',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
     },
     TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
         route: 'r/:threadReportID/duplicates/review/reimbursable',
@@ -954,7 +979,10 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/billable',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
     },
-
+    TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
+        route: 'r/:threadReportID/duplicates/confirm',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+    },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

@@ -23,7 +23,7 @@ function ReviewMerchant() {
         () =>
             compareResult.change.merchant?.map((merchant) =>
                 !merchant
-                    ? {text: translate('violations.none'), value: undefined}
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: merchant,
                           value: merchant,
@@ -32,9 +32,9 @@ function ReviewMerchant() {
         [compareResult.change.merchant, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const setMerchant = (data: FieldItemType<'merchant'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({merchant: data.value as string});
+            setReviewDuplicatesKey({merchant: data.value});
         }
         navigateToNextScreen();
     };
@@ -42,12 +42,12 @@ function ReviewMerchant() {
     return (
         <ScreenWrapper testID={ReviewMerchant.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'merchant'>
                 stepNames={stepNames}
                 label={translate('violations.merchantToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setMerchant}
             />
         </ScreenWrapper>
     );
