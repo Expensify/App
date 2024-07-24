@@ -81,6 +81,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
     const approverCountsByEmail: Record<string, number> = {};
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
 
+    // Add each employee to the appropriate workflow
     Object.values(employees).forEach((employee) => {
         const {email, submitsTo} = employee;
         if (!email || !submitsTo) {
@@ -102,29 +103,23 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         approvalWorkflows[submitsTo].members.push(member);
     });
 
-    const sortedApprovalWorkflows = Object.values(approvalWorkflows)
-        .map((workflow) => ({
-            ...workflow,
-            approvers: workflow.approvers.map((approver) => ({
-                ...approver,
-                isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
-            })),
-        }))
-        .sort((a, b) => {
-            if (a.isDefault) {
-                return -1;
-            }
+    // Sort the workflows by the first approver's name (default workflow has priority)
+    const sortedApprovalWorkflows = Object.values(approvalWorkflows).sort((a, b) => {
+        if (a.isDefault) {
+            return -1;
+        }
 
-            if (b.isDefault) {
-                return 1;
-            }
+        return (a.approvers[0]?.displayName ?? '-1').localeCompare(b.approvers[0]?.displayName ?? '-1');
+    });
 
-            const aDisplayName = b.approvers.at(0)?.displayName ?? '-1';
-            const bDisplayName = a.approvers.at(0)?.displayName ?? '-1';
-            return aDisplayName < bDisplayName ? 1 : -1;
-        });
-
-    return sortedApprovalWorkflows;
+    // Add a flag to each approver to indicate if they are in multiple workflows
+    return sortedApprovalWorkflows.map((workflow) => ({
+        ...workflow,
+        approvers: workflow.approvers.map((approver) => ({
+            ...approver,
+            isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
+        })),
+    }));
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
