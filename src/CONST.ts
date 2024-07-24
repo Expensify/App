@@ -366,7 +366,7 @@ const CONST = {
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
