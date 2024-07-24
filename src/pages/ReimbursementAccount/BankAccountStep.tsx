@@ -24,7 +24,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import * as Session from '@userActions/Session';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,7 +85,7 @@ function BankAccountStep({
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
+    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
     const loginNames = Object.keys(loginList ?? {});
 
     const removeExistingBankAccountDetails = () => {
@@ -135,7 +134,7 @@ function BankAccountStep({
                         </View>
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink onPress={() => Link.openExternalLink(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         <Button

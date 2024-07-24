@@ -1,29 +1,130 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 
-function AssigneeStep() {
+const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
+
+type AssigneeStepProps = {
+    // The policy that the card will be issued under
+    policy: OnyxEntry<OnyxTypes.Policy>;
+};
+
+function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
-    const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
+    const isEditing = issueNewCard?.isEditing;
+
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
+    const submit = (assignee: ListItem) => {
+        Card.setIssueNewCardStepAndData({
+            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
+            data: {
+                assigneeEmail: assignee?.login ?? '',
+            },
+            isEditing: false,
+        });
     };
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        if (isEditing) {
+            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
+        Card.clearIssueNewCardFlow();
     };
+
+    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
+    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
+
+    const membersDetails = useMemo(() => {
+        let membersList: ListItem[] = [];
+        if (!policy?.employeeList) {
+            return membersList;
+        }
+
+        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+                return;
+            }
+
+            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            membersList.push({
+                keyForList: email,
+                text: personalDetail?.displayName,
+                alternateText: email,
+                login: email,
+                accountID: personalDetail?.accountID,
+                icons: [
+                    {
+                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        name: formatPhoneNumber(email),
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: personalDetail?.accountID,
+                    },
+                ],
+            });
+        });
+
+        membersList = OptionsListUtils.sortItemsAlphabetically(membersList);
+
+        return membersList;
+    }, [isOffline, policy?.employeeList]);
+
+    const sections = useMemo(() => {
+        if (!debouncedSearchTerm) {
+            return [
+                {
+                    data: membersDetails,
+                    shouldShow: true,
+                },
+            ];
+        }
+
+        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+
+        return [
+            {
+                title: undefined,
+                data: filteredOptions,
+                shouldShow: true,
+            },
+        ];
+    }, [membersDetails, debouncedSearchTerm]);
+
+    const headerMessage = useMemo(() => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+
+        return OptionsListUtils.getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
+    }, [debouncedSearchTerm, sections]);
 
     return (
         <ScreenWrapper
@@ -43,15 +144,15 @@ function AssigneeStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                submitButtonText={translate('common.next')}
-                onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
-            >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
-            </FormProvider>
+            <SelectionList
+                textInputLabel={textInputLabel}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                sections={sections}
+                headerMessage={headerMessage}
+                ListItem={UserListItem}
+                onSelectRow={submit}
+            />
         </ScreenWrapper>
     );
 }

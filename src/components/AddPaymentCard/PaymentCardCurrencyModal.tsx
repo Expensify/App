@@ -15,19 +15,19 @@ type PaymentCardCurrencyModalProps = {
     isVisible: boolean;
 
     /** The list of currencies to render */
-    currencies: Array<ValueOf<typeof CONST.CURRENCY>>;
+    currencies: Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>;
 
     /** Currently selected currency */
-    currentCurrency: ValueOf<typeof CONST.CURRENCY>;
+    currentCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
     /** Function to call when the user selects a currency */
-    onCurrencyChange?: (currency: ValueOf<typeof CONST.CURRENCY>) => void;
+    onCurrencyChange?: (currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => void;
 
     /** Function to call when the user closes the currency picker */
     onClose?: () => void;
 };
 
-function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
+function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.PAYMENT_CARD_CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

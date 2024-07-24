@@ -41,7 +41,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     return (
         <ConnectionLayout
             displayName={XeroAdvancedPage.displayName}
-            headerTitle="workspace.xero.advancedConfig.advanced"
+            headerTitle="workspace.accounting.advanced"
             headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -50,8 +50,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
-                key={translate('workspace.xero.advancedConfig.autoSync')}
-                title={translate('workspace.xero.advancedConfig.autoSync')}
+                key={translate('workspace.accounting.autoSync')}
+                title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                 shouldPlaceSubtitleBelowSwitch
@@ -67,8 +67,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
             />
             <ToggleSettingOptionRow
-                key={translate('workspace.xero.advancedConfig.reimbursedReports')}
-                title={translate('workspace.xero.advancedConfig.reimbursedReports')}
+                key={translate('workspace.accounting.reimbursedReports')}
+                title={translate('workspace.accounting.reimbursedReports')}
                 subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 shouldPlaceSubtitleBelowSwitch

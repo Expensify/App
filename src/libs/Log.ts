@@ -2,7 +2,7 @@
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 
 /* eslint-disable rulesdir/no-api-in-views */
-import {ExpensiMark, Logger} from 'expensify-common';
+import {Logger} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
@@ -80,6 +80,5 @@ const Log = new Logger({
     isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-ExpensiMark.setLogger(Log);
 
 export default Log;

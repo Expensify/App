@@ -24,4 +24,18 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .flat();
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions};
+function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
+    const reservationType = transaction ? transaction.receipt?.reservationList?.[0]?.type : '';
+
+    switch (reservationType) {
+        case CONST.RESERVATION_TYPE.FLIGHT:
+        case CONST.RESERVATION_TYPE.CAR:
+            return Expensicons.Plane;
+        case CONST.RESERVATION_TYPE.HOTEL:
+            return Expensicons.Bed;
+        default:
+            return undefined;
+    }
+}
+
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon};

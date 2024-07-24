@@ -19,3 +19,6 @@ package-lock.json
 src/libs/E2E/reactNativeLaunchingTest.ts
 # Temporary while we keep react-compiler in our repo
 lib/**
+
+# Automatically generated files
+src/libs/SearchParser/searchParser.js

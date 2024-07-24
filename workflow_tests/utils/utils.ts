@@ -170,7 +170,7 @@ function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowP
         return act;
     }
 
-    const workflow: Workflow = yaml.parse(fs.readFileSync(workflowPath, 'utf8'));
+    const workflow = yaml.parse(fs.readFileSync(workflowPath, 'utf8')) as Workflow;
     Object.entries(jobs).forEach(([jobId, runner]) => {
         const job = workflow.jobs[jobId];
         job['runs-on'] = runner;

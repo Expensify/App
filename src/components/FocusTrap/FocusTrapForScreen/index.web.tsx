@@ -1,15 +1,14 @@
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import FocusTrap from 'focus-trap-react';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
-import SCREENS_WITH_AUTOFOCUS from '@components/FocusTrap/SCREENS_WITH_AUTOFOCUS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
-let activeRouteName = '';
 function FocusTrapForScreen({children}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
@@ -33,12 +32,6 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
         return true;
     }, [isFocused, isSmallScreenWidth, route.name]);
 
-    useFocusEffect(
-        useCallback(() => {
-            activeRouteName = route.name;
-        }, [route]),
-    );
-
     return (
         <FocusTrap
             active={isActive}
@@ -47,15 +40,16 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
-                // We don't want to ovverride autofocus on these screens.
-                initialFocus: () => {
-                    if (SCREENS_WITH_AUTOFOCUS.includes(activeRouteName)) {
+                delayInitialFocus: CONST.ANIMATED_TRANSITION,
+                initialFocus: (focusTrapContainers) => {
+                    const isFocusedElementInsideContainer = focusTrapContainers?.some((container) => container.contains(document.activeElement));
+                    if (isFocusedElementInsideContainer) {
                         return false;
                     }
                     return undefined;
                 },
                 setReturnFocus: (element) => {
-                    if (SCREENS_WITH_AUTOFOCUS.includes(activeRouteName)) {
+                    if (document.activeElement && document.activeElement !== document.body) {
                         return false;
                     }
                     return element;

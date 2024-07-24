@@ -4,8 +4,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
-import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -20,6 +21,7 @@ import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList}
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -83,7 +85,7 @@ function shouldOpenOnAdminRoom() {
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAccessedReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
     }
@@ -91,7 +93,7 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAcce
     if (screenName === SCREENS.REPORT) {
         return {
             openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
-            reportID: lastAccessedReportID,
+            reportID: initialReportID,
         };
     }
 
@@ -198,17 +200,29 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const lastAccessedReportID = useLastAccessedReportID(shouldOpenOnAdminRoom());
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const {canUseDefaultRooms} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
     const onboardingScreenOptions = useMemo(
         () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, shouldUseNarrowLayout),
         [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
     );
-    const isInitialRender = useRef(true);
 
+    let initialReportID: string | undefined;
+    const isInitialRender = useRef(true);
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+        const currentURL = getCurrentUrl();
+        if (currentURL) {
+            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        }
+
+        if (!initialReportID) {
+            initialReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
+        }
+
         isInitialRender.current = false;
     }
 
@@ -319,7 +333,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const CentralPaneScreenOptions = {
@@ -474,7 +488,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, lastAccessedReportID)}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
                             />

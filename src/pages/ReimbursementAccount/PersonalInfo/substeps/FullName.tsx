@@ -39,11 +39,11 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-            if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
+            if (values.firstName && !ValidationUtils.isValidPersonName(values.firstName)) {
                 errors.firstName = translate('bankAccount.error.firstName');
             }
 
-            if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
+            if (values.lastName && !ValidationUtils.isValidPersonName(values.lastName)) {
                 errors.lastName = translate('bankAccount.error.lastName');
             }
             return errors;

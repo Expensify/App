@@ -10,11 +10,13 @@ const DEPLOY_STAGING__SETUP_GIT__STEP_MOCK = createMockStep('Setup git for OSBot
 ]);
 const DEPLOY_STAGING__TAG_VERSION__STEP_MOCK = createMockStep('Tag version', 'Tagging new version', 'DEPLOY_STAGING');
 const DEPLOY_STAGING__PUSH_TAG__STEP_MOCK = createMockStep('🚀 Push tags to trigger staging deploy 🚀', 'Pushing tag to trigger staging deploy', 'DEPLOY_STAGING');
+const DEPLOY_STAGING__WARN_DEPLOYERS__STEP_MOCK = createMockStep('Warn deployers if staging deploy failed', 'Warning deployers in slack for workflow failure', 'DEPLOY_STAGING');
 const DEPLOY_STAGING_STEP_MOCKS = [
     DEPLOY_STAGING__CHECKOUT__STEP_MOCK,
     DEPLOY_STAGING__SETUP_GIT__STEP_MOCK,
     DEPLOY_STAGING__TAG_VERSION__STEP_MOCK,
     DEPLOY_STAGING__PUSH_TAG__STEP_MOCK,
+    DEPLOY_STAGING__WARN_DEPLOYERS__STEP_MOCK,
 ] as const satisfies StepIdentifier[];
 
 const DEPLOY_PRODUCTION__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Checking out', 'DEPLOY_PRODUCTION', ['ref', 'token']);
@@ -47,6 +49,7 @@ const DEPLOY_PRODUCTION__CREATE_RELEASE__STEP_MOCK = createMockStep(
     [],
     ['GITHUB_TOKEN'],
 );
+const DEPLOY_PRODUCTION__WARN_DEPLOYERS__STEP_MOCK = createMockStep('Warn deployers if production deploy failed', 'Warning deployers in slack for workflow failure', 'DEPLOY_STAGING');
 const DEPLOY_PRODUCTION_STEP_MOCKS = [
     DEPLOY_PRODUCTION__CHECKOUT__STEP_MOCK,
     DEPLOY_PRODUCTION__SETUP_GIT__STEP_MOCK,
@@ -54,6 +57,7 @@ const DEPLOY_PRODUCTION_STEP_MOCKS = [
     DEPLOY_PRODUCTION__RELEASE_PR_LIST__STEP_MOCK,
     DEPLOY_PRODUCTION__GENERATE_RELEASE_BODY__STEP_MOCK,
     DEPLOY_PRODUCTION__CREATE_RELEASE__STEP_MOCK,
+    DEPLOY_PRODUCTION__WARN_DEPLOYERS__STEP_MOCK,
 ] as const satisfies StepIdentifier[];
 
 export default {DEPLOY_STAGING_STEP_MOCKS, DEPLOY_PRODUCTION_STEP_MOCKS};

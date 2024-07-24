@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
@@ -49,6 +50,8 @@ function ConnectToQuickbooksOnlineButton({
                         setIsDisconnectModalOpen(true);
                         return;
                     }
+                    // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+                    PolicyAction.enablePolicyTaxes(policyID, false);
                     setWebViewOpen(true);
                 }}
                 text={translate('workspace.accounting.setup')}
@@ -59,6 +62,8 @@ function ConnectToQuickbooksOnlineButton({
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
+                        // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+                        PolicyAction.enablePolicyTaxes(policyID, false);
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
                         setWebViewOpen(true);

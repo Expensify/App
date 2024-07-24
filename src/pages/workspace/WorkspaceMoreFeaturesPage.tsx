@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -16,12 +17,15 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import * as Category from '@userActions/Policy/Category';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Tag from '@userActions/Policy/Tag';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -41,6 +45,7 @@ type Item = {
     isActive: boolean;
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
+    disabledAction?: () => void;
     pendingAction: PendingAction | undefined;
     errors?: Errors;
     onCloseError?: () => void;
@@ -52,18 +57,50 @@ type SectionObject = {
     items: Item[];
 };
 
+// TODO: remove when Onyx data is available
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const mockedCardsList = {
+    test1: {
+        cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
+        name: 'Test 1',
+        limit: 1000,
+        lastFourPAN: '1234',
+    },
+    test2: {
+        cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
+        name: 'Test 2',
+        limit: 2000,
+        lastFourPAN: '1234',
+    },
+    test3: {
+        cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
+        name: 'Test 3',
+        limit: 3000,
+        lastFourPAN: '1234',
+    },
+};
+
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {canUseReportFieldsFeature} = usePermissions();
+    const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
+    const isSyncTaxEnabled =
+        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
+        !!policy?.connections?.xero?.config?.importTaxRates ||
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id ?? '';
+    // @ts-expect-error a new props will be added during feed api implementation
+    const workspaceAccountID = (policy?.workspaceAccountID as string) ?? '';
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    // Uncomment this line for testing disabled toggle feature - for c+
+    // const [cardsList = mockedCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
+    const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
 
     const spendItems: Item[] = [
         {
@@ -87,6 +124,24 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         },
     ];
+
+    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
+    if (canUseWorkspaceFeeds) {
+        spendItems.splice(1, 0, {
+            icon: Illustrations.HandCard,
+            titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
+            isActive: policy?.areExpensifyCardsEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areExpensifyCardsEnabled,
+            disabled: !isEmptyObject(cardsList),
+            action: (isEnabled: boolean) => {
+                Policy.enableExpensifyCard(policy?.id ?? '-1', isEnabled);
+            },
+            disabledAction: () => {
+                setIsDisableExpensifyCardWarningModalOpen(true);
+            },
+        });
+    }
 
     const organizeItems: Item[] = [
         {
@@ -150,6 +205,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 if (isEnabled) {
+                    if (!isControlPolicy(policy)) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                        );
+                        return;
+                    }
+
                     Policy.enablePolicyReportFields(policyID, true);
                     return;
                 }
@@ -204,6 +266,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             >
                 <ToggleSettingOptionRow
                     icon={item.icon}
+                    disabled={item.disabled}
+                    disabledAction={item.disabledAction}
                     title={translate(item.titleTranslationKey)}
                     titleStyle={styles.textStrong}
                     subtitle={translate(item.subtitleTranslationKey)}
@@ -307,6 +371,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     confirmText={translate('common.disable')}
                     cancelText={translate('common.cancel')}
                     danger
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}
+                    isVisible={isDisableExpensifyCardWarningModalOpen}
+                    onConfirm={() => {
+                        setIsDisableExpensifyCardWarningModalOpen(false);
+                        Report.navigateToConciergeChat(true);
+                    }}
+                    onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
+                    prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
+                    confirmText={translate('workspace.moreFeatures.expensifyCard.disableCardButton')}
+                    cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

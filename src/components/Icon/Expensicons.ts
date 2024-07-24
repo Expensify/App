@@ -42,6 +42,7 @@ import ChatBubbles from '@assets/images/chatbubbles.svg';
 import CheckCircle from '@assets/images/check-circle.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
+import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
@@ -100,6 +101,7 @@ import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -200,6 +202,7 @@ export {
     Wrench,
     BackArrow,
     Bank,
+    CircularArrowBackwards,
     Bill,
     Bell,
     BellSlash,
@@ -349,6 +352,7 @@ export {
     Workflows,
     Workspace,
     XeroSquare,
+    SageIntacctSquare as IntacctSquare,
     Zoom,
     Twitter,
     Youtube,
