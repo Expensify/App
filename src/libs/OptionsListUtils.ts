@@ -662,6 +662,14 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
     return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
+function getIOUReportIDOfLastAction(report) {
+    const lastAction = visibleReportActionItems[report.reportID];
+    if (!ReportActionUtils.isReportPreviewAction(lastAction)) {
+        return;
+    }
+    return getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+}
+
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
@@ -2626,6 +2634,7 @@ export {
     isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
+    getIOUReportIDOfLastAction,
     getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
