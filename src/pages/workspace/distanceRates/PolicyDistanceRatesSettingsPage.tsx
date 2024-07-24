@@ -53,7 +53,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
-    const defaultUnit = customUnits[customUnitID]?.attributes.unit;
+    const defaultUnit = customUnits[customUnitID]?.attributes?.unit;
     const errorFields = customUnits[customUnitID]?.errorFields;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
@@ -98,19 +98,21 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                 <FullPageBlockingView>
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <View>
-                            <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
-                                pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearErrorFields('attributes')}
-                            >
-                                <UnitSelector
-                                    label={translate('workspace.distanceRates.unit')}
-                                    defaultValue={defaultUnit}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                    setNewUnit={setNewUnit}
-                                />
-                            </OfflineWithFeedback>
+                            {defaultUnit && (
+                                <OfflineWithFeedback
+                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
+                                    pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearErrorFields('attributes')}
+                                >
+                                    <UnitSelector
+                                        label={translate('workspace.distanceRates.unit')}
+                                        defaultValue={defaultUnit}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
+                                        setNewUnit={setNewUnit}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                             {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                                 <OfflineWithFeedback
                                     errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
