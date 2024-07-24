@@ -962,7 +962,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             return;
         }
 
-        // Clear onyx data if the user has just signed in and is forced to add 2FA
+        // When the user is forced to add 2FA, we should clear Onyx data.
         if (shouldClearData) {
             const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
             Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
