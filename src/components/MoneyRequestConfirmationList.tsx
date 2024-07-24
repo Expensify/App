@@ -325,6 +325,20 @@ function MoneyRequestConfirmationList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
+    const isFirstUpdatedDistanceAmount = useRef(false);
+
+    useEffect(() => {
+        if (isFirstUpdatedDistanceAmount.current) {
+            return;
+        }
+        if (!isDistanceRequest) {
+            return;
+        }
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+        IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
+        isFirstUpdatedDistanceAmount.current = true;
+    }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
+
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
             return;
@@ -778,7 +792,6 @@ function MoneyRequestConfirmationList({
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 enterKeyEventListenerPriority={1}
-                useKeyboardShortcuts
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -790,7 +803,6 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
-                useKeyboardShortcuts
             />
         );
 
@@ -885,7 +897,6 @@ function MoneyRequestConfirmationList({
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
-                disableKeyboardShortcuts
                 removeClippedSubviews={false}
             />
         </MouseProvider>

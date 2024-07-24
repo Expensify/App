@@ -203,7 +203,7 @@ function hasInsufficientFundsError() {
  * @returns The card to be used for subscription billing.
  */
 function getCardForSubscriptionBilling(): Fund | undefined {
-    return Object.values(fundList ?? {}).find((card) => card?.isDefault);
+    return Object.values(fundList ?? {}).find((card) => card?.accountData?.additionalData?.isBillingCard);
 }
 
 /**
