@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -29,7 +29,9 @@ import type {Transaction} from '@src/types/onyx';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const navigation = useNavigation();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const [isExiting, setIsExiting] = useState(false);
     const [reviewDuplicates, {status}] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
@@ -56,8 +58,16 @@ function Confirmation() {
         [report, reportAction],
     );
 
+    useEffect(() => {
+        const unsubscribeBeforeRemove = navigation.addListener('beforeRemove', () => {
+            setIsExiting(true);
+        });
+
+        return unsubscribeBeforeRemove;
+    }, [navigation]);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = ReportUtils.isReportNotFound(report) || (status === 'loaded' && !transaction?.transactionID);
+    const shouldShowNotFoundPage = ReportUtils.isReportNotFound(report) || (!isExiting && status === 'loaded' && !transaction?.transactionID);
 
     return (
         <ScreenWrapper
