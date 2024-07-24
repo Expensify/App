@@ -218,6 +218,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetTimePage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/RequestEarlyCancellationPage').default,
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require<ReactComponentModule>('../../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/InitialPage').default,
     [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/RatePage').default,
     [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: () => require<ReactComponentModule>('../../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/UnitPage').default,

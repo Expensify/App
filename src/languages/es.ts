@@ -4748,6 +4748,33 @@ export default {
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
         },
+        requestEarlyCancellation: {
+            title: 'Solicitar cancelación anticipada',
+            subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
+            subscriptionCanceled: {
+                title: 'Suscripción cancelada',
+                subtitle: 'Tu suscripción anual ha sido cancelada.',
+                info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
+                preventFutureActivity: {
+                    part1: 'Si quieres evitar actividad y cargos futuros, debes ',
+                    link: 'eliminar tu(s) espacio(s) de trabajo.',
+                    part2: ' Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
+                },
+            },
+            requestSubmitted: {
+                title: 'Solicitud enviada',
+                subtitle: {
+                    part1: 'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
+            },
+            acknowledgement: {
+                part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
+                link: 'Condiciones de Servicio',
+                part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
+            },
+        },
     },
     feedbackSurvey: {
         tooLimited: 'Hay que mejorar la funcionalidad',
