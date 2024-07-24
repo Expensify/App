@@ -2,8 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -11,10 +10,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,19 +31,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string};
 
-type PolicyDistanceRatesPageOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
+type PolicyDistanceRatesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
 
-type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
-
-function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) {
+function PolicyDistanceRatesPage({
+    route: {
+        params: {policyID},
+    },
+}: PolicyDistanceRatesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -52,9 +49,11 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [selectedDistanceRates, setSelectedDistanceRates] = useState<Rate[]>([]);
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const policyID = route.params.policyID;
     const isFocused = useIsFocused();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
+    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
         [policy?.customUnits],
@@ -191,7 +190,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('workspace.distanceRates.rate')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
@@ -304,8 +303,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     />
                 )}
                 {Object.values(customUnitRates).length > 0 && (
-                    <SelectionList
-                        canSelectMultiple
+                    <SelectionListWithModal
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         sections={[{data: distanceRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleRate}
                         onSelectRow={openRateDetails}
@@ -344,8 +345,4 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
 PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
 
-export default withOnyx<PolicyDistanceRatesPageProps, PolicyDistanceRatesPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRatesPage);
+export default PolicyDistanceRatesPage;
