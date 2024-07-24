@@ -1,6 +1,5 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
@@ -10,7 +9,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes, SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
 import type {SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -48,7 +46,6 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedReports: Array<SearchReport['reportID']> = useMemo(() => {
         if (searchType !== CONST.SEARCH.DATA_TYPES.REPORT) {
@@ -124,14 +121,6 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
         },
         [selectedTransactions],
     );
-
-    useEffect(() => {
-        if (selectionMode?.isEnabled) {
-            return;
-        }
-
-        setSelectedTransactions({});
-    }, [setSelectedTransactions, selectionMode?.isEnabled]);
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchType === CONST.SEARCH.DATA_TYPES.REPORT;
