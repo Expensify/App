@@ -1,7 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -44,13 +44,12 @@ type ConsolePageProps = ConsolePageOnyxProps;
 
 const filterBy = {
     all: '',
-    network: '-[Network]-',
+    network: '[Network]',
 } as const;
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
-    const [logs, setLogs] = useState(capturedLogs);
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
     const [activeFilterIndex, setActiveFilterIndex] = useState<FilterBy>(filterBy.all);
@@ -92,23 +91,21 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
         [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
     );
 
-    const logsList = useMemo(
-        () =>
-            Object.entries(logs ?? {})
-                .map(([key, value]) => ({key, ...value}))
-                .reverse(),
-        [logs],
-    );
-
-    const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
-
-    useEffect(() => {
+    const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});
+    const getLogs = useCallback(() => {
         if (!shouldStoreLogs) {
-            return;
+            return [];
         }
 
-        setLogs((prevLogs) => ({...prevLogs, ...capturedLogs}));
+        prevLogs.current = {...prevLogs.current, ...capturedLogs};
+        return Object.entries(prevLogs.current ?? {})
+            .map(([key, value]) => ({key, ...value}))
+            .reverse();
     }, [capturedLogs, shouldStoreLogs]);
+
+    const logsList = useMemo(() => getLogs(), [getLogs]);
+
+    const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
 
     const executeArbitraryCode = () => {
         const sanitizedInput = sanitizeConsoleInput(input);
@@ -121,14 +118,14 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, executeArbitraryCode);
 
     const saveLogs = () => {
-        const logsWithParsedMessages = parseStringifiedMessages(logsList);
+        const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
     };
 
     const shareLogs = () => {
         setIsGeneratingLogsFile(true);
-        const logsWithParsedMessages = parseStringifiedMessages(logsList);
+        const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
         // Generate a file with the logs and pass its path to the list of reports to share it with
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path, size}) => {
