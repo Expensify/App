@@ -288,8 +288,6 @@ function MoneyRequestView({
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
-    console.log(distanceToDisplay, getPendingFieldAction('waypoints'), transactionBackup, hasRoute, unit, rate);
-
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
