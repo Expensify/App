@@ -395,7 +395,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && !isThread) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
