@@ -6,7 +6,7 @@ const defaultSearchContext = {
     currentSearchHash: -1,
     selectedTransactionIDs: [],
     setCurrentSearchHash: () => {},
-    setSelectedTransactionIds: () => {},
+    setSelectedTransactionIDs: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -27,7 +27,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData],
     );
 
-    const setSelectedTransactionIds = useCallback(
+    const setSelectedTransactionIDs = useCallback(
         (selectedTransactionIDs: string[]) => {
             setSearchContextData({
                 ...searchContextData,
@@ -41,9 +41,9 @@ function SearchContextProvider({children}: ChildrenProps) {
         () => ({
             ...searchContextData,
             setCurrentSearchHash,
-            setSelectedTransactionIds,
+            setSelectedTransactionIDs,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactionIds],
+        [searchContextData, setCurrentSearchHash, setSelectedTransactionIDs],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;

@@ -452,6 +452,7 @@ function SuggestionMention(
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }
