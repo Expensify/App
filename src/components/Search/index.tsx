@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import lodashMemoize from 'lodash/memoize';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -74,15 +74,14 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = lodashMemoize(
-        (item: TransactionListItemType | ReportListItemType) => getItemHeight(item),
-        (item) => {
+    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+        transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
             const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
             return `${hash}-${item.keyForList}-${screenSizeHash}`;
         },
-    );
+    });
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
@@ -101,10 +100,11 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoadingItems = !isOffline && searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const isDataLoaded = searchResults?.data !== undefined;
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
-    if (isLoadingItems) {
+    if (shouldShowLoadingState) {
         return (
             <>
                 <SearchPageHeader
@@ -116,9 +116,9 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         );
     }
 
-    const shouldShowEmptyState = searchResults && SearchUtils.isSearchResultsEmpty(searchResults);
+    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
 
-    if (shouldShowEmptyState ?? !searchResults) {
+    if (shouldShowEmptyState) {
         return (
             <>
                 <SearchPageHeader
@@ -147,7 +147,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
     };
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults || isLoadingItems || isLoadingMoreItems) {
+        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
@@ -224,7 +224,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
             setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
             isMobileSelectionModeActive={isMobileSelectionModeActive}
             listFooterContent={
-                isLoadingMoreItems ? (
+                shouldShowLoadingMoreItems ? (
                     <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
