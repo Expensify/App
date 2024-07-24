@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 type ExportWithDropdownMenuProps = {
     policy: OnyxEntry<Policy>;
@@ -23,9 +24,19 @@ type ExportWithDropdownMenuProps = {
     report: OnyxEntry<Report>;
 
     connectionName: ConnectionName;
+
+    paymentMethodDropdownAnchorAlignment?: AnchorAlignment;
 };
 
-function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDropdownMenuProps) {
+function ExportWithDropdownMenu({
+    policy,
+    report,
+    connectionName,
+    paymentMethodDropdownAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
+}: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -91,10 +102,7 @@ function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDrop
                 success={!hasIntegrationAutoSync}
                 pressOnEnter
                 shouldAlwaysShowDropdownMenu
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
+                anchorAlignment={paymentMethodDropdownAnchorAlignment}
                 onPress={(_, value) => {
                     if (isExported) {
                         setModalStatus(value);
