@@ -1907,7 +1907,7 @@ function getSendInvoiceInformation(
 
     return {
         senderWorkspaceID,
-        iouReportActionID: iouAction.reportID,
+        iouReportActionID: iouAction.reportActionID,
         receiver,
         invoiceRoom: chatReport,
         createdChatReportActionID: optimisticCreatedActionForChat.reportActionID,
