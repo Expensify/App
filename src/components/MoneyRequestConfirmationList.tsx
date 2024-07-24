@@ -339,6 +339,15 @@ function MoneyRequestConfirmationList({
         isFirstUpdatedDistanceAmount.current = true;
     }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
 
+    useEffect(() => {
+        if (!shouldCalculateDistanceAmount) {
+            return;
+        }
+
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+        IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
+    }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
+
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
         if (!shouldShowTax || (transaction?.taxAmount !== undefined && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency)) {
