@@ -13,9 +13,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -25,6 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,11 +54,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const policyID = route.params.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const canSelectMultiple = !isMultiLevelTags;
+    const canSelectMultiple = !isMultiLevelTags && isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
@@ -66,6 +68,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
     useFocusEffect(fetchTags);
+
+    useEffect(() => {
+        const selectedKeys = Object.keys(selectedTags).filter((key) => selectedTags[key]);
+        if (!isSmallScreenWidth) {
+            if (selectedKeys.length === 0) {
+                turnOffMobileSelectionMode();
+            }
+            return;
+        }
+        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
+            turnOnMobileSelectionMode();
+        }
+    }, [isSmallScreenWidth, selectedTags, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -316,9 +331,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.Tag}
-                    title={translate('workspace.common.tags')}
+                    icon={!selectionMode?.isEnabled ? Illustrations.Tag : undefined}
+                    title={translate(selectionMode?.isEnabled ? 'common.selectMultiple' : 'workspace.common.tags')}
                     shouldShowBackButton={isSmallScreenWidth}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedTags({});
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -353,8 +376,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     />
                 )}
                 {hasVisibleTag && !isLoading && (
-                    <SelectionList
+                    <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
