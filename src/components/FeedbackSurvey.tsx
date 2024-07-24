@@ -31,6 +31,9 @@ type FeedbackSurveyProps = {
 
     /** Indicates whether note field is required  */
     isNoteRequired?: boolean;
+
+    /** Indicates whether a loading indicator should be shown */
+    isLoading?: boolean;
 };
 
 type Option = {
@@ -45,7 +48,7 @@ const OPTIONS: Option[] = [
     {key: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY},
 ];
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -103,6 +106,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     buttonText={translate('common.submit')}
                     enabledWhenOffline
                     containerStyles={styles.mt3}
+                    isLoading={isLoading}
                 />
             </FixedFooter>
         </View>

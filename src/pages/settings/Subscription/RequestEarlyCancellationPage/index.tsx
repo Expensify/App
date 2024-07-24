@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -23,9 +23,12 @@ function RequestEarlyCancellationPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const cancellationType = useCancellationType();
 
     const handleSubmit = (cancellationReason: FeedbackSurveyOptionID, cancellationNote = '') => {
+        setIsLoading(true);
         Subscription.cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
@@ -101,9 +104,10 @@ function RequestEarlyCancellationPage() {
                 optionRowStyles={styles.flex1}
                 footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgementText}</Text>}
                 isNoteRequired
+                isLoading={isLoading}
             />
         ),
-        [acknowledgementText, styles, translate],
+        [acknowledgementText, isLoading, styles.flex1, styles.mb2, styles.mt4, translate],
     );
 
     const contentMap: Partial<Record<CancellationType, ReactNode>> = {
