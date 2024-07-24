@@ -2727,9 +2727,10 @@ const run = function () {
     const newList = JSON.parse(core.getInput('NEW_LIST', { required: true }));
     const errors = [];
     oldList.success.forEach((file) => {
-        if (newList.failure.includes(file)) {
-            errors.push(file);
+        if (newList.success.includes(file) || !newList.failure.includes(file)) {
+            return;
         }
+        errors.push(file);
     });
     if (errors.length > 0) {
         errors.forEach((error) => console.error(error));
