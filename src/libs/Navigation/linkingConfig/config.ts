@@ -474,8 +474,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,

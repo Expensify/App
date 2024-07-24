@@ -126,7 +126,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomListPage.displayName}
             headerTitle="workspace.netsuite.import.importCustomFields.customLists.addText"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
