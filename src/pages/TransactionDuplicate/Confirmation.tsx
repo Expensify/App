@@ -19,6 +19,7 @@ import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/type
 import variables from '@styles/variables';
 import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
+import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,15 +30,13 @@ function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [reviewDuplicates, {status}] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID ?? '-1') ?? '-1';
 
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const mergeDuplicates = useCallback(() => {
@@ -57,12 +56,15 @@ function Confirmation() {
         [report, reportAction],
     );
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = ReportUtils.isReportNotFound(report) || (status === 'loaded' && !transaction?.transactionID);
+
     return (
         <ScreenWrapper
             testID={Confirmation.displayName}
             shouldShowOfflineIndicator
         >
-            <FullPageNotFoundView shouldShow={!isLoadingReportData && transactionID === '-1'}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
                 <ScrollView style={styles.mb3}>
                     <View style={[styles.ph5, styles.pb8]}>
