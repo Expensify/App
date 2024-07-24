@@ -25,49 +25,175 @@ describe('WorkflowUtils', () => {
         for (let accountID = 0; accountID < 10; accountID++) {
             const email = `${accountID}@example.com`;
             personalDetails[accountID] = TestHelper.buildPersonalDetails(email, accountID, email);
-            personalDetailsByEmail[email] = personalDetails[email];
+            personalDetailsByEmail[email] = personalDetails[accountID];
         }
     });
 
-    it('Should return no approvers for empty employees object', () => {
-        const employees: PolicyEmployeeList = {};
-        const firstEmail = '1@example.com';
-        const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
+    describe('getApprovalWorkflowApprovers', () => {
+        it('Should return no approvers for empty employees object', () => {
+            const employees: PolicyEmployeeList = {};
+            const firstEmail = '1@example.com';
+            const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
 
-        expect(approvers).toEqual([]);
-    });
+            expect(approvers).toEqual([]);
+        });
 
-    it('Should return just one approver if there is no forwardsTo', () => {
-        const employees: PolicyEmployeeList = {
-            '1@example.com': {
-                email: '1@example.com',
-                forwardsTo: undefined,
-            },
-            '2@example.com': {
-                email: '2@example.com',
-                forwardsTo: undefined,
-            },
-        };
-        const firstEmail = '1@example.com';
-        const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
+        it('Should return just one approver if there is no forwardsTo', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+            const firstEmail = '1@example.com';
+            const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
 
-        expect(approvers).toEqual([buildApprover(1)]);
-    });
+            expect(approvers).toEqual([buildApprover(1)]);
+        });
 
-    it('Should return just one approver if there is no forwardsTo', () => {
-        const employees: PolicyEmployeeList = {
-            '1@example.com': {
-                email: '1@example.com',
-                forwardsTo: undefined,
-            },
-            '2@example.com': {
-                email: '2@example.com',
-                forwardsTo: undefined,
-            },
-        };
-        const firstEmail = '1@example.com';
-        const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
+        it('Should return just one approver if there is no forwardsTo', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+            const firstEmail = '1@example.com';
+            const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
 
-        expect(approvers).toEqual([buildApprover(1)]);
+            expect(approvers).toEqual([buildApprover(1)]);
+        });
+
+        it('Should return a list of approver when there are forwardsTo', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: '3@example.com',
+                },
+                '3@example.com': {
+                    email: '3@example.com',
+                    forwardsTo: '4@example.com',
+                },
+                '4@example.com': {
+                    email: '4@example.com',
+                    forwardsTo: undefined,
+                },
+                '5@example.com': {
+                    email: '5@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+        });
+
+        it('Should return a list of approver when there are forwardsTo', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: '3@example.com',
+                },
+                '3@example.com': {
+                    email: '3@example.com',
+                    forwardsTo: '4@example.com',
+                },
+                '4@example.com': {
+                    email: '4@example.com',
+                    forwardsTo: undefined,
+                },
+                '5@example.com': {
+                    email: '5@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+        });
+
+        it('Should return a list of approver with circular references', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: '3@example.com',
+                },
+                '3@example.com': {
+                    email: '3@example.com',
+                    forwardsTo: '4@example.com',
+                },
+                '4@example.com': {
+                    email: '4@example.com',
+                    forwardsTo: '5@example.com',
+                },
+                '5@example.com': {
+                    email: '5@example.com',
+                    forwardsTo: '1@example.com',
+                },
+            };
+
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4, {forwardsTo: '5@example.com'}),
+                buildApprover(5, {forwardsTo: '1@example.com'}),
+                buildApprover(1, {forwardsTo: '2@example.com', isCircularReference: true}),
+            ]);
+            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4, {forwardsTo: '5@example.com'}),
+                buildApprover(5, {forwardsTo: '1@example.com'}),
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '3@example.com', isCircularReference: true}),
+            ]);
+        });
     });
 });
