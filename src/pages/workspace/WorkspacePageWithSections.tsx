@@ -90,6 +90,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
+
+        /** Callback to be called when the back button is pressed */
+        onBackButtonPress?: () => void;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -122,6 +125,7 @@ function WorkspacePageWithSections({
     testID,
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
+    onBackButtonPress,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '-1';
@@ -182,7 +186,7 @@ function WorkspacePageWithSections({
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
+                    onBackButtonPress={() => (onBackButtonPress ? onBackButtonPress() : Navigation.goBack(backButtonRoute))}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
                 >

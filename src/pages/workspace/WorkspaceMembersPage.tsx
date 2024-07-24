@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -14,9 +14,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
-import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -26,6 +26,7 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,24 +41,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployeeList, Session} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceMembersPageOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
-    /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-};
-type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
-    WithCurrentUserPersonalDetailsProps &
-    WorkspaceMembersPageOnyxProps &
-    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -69,7 +60,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, route, policy, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
     const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -90,9 +81,27 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
+
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+
+    const canSelectMultiple = isPolicyAdmin && isSmallScreenWidth ? selectionMode?.isEnabled : true;
+
+    useEffect(() => {
+        if (!isSmallScreenWidth) {
+            if (selectedEmployees.length === 0) {
+                turnOffMobileSelectionMode();
+            }
+            return;
+        }
+        if (isPolicyAdmin && selectedEmployees.length > 0 && !selectionMode?.isEnabled) {
+            turnOnMobileSelectionMode();
+        }
+    }, [isPolicyAdmin, isSmallScreenWidth, selectedEmployees.length, selectionMode?.isEnabled]);
 
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
@@ -422,9 +431,17 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         </>
     );
 
+    useEffect(() => {
+        if (selectionMode?.isEnabled) {
+            return;
+        }
+
+        setSelectedEmployees([]);
+    }, [setSelectedEmployees, selectionMode?.isEnabled]);
+
     const getCustomListHeader = () => {
         const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, !canSelectMultiple && styles.m5]}>
                 <View>
                     <Text style={[styles.searchInputStyle, isPolicyAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
@@ -525,15 +542,23 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.common.members')}
+            headerText={selectionMode?.isEnabled ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
             headerContent={!isSmallScreenWidth && getHeaderButtons()}
-            icon={Illustrations.ReceiptWrangler}
+            icon={!selectionMode?.isEnabled ? Illustrations.ReceiptWrangler : undefined}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
+            onBackButtonPress={() => {
+                if (selectionMode?.isEnabled) {
+                    setSelectedEmployees([]);
+                    turnOffMobileSelectionMode();
+                    return;
+                }
+                Navigation.goBack();
+            }}
         >
             {() => (
                 <>
@@ -557,11 +582,13 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         }}
                     />
                     <View style={[styles.w100, styles.flex1]}>
-                        <SelectionList
+                        <SelectionListWithModal
                             ref={selectionListRef}
-                            canSelectMultiple={isPolicyAdmin}
+                            canSelectMultiple={canSelectMultiple}
                             sections={[{data, isDisabled: false}]}
                             ListItem={TableListItem}
+                            turnOnSelectionModeOnLongPress
+                            onTurnOnSelectionMode={(item) => toggleUser(item?.accountID ?? -1)}
                             shouldUseUserSkeletonView
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
@@ -588,15 +615,4 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
 
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
-export default withCurrentUserPersonalDetails(
-    withPolicyAndFullscreenLoading(
-        withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
-            invitedEmailsToAccountIDsDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-            },
-            session: {
-                key: ONYXKEYS.SESSION,
-            },
-        })(WorkspaceMembersPage),
-    ),
-);
+export default withCurrentUserPersonalDetails(withPolicyAndFullscreenLoading(WorkspaceMembersPage));
