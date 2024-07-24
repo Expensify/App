@@ -6,20 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CancellationDetails} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let cancellationDetails: CancellationDetails[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        cancellationDetails = value;
-    },
-});
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
@@ -293,36 +280,12 @@ function clearOutstandingBalance() {
 }
 
 function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, cancellationNote: string) {
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-            value: [
-                ...cancellationDetails,
-                {
-                    cancellationReason,
-                },
-            ],
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS,
-            value: [...cancellationDetails],
-        },
-    ];
-
     const parameters: CancelBillingSubscriptionParams = {
         cancellationReason,
         cancellationNote,
     };
 
-    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters, {
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
 }
 
 export {

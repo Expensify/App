@@ -11,7 +11,7 @@ type CancellationDetails = {
     cancellationReason: FeedbackSurveyOptionID;
 
     /** Cancellation type (manual/automatic/none) */
-    cancellationType?: CancellationType;
+    cancellationType: CancellationType;
 
     /** Additional note */
     note?: string;
