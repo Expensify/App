@@ -2,14 +2,27 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
 
+let isNewAppLaunch = true;
 /**
  * Merge the new log into the existing logs in Onyx
  * @param log the log to add
  */
 function addLog(log: Log) {
-    Onyx.merge(ONYXKEYS.LOGS, {
-        [log.time.getTime()]: log,
-    });
+    /**
+     * If this is the new app launch, we want to reset the log state in Onyx.
+     * This is because we don't want to keep logs from previous sessions and
+     * blow up the Onyx state.
+     */
+    if (isNewAppLaunch) {
+        isNewAppLaunch = false;
+        Onyx.set(ONYXKEYS.LOGS, {
+            [log.time.getTime()]: log,
+        });
+    } else {
+        Onyx.merge(ONYXKEYS.LOGS, {
+            [log.time.getTime()]: log,
+        });
+    }
 }
 
 /**
