@@ -7,6 +7,7 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -34,6 +35,7 @@ function OnboardingModalNavigator() {
             return onboarding?.hasCompletedGuidedSetupFlow;
         },
     });
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {
@@ -42,10 +44,14 @@ function OnboardingModalNavigator() {
         Navigation.isNavigationReady().then(() => {
             // Need to go back to previous route and then redirect to Concierge,
             // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            Navigation.setShouldPopAllStateOnUP(true);
-            Navigation.goBack(ROUTES.HOME, true, true);
+            if (isSmallScreenWidth) {
+                Navigation.setShouldPopAllStateOnUP(true);
+                Navigation.goBack(ROUTES.HOME, true, true);
+            } else {
+                Navigation.goBack();
+            }
         });
-    }, [hasCompletedGuidedSetupFlow]);
+    }, [hasCompletedGuidedSetupFlow, isSmallScreenWidth]);
 
     const outerViewRef = React.useRef<View>(null);
 
