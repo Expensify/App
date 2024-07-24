@@ -127,33 +127,40 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
     return sortedApprovalWorkflows;
 }
 
+type ConvertApprovalWorkflowToPolicyEmployeesParams = {
+    approvalWorkflow: ApprovalWorkflow;
+    employeeList: PolicyEmployeeList;
+};
+
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees(approvalWorkflow: ApprovalWorkflow, employeeList: PolicyEmployeeList): PolicyEmployeeList {
-    const employees: PolicyEmployeeList = {};
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+    const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
     if (!firstApprover) {
         throw new Error('Approval workflow must have at least one approver');
     }
 
+    approvalWorkflow.approvers.forEach((approver, index) => {
+        if (updatedEmployeeList[approver.email]) {
+            return;
+        }
+
+        const nextApprover = approvalWorkflow.approvers.at(index + 1);
+        updatedEmployeeList[approver.email] = {
+            ...employeeList[approver.email],
+            forwardsTo: nextApprover?.email,
+        };
+    });
+
     approvalWorkflow.members.forEach(({email}) => {
-        employees[email] = {
-            ...employeeList[email],
+        updatedEmployeeList[email] = {
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
             submitsTo: firstApprover.email,
         };
     });
 
-    approvalWorkflow.approvers.forEach((approver, index) => {
-        const nextApprover = approvalWorkflow.approvers[index + 1];
-        if (nextApprover) {
-            employees[approver.email] = {
-                ...employeeList[approver.email],
-                forwardsTo: nextApprover.email,
-            };
-        }
-    });
-
-    return employees;
+    return updatedEmployeeList;
 }
 
 export {getApprovalWorkflowApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees};
