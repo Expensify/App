@@ -54,8 +54,8 @@ function EmptySelectionListContent({contentType, onEmptyChange}: EmptySelectionL
         <View style={[styles.flex1, styles.overflowHidden]}>
             <BlockingView
                 icon={Illustrations.ToddWithPhones}
-                iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopMediumIconHeight}
+                iconWidth={variables.emptySelectionListIconWidth}
+                iconHeight={variables.emptySelectionListIconHeight}
                 title={translate(`emptyList.${contentType}.title`)}
                 shouldShowLink={false}
                 CustomSubtitle={EmptySubtitle}
