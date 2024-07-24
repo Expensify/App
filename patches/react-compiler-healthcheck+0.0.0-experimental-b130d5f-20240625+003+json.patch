@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-compiler-healthcheck/dist/index.js b/node_modules/react-compiler-healthcheck/dist/index.js
-index 4bf23db..f7dfdf6 100755
+index fa2ab22..93be1fb 100755
 --- a/node_modules/react-compiler-healthcheck/dist/index.js
 +++ b/node_modules/react-compiler-healthcheck/dist/index.js
-@@ -69154,16 +69154,28 @@ var reactCompilerCheck = {
+@@ -69157,16 +69157,28 @@ var reactCompilerCheck = {
        compile(source, path);
      }
    },
@@ -29,15 +29,15 @@ index 4bf23db..f7dfdf6 100755
 +      const extractFileName = (output) => output.fnLoc.filename;
 +      const successfulFiles = SucessfulCompilation.map(extractFileName);
 +      const unsuccessfulFiles = [...new Set([...OtherFailures, ...ActionableFailures].map(extractFileName))];
-+      console.log({
++      console.log(JSON.stringify({
 +        success: successfulFiles,
 +        failure: unsuccessfulFiles,
-+      });
++      }));
 +    }
      
      if (verbose) {
        for (const compilation of [...SucessfulCompilation, ...ActionableFailures, ...OtherFailures]) {
-@@ -69250,10 +69262,17 @@ function main() {
+@@ -69253,10 +69265,17 @@ function main() {
          default: false,
          alias: 'v',
        })
@@ -55,7 +55,7 @@ index 4bf23db..f7dfdf6 100755
      const globOptions = {
        onlyFiles: true,
        ignore: [
-@@ -69273,9 +69292,12 @@ function main() {
+@@ -69276,9 +69295,12 @@ function main() {
        libraryCompatCheck.run(source, path);
      }
      spinner.stop();
