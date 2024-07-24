@@ -778,7 +778,6 @@ function MoneyRequestConfirmationList({
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 enterKeyEventListenerPriority={1}
-                useKeyboardShortcuts
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -790,7 +789,6 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
-                useKeyboardShortcuts
             />
         );
 
@@ -885,7 +883,6 @@ function MoneyRequestConfirmationList({
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
-                disableKeyboardShortcuts
                 removeClippedSubviews={false}
             />
         </MouseProvider>

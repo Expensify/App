@@ -1057,6 +1057,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        invisiblePDF: {
+            position: 'absolute',
+            opacity: 0,
+            width: 1,
+            height: 1,
+        },
+
         headerAnonymousFooter: {
             color: theme.heading,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
