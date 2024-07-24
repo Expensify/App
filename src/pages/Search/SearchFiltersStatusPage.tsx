@@ -65,7 +65,7 @@ function SearchFiltersStatusPage() {
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton title={translate('search.filters.status')} />
-                <View>
+                <View style={[styles.flex1]}>
                     <SelectionList
                         sections={[{data: filterStatusItems}]}
                         onSelectRow={(item) => {

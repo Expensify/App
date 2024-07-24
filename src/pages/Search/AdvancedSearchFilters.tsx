@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import type INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
 // the values of dateBefore+dateAfter map to just a single 'date' field on advanced filters
 type AvailableFilters = ValueOf<typeof INPUT_IDS> | 'date';
@@ -35,11 +36,8 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if (fieldName === INPUT_IDS.TYPE) {
-        return filters[fieldName];
-    }
-
-    return filters[fieldName];
+    const filterValue = filters[fieldName];
+    return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
 
 function AdvancedSearchFilters() {
@@ -72,23 +70,25 @@ function AdvancedSearchFilters() {
     );
 
     return (
-        <View>
-            {advancedFilters.map((item) => {
-                const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
+        <View style={[styles.flex1, styles.justifyContentBetween]}>
+            <View>
+                {advancedFilters.map((item) => {
+                    const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
 
-                return (
-                    <MenuItemWithTopDescription
-                        key={item.description}
-                        title={item.title}
-                        description={translate(item.description)}
-                        shouldShowRightIcon
-                        onPress={onPress}
-                    />
-                );
-            })}
+                    return (
+                        <MenuItemWithTopDescription
+                            key={item.description}
+                            title={item.title}
+                            description={translate(item.description)}
+                            shouldShowRightIcon
+                            onPress={onPress}
+                        />
+                    );
+                })}
+            </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
-                containerStyles={[styles.mh4, styles.mt4]}
+                containerStyles={[styles.m4]}
                 onSubmit={() => {
                     // here set the selected filters as new query and redirect to SearchResults page
                     // waiting for: https://github.com/Expensify/App/issues/45028 and https://github.com/Expensify/App/issues/45027
