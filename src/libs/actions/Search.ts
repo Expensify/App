@@ -68,7 +68,7 @@ function searchV2(queryString: SearchQueryString) {
 
     // TODO_SEARCH: uncomment this line after backend changes
     // @ts-expect-error waiting for backend changes
-    API.read(READ_COMMANDS.SEARCH, queryJSON, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery: JSON.stringify(queryJSON)}, {optimisticData, finallyData});
 }
 
 /**
