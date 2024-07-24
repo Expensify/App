@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -65,6 +66,10 @@ function Confirmation() {
 
         return unsubscribeBeforeRemove;
     }, [navigation]);
+
+    if (status === 'loading') {
+        return <FullScreenLoadingIndicator />;
+    }
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = ReportUtils.isReportNotFound(report) || (!isExiting && status === 'loaded' && !transaction?.transactionID);
