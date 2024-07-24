@@ -3,7 +3,7 @@ import {Keyboard} from 'react-native';
 import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
 import useThemeStyles from './useThemeStyles';
 
-const useExtraSafePaddingBottomStyle = () => {
+const useSafePaddingBottomStyle = () => {
     const styles = useThemeStyles();
     const [willKeyboardShow, setWillKeyboardShow] = useState<boolean>(false);
     useEffect(() => {
@@ -31,4 +31,4 @@ const useExtraSafePaddingBottomStyle = () => {
     return extraPaddingBottomStyle;
 };
 
-export default useExtraSafePaddingBottomStyle;
+export default useSafePaddingBottomStyle;
