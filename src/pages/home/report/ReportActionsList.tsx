@@ -250,8 +250,8 @@ function ReportActionsList({
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
     useEffect(() => {
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => setUnreadMarkerTime(newLastReadTime));
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => setUnreadMarkerTime(newLastReadTime));
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, setUnreadMarkerTime);
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, setUnreadMarkerTime);
 
         return () => {
             unreadActionSubscription.remove();
