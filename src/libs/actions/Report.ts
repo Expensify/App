@@ -1417,7 +1417,15 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             lastActorAccountID,
         };
     }
-
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
+    if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
+        const reportActionsForReport = allReportActions?.[reportID];
+        const latestMentioneReportAction = Object.values(reportActionsForReport ?? {}).find(
+            (action) => action.reportActionID !== reportAction.reportActionID && ReportActionsUtils.didMessageMentionCurrentUser(action),
+        );
+        optimisticReport.lastMentionedTime = latestMentioneReportAction?.created ?? null;
+    }
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
     const failureData: OnyxUpdate[] = [
@@ -1852,6 +1860,8 @@ function clearReportFieldErrors(reportID: string, reportField: PolicyReportField
 
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    const reportViolations = ReportUtils.getReportViolations(reportID);
+    const fieldViolation = ReportUtils.getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
@@ -1868,6 +1878,18 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             },
         },
     ];
+
+    if (fieldViolation) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`,
+            value: {
+                [fieldViolation]: {
+                    [reportField.fieldID]: null,
+                },
+            },
+        });
+    }
 
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
