@@ -325,14 +325,19 @@ function MoneyRequestConfirmationList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
+    const isFirstUpdatedDistanceAmount = useRef(false);
+
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount) {
+        if (isFirstUpdatedDistanceAmount.current) {
             return;
         }
-
+        if (!isDistanceRequest) {
+            return;
+        }
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
-    }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
+        isFirstUpdatedDistanceAmount.current = true;
+    }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
