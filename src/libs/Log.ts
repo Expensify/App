@@ -66,15 +66,15 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
 const Log = new Logger({
     serverLoggingCallback,
-    clientLoggingCallback: (message) => {
+    clientLoggingCallback: (message, extraData) => {
         if (!shouldAttachLog(message)) {
             return;
         }
 
-        console.debug(message);
+        console.debug(message, extraData);
 
         if (shouldCollectLogs) {
-            addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message});
+            addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
         }
     },
     isDebug: true,
