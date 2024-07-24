@@ -109,13 +109,6 @@ const MSG_VISIBLE_THRESHOLD = 250;
 // the subscriptions could otherwise be conflicting.
 const newActionUnsubscribeMap: Record<string, () => void> = {};
 
-// Caching the reportID and reportActionID for unread markers ensures persistent tracking
-// across multiple reports, preserving the green line placement and allowing retrieval
-// of the relevant reportActionID for displaying the green line.
-// We need to persist it across reports because there are at least 3 ReportScreen components created so the
-// internal states are resetted or recreated.
-const cacheUnreadMarkers = new Map<string, string>();
-
 // Seems that there is an architecture issue that prevents us from using the reportID with useRef
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID: string | null = null;
@@ -333,7 +326,6 @@ function ReportActionsList({
             return;
         }
 
-        cacheUnreadMarkers.delete(report.reportID);
         lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
