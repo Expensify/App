@@ -37,7 +37,7 @@ function BaseSidebarScreen() {
     const [selectedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
-        if (selectedPolicy || activeWorkspaceID === undefined || !!didResetActiveWorkspaceIDRef.current) {
+        if (!!selectedPolicy || activeWorkspaceID === undefined || !!didResetActiveWorkspaceIDRef.current) {
             return;
         }
 
