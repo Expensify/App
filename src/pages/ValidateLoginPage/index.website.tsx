@@ -51,7 +51,7 @@ function ValidateLoginPage({
         // we need to `popToTop` the stack after `signInWithValidateCode` in order to
         // perform login for both 2FA and non-2FA accounts.
         desktopLoginRedirect(autoAuthState, isSignedIn);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

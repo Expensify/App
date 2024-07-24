@@ -86,7 +86,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportReimbursable'),
+            description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
             brickRoadIndicator: config?.errorFields?.reimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
@@ -96,7 +96,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportNonReimbursable'),
+            description: translate('workspace.accounting.exportCompanyCard'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
             brickRoadIndicator: config?.errorFields?.nonreimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.nonreimbursableExpensesExportDestination

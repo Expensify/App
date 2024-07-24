@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, format as formatDate, subDays} from 'date-fns';
+import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,6 +167,8 @@ describe('ReportUtils', () => {
                     ...baseAdminsRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
@@ -190,6 +193,8 @@ describe('ReportUtils', () => {
                     ...baseUserCreatedRoom,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
@@ -234,6 +239,8 @@ describe('ReportUtils', () => {
                     oldPolicyName: policy.name,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    private_isArchived: DateUtils.getDBTime(),
                 };
 
                 test('as member', () => {
@@ -314,7 +321,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
 
-        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
+        it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 97,
@@ -343,7 +350,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
-        it('returns true when the report has oustanding child expense', () => {
+        it('returns true when the report has outstanding child expense', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
@@ -379,48 +386,6 @@ describe('ReportUtils', () => {
             };
 
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
-        });
-
-        it('returns false if the user free trial has ended and it added a payment card', async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial not ended
-                [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010, // payment card added
-            });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-            };
-
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
-        });
-
-        it("returns true if the report is the system chat, the user free trial has ended and it didn't add a payment card yet", async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial ended
-                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
-            });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport(),
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-            };
-
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
-        });
-
-        it("returns true if the report is the concierge chat, the user free trial has ended and it didn't add a payment card yet", async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial ended
-                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: 8}, // even account id
-            });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
-            };
-
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
 
@@ -767,8 +732,8 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('sortReportsByLastRead', () => {
-        it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
+    describe('getMostRecentlyVisitedReport', () => {
+        it('should filter out report without reportID & lastReadTime and return the most recently visited report', () => {
             const reports: Array<OnyxEntry<Report>> = [
                 {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
                 {reportID: '2', lastReadTime: undefined},
@@ -778,12 +743,8 @@ describe('ReportUtils', () => {
                 {reportID: '6'},
                 undefined,
             ];
-            const sortedReports: Array<OnyxEntry<Report>> = [
-                {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
-                {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
-                {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
-            ];
-            expect(ReportUtils.sortReportsByLastRead(reports, undefined)).toEqual(sortedReports);
+            const latestReport: OnyxEntry<Report> = {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'};
+            expect(ReportUtils.getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
         });
     });
 
@@ -952,6 +913,82 @@ describe('ReportUtils', () => {
             };
 
             expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
+        });
+
+        it("should use the report id from the onboarding NVP if it's set", async () => {
+            const reportID = '8010';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: {chatReportID: reportID, hasCompletedGuidedSetupFlow: true},
+            });
+
+            const report1: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID,
+            };
+            expect(ReportUtils.isChatUsedForOnboarding(report1)).toBeTruthy();
+
+            const report2: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '8011',
+            };
+            expect(ReportUtils.isChatUsedForOnboarding(report2)).toBeFalsy();
+        });
+    });
+
+    describe('getChatByParticipants', () => {
+        const userAccountID = 1;
+        const userAccountID2 = 2;
+        let oneOnOneChatReport: Report;
+        let groupChatReport: Report;
+
+        beforeAll(() => {
+            const invoiceReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            const taskReport: Report = {
+                reportID: '2',
+                type: CONST.REPORT.TYPE.TASK,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            const iouReport: Report = {
+                reportID: '3',
+                type: CONST.REPORT.TYPE.IOU,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            groupChatReport = {
+                reportID: '4',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {[userAccountID]: {hidden: false}, [userAccountID2]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            oneOnOneChatReport = {
+                reportID: '5',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            const reportCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT,
+                [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
+                (item) => item.reportID,
+            );
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
+        });
+        it('should return the 1:1 chat', () => {
+            const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID]);
+            expect(report?.reportID).toEqual(oneOnOneChatReport.reportID);
+        });
+
+        it('should return the group chat', () => {
+            const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID, userAccountID2], undefined, true);
+            expect(report?.reportID).toEqual(groupChatReport.reportID);
+        });
+
+        it('should return undefined when no report is found', () => {
+            const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID2], undefined);
+            expect(report).toEqual(undefined);
         });
     });
 });

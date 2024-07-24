@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
+import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
@@ -265,7 +266,7 @@ function AttachmentModal({
         }
 
         setIsModalOpen(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isModalOpen, isConfirmButtonDisabled, onConfirm, file, sourceState]);
 
     /**
@@ -367,7 +368,7 @@ function AttachmentModal({
             onModalClose();
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [onModalClose]);
 
     /**
@@ -428,7 +429,7 @@ function AttachmentModal({
             });
         }
         return menuItems;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
@@ -455,6 +456,8 @@ function AttachmentModal({
         [closeModal, nope, sourceForAttachmentView],
     );
 
+    const submitRef = useRef<View | HTMLElement>(null);
+
     return (
         <>
             <Modal
@@ -471,6 +474,12 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
+                initialFocus={() => {
+                    if (!submitRef.current) {
+                        return false;
+                    }
+                    return submitRef.current;
+                }}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
@@ -529,6 +538,7 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
+                                            isUploaded={!isEmptyObject(report)}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )
@@ -540,6 +550,7 @@ function AttachmentModal({
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
+                                        ref={viewRef(submitRef)}
                                         success
                                         large
                                         style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}

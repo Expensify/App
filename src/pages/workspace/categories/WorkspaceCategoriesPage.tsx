@@ -1,5 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -7,6 +8,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -15,9 +17,9 @@ import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -36,6 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyOption = ListItem & {
@@ -82,20 +85,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
-            Object.values(policyCategories ?? {})
-                .sort((a, b) => localeCompare(a.name, b.name))
-                .map((value) => {
-                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                    return {
-                        text: value.name,
-                        keyForList: value.name,
-                        isSelected: !!selectedCategories[value.name],
-                        isDisabled,
-                        pendingAction: value.pendingAction,
-                        errors: value.errors ?? undefined,
-                        rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                    };
-                }),
+            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[]).map((value) => {
+                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                return {
+                    text: value.name,
+                    keyForList: value.name,
+                    isSelected: !!selectedCategories[value.name],
+                    isDisabled,
+                    pendingAction: value.pendingAction,
+                    errors: value.errors ?? undefined,
+                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                };
+            }),
         [policyCategories, selectedCategories, translate],
     );
 
@@ -254,7 +255,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
-    const isLoading = !isOffline && policyCategories === null;
+    const isLoading = !isOffline && policyCategories === undefined;
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
@@ -317,10 +318,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         color={theme.spinner}
                     />
                 )}
+
                 {!hasVisibleCategories && !isLoading && (
-                    <WorkspaceEmptyStateSection
+                    <EmptyStateComponent
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={Illustrations.EmptyState}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                         title={translate('workspace.categories.emptyCategories.title')}
-                        icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     />
                 )}

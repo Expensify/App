@@ -13,7 +13,7 @@ import type {
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -253,12 +253,24 @@ function addSubscriptionPaymentCard(cardData: {
         },
     ];
 
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
-    Navigation.goBack();
+    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+
+            // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
+            Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
+        });
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+    }
 }
 
 /**
@@ -287,6 +299,14 @@ function clearPaymentCardFormErrorAndSubmit() {
  */
 function clearPaymentCard3dsVerification() {
     Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
+ * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
+ *
+ */
+function verifySetupIntent(accountID: number, isVerifying = true) {
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying});
 }
 
 /**
@@ -534,4 +554,5 @@ export {
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
     setPaymentCardForm,
+    verifySetupIntent,
 };

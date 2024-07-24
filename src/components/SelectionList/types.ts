@@ -58,8 +58,17 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -81,6 +90,9 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
+
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
 
@@ -89,6 +101,9 @@ type ListItem = {
 
     /** User login */
     login?: string | null;
+
+    /** Element to show on the left side of the item */
+    leftElement?: ReactNode;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -118,6 +133,9 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** The search value from the selection list */
     searchText?: string | null;
@@ -296,6 +314,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to debounce `onRowSelect` */
     shouldDebounceRowSelect?: boolean;
 
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
+
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -404,6 +425,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Styles to apply to SectionList component */
+    sectionListStyle?: StyleProp<ViewStyle>;
+
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
@@ -424,6 +448,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
@@ -462,6 +489,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

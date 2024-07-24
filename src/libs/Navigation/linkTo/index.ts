@@ -3,6 +3,7 @@ import type {NavigationContainerRef, NavigationState, PartialState} from '@react
 import {findFocusedRoute} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
 import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import shallowCompare from '@libs/ObjectUtils';
@@ -68,7 +69,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
-    const isReportInRhpOpened = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.some((route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+    const isReportInRhpOpened = isReportOpenInRHP(rootState);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
@@ -140,7 +141,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 }
             }
             // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
-            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR && !isNarrowLayout) {
+            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 return;
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
