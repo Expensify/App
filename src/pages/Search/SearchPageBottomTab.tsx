@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,10 +9,12 @@ import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
@@ -30,7 +33,7 @@ function SearchPageBottomTab() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
-    const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const {
         query: rawQuery,
@@ -61,7 +64,7 @@ function SearchPageBottomTab() {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {!isMobileSelectionModeActive ? (
+                {!selectionMode?.isEnabled ? (
                     <>
                         <TopBar
                             activeWorkspaceID={policyIDs}
@@ -72,8 +75,8 @@ function SearchPageBottomTab() {
                     </>
                 ) : (
                     <HeaderWithBackButton
-                        title={translate('search.selectMultiple')}
-                        onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
+                        title={translate('common.selectMultiple')}
+                        onBackButtonPress={turnOffMobileSelectionMode}
                     />
                 )}
                 {isSmallScreenWidth && (
@@ -82,8 +85,6 @@ function SearchPageBottomTab() {
                         query={query}
                         sortBy={sortBy}
                         sortOrder={sortOrder}
-                        isMobileSelectionModeActive={isMobileSelectionModeActive}
-                        setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                     />
                 )}
             </FullPageNotFoundView>

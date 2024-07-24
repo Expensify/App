@@ -34,8 +34,6 @@ type SearchProps = {
     policyIDs?: string;
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
-    isMobileSelectionModeActive?: boolean;
-    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 const sortableSearchTabs: SearchQuery[] = [CONST.SEARCH.TAB.ALL];
@@ -43,13 +41,14 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
+function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -177,7 +176,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
-    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeActive : true;
+    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     return (
         <SearchListWithHeader
@@ -221,8 +220,6 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
-            setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
-            isMobileSelectionModeActive={isMobileSelectionModeActive}
             listFooterContent={
                 shouldShowLoadingMoreItems ? (
                     <SearchRowSkeleton

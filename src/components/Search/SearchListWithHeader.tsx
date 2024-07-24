@@ -1,17 +1,16 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import Modal from '@components/Modal';
-import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes, SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
 import type {SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -21,8 +20,6 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
-    isMobileSelectionModeActive?: boolean;
-    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -43,19 +40,15 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
           };
 }
 
-function SearchListWithHeader(
-    {ListItem, onSelectRow, query, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, ...props}: SearchListWithHeaderProps,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [longPressedItem, setLongPressedItem] = useState<TransactionListItemType | ReportListItemType | null>(null);
     const [selectedTransactions, setSelectedTransactions] = useState<SelectedTransactions>({});
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedReports: Array<SearchReport['reportID']> = useMemo(() => {
         if (searchType !== CONST.SEARCH.DATA_TYPES.REPORT) {
@@ -132,35 +125,13 @@ function SearchListWithHeader(
         [selectedTransactions],
     );
 
-    const openBottomModal = (item: TransactionListItemType | ReportListItemType | null) => {
-        if (!isSmallScreenWidth) {
-            return;
-        }
-
-        setLongPressedItem(item);
-        setIsModalVisible(true);
-    };
-
-    const turnOnSelectionMode = useCallback(() => {
-        setIsMobileSelectionModeActive?.(true);
-        setIsModalVisible(false);
-
-        if (longPressedItem) {
-            toggleTransaction(longPressedItem);
-        }
-    }, [longPressedItem, setIsMobileSelectionModeActive, toggleTransaction]);
-
-    const closeBottomModal = useCallback(() => {
-        setIsModalVisible(false);
-    }, []);
-
     useEffect(() => {
-        if (isMobileSelectionModeActive) {
+        if (selectionMode?.isEnabled) {
             return;
         }
 
         setSelectedTransactions({});
-    }, [setSelectedTransactions, isMobileSelectionModeActive]);
+    }, [setSelectedTransactions, selectionMode?.isEnabled]);
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchType === CONST.SEARCH.DATA_TYPES.REPORT;
@@ -191,23 +162,21 @@ function SearchListWithHeader(
                 query={query}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
-                isMobileSelectionModeActive={isMobileSelectionModeActive}
-                setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                 selectedReports={selectedReports}
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-            <SelectionList<ReportListItemType | TransactionListItemType>
+            <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 ListItem={ListItem}
                 onSelectRow={onSelectRow}
-                onLongPressRow={openBottomModal}
+                turnOnSelectionModeOnLongPress
+                onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
                 ref={ref}
                 onCheckboxPress={toggleTransaction}
                 onSelectAll={toggleAllTransactions}
-                isMobileSelectionModeActive={isMobileSelectionModeActive}
             />
             <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}
@@ -237,17 +206,6 @@ function SearchListWithHeader(
                 isVisible={downloadErrorModalVisible}
                 onClose={() => setDownloadErrorModalVisible(false)}
             />
-            <Modal
-                isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={closeBottomModal}
-            >
-                <MenuItem
-                    title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
-                    onPress={turnOnSelectionMode}
-                />
-            </Modal>
         </>
     );
 }
