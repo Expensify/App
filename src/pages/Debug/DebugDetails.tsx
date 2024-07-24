@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import isObject from '@src/utils/isObject';
 
 type DebugDetailsProps = {
     data: Record<string, unknown>;
@@ -35,12 +36,10 @@ function DebugDetails({data, onyxKey, isCollection = false, idSelector = () => '
                     forceActiveLabel
                     label={key}
                     numberOfLines={4}
-                    multiline={typeof value === 'object'}
-                    defaultValue={typeof value === 'object' ? JSON.stringify(value, null, 6) : (value as string)}
+                    multiline={isObject(value)}
+                    defaultValue={isObject(value) ? JSON.stringify(value, null, 6) : String(value)}
                     onChangeText={(updatedValue) => {
-                        setDraftData((currentDraftData) => {
-                            return {...currentDraftData, [key]: updatedValue};
-                        });
+                        setDraftData((currentDraftData) => ({...currentDraftData, [key]: updatedValue}));
                         setHasChanges(true);
                     }}
                 />
@@ -56,7 +55,7 @@ function DebugDetails({data, onyxKey, isCollection = false, idSelector = () => '
                     setErrors({});
                     const results = Object.entries(draftData).map(([key, value]) => {
                         try {
-                            if (data && typeof data === 'object' && typeof data[key] === 'object') {
+                            if (data && isObject(data) && isObject(data[key])) {
                                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                                 return [key, typeof value === 'string' ? JSON.parse(value.replaceAll('\n', '')) : value];
                             }
