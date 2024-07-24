@@ -223,7 +223,7 @@ function MoneyRequestView({
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
+    const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
     const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '-1';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -287,6 +287,8 @@ function MoneyRequestView({
     }
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
+
+    console.log(distanceToDisplay, getPendingFieldAction('waypoints'), transactionBackup, hasRoute, unit, rate);
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
