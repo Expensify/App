@@ -6,6 +6,7 @@ import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type {CapturedLogs, Log} from './Console';
@@ -212,4 +213,5 @@ export type {
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
+    CancellationDetails,
 };
