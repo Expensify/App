@@ -90,7 +90,9 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.journalPostingPreference.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID, params.expenseType)),
             brickRoadIndicator: config?.errorFields?.journalPostingPreference ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.journalPostingPreference ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`) : undefined,
+            title: config?.journalPostingPreference
+                ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
+                : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
             pendingAction: config?.pendingFields?.journalPostingPreference,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
