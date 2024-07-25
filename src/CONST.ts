@@ -366,9 +366,8 @@ const CONST = {
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -908,7 +907,11 @@ const CONST = {
         },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -2377,6 +2380,7 @@ const CONST = {
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
+        WORKSPACE_FEATURES: 'WorkspaceFeatures',
     },
     get EXPENSIFY_EMAILS() {
         return [
@@ -3866,6 +3870,9 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
     },
+    STRIPE_GBP_AUTH_STATUSES: {
+        SUCCEEDED: 'succeeded',
+    },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
@@ -4086,6 +4093,14 @@ const CONST = {
         HOLD: 'hold',
     },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
+
+    REPORT_VIOLATIONS: {
+        FIELD_REQUIRED: 'fieldRequired',
+    },
+
+    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
+        TEXT_TITLE: 'text_title',
+    },
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -5151,6 +5166,7 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
+        RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
     },
 
     RESERVATION_TYPE: {
@@ -5284,8 +5300,10 @@ const CONST = {
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',
+        GBP: 'GBP',
         NZD: 'NZD',
     },
+    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
@@ -5315,6 +5333,12 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+
+    CANCELLATION_TYPE: {
+        MANUAL: 'manual',
+        AUTOMATIC: 'automatic',
+        NONE: 'none',
+    },
     EMPTY_STATE_MEDIA: {
         ANIMATION: 'animation',
         ILLUSTRATION: 'illustration',
@@ -5383,7 +5407,8 @@ type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
 
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType};
 
 export default CONST;
