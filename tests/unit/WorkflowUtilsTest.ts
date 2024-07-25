@@ -100,48 +100,7 @@ describe('WorkflowUtils', () => {
             expect(approvers).toEqual([buildApprover(1)]);
         });
 
-        it('Should return a list of approver when there are forwardsTo', () => {
-            const employees: PolicyEmployeeList = {
-                '1@example.com': {
-                    email: '1@example.com',
-                    forwardsTo: '2@example.com',
-                },
-                '2@example.com': {
-                    email: '2@example.com',
-                    forwardsTo: '3@example.com',
-                },
-                '3@example.com': {
-                    email: '3@example.com',
-                    forwardsTo: '4@example.com',
-                },
-                '4@example.com': {
-                    email: '4@example.com',
-                    forwardsTo: undefined,
-                },
-                '5@example.com': {
-                    email: '5@example.com',
-                    forwardsTo: undefined,
-                },
-            };
-
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
-                buildApprover(1, {forwardsTo: '2@example.com'}),
-                buildApprover(2, {forwardsTo: '3@example.com'}),
-                buildApprover(3, {forwardsTo: '4@example.com'}),
-                buildApprover(4),
-            ]);
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
-                buildApprover(2, {forwardsTo: '3@example.com'}),
-                buildApprover(3, {forwardsTo: '4@example.com'}),
-                buildApprover(4),
-            ]);
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([
-                buildApprover(3, {forwardsTo: '4@example.com'}),
-                buildApprover(4),
-            ]);
-        });
-
-        it('Should return a list of approver when there are forwardsTo', () => {
+        it('Should return a list of approvers when forwardsTo is defined', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {
                     email: '1@example.com',
@@ -495,6 +454,34 @@ describe('WorkflowUtils', () => {
                 '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', submitsTo: 'previous@example.com'}),
                 '3@example.com': buildPolicyEmployee(3, {forwardsTo: '1@example.com', submitsTo: 'previous@example.com'}),
                 '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: '1@example.com'}),
+            });
+        });
+
+        it('Should return an updated employee list for a complex workflow when removing', () => {
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(4), buildMember(5), buildMember(6)],
+                approvers: [buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '2@example.com'}), buildApprover(3)],
+                isDefault: false,
+                isBeingEdited: false,
+            };
+            const employeeList: PolicyEmployeeList = {
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
+                '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
+                '5@example.com': buildPolicyEmployee(5, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
+                '6@example.com': buildPolicyEmployee(6, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
+            };
+
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, removeWorkflow: true});
+
+            expect(convertedEmployees).toEqual({
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: undefined, submitsTo: 'previous@example.com', role: 'admin'}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: undefined, submitsTo: 'previous@example.com'}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: undefined, submitsTo: 'previous@example.com'}),
+                '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: undefined}),
+                '5@example.com': buildPolicyEmployee(5, {forwardsTo: 'previous@example.com', submitsTo: undefined}),
+                '6@example.com': buildPolicyEmployee(6, {forwardsTo: 'previous@example.com', submitsTo: undefined}),
             });
         });
     });
