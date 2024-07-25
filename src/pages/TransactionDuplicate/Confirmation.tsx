@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function Confirmation() {
     const styles = useThemeStyles();
@@ -73,7 +74,7 @@ function Confirmation() {
     }
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = ReportUtils.isReportNotFound(report) || (!isExiting && status === 'loaded' && !transaction?.transactionID);
+    const shouldShowNotFoundPage = isEmptyObject(report) || ReportUtils.isReportNotFound(report) || (!isExiting && status === 'loaded' && !transaction?.transactionID);
 
     return (
         <ScreenWrapper
