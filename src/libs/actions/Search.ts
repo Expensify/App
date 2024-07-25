@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {SearchQueryString} from '@components/Search/types';
 import type {FormOnyxValues} from '@components/Form/types';
+import type {SearchQueryString} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';

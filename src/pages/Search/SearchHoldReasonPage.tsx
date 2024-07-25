@@ -19,14 +19,14 @@ type SearchHoldReasonPageRouteParams = {
 
 type SearchHoldReasonPageProps = {
     /** Navigation route context info provided by react navigation */
-    route: RouteProp<{params: SearchHoldReasonPageRouteParams}>;
+    route: RouteProp<{params?: SearchHoldReasonPageRouteParams}>;
 };
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
 
     const {currentSearchHash, selectedTransactionIDs} = useSearchContext();
-    const {backTo} = route.params;
+    const {backTo = ''} = route.params ?? {};
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);

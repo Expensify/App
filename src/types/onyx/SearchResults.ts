@@ -64,17 +64,6 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
-
-    /** The status of the search results to show */
-    statusToShow: {
-        // eslint-disable-next-line jsdoc/require-jsdoc
-        expense: {
-            // eslint-disable-next-line jsdoc/require-jsdoc
-            drafts: boolean;
-            // eslint-disable-next-line jsdoc/require-jsdoc
-            approved: boolean;
-        };
-    };
 };
 
 /** Model of personal details search result */

@@ -340,7 +340,9 @@ function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
     return queryParts.join(' ');
 }
 
-// Fill query string with all default params.
+/**
+ * Update string query with all the default params that are set by parser
+ */
 function normalizeQuery(query: string) {
     const normalizedQueryJSON = buildSearchQueryJSON(query);
     return buildSearchQueryString(normalizedQueryJSON);
