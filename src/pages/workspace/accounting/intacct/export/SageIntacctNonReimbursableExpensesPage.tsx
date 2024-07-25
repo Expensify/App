@@ -124,7 +124,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            headerTitle="workspace.sageIntacct.nonReimbursableExpenses.label"
+            headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
             titleStyle={[styles.ph5, styles.pb5]}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
