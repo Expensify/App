@@ -3,9 +3,9 @@ import {Keyboard} from 'react-native';
 import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
 import useThemeStyles from './useThemeStyles';
 
-// Refer to https://github.com/Expensify/App/issues/44056, the default padding bottom of any device is not enough.
-// Devices with 0 padding bottom value, this hook returns { paddingBottom: 0 }.
-// Otherwise, it returns { paddingBottom: 20 }.
+// This hook is useful for adding extra bottom padding to a component based on the device's safe area
+// If the device's safe area padding bottom is 0, the hook returns 0. Otherwise, it provides a padding bottom of 20.
+// Use this to ensure content visibility and layout consistency across different devices.
 const useSafePaddingBottomStyle = () => {
     const styles = useThemeStyles();
     const [willKeyboardShow, setWillKeyboardShow] = useState<boolean>(false);
