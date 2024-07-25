@@ -28,18 +28,18 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceWorkflowsApproverPageOnyxProps = {
+type WorkspaceWorkflowsApprovalsApproverPageOnyxProps = {
     /** All of the personal details for everyone */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps &
+type WorkspaceWorkflowsApprovalsApproverPageProps = WorkspaceWorkflowsApprovalsApproverPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER>;
+    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
@@ -154,6 +154,9 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
         Navigation.goBack();
     };
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -161,10 +164,10 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApproverPage.displayName}
+                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
             >
                 <FullPageNotFoundView
-                    shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
@@ -191,6 +194,6 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
     );
 }
 
-WorkspaceWorkflowsApproverPage.displayName = 'WorkspaceWorkflowsApproverPage';
+WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApproverPage);
+export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);

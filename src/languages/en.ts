@@ -1243,6 +1243,7 @@ export default {
         submissionFrequency: 'Submission frequency',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
+        addApprovalButton: 'Add approval workflow',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -1272,6 +1273,15 @@ export default {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
+    },
+    workflowsCreateApprovalsPage: {
+        title: 'Add approval workflow',
+    },
+    workflowsEditApprovalsPage: {
+        title: 'Edit approval workflow',
+    },
+    workflowsExpensesFromPage: {
+        title: 'Expenses from',
     },
     workflowsApprovalPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -4223,6 +4233,33 @@ export default {
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}) => `Renews on ${date}.`,
+        },
+        requestEarlyCancellation: {
+            title: 'Request early cancellation',
+            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+            subscriptionCanceled: {
+                title: 'Subscription canceled',
+                subtitle: 'Your annual subscription has been canceled.',
+                info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
+                preventFutureActivity: {
+                    part1: 'If you’d like to prevent future activity and charges, you must ',
+                    link: 'delete your workspace(s)',
+                    part2: '. Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+                },
+            },
+            requestSubmitted: {
+                title: 'Request submitted',
+                subtitle: {
+                    part1: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
+            },
+            acknowledgement: {
+                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
+                link: 'Terms of Service',
+                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
+            },
         },
     },
     feedbackSurvey: {
