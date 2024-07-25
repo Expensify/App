@@ -5091,6 +5091,13 @@ const styles = (theme: ThemeColors) =>
             height: 188,
         },
 
+        cardIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.cardBorderRadius,
+            height: variables.cardIconHeight,
+            alignSelf: 'center',
+        },
+
         tripReservationIconContainer: {
             width: variables.avatarSizeNormal,
             height: variables.avatarSizeNormal,
