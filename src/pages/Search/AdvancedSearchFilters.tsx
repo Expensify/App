@@ -36,6 +36,14 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
+    if (fieldName === 'category') {
+        const categories = filters[fieldName];
+        if (!categories) {
+            return undefined;
+        }
+        return categories.map((category) => Str.recapitalize(category)).join(', ');
+    }
+
     const filterValue = filters[fieldName];
     return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
@@ -64,6 +72,11 @@ function AdvancedSearchFilters() {
                 title: getFilterDisplayTitle(searchAdvancedFilters, 'status', translate),
                 description: 'search.filters.status' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, 'category', translate),
+                description: 'common.category' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
             },
         ],
         [searchAdvancedFilters, translate],

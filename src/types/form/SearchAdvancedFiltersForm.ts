@@ -6,6 +6,7 @@ const INPUT_IDS = {
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
+    CATEGORY: 'category',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -17,6 +18,7 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.DATE_AFTER]: string;
         [INPUT_IDS.DATE_BEFORE]: string;
         [INPUT_IDS.STATUS]: string;
+        [INPUT_IDS.CATEGORY]: string[];
     }
 >;
 
