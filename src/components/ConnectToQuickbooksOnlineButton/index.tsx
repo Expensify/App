@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
+import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';

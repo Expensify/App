@@ -204,6 +204,7 @@ const WRITE_COMMANDS = {
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
     UPDATE_POLICY_CONNECTION_CONFIG: 'UpdatePolicyConnectionConfiguration',
+    UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES: 'UpdateQuickbooksOnlineEnableNewCategories',
     UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
