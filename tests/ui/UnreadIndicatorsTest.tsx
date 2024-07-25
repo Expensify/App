@@ -348,22 +348,19 @@ describe('Unread Indicators', () => {
                 const secondReportOption = displayNameTexts[1];
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
-
-                // Tap the new report option and navigate back to the sidebar again via the back button
-                return navigateToSidebarOption(0);
-            })
-            .then(waitForBatchedUpdates)
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-                // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-                const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                const displayNameTexts = screen.queryAllByLabelText(hintText);
-                expect(displayNameTexts).toHaveLength(2);
-                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
-                expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
-                expect((displayNameTexts[1]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
+
+    it('Shows normal text when an unread chat is marked read', async () => {
+        await signInAndGetAppWithUnreadChat();
+
+        Report.readNewestAction(REPORT_ID);
+        await waitForBatchedUpdates();
+
+        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+        const displayNameTexts = screen.queryAllByLabelText(hintText);
+        expect(displayNameTexts).toHaveLength(1);
+        expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
+    });
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
