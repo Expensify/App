@@ -3915,11 +3915,13 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
 
     const params = {
         markedManually: true,
-        data: JSON.stringify({
-            reportID,
-            label,
-            optimisticReportActionID,
-        }),
+        data: JSON.stringify([
+            {
+                reportID,
+                label,
+                optimisticReportActionID,
+            },
+        ]),
     } satisfies MarkAsExportedParams;
 
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
