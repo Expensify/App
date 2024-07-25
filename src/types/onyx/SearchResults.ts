@@ -243,9 +243,6 @@ type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
-/** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
-
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -261,7 +258,6 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    SearchQuery,
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,
