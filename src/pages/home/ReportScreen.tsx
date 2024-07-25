@@ -259,13 +259,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
     const {reportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(report.reportID, reportActionIDFromRoute);
 
-    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
-    // If we have cached reportActions, they will be shown immediately.
-    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
-    useLayoutEffect(() => {
-        setIsLinkingToMessage(!!reportActionIDFromRoute);
-    }, [route, reportActionIDFromRoute]);
-
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
@@ -727,6 +720,16 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
+
+    const lastRoute = usePrevious(route);
+    const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
+    // If we have cached reportActions, they will be shown immediately.
+    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
+    if ((lastRoute !== route || lastReportActionIDFromRoute !== reportActionIDFromRoute) && isLinkingToMessage !== !!reportActionIDFromRoute) {
+        setIsLinkingToMessage(!!reportActionIDFromRoute);
+        return null;
+    }
 
     return (
         <ActionListContext.Provider value={actionListValue}>
