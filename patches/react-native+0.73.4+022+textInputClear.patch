@@ -1,0 +1,66 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 7ce04da..123968f 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -452,6 +452,12 @@ - (void)blur
+   [_backedTextInputView resignFirstResponder];
+ }
+ 
++- (void)clear
++{
++    [self setTextAndSelection:_mostRecentEventCount value:@"" start:0 end:0];
++    _mostRecentEventCount++;
++}
++
+ - (void)setTextAndSelection:(NSInteger)eventCount
+                       value:(NSString *__nullable)value
+                       start:(NSInteger)start
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
+index fe3376a..6a9a45f 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
+@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
+ @protocol RCTTextInputViewProtocol <NSObject>
+ - (void)focus;
+ - (void)blur;
++- (void)clear;
+ - (void)setTextAndSelection:(NSInteger)eventCount
+                       value:(NSString *__nullable)value
+                       start:(NSInteger)start
+@@ -49,6 +50,19 @@ RCTTextInputHandleCommand(id<RCTTextInputViewProtocol> componentView, const NSSt
+     return;
+   }
+     
++  if ([commandName isEqualToString:@"clear"]) {
++#if RCT_DEBUG
++    if ([args count] != 0) {
++      RCTLogError(
++          @"%@ command %@ received %d arguments, expected %d.", @"TextInput", commandName, (int)[args count], 0);
++      return;
++    }
++#endif
++
++    [componentView clear];
++    return;
++  }
++
+   if ([commandName isEqualToString:@"setTextAndSelection"]) {
+ #if RCT_DEBUG
+     if ([args count] != 4) {
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 8496a7d..e6bcfc4 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -331,6 +331,12 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+         }
+         reactEditText.maybeSetSelection(mostRecentEventCount, start, end);
+         break;
++      case "clear":
++        int newEventCount = reactEditText.incrementAndGetEventCounter();
++        ReactTextUpdate textUpdate = getReactTextUpdate("", newEventCount);
++        reactEditText.maybeSetTextFromJS(textUpdate);
++        reactEditText.maybeSetSelection(newEventCount, 0, 0);
++        break;
+     }
+   }
+ 

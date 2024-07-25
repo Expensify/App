@@ -693,6 +693,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         cardID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+        policyID: string;
+        cardID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -1103,7 +1107,17 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
+        policyID: string;
+        firstApproverEmail: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
