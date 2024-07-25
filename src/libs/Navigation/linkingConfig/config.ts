@@ -1,9 +1,11 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import type {RouteConfig} from './createNormalizedConfigs';
+import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
@@ -51,7 +53,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             exact: true,
         },
         [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-        [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH.route,
+        [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH_CENTRAL_PANE.route,
         [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
 
@@ -292,6 +294,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
@@ -355,6 +360,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_MAPPING]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_FIELD]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.route},
@@ -430,6 +436,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.route},
@@ -461,11 +468,32 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
@@ -479,8 +507,17 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
-                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVER.route,
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
@@ -673,6 +710,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 taxID: (taxID: string) => decodeURIComponent(taxID),
                             },
                         },
+                        [SCREENS.WORKSPACE.TAX_CODE]: {
+                            path: ROUTES.WORKSPACE_TAX_CODE.route,
+                            parse: {
+                                taxID: (taxID: string) => decodeURIComponent(taxID),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAX_NAME]: {
                             path: ROUTES.WORKSPACE_TAX_NAME.route,
                             parse: {
@@ -697,6 +740,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
                         [SCREENS.REPORT_DETAILS.SHARE_CODE]: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
+                        [SCREENS.REPORT_DETAILS.EXPORT]: ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {
@@ -891,6 +935,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
                             exact: true,
                         },
+                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
@@ -954,6 +1002,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
+                    screens: {
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
@@ -1020,4 +1075,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
     },
 };
 
+const normalizedConfigs = Object.keys(config.screens)
+    .map((key) =>
+        createNormalizedConfigs(
+            key,
+            config.screens,
+            [],
+            config.initialRouteName
+                ? [
+                      {
+                          initialRouteName: config.initialRouteName,
+                          parentScreens: [],
+                      },
+                  ]
+                : [],
+            [],
+        ),
+    )
+    .flat()
+    .reduce((acc, route) => {
+        acc[route.screen as Screen] = route;
+        return acc;
+    }, {} as Record<Screen, RouteConfig>);
+
+export {normalizedConfigs};
 export default config;

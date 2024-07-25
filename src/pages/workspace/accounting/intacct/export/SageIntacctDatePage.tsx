@@ -8,10 +8,12 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateSageIntacctExportDate} from '@userActions/connections/SageIntacct';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,6 +25,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
+    const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_EXPORT_DATE).map((dateType) => ({
         value: dateType,
@@ -65,6 +68,10 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={config?.pendingFields?.exportDate}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
         />
     );
 }

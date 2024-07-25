@@ -135,6 +135,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NETSUITE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
+        }
         default:
             return undefined;
     }
@@ -266,4 +269,39 @@ function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: Poli
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection};
+function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
+    let stageInProgress;
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION;
+            break;
+        default:
+            stageInProgress = null;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${targetPolicyID}`,
+            value: {
+                stageInProgress,
+                connectionName,
+                timestamp: new Date().toISOString(),
+            },
+        },
+    ];
+    API.write(
+        WRITE_COMMANDS.COPY_EXISTING_POLICY_CONNECTION,
+        {
+            policyID: connectedPolicyID,
+            targetPolicyID,
+            connectionName,
+        },
+        {optimisticData},
+    );
+}
+
+export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection, copyExistingPolicyConnection};

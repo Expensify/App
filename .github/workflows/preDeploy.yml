@@ -32,7 +32,9 @@ jobs:
 
       - name: Exit failed workflow
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
-        run: exit 1
+        run: |
+          echo "Checks failed, exiting ~ typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}"
+          exit 1
 
   chooseDeployActions:
     runs-on: ubuntu-latest
