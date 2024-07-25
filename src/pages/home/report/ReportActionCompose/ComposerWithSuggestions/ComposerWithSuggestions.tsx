@@ -7,7 +7,6 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
-    TextInputChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
@@ -459,11 +458,6 @@ function ComposerWithSuggestions(
         [findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
     );
 
-    // TODO: its almost like this function should receive the comment to send
-    const prepareCommentAndResetComposer = useCallback((): string => {
-        throw new Error('DEPRECATED, REFACTOR');
-    }, []);
-
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      */
@@ -627,6 +621,10 @@ function ComposerWithSuggestions(
         forceClearInput(animatedRef, textInputRef);
     }, [animatedRef]);
 
+    const getCurrentText = useCallback(() => {
+        return commentRef.current;
+    }, []);
+
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -686,11 +684,11 @@ function ComposerWithSuggestions(
             blur,
             focus,
             replaceSelectionWithText,
-            prepareCommentAndResetComposer,
             isFocused: () => !!textInputRef.current?.isFocused(),
             clear,
+            getCurrentText,
         }),
-        [blur, clear, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
+        [blur, clear, focus, replaceSelectionWithText, getCurrentText],
     );
 
     useEffect(() => {

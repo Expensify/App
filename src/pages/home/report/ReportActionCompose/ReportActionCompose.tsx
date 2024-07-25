@@ -49,7 +49,7 @@ type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
     replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
-    prepareCommentAndResetComposer: () => string;
+    getCurrentText: () => string;
     isFocused: () => boolean;
     /**
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
@@ -270,7 +270,7 @@ function ReportActionCompose({
     const addAttachment = useCallback(
         (file: FileObject) => {
             playSound(SOUNDS.DONE);
-            const newComment = composerRef?.current?.prepareCommentAndResetComposer();
+            const newComment = composerRef?.current?.getCurrentText().trim();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
         },
