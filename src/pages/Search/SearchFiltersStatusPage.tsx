@@ -52,7 +52,7 @@ function SearchFiltersStatusPage() {
         [translate, activeItem],
     );
 
-    const updateType = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
+    const updateStatus = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
         SearchActions.updateAdvancedFilters(values);
         Navigation.goBack();
     };
@@ -69,7 +69,7 @@ function SearchFiltersStatusPage() {
                     <SelectionList
                         sections={[{data: filterStatusItems}]}
                         onSelectRow={(item) => {
-                            updateType({
+                            updateStatus({
                                 status: item.value,
                             });
                         }}

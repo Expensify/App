@@ -5240,7 +5240,7 @@ const CONST = {
             FINISHED: 'finished',
         },
         TYPE: {
-            EXPENSES: 'expenses',
+            EXPENSE: 'expense',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',

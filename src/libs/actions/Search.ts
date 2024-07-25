@@ -111,10 +111,26 @@ function exportSearchItemsToCSV(query: string, reportIDList: Array<string | unde
 }
 
 /**
- * Updates the form values for the advanced search form.
+ * Updates the form values for the advanced filters search form.
  */
 function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV, updateAdvancedFilters};
+/**
+ * Clears all values for the advanced filters search form.
+ */
+function clearAdvancedFilters() {
+    Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
+}
+
+export {
+    search,
+    createTransactionThread,
+    deleteMoneyRequestOnSearch,
+    holdMoneyRequestOnSearch,
+    unholdMoneyRequestOnSearch,
+    exportSearchItemsToCSV,
+    updateAdvancedFilters,
+    clearAdvancedFilters,
+};

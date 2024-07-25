@@ -11,6 +11,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -92,6 +93,7 @@ function AdvancedSearchFilters() {
                 onSubmit={() => {
                     // here set the selected filters as new query and redirect to SearchResults page
                     // waiting for: https://github.com/Expensify/App/issues/45028 and https://github.com/Expensify/App/issues/45027
+                    SearchActions.clearAdvancedFilters();
                     Navigation.goBack();
                 }}
             />

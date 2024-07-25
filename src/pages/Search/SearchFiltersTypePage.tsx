@@ -20,15 +20,15 @@ function SearchFiltersTypePage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const activeItem = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.TYPE.EXPENSES;
+    const activeItem = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.TYPE.EXPENSE;
 
     const filterTypeItems = useMemo(
         () => [
             {
                 text: translate('common.expenses'),
-                value: CONST.SEARCH.TYPE.EXPENSES,
-                keyForList: CONST.SEARCH.TYPE.EXPENSES,
-                isSelected: activeItem === CONST.SEARCH.TYPE.EXPENSES,
+                value: CONST.SEARCH.TYPE.EXPENSE,
+                keyForList: CONST.SEARCH.TYPE.EXPENSE,
+                isSelected: activeItem === CONST.SEARCH.TYPE.EXPENSE,
             },
         ],
         [translate, activeItem],
