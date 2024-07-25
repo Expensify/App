@@ -64,7 +64,7 @@ export default function electronServe(options: ServeOptions) {
     const handler: HandlerType = async (request, callback) => {
         const filePath = path.join(mandatoryOptions.directory, decodeURIComponent(new URL(request.url).pathname));
         const resolvedPath = (await getPath(filePath)) ?? path.join(mandatoryOptions.directory, `${mandatoryOptions.file}.html`);
-        const mimeType = (mime.lookup(resolvedPath) || 'application/octet-stream') as string;
+        const mimeType = mime.lookup(resolvedPath) || 'application/octet-stream';
 
         try {
             const data = await fs.promises.readFile(resolvedPath);
