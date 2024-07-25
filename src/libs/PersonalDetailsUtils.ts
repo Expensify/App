@@ -310,10 +310,6 @@ function isPersonalDetailsEmpty() {
     return !personalDetails.length;
 }
 
-function countPersonalDetails() {
-    return personalDetails.length;
-}
-
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -329,5 +325,4 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    countPersonalDetails,
 };
