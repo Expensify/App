@@ -26,6 +26,7 @@ import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -149,8 +150,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteIntegration, canUseSageIntacctIntegration} = usePermissions();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {canUseSageIntacctIntegration} = usePermissions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -163,10 +165,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
-        (name) =>
-            !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration) || (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration)),
-    );
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration));
 
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
@@ -202,7 +201,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [getDatetimeToRelative, successfulDate]);
 
     const integrationSpecificMenuItems = useMemo(() => {
-        const sageIntacctEntityListLength = policy?.connections?.intacct?.data?.entities?.length;
+        const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -242,23 +241,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     },
                 };
             case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                return {
-                    description: translate('workspace.intacct.entity'),
-                    iconRight: Expensicons.ArrowRight,
-                    title: getCurrentSageIntacctEntityName(policy),
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    titleStyle: styles.fontWeightNormal,
-                    shouldShowRightIcon: !!sageIntacctEntityListLength,
-                    shouldShowDescriptionOnTop: true,
-                    pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
-                    brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    onPress: () => {
-                        if (!sageIntacctEntityListLength) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
-                    },
-                };
+                return !sageIntacctEntityList.length
+                    ? {}
+                    : {
+                          description: translate('workspace.intacct.entity'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: getCurrentSageIntacctEntityName(policy),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: true,
+                          shouldShowDescriptionOnTop: true,
+                          pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
+                          brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: () => {
+                              if (!sageIntacctEntityList.length) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
+                          },
+                      };
             default:
                 return undefined;
         }
@@ -423,12 +424,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.accounting')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('workspace.accounting.title')}
                             subtitle={translate('workspace.accounting.subtitle')}

@@ -24,7 +24,7 @@ function getBillingStatus(
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     accountData?: AccountData,
 ): BillingStatusResult | undefined {
-    const cardEnding = accountData?.cardNumber ?? '';
+    const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = SubscriptionUtils.getAmountOwed();
 

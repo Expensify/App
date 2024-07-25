@@ -346,10 +346,10 @@ jobs:
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          S3_URL: s3://${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && '' || 'staging-' }}expensify-cash
+          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}expensify-cash
 
       - name: Purge Cloudflare cache
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && '' || 'staging.' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 

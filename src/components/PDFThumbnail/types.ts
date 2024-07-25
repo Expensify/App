@@ -18,6 +18,9 @@ type PDFThumbnailProps = {
 
     /** Callback to call if PDF can't be loaded(corrupted) */
     onLoadError?: () => void;
+
+    /** Callback to call if PDF is loaded */
+    onLoadSuccess?: () => void;
 };
 
 export default PDFThumbnailProps;

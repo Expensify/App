@@ -17,6 +17,7 @@ import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +108,7 @@ function AddPaymentCard() {
                     }
                 />
             </View>
+            <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
         </ScreenWrapper>
     );
 }
