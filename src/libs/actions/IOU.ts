@@ -710,6 +710,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                routes: null,
             },
         },
 
@@ -1459,6 +1460,7 @@ function buildOnyxDataForTrackExpense(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                routes: null,
             },
         },
     );
@@ -2753,6 +2755,7 @@ function getUpdateMoneyRequestParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -2964,6 +2967,7 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
