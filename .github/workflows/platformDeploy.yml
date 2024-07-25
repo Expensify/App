@@ -356,7 +356,7 @@ jobs:
       - name: Verify staging deploy
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com | jq -r '.version')"
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
           if [[ '${{ github.ref_name }}' != "$DOWNLOADED_VERSION" ]]; then
             echo "Error: deployed version does not match local version. Something went wrong..."
             exit 1
@@ -365,7 +365,7 @@ jobs:
       - name: Verify production deploy
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com | jq -r '.version')"
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
           if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
             echo "Error: deployed version does not match local version. Something went wrong..."
             exit 1
