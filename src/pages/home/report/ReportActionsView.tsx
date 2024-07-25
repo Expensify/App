@@ -78,9 +78,6 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     transactionThreadReportID?: string | null;
 };
 
-const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
-const SPACER = 16;
-
 let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
@@ -113,7 +110,7 @@ function ReportActionsView({
     const isFirstLinkedActionRender = useRef(true);
 
     const network = useNetwork();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
     const prevAuthTokenType = usePrevious(session?.authTokenType);
@@ -340,8 +337,6 @@ function ReportActionsView({
         contentListHeight.current = h;
     }, []);
 
-    const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -395,10 +390,6 @@ function ReportActionsView({
 
     const loadNewerChats = useCallback(
         (force = false) => {
-            // Determines if loading older reports is necessary when the content is smaller than the list
-            // and there are fewer than 23 items, indicating we've reached the oldest message.
-            const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
-
             if (
                 !force &&
                 (!reportActionID ||
@@ -415,18 +406,16 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            if ((reportActionID && indexOfLinkedAction > -1) || !reportActionID) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
         [
             isLoadingInitialReportActions,
             isLoadingNewerReportActions,
-            checkIfContentSmallerThanList,
             reportActionID,
             indexOfLinkedAction,
             handleReportActionPagination,
-            reportActions.length,
             newestReportAction,
             isFocused,
             hasLoadingNewerReportActionsError,
