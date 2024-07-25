@@ -239,6 +239,7 @@ function ComposerWithSuggestions(
         inputPlaceholder,
         displayFileInModal,
         textInputShouldClear,
+        // TODO: remove this clearing mechanism and use the clear method on the ref
         setTextInputShouldClear,
         isBlockedFromConcierge,
         disabled,
