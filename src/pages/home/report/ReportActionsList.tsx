@@ -272,8 +272,15 @@ function ReportActionsList({
             return;
         }
 
-        setUnreadMarkerTime(sortedVisibleReportActions[0]?.created ?? '');
-    }, [unreadMarkerReportActionID, sortedVisibleReportActions]);
+        const mostRecentReportActionCreated = sortedVisibleReportActions[0]?.created ?? '';
+        if (mostRecentReportActionCreated <= unreadMarkerTime) {
+            return;
+        }
+
+        setUnreadMarkerTime(mostRecentReportActionCreated);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [sortedVisibleReportActions]);
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
