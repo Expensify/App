@@ -147,7 +147,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
                             description={policyApproverName ?? ''}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
                             shouldShowRightIcon
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
