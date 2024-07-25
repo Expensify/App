@@ -20,6 +20,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -383,7 +384,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -441,6 +442,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

@@ -55,6 +55,7 @@ function FullScreenNavigator() {
                             key={screenName}
                             name={screenName as keyof Screens}
                             getComponent={componentGetter}
+                            options={{animationEnabled: false}}
                         />
                     ))}
                 </RootStack.Navigator>

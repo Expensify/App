@@ -1,13 +1,16 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
@@ -22,8 +25,10 @@ type BottomTabAvatarProps = {
 function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomTabAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const route = useRoute();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const showSettingsPage = useCallback(() => {
         if (isCreateMenuOpen) {
@@ -31,8 +36,13 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
+        if ([SCREENS.SETTINGS.WORKSPACES, SCREENS.WORKSPACE.INITIAL].includes(route.name) && isSmallScreenWidth) {
+            Navigation.goBack(ROUTES.SETTINGS);
+            return;
+        }
+
         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
-    }, [isCreateMenuOpen]);
+    }, [isCreateMenuOpen, isSmallScreenWidth, route.name]);
 
     let children;
 
