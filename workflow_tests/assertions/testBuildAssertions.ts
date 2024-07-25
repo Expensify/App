@@ -170,7 +170,7 @@ function assertIOSJobExecuted(workflowResult: Step[], ref = '', didExecute = tru
             [
                 {key: 'timeout_minutes', value: '10'},
                 {key: 'max_attempts', value: '5'},
-                {key: 'command', value: 'cd ios && bundle exec pod install'},
+                {key: 'command', value: 'cd ios && bundle exec pod install --verbose'},
             ],
             [],
         ),
