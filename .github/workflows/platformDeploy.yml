@@ -354,7 +354,7 @@ jobs:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
       - name: Verify staging deploy
-        if: env.SHOULD_DEPLOY_PRODUCTION != 'true'
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com | jq -r '.version')"
           if [[ '${{ github.ref_name }}' != "$DOWNLOADED_VERSION" ]]; then
@@ -363,7 +363,7 @@ jobs:
           fi
 
       - name: Verify production deploy
-        if: env.SHOULD_DEPLOY_PRODUCTION == 'true'
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com | jq -r '.version')"
           if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
