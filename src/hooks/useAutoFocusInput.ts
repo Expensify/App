@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {RefObject, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
