@@ -275,6 +275,8 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const receiptObjWithFilename = {...receiptObj, name: receiptObj?.name || transaction.filename};
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -285,8 +287,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                {...receiptObj, name: receiptObj?.name || transaction.filename},
+                receiptObjWithFilename,
                 transaction.category,
                 transaction.tag,
                 transactionTaxCode,
