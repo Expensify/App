@@ -353,6 +353,15 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
+      - name: Verify that the deployed version matches what we expect
+        run: |
+          LOCAL_VERSION="$(npm run print-version --silent)"
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com | jq -r '.version')"
+          if [[ "$LOCAL_VERSION" != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version does not match local version. Something went wrong..."
+            exit 1
+          fi
+
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
