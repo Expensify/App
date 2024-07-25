@@ -1,12 +1,18 @@
 import type {ValueOf} from 'type-fest';
+import memoize from '@libs/memoize';
 import type CONST from '@src/CONST';
+import initPolyfill from './intlPolyfill';
+
+initPolyfill();
+
+const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10});
 
 function format(locale: ValueOf<typeof CONST.LOCALES>, number: number, options?: Intl.NumberFormatOptions): string {
-    return new Intl.NumberFormat(locale, options).format(number);
+    return new MemoizedNumberFormat(locale, options).format(number);
 }
 
 function formatToParts(locale: ValueOf<typeof CONST.LOCALES>, number: number, options?: Intl.NumberFormatOptions): Intl.NumberFormatPart[] {
-    return new Intl.NumberFormat(locale, options).formatToParts(number);
+    return new MemoizedNumberFormat(locale, options).formatToParts(number);
 }
 
 export {format, formatToParts};
