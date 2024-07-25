@@ -5,6 +5,7 @@ import type {
     ChangePolicyParams,
     DelegateSubmitParams,
     ExportedToIntegrationParams,
+    ForwardedParams,
     IntegrationsMessageParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
@@ -121,17 +122,16 @@ type OriginalMessageExportedToIntegration = {
     originalMessage: ExportedToIntegrationParams & Record<string, unknown>;
 };
 
-// Currently lacking Params
-// type OriginalMessagePolicyTask = {
-//     /**
-//      *
-//      */
-//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
-//     /**
-//      *
-//      */
-//     originalMessage: ForwardedParams & Record<string, unknown>;
-// };
+type OriginalMessageForwarded = {
+    /**
+     *
+     */
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
+    /**
+     *
+     */
+    originalMessage: ForwardedParams & Record<string, unknown>;
+};
 
 /**
  *
@@ -466,6 +466,7 @@ export type {
     OriginalMessageDelegateSubmit,
     OriginalMessageExportedToCSV,
     OriginalMessageExportedToIntegration,
+    OriginalMessageForwarded,
     OriginalMessageIntegrationsMessage,
     OriginalMessageManagerAttachReceipt,
     OriginalMessageManagerDetachReceipt,

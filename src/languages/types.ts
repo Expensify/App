@@ -313,7 +313,7 @@ type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
 type ExportedToIntegrationParams = {label: string};
 
-type ForwardedParams = {amount: string; currency: string};
+type ForwardedParams = {to: string};
 
 type IntegrationsMessageParams = {
     label: string;
