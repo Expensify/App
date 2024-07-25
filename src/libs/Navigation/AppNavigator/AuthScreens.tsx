@@ -1,7 +1,7 @@
 import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -199,11 +199,14 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const [session] = useOnyx(ONYXKEYS.SESSION)
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID)
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -518,14 +521,4 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    initialLastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-})(AuthScreensMemoized);
+export default AuthScreensMemoized;
