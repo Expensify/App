@@ -9,7 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {
+    canUseProvincialTaxNetSuite,
+    canUseTaxNetSuite,
+    findSelectedInvoiceItemWithDefaultSelect,
+    findSelectedPayableAccountWithDefaultSelect,
+    findSelectedTaxAccountWithDefaultSelect,
+} from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,9 +36,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
-    const selectedReceivable = useMemo(() => (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount), [receivableList, config?.receivableAccount]);
+    const selectedReceivable = useMemo(() => findSelectedPayableAccountWithDefaultSelect(receivableList, config?.receivableAccount), [receivableList, config?.receivableAccount]);
 
-    const selectedItem = useMemo(() => (items ?? []).find((item) => item.id === config?.invoiceItem), [items, config?.invoiceItem]);
+    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
 
     const invoiceItemValue = useMemo(() => {
         if (!config?.invoiceItemPreference) {
@@ -47,13 +53,10 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         return selectedItem.name;
     }, [config?.invoiceItemPreference, selectedItem, translate]);
 
-    const selectedTaxPostingAccount = useMemo(
-        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount),
-        [taxAccountsList, config?.taxPostingAccount],
-    );
+    const selectedTaxPostingAccount = useMemo(() => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount), [taxAccountsList, config?.taxPostingAccount]);
 
     const selectedProvTaxPostingAccount = useMemo(
-        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount),
+        () => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount),
         [taxAccountsList, config?.provincialTaxPostingAccount],
     );
 
