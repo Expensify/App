@@ -20,7 +20,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const {policyIDs} = route.params;
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params.q, policyIDs]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
