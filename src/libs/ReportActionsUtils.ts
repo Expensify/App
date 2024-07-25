@@ -1039,8 +1039,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     const message = getReportActionMessage(reportAction);
 
-    if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
-        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
+    if (reportAction && ('isAttachmentOnly' in reportAction || 'isAttachmentWithText' in reportAction)) {
+        return reportAction.isAttachmentOnly ?? reportAction.isAttachmentWithText ?? false;
     }
 
     if (message) {

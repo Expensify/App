@@ -106,8 +106,8 @@ type OptimisticAddCommentReportAction = Pick<
     | 'created'
     | 'message'
     | 'isFirstItem'
-    | 'isAttachment'
-    | 'attachmentInfo'
+    | 'isAttachmentOnly'
+    | 'isAttachmentWithText'
     | 'pendingAction'
     | 'shouldShow'
     | 'originalMessage'
@@ -163,7 +163,7 @@ type OptimisticIOUReportAction = Pick<
     | 'actorAccountID'
     | 'automatic'
     | 'avatar'
-    | 'isAttachment'
+    | 'isAttachmentOnly'
     | 'originalMessage'
     | 'message'
     | 'person'
@@ -191,12 +191,12 @@ type ReportOfflinePendingActionAndErrors = {
 
 type OptimisticApprovedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticUnapprovedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticSubmittedReportAction = Pick<
@@ -206,7 +206,7 @@ type OptimisticSubmittedReportAction = Pick<
     | 'adminAccountID'
     | 'automatic'
     | 'avatar'
-    | 'isAttachment'
+    | 'isAttachmentOnly'
     | 'originalMessage'
     | 'message'
     | 'person'
@@ -218,7 +218,7 @@ type OptimisticSubmittedReportAction = Pick<
 
 type OptimisticHoldReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticCancelPaymentReportAction = Pick<
@@ -295,7 +295,7 @@ type OptimisticTaskReportAction = Pick<
     | 'automatic'
     | 'avatar'
     | 'created'
-    | 'isAttachment'
+    | 'isAttachmentOnly'
     | 'message'
     | 'originalMessage'
     | 'person'
@@ -324,7 +324,7 @@ type OptimisticWorkspaceChats = {
 
 type OptimisticModifiedExpenseReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachment' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachmentOnly' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
 > & {reportID?: string};
 
 type OptimisticTaskReport = Pick<
@@ -2815,7 +2815,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
         isCommentOrIOU &&
         (!ReportActionsUtils.isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction)) && // Returns true for non-IOU actions
         !isReportMessageAttachment(message) &&
-        (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
+        ((!reportAction.isAttachmentWithText && !reportAction.isAttachmentOnly) || !reportAction.isOptimisticAction) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
@@ -3778,8 +3778,7 @@ function buildOptimisticAddCommentReportAction(
         textForNewComment = `${Parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
     }
 
-    const isAttachment = !text && file !== undefined;
-    const attachmentInfo = file ?? {};
+    const isAttachmentWithText = !!text && file !== undefined;
     const accountID = actorAccountID ?? currentUserAccountID;
 
     // Remove HTML from text when applying optimistic offline comment
@@ -3812,8 +3811,8 @@ function buildOptimisticAddCommentReportAction(
                 whisperedTo: [],
             },
             isFirstItem: false,
-            isAttachment,
-            attachmentInfo,
+            isAttachmentOnly,
+            isAttachmentWithText,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
             isOptimisticAction: true,
@@ -4221,7 +4220,7 @@ function buildOptimisticIOUReportAction(
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
         person: [
@@ -4253,7 +4252,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
@@ -4279,7 +4278,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         originalMessage: {
             amount,
             currency,
@@ -4325,7 +4324,7 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         originalMessage,
         message: movedActionMessage,
         person: [
@@ -4359,7 +4358,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         adminAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
         person: [
@@ -4476,7 +4475,7 @@ function buildOptimisticModifiedExpenseReportAction(
         automatic: false,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         message: [
             {
                 // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
@@ -4512,7 +4511,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         automatic: false,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         message: [
             {
                 // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
@@ -4615,7 +4614,7 @@ function buildOptimisticTaskReportAction(
         actorAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        isAttachment: false,
+        isAttachmentOnly: false,
         originalMessage,
         message: [
             {
