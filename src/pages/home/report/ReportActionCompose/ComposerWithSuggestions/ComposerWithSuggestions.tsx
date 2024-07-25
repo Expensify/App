@@ -709,10 +709,10 @@ function ComposerWithSuggestions(
     );
 
     const onClear = useCallback(
-        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+        (text: string) => {
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
-            onCleared(nativeEvent.text);
+            onCleared(text);
             updateComment('', true, true);
         },
         [onCleared, updateComment],

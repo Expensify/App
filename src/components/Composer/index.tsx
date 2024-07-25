@@ -117,8 +117,6 @@ function Composer(
     //     onClear();
     // }, [shouldClear, onClear]);
 
-    const prevValue = usePrevious(value);
-
     useEffect(() => {
         if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
             return;
@@ -299,26 +297,30 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const prevValue = usePrevious(value);
+    const clear = useCallback(() => {
+        if (!textInput.current || prevValue === undefined) {
+            return;
+        }
+
+        textInput.current.clear();
+        console.log('prevValue', prevValue);
+        onClear(prevValue);
+    }, [onClear, prevValue]);
+
     useImperativeHandle(
         ref,
         () => {
             if (!textInput.current) {
-                throw new Error('TextInput ref is not available');
+                throw new Error('TextInput ref is not available. This should never happen and indicates a developer error.');
             }
 
             return {
                 ...textInput.current,
-                clear: () => {
-                    textInput.current?.clear();
-                    onClear({
-                        nativeEvent: {
-                            text: prevValue,
-                        },
-                    });
-                },
+                clear,
             };
         },
-        [onClear, prevValue],
+        [clear],
     );
 
     const handleKeyPress = useCallback(
