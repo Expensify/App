@@ -20,7 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,6 +55,19 @@ function PolicyDistanceRatesPage({
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+
+    useEffect(() => {
+        if (!isSmallScreenWidth) {
+            if (selectedDistanceRates.length === 0) {
+                turnOffMobileSelectionMode();
+            }
+            return;
+        }
+        if (selectedDistanceRates.length > 0 && !selectionMode?.isEnabled) {
+            turnOnMobileSelectionMode();
+        }
+    }, [isSmallScreenWidth, selectedDistanceRates.length, selectionMode?.isEnabled]);
+
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
         [policy?.customUnits],

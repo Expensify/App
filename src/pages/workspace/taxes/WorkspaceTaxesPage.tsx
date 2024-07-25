@@ -137,7 +137,7 @@ function WorkspaceTaxesPage({
 
     const toggleTax = (tax: ListItem) => {
         const key = tax.keyForList;
-        if (typeof key !== 'string') {
+        if (typeof key !== 'string' || key === defaultExternalID || key === foreignTaxDefault) {
             return;
         }
 

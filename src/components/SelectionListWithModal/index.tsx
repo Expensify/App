@@ -6,6 +6,7 @@ import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
@@ -21,9 +22,10 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const handleLongPressRow = (item: TItem) => {
-        if (!turnOnSelectionModeOnLongPress) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth) {
             return;
         }
         setLongPressedItem(item);
