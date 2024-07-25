@@ -71,7 +71,14 @@ function ReportListItem<TItem extends ListItem>({
         return;
     }
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, styles.ph3];
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv1half,
+        styles.ph0,
+        styles.overflowHidden,
+        item.isSelected && styles.activeComponentBG,
+        isFocused && styles.sidebarLinkActive,
+    ];
 
     const handleOnButtonPress = () => {
         onSelectRow(item);
@@ -144,10 +151,11 @@ function ReportListItem<TItem extends ListItem>({
                         participantToDisplayName={participantToDisplayName}
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
+                        containerStyle={[styles.ph3, styles.pt1half, styles.mb1half]}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40]}>
-                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
                                 <Checkbox
@@ -156,6 +164,7 @@ function ReportListItem<TItem extends ListItem>({
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
+                                    shouldStopMouseDownPropagation
                                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !isLargeScreenWidth && styles.mr3]}
                                 />
                             )}
@@ -191,11 +200,11 @@ function ReportListItem<TItem extends ListItem>({
                         }}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
-                        containerStyle={styles.mt3}
+                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
                         isChildListItem
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
-                        isButtonSelected={item.isSelected}
+                        isButtonSelected={transaction.isSelected}
                         shouldShowTransactionCheckbox
                     />
                 ))}

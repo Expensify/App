@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-plaid-link-sdk/ios/PLKFabricHelpers.h b/node_modules/react-native-plaid-link-sdk/ios/PLKFabricHelpers.h
+index cf70d5e..4e34cd2 100644
+--- a/node_modules/react-native-plaid-link-sdk/ios/PLKFabricHelpers.h
++++ b/node_modules/react-native-plaid-link-sdk/ios/PLKFabricHelpers.h
+@@ -5,8 +5,12 @@
+ #if __has_include(<rnplaidlink/react_native_plaid_link_sdk-Swift.h>)
+ #import <rnplaidlink/react_native_plaid_link_sdk-Swift.h>
+ #else
++#ifdef USE_FRAMEWORKS
++#import <react_native_plaid_link_sdk/react_native_plaid_link_sdk-Swift.h>
++#else
+ #import <react_native_plaid_link_sdk-Swift.h>
+ #endif
++#endif
+ 
+ // copied from RCTFollyConvert
+ folly::dynamic PLKConvertIdToFollyDynamic(id json)
+diff --git a/node_modules/react-native-plaid-link-sdk/react-native-plaid-link-sdk.podspec b/node_modules/react-native-plaid-link-sdk/react-native-plaid-link-sdk.podspec
+index 7c60081..4a13a3c 100644
+--- a/node_modules/react-native-plaid-link-sdk/react-native-plaid-link-sdk.podspec
++++ b/node_modules/react-native-plaid-link-sdk/react-native-plaid-link-sdk.podspec
+@@ -21,6 +21,13 @@ Pod::Spec.new do |s|
+   # we don't want this to be seen by Swift
+   s.private_header_files = 'ios/PLKFabricHelpers.h'
+   
++  if ENV['USE_FRAMEWORKS'] == '1'
++    s.pod_target_xcconfig = {
++      "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++      "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++    }
++  end
++
+   if fabric_enabled
+     install_modules_dependencies(s)
+   else
