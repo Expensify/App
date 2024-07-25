@@ -163,7 +163,7 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
-    /** Store the state of the subscription */
+    /** Store the state of the private tax-exempt */
     NVP_PRIVATE_TAX_EXEMPT: 'nvp_private_taxExempt',
 
     /** Store the stripe id status */
