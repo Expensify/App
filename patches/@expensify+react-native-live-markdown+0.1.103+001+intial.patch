@@ -1,16 +1,3 @@
-diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
-index 1b4381b..c7f6ad6 100644
---- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
-+++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
-@@ -21,7 +21,7 @@ import com.facebook.react.fabric.mounting.MountingManager;
- import com.facebook.react.uimanager.PixelUtil;
- import com.facebook.react.uimanager.ViewManagerRegistry;
- import com.facebook.react.views.text.TextAttributeProps;
--import com.facebook.react.views.text.TextInlineViewPlaceholderSpan;
-+import com.facebook.react.views.text.internal.span.TextInlineViewPlaceholderSpan;
- import com.facebook.react.views.text.TextLayoutManagerMapBuffer;
- import com.facebook.yoga.YogaMeasureMode;
- import com.facebook.yoga.YogaMeasureOutput;
 diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java
 index ed1428b..80641ce 100644
 --- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java
