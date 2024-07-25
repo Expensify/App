@@ -3866,7 +3866,9 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
         reportIDList: reportID,
         connectionName,
         type: 'MANUAL',
-        optimisticReportActionID,
+        optimisticReportActions: JSON.stringify({
+            [reportID]: optimisticReportActionID,
+        }),
     } satisfies ReportExportParams;
 
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
@@ -3912,10 +3914,12 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     ];
 
     const params = {
-        reportIDList: reportID,
         markedManually: true,
-        optimisticReportActionID,
-        customLabel: label,
+        data: JSON.stringify({
+            reportID,
+            label,
+            optimisticReportActionID,
+        }),
     } satisfies MarkAsExportedParams;
 
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});

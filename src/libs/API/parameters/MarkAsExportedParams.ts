@@ -1,8 +1,14 @@
 type MarkAsExportedParams = {
-    reportIDList: string;
-    markedManually: true;
-    optimisticReportActionID: string;
-    customLabel: string;
+    markedManually: boolean;
+    /**
+     * Stringified JSON object with type of following structure:
+     * {
+     *   reportID: number;
+     *   label: string;
+     *   optimisticReportActionID: string;
+     * }>
+     */
+    data: string;
 };
 
 export default MarkAsExportedParams;

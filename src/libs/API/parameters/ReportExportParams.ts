@@ -5,7 +5,13 @@ type ReportExportParams = {
     reportIDList: string;
     connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     type: 'MANUAL';
-    optimisticReportActionID: string;
+    /**
+     * Stringified JSON object with type of following structure:
+     * {
+     *   [reportID]: optimisticReportActionID;
+     * }>
+     */
+    optimisticReportActions: string;
 };
 
 export default ReportExportParams;
