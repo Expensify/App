@@ -11529,9 +11529,10 @@ async function run() {
                 run_id: lastSuccessfulDeploy.id,
                 filter: 'latest',
             })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')) {
+            console.log(`Deploy was not a success: ${lastSuccessfulDeploy.html_url}, looking at the next one`);
             lastSuccessfulDeploy = completedDeploys.shift();
         }
-        const priorTag = completedDeploys[0].head_branch;
+        const priorTag = lastSuccessfulDeploy.head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
         console.log('Found the pull request list: ', prList);
