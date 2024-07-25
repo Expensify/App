@@ -31,7 +31,7 @@ index 2c0c099..26a477f 100644
     * Callback that is called when the text input's text changes.
     */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index 481938f..c4b7177 100644
+index 481938f..346acaa 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 @@ -1329,6 +1329,11 @@ function InternalTextInput(props: Props): React.Node {
@@ -41,7 +41,7 @@ index 481938f..c4b7177 100644
 +  const _onClear = (event: ChangeEvent) => {
 +    setMostRecentEventCount(event.nativeEvent.eventCount);
 +    props.onClear && props.onClear(event);
-+  }
++  };
 +
    const _onFocus = (event: FocusEvent) => {
      TextInputState.focusInput(inputRef.current);
@@ -54,6 +54,14 @@ index 481938f..c4b7177 100644
          onChange={_onChange}
          onChangeSync={useOnChangeSync === true ? _onChangeSync : null}
          onContentSizeChange={props.onContentSizeChange}
+@@ -1516,6 +1522,7 @@ function InternalTextInput(props: Props): React.Node {
+         nativeID={id ?? props.nativeID}
+         numberOfLines={props.rows ?? props.numberOfLines}
+         onBlur={_onBlur}
++        onClear={_onClear}
+         onChange={_onChange}
+         onFocus={_onFocus}
+         /* $FlowFixMe[prop-missing] the types for AndroidTextInput don't match
 diff --git a/node_modules/react-native/Libraries/Text/.DS_Store b/node_modules/react-native/Libraries/Text/.DS_Store
 new file mode 100644
 index 0000000..7c455d8
@@ -194,7 +202,7 @@ index 0000000..0c142a0
 +  }
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
-index 8496a7d..764a392 100644
+index 8496a7d..53e5c49 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 @@ -8,6 +8,7 @@
@@ -224,10 +232,10 @@ index 8496a7d..764a392 100644
 +        // Capture the current text
 +        Editable text = reactEditText.getText();
 +
-+        int newEventCount = reactEditText.incrementAndGetEventCounter();
-+        ReactTextUpdate textUpdate = getReactTextUpdate("", newEventCount);
++        // Reset the edit text
++        ReactTextUpdate textUpdate = getReactTextUpdate("", reactEditText.incrementAndGetEventCounter());
 +        reactEditText.maybeSetTextFromJS(textUpdate);
-+        reactEditText.maybeSetSelection(newEventCount, 0, 0);
++        reactEditText.maybeSetSelection(reactEditText.incrementAndGetEventCounter(), 0, 0);
 +
 +        // Dispatch the clear event
 +        EventDispatcher eventDispatcher = getEventDispatcher(getReactContext(reactEditText), reactEditText);
@@ -236,7 +244,7 @@ index 8496a7d..764a392 100644
 +                        getSurfaceId(reactEditText),
 +                        reactEditText.getId(),
 +                        text.toString(),
-+                        newEventCount
++                        reactEditText.incrementAndGetEventCounter()
 +                )
 +        );
 +
