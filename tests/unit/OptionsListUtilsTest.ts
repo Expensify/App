@@ -13,13 +13,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
 
-jest.mock('@src/libs/actions/Timing', () => {
-    return {
-        start: jest.fn(),
-        end: jest.fn(),
-    };
-});
-
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS: OnyxCollection<Report> = {
