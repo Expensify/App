@@ -324,7 +324,7 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
-                    title={getPendingFieldAction('waypoints') ? translate('iou.fieldPending') : distanceToDisplay}
+                    title={distanceToDisplay}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
