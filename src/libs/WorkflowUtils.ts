@@ -125,10 +125,11 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     approvalWorkflow: ApprovalWorkflow;
     employeeList: PolicyEmployeeList;
+    removeWorkflow?: boolean;
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, removeWorkflow = false}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -144,14 +145,14 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             ...employeeList[approver.email],
-            forwardsTo: nextApprover?.email,
+            forwardsTo: removeWorkflow ? undefined : nextApprover?.email,
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
-            submitsTo: firstApprover.email,
+            submitsTo: removeWorkflow ? undefined : firstApprover.email,
         };
     });
 
