@@ -18,7 +18,9 @@ function SearchPage({route}: SearchPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params]);
+    const {policyIDs} = route.params;
+
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
@@ -43,7 +45,7 @@ function SearchPage({route}: SearchPageProps) {
                 {queryJSON && (
                     <Search
                         queryJSON={queryJSON}
-                        policyIDs={route.params.policyIDs}
+                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>

@@ -312,12 +312,15 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString) {
+function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     try {
         // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
         result.input = query;
-        result.hash = getQueryHashFromString(query);
+
+        // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
+        const policyIDPart = policyID ?? '';
+        result.hash = getQueryHashFromString(query + policyIDPart);
         return result;
     } catch (e) {
         console.error(e);

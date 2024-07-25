@@ -168,7 +168,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q);
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q, policyIDs);
 
         const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, sortBy: column, sortOrder: order});
         navigation.setParams({q: newQuery});

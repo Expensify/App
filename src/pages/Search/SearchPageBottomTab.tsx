@@ -32,7 +32,7 @@ function SearchPageBottomTab() {
         const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
 
         return {
-            queryJSON: buildSearchQueryJSON(searchParams.q),
+            queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
             policyIDs: searchParams.policyIDs,
         };
     }, [activeCentralPaneRoute]);
