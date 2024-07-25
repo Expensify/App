@@ -36,7 +36,13 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
-        if ([SCREENS.SETTINGS.WORKSPACES, SCREENS.WORKSPACE.INITIAL].includes(route.name) && isSmallScreenWidth) {
+        if (route.name === SCREENS.SETTINGS.WORKSPACES && isSmallScreenWidth) {
+            Navigation.goBack(ROUTES.SETTINGS);
+            return;
+        }
+
+        if (route.name === SCREENS.WORKSPACE.INITIAL) {
+            Navigation.dismissModal();
             Navigation.goBack(ROUTES.SETTINGS);
             return;
         }
