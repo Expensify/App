@@ -261,6 +261,19 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         );
     }
 
+    const hasModifiedReimbursable = reportActionOriginalMessage && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
+    if (hasModifiedReimbursable) {
+        buildMessageFragmentForValue(
+            String(reportActionOriginalMessage?.reimbursable) ?? '',
+            String(reportActionOriginalMessage?.oldReimbursable) ?? '',
+            Localize.translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
     const message =
         getMessageLine(`\n${Localize.translateLocal('iou.changed')}`, changeFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +

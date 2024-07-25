@@ -317,6 +317,12 @@ type OriginalMessageModifiedExpense = {
     /** Old expense tax rate */
     oldTaxRate?: string;
 
+    /** Edited expense reimbursable */
+    reimbursable?: boolean;
+
+    /** Old expense reimbursable */
+    oldReimbursable?: boolean;
+
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
