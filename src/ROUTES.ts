@@ -123,6 +123,7 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
+    SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
@@ -619,21 +620,33 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows` as const,
     },
-    WORKSPACE_WORKFLOWS_PAYER: {
-        route: 'workspace/:policyID/settings/workflows/payer',
-        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/payer` as const,
+    WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/new` as const,
     },
-    WORKSPACE_WORKFLOWS_APPROVER: {
-        route: 'settings/workspaces/:policyID/settings/workflows/approver',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/workflows/approver` as const,
+    WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
+        getRoute: (policyID: string, firstApproverEmail: string) => `settings/workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/expenses-from',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/approver',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/approver` as const,
+    },
+    WORKSPACE_WORKFLOWS_PAYER: {
+        route: 'settings/workspaces/:policyID/workflows/payer',
+        getRoute: (policyId: string) => `settings/workspaces/${policyId}/workflows/payer` as const,
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
-        route: 'settings/workspaces/:policyID/settings/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/workflows/auto-reporting-frequency` as const,
+        route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
-        route: 'settings/workspaces/:policyID/settings/workflows/auto-reporting-frequency/monthly-offset',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/workflows/auto-reporting-frequency/monthly-offset` as const,
+        route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
     WORKSPACE_CARD: {
         route: 'settings/workspaces/:policyID/card',
