@@ -1340,9 +1340,17 @@ const CONST = {
 
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
+        ENABLED: 'enabled',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
         SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORT: 'export',
+        EXPORTER: 'exporter',
+        BILL_DATE: 'billDate',
+        BILL_STATUS: 'billStatus',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         TENANT_ID: 'tenantID',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
