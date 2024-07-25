@@ -11,7 +11,6 @@ import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInp
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
-import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -68,8 +67,6 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
-
-    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -95,7 +92,6 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
-        registerFocusTrapContainer,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -255,16 +251,7 @@ function MoneyRequestAmountForm(
     }, [selectedTab]);
 
     return (
-        <ScrollView
-            ref={(scrollViewNode) => {
-                if (!scrollViewNode) {
-                    return;
-                }
-                const unregister = registerFocusTrapContainer?.(scrollViewNode);
-                return () => unregister?.();
-            }}
-            contentContainerStyle={styles.flexGrow1}
-        >
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
                 id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}

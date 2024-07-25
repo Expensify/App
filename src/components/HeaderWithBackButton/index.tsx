@@ -60,7 +60,6 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     progressBarPercentage,
     style,
-    registerFocusTrapContainer,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -142,13 +141,6 @@ function HeaderWithBackButton({
                 shouldOverlay && StyleSheet.absoluteFillObject,
                 style,
             ]}
-            ref={(viewNode) => {
-                if (!viewNode) {
-                    return;
-                }
-                const unregister = registerFocusTrapContainer?.(viewNode);
-                return () => unregister?.();
-            }}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (

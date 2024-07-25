@@ -1,7 +1,7 @@
 import {useCallback, useState} from 'react';
-import type {FocusTrapContainerElement, UseFocusTrapContainers} from './type';
+import type {FocusTrapContainerElement, UseFocusTrapContainerElements} from './type';
 
-const useFocusTrapContainers: UseFocusTrapContainers = () => {
+const useFocusTrapContainerElements: UseFocusTrapContainerElements = () => {
     const [containers, setContainers] = useState<HTMLElement[]>([]);
 
     const addContainer = useCallback((container: FocusTrapContainerElement) => {
@@ -15,4 +15,4 @@ const useFocusTrapContainers: UseFocusTrapContainers = () => {
     return [containers, addContainer];
 };
 
-export default useFocusTrapContainers;
+export default useFocusTrapContainerElements;

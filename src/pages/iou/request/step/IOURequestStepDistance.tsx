@@ -13,7 +13,6 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -58,7 +57,6 @@ type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
-        registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
     };
 
 function IOURequestStepDistance({
@@ -72,7 +70,6 @@ function IOURequestStepDistance({
     personalDetails,
     currentUserPersonalDetails,
     skipConfirmation,
-    registerFocusTrapContainer,
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -469,16 +466,7 @@ function IOURequestStepDistance({
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
-                <View
-                    style={styles.flex1}
-                    ref={(viewNode) => {
-                        if (!viewNode) {
-                            return;
-                        }
-                        const unregister = registerFocusTrapContainer?.(viewNode);
-                        return () => unregister?.();
-                    }}
-                >
+                <View style={styles.flex1}>
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}

@@ -2,7 +2,6 @@ import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -131,8 +130,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
-
-    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 export type {ThreeDotsMenuItem};

@@ -5,7 +5,6 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -58,8 +57,6 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 
         /** Whether the user input should be kept or not */
         shouldKeepUserInput?: boolean;
-
-        registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
     };
 
 function IOURequestStepAmount({
@@ -75,7 +72,6 @@ function IOURequestStepAmount({
     skipConfirmation,
     draftTransaction,
     shouldKeepUserInput = false,
-    registerFocusTrapContainer,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -327,7 +323,6 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
-                registerFocusTrapContainer={registerFocusTrapContainer}
             />
         </StepScreenWrapper>
     );

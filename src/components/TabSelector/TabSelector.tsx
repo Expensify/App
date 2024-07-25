@@ -4,7 +4,6 @@ import type {Animated} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {RegisterFocusTrapContainerCallback} from '@hooks/useFocusTrapContainers/type';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,8 +14,6 @@ import TabSelectorItem from './TabSelectorItem';
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
-
-    registerFocusTrapContainer?: RegisterFocusTrapContainerCallback;
 };
 
 type IconAndTitle = {
@@ -56,7 +53,7 @@ function getOpacity(position: Animated.AnimatedInterpolation<number>, routesLeng
     return activeValue;
 }
 
-function TabSelector({state, navigation, onTabPress = () => {}, position, registerFocusTrapContainer}: TabSelectorProps) {
+function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -86,16 +83,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, regist
     }, [defaultAffectedAnimatedTabs, state.index]);
 
     return (
-        <View
-            style={styles.tabSelector}
-            ref={(viewNode) => {
-                if (!viewNode) {
-                    return;
-                }
-                const unregister = registerFocusTrapContainer?.(viewNode);
-                return () => unregister?.();
-            }}
-        >
+        <View style={styles.tabSelector}>
             {state.routes.map((route, index) => {
                 const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);

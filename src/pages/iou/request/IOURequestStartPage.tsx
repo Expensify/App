@@ -8,7 +8,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import TabSelector from '@components/TabSelector/TabSelector';
-import useFocusTrapContainers from '@hooks/useFocusTrapContainers';
+import useFocusTrapContainerElements from '@hooks/useFocusTrapContainerElements';
+import type {FocusTrapContainerElement, RegisterFocusTrapContainerElementCallback} from '@hooks/useFocusTrapContainerElements/type';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +49,16 @@ type IOURequestStartPageOnyxProps = {
 };
 
 type IOURequestStartPageProps = IOURequestStartPageOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
+
+const refCallbackWithFocusTrap = (registerCb: RegisterFocusTrapContainerElementCallback) => {
+    return (view: FocusTrapContainerElement | null | undefined) => {
+        if (!view) {
+            return;
+        }
+        const deregister = registerCb(view);
+        return deregister;
+    };
+};
 
 function IOURequestStartPage({
     report,
@@ -102,31 +113,38 @@ function IOURequestStartPage({
         [policy, reportID, isFromGlobalCreate, transaction],
     );
 
-    const [otherContainers, addOtherContainer] = useFocusTrapContainers();
-    const [manualTabContainers, addManualTabContainer] = useFocusTrapContainers();
-    const [scanTabContainers, addScanTabContainer] = useFocusTrapContainers();
-    const [distanceTabContainers, addDistanceTabContainer] = useFocusTrapContainers();
+    const [containerElements, registerContainerElement] = useFocusTrapContainerElements();
+    const [manualTabContainerElements, registerManualTabContainerElement] = useFocusTrapContainerElements();
+    const [scanTabContainerElements, registerScanTabContainerElement] = useFocusTrapContainerElements();
+    const [distanceTabContainerElements, registerDistanceTabContainerElement] = useFocusTrapContainerElements();
 
-    const focusTrapContainers = useMemo<HTMLElement[]>(
-        () =>
-            [
-                ...otherContainers,
-                ...(selectedTab === CONST.TAB_REQUEST.MANUAL ? manualTabContainers : []),
-                ...(selectedTab === CONST.TAB_REQUEST.SCAN ? scanTabContainers : []),
-                ...(selectedTab === CONST.TAB_REQUEST.DISTANCE ? distanceTabContainers : []),
-            ] as HTMLElement[],
-        [otherContainers, manualTabContainers, scanTabContainers, distanceTabContainers, selectedTab],
-    );
+    const focusTrapContainers = useMemo(() => {
+        const result: HTMLElement[] = [...containerElements];
+        switch (selectedTab) {
+            case CONST.TAB_REQUEST.MANUAL:
+                return result.concat(manualTabContainerElements);
+            case CONST.TAB_REQUEST.SCAN:
+                return result.concat(scanTabContainerElements);
+            case CONST.TAB_REQUEST.DISTANCE:
+                return result.concat(distanceTabContainerElements);
+            default:
+                return result;
+        }
+    }, [selectedTab, containerElements, manualTabContainerElements, scanTabContainerElements, distanceTabContainerElements]);
 
     const TabSelectorWithFocusTrapInclusion = useCallback(
-        (props: TabSelectorProps) => (
-            <TabSelector
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                registerFocusTrapContainer={addOtherContainer}
-            />
-        ),
-        [addOtherContainer],
+        (props: TabSelectorProps) => {
+            return (
+                <View
+                    style={[styles.w100]}
+                    ref={refCallbackWithFocusTrap(registerContainerElement)}
+                >
+                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                    <TabSelector {...props} />
+                </View>
+            );
+        },
+        [styles.w100, registerContainerElement],
     );
 
     if (!transaction?.transactionID) {
@@ -157,11 +175,15 @@ function IOURequestStartPage({
                         isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={navigateBack}
-                                registerFocusTrapContainer={addOtherContainer}
-                            />
+                            <View
+                                style={[styles.w100]}
+                                ref={refCallbackWithFocusTrap(registerContainerElement)}
+                            >
+                                <HeaderWithBackButton
+                                    title={tabTitles[iouType]}
+                                    onBackButtonPress={navigateBack}
+                                />
+                            </View>
                             {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
@@ -170,28 +192,36 @@ function IOURequestStartPage({
                                 >
                                     <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                         {() => (
-                                            <IOURequestStepAmount
-                                                shouldKeepUserInput
-                                                route={route}
-                                                registerFocusTrapContainer={addManualTabContainer}
-                                            />
+                                            <View
+                                                style={[styles.w100, styles.h100]}
+                                                ref={refCallbackWithFocusTrap(registerManualTabContainerElement)}
+                                            >
+                                                <IOURequestStepAmount
+                                                    shouldKeepUserInput
+                                                    route={route}
+                                                />
+                                            </View>
                                         )}
                                     </TopTab.Screen>
                                     <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                         {() => (
-                                            <IOURequestStepScan
-                                                registerFocusTrapContainer={addScanTabContainer}
-                                                route={route}
-                                            />
+                                            <View
+                                                style={[styles.w100, styles.h100]}
+                                                ref={refCallbackWithFocusTrap(registerScanTabContainerElement)}
+                                            >
+                                                <IOURequestStepScan route={route} />
+                                            </View>
                                         )}
                                     </TopTab.Screen>
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                             {() => (
-                                                <IOURequestStepDistance
-                                                    route={route}
-                                                    registerFocusTrapContainer={addDistanceTabContainer}
-                                                />
+                                                <View
+                                                    style={[styles.w100, styles.h100]}
+                                                    ref={refCallbackWithFocusTrap(registerDistanceTabContainerElement)}
+                                                >
+                                                    <IOURequestStepDistance route={route} />
+                                                </View>
                                             )}
                                         </TopTab.Screen>
                                     )}
@@ -200,7 +230,6 @@ function IOURequestStartPage({
                                 <IOURequestStepAmount
                                     route={route}
                                     shouldKeepUserInput
-                                    registerFocusTrapContainer={addManualTabContainer}
                                 />
                             )}
                         </View>
