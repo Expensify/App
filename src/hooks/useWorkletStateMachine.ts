@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {executeOnUIRuntimeSync, runOnJS, useSharedValue} from 'react-native-reanimated';
+import {executeOnUIRuntimeSync, runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
 import Log from '@libs/Log';
 
 // When you need to debug state machine change this to true
@@ -150,7 +150,7 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
     }, [currentState, initialState, log]);
 
     const reset = useCallback(() => {
-        executeOnUIRuntimeSync(resetWorklet)();
+        runOnUI(resetWorklet)();
     }, [resetWorklet]);
 
     const transition = useCallback(
