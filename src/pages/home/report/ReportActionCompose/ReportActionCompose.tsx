@@ -3,7 +3,7 @@ import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFo
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -267,15 +267,16 @@ function ReportActionCompose({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
 
-    const addAttachment = useCallback(
-        (file: FileObject) => {
-            playSound(SOUNDS.DONE);
-            const newComment = composerRef?.current?.getCurrentText().trim();
-            Report.addAttachment(reportID, file, newComment);
-            setTextInputShouldClear(false);
-        },
-        [reportID],
-    );
+    const attachmentFileRef = useRef<FileObject | null>(null);
+    const addAttachment = useCallback((file: FileObject) => {
+        attachmentFileRef.current = file;
+        const clear = composerRef.current?.clear;
+        if (!clear) {
+            throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
+        }
+
+        runOnUI(clear)();
+    }, []);
 
     /**
      * Event handler to update the state after the attachment preview is closed.
@@ -294,9 +295,15 @@ function ReportActionCompose({
             playSound(SOUNDS.DONE);
 
             const newCommentTrimmed = newComment.trim();
-            onSubmit(newCommentTrimmed);
+
+            if (attachmentFileRef.current) {
+                Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
+                attachmentFileRef.current = null;
+            } else {
+                onSubmit(newCommentTrimmed);
+            }
         },
-        [onSubmit],
+        [onSubmit, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
