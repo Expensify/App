@@ -3345,16 +3345,16 @@ export default {
             addRate: 'Agregar tasa',
             trackTax: 'Impuesto de seguimiento',
             deleteRates: () => ({
-                one: `Eliminar 1 tasa`,
-                other: (count: number) => `Eliminar ${count} tasas`,
+                one: 'Eliminar tasa',
+                other: () => 'Eliminar tasas',
             }),
             enableRates: () => ({
-                one: `Activar 1 tasa`,
-                other: (count: number) => `Activar ${count} tasas`,
+                one: 'Activar 1 tasa',
+                other: () => 'Activar tasas',
             }),
             disableRates: () => ({
-                one: `Desactivar 1 tasa`,
-                other: (count: number) => `Desactivar ${count} tasas`,
+                one: 'Desactivar tasa',
+                other: () => 'Desactivar tasas',
             }),
             enableRate: 'Activar tasa',
             status: 'Estado',
@@ -3364,8 +3364,8 @@ export default {
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
             areYouSureDelete: () => ({
-                one: `¿Estás seguro de que quieres eliminar 1 tasa?`,
-                other: (count: number) => `¿Estás seguro de que quieres eliminar ${count} tasas?`,
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: () => '¿Estás seguro de que quieres eliminar estas tasas?',
             }),
         },
         editor: {
