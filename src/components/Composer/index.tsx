@@ -60,7 +60,6 @@ function Composer(
         maxLines = -1,
         onKeyPress = () => {},
         style,
-        shouldClear = false,
         autoFocus = false,
         shouldCalculateCaretPosition = false,
         isDisabled = false,
@@ -107,15 +106,6 @@ function Composer(
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
-
-    // useEffect(() => {
-    //     if (!shouldClear) {
-    //         return;
-    //     }
-
-    //     textInput.current?.clear();
-    //     onClear();
-    // }, [shouldClear, onClear]);
 
     useEffect(() => {
         if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {

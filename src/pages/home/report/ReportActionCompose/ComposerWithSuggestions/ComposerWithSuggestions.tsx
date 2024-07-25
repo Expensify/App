@@ -108,12 +108,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Function to display a file in a modal */
         displayFileInModal: (file: FileObject) => void;
 
-        /** Whether the text input should clear */
-        textInputShouldClear: boolean;
-
-        /** Function to set the text input should clear */
-        setTextInputShouldClear: (shouldClear: boolean) => void;
-
         /** Whether the user is blocked from concierge */
         isBlockedFromConcierge: boolean;
 
@@ -237,9 +231,6 @@ function ComposerWithSuggestions(
         isMenuVisible,
         inputPlaceholder,
         displayFileInModal,
-        textInputShouldClear,
-        // TODO: remove this clearing mechanism and use the clear method on the ref
-        setTextInputShouldClear,
         isBlockedFromConcierge,
         disabled,
         isFullComposerAvailable,
@@ -774,7 +765,6 @@ function ComposerWithSuggestions(
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
-                    shouldClear={textInputShouldClear}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose

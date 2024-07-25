@@ -43,9 +43,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     // eslint-disable-next-line react/forbid-prop-types
     style?: StyleProp<TextStyle>;
 
-    /** If the input should clear, it actually gets intercepted instead of .clear() */
-    shouldClear?: boolean;
-
     /** Whether or not this TextInput is disabled. */
     isDisabled?: boolean;
 

@@ -159,10 +159,6 @@ function ReportActionCompose({
         debouncedLowerIsScrollLikelyLayoutTriggered();
     }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
-    /**
-     * Updates the should clear state of the composer
-     */
-    const [textInputShouldClear, setTextInputShouldClear] = useState(false);
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
         return !draftComment || !!draftComment.match(/^(\s)*$/);
@@ -457,8 +453,6 @@ function ReportActionCompose({
                                         inputPlaceholder={inputPlaceholder}
                                         isComposerFullSize={isComposerFullSize}
                                         displayFileInModal={displayFileInModal}
-                                        textInputShouldClear={textInputShouldClear}
-                                        setTextInputShouldClear={setTextInputShouldClear}
                                         isBlockedFromConcierge={isBlockedFromConcierge}
                                         disabled={!!disabled}
                                         isFullComposerAvailable={isFullComposerAvailable}

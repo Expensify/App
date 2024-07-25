@@ -19,7 +19,6 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
-        shouldClear = false,
         onClear: onClearProp = () => {},
         isDisabled = false,
         maxLines,
@@ -63,14 +62,6 @@ function Composer(
         ref(textInput.current);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
-
-    // useEffect(() => {
-    //     if (!shouldClear) {
-    //         return;
-    //     }
-    //     textInput.current?.clear();
-    //     onClear();
-    // }, [shouldClear, onClear]);
 
     const onClear = useCallback(
         ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
