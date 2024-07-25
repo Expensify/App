@@ -78,6 +78,9 @@ type ApprovalWorkflow = {
      * Is this workflow being edited vs created
      */
     isBeingEdited: boolean;
+
+    /** Whether we are waiting for the API action to complete */
+    isLoading?: boolean;
 };
 
 export default ApprovalWorkflow;
