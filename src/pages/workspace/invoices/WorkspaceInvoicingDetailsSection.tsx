@@ -5,7 +5,9 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type WorkspaceInvoicingDetailsSectionProps = {
     /** The current policy ID */
@@ -35,7 +37,7 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
                 shouldShowRightIcon
                 title={policy?.invoice?.companyName}
                 description={translate('workspace.invoices.companyName')}
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))}
                 style={horizontalPadding}
             />
             <MenuItemWithTopDescription
@@ -43,7 +45,7 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
                 shouldShowRightIcon
                 title={policy?.invoice?.companyWebsite}
                 description={translate('workspace.invoices.companyWebsite')}
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))}
                 style={horizontalPadding}
             />
         </Section>
