@@ -353,11 +353,20 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-      - name: Verify that the deployed version matches what we expect
+      - name: Verify staging deploy
+        if: env.SHOULD_DEPLOY_PRODUCTION != 'true'
         run: |
-          LOCAL_VERSION="$(npm run print-version --silent)"
-          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com | jq -r '.version')"
-          if [[ "$LOCAL_VERSION" != "$DOWNLOADED_VERSION" ]]; then
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com | jq -r '.version')"
+          if [[ '${{ github.ref_name }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version does not match local version. Something went wrong..."
+            exit 1
+          fi
+
+      - name: Verify production deploy
+        if: env.SHOULD_DEPLOY_PRODUCTION == 'true'
+        run: |
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com | jq -r '.version')"
+          if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
             echo "Error: deployed version does not match local version. Something went wrong..."
             exit 1
           fi
