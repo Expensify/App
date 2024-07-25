@@ -38,7 +38,7 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
+    const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -98,7 +98,7 @@ function Composer(
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
-                    shouldResetFocus.current = true; // detect the input is blurred when the page is hidden
+                    shouldResetFocusRef.current = true; // detect the input is blurred when the page is hidden
                 }
                 props?.onBlur?.(e);
             }}
