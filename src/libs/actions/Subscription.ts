@@ -3,10 +3,12 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
+import RequestSubscriptionTaxExemptParams from '../API/parameters/RequestSubscriptionTaxExemptParams';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
@@ -288,6 +290,20 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
     API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
 }
 
+function requestSubscriptionTaxExempt() {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const params: RequestSubscriptionTaxExemptParams = {
+        authToken,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_SUBSCRIPTIONS_TAX_EXEMPT, params);
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -297,4 +313,5 @@ export {
     updateSubscriptionType,
     clearOutstandingBalance,
     cancelBillingSubscription,
+    requestSubscriptionTaxExempt,
 };
