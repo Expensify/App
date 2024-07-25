@@ -425,7 +425,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
+                                {shouldShowSettlementButton && (
                                     <SettlementButton
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -451,7 +451,7 @@ function ReportPreview({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
-                                {shouldShowExportIntegrationButton && (
+                                {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
                                         report={iouReport}
