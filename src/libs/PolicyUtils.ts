@@ -341,6 +341,29 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * This gets a "corrected" value for autoReportingFrequency. The purpose of this function is to encapsulate some logic around the "immediate" frequency.
+ *
+ * - "immediate" is actually not immediate. For that you want "instant".
+ * - (immediate && harvesting.enabled) === daily
+ * - (immediate && !harvesting.enabled) === manual
+ *
+ * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
+ */
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+    if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
+        return policy?.autoReportingFrequency;
+    }
+
+    if (policy?.harvesting?.enabled) {
+        // This is actually not really "immediate". It's "daily". Surprise!
+        return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+    }
+
+    // "manual" is really just "immediate" (aka "daily") with harvesting disabled
+    return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+}
+
+/**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
 function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -424,6 +447,14 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     }
 
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
+/**
+ * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ */
+function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
+    return getAccountIDsByLogins([reimburserEmail])[0];
 }
 
 function getPersonalPolicy() {
@@ -755,6 +786,17 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
+function hasNoPolicyOtherThanPersonalType() {
+    return (
+        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .length === 0
+    );
+}
+
+function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -793,6 +835,7 @@ export {
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
     isInstantSubmitEnabled,
+    getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -832,11 +875,14 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
+    hasNoPolicyOtherThanPersonalType,
+    getCurrentTaxID,
 };
 
 export type {MemberEmailsToAccountIDs};
