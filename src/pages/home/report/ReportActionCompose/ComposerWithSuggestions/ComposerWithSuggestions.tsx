@@ -621,6 +621,12 @@ function ComposerWithSuggestions(
         textInputRef.current.blur();
     }, []);
 
+    const clear = useCallback(() => {
+        'worklet';
+
+        forceClearInput(animatedRef, textInputRef);
+    }, [animatedRef]);
+
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -682,13 +688,9 @@ function ComposerWithSuggestions(
             replaceSelectionWithText,
             prepareCommentAndResetComposer,
             isFocused: () => !!textInputRef.current?.isFocused(),
-            clear: () => {
-                'worklet';
-
-                forceClearInput(animatedRef);
-            },
+            clear,
         }),
-        [animatedRef, blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
+        [blur, clear, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
     useEffect(() => {

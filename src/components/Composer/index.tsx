@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -107,14 +108,16 @@ function Composer(
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
 
-    useEffect(() => {
-        if (!shouldClear) {
-            return;
-        }
-        console.log('>>> Clearing composer');
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
+    // useEffect(() => {
+    //     if (!shouldClear) {
+    //         return;
+    //     }
+
+    //     textInput.current?.clear();
+    //     onClear();
+    // }, [shouldClear, onClear]);
+
+    const prevValue = usePrevious(value);
 
     useEffect(() => {
         if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
@@ -285,9 +288,6 @@ function Composer(
     useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
-        if (typeof ref === 'function') {
-            ref(textInput.current);
-        }
         setIsRendered(true);
 
         return () => {
@@ -298,6 +298,28 @@ function Composer(
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useImperativeHandle(
+        ref,
+        () => {
+            if (!textInput.current) {
+                throw new Error('TextInput ref is not available');
+            }
+
+            return {
+                ...textInput.current,
+                clear: () => {
+                    textInput.current?.clear();
+                    onClear({
+                        nativeEvent: {
+                            text: prevValue,
+                        },
+                    });
+                },
+            };
+        },
+        [onClear, prevValue],
+    );
 
     const handleKeyPress = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {

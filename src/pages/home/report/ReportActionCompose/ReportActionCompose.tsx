@@ -3,6 +3,7 @@ import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFo
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -180,7 +181,7 @@ function ReportActionCompose({
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef>(null);
+    const composerRef = useRef<ComposerRef>();
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -222,7 +223,7 @@ function ReportActionCompose({
         if (composerRef.current === null) {
             return;
         }
-        composerRef.current.focus(true);
+        composerRef.current?.focus(true);
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
@@ -345,17 +346,26 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
 
-    const clearComposer = composerRef.current?.clear;
+    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
+    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
+    const composerRefShared = useSharedValue<{
+        clear: (() => void) | undefined;
+    }>({clear: undefined});
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        if (isSendDisabled || !isReportReadyForDisplay || !clearComposer) {
+        const clearComposer = composerRefShared.value.clear;
+        if (!clearComposer) {
+            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+        }
+
+        if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
 
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
-    }, [isSendDisabled, isReportReadyForDisplay, clearComposer]);
+    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
@@ -417,7 +427,13 @@ function ReportActionCompose({
                                         actionButtonRef={actionButtonRef}
                                     />
                                     <ComposerWithSuggestions
-                                        ref={composerRef}
+                                        ref={(ref) => {
+                                            composerRef.current = ref ?? undefined;
+                                            // eslint-disable-next-line react-compiler/react-compiler
+                                            composerRefShared.value = {
+                                                clear: ref?.clear,
+                                            };
+                                        }}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
