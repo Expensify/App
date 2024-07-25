@@ -866,20 +866,47 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         reimbursable: ['reimbursable'],
     };
 
-    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [
-        ...new Set(
-            items
-                .map((item) => {
-                    // Prioritize modifiedMerchant over merchant
-                    if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        return item?.modifiedMerchant || item?.merchant;
-                    }
-                    return keys.map((key) => item?.[key]);
-                })
-                .flat(),
-        ),
-    ];
+    // Helper function thats create an array of different values for a given key in the transactions
+    function getDifferentValues(items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
+        return [
+            ...new Set(
+                items
+                    .map((item) => {
+                        // Prioritize modifiedMerchant over merchant
+                        if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            return getMerchant(item);
+                        }
+                        return keys.map((key) => item?.[key]);
+                    })
+                    .flat(),
+            ),
+        ];
+    }
+
+    // Helper function to check if all comments are equal
+    function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
+        return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+    }
+
+    // Helper function to check if all comments exist
+    function doAllCommentsExist(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
+        return items.every((item) => !!item?.comment.comment === !!firstTransaction?.comment.comment);
+    }
+
+    // Helper function to check if all fields are equal for a given key
+    function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
+        const firstTransaction = transactions[0];
+        return items.every((item) => keyExtractor(item) === keyExtractor(firstTransaction));
+    }
+
+    // Helper function to process changes
+    function processChanges(fieldName: string, items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
+        const differentValues = getDifferentValues(items, keys);
+        if (differentValues.length > 0) {
+            change[fieldName] = differentValues;
+        }
+    }
 
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
@@ -888,29 +915,25 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
 
             if (fieldName === 'description') {
-                const allCommentsAreEqual = transactions.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
-                const allCommentsExist = transactions.every((item) => !!item?.comment.comment === !!firstTransaction?.comment.comment);
+                const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
+                const allCommentsExist = doAllCommentsExist(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
                 if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
                 } else {
-                    const differentValues = getDifferentValues(transactions, keys);
-                    if (differentValues.length > 0) {
-                        change[fieldName] = differentValues;
-                    }
+                    processChanges(fieldName, transactions, keys);
                 }
-            } else {
-                const allFieldsAreEqual = transactions.every((item) => keys.every((key) => item?.[key] === firstTransaction?.[key]));
-
-                if (allFieldsAreEqual) {
-                    keep[fieldName] = firstTransaction?.[keys[0]];
+            } else if (fieldName === 'merchant') {
+                if (areAllFieldsEqual(transactions, getMerchant)) {
+                    keep[fieldName] = getMerchant(firstTransaction);
                 } else {
-                    const differentValues = getDifferentValues(transactions, keys);
-                    if (differentValues.length > 0) {
-                        change[fieldName] = differentValues;
-                    }
+                    processChanges(fieldName, transactions, keys);
                 }
+            } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
+                keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+            } else {
+                processChanges(fieldName, transactions, keys);
             }
         }
     }
