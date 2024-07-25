@@ -18,8 +18,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -121,7 +121,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? '-1'];
 
             const iouReportIDOfLastAction = OptionsListUtils.getIOUReportIDOfLastAction(itemFullReport);
-            const itemIouReportReportActions = !!iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
+            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
             const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)

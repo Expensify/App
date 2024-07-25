@@ -662,7 +662,13 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
     return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
-function getIOUReportIDOfLastAction(report) {
+/**
+ * Get IOU report ID of report last action if the action is report action preview
+ */
+function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefined {
+    if (!report?.reportID) {
+        return;
+    }
     const lastAction = visibleReportActionItems[report.reportID];
     if (!ReportActionUtils.isReportPreviewAction(lastAction)) {
         return;
