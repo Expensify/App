@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type ReactionListProps from './types';
 
@@ -27,10 +27,10 @@ function HeaderReactionList({emojiCodes, emojiCount, emojiName, hasUserReacted =
     } = useThemeStyles();
     const {getEmojiReactionBubbleStyle, getEmojiReactionBubbleTextStyle, getEmojiReactionCounterTextStyle} = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={[flexRow, justifyContentBetween, alignItemsCenter, emojiReactionListHeader, !isSmallScreenWidth && pt4]}>
+        <View style={[flexRow, justifyContentBetween, alignItemsCenter, emojiReactionListHeader, !shouldUseNarrowLayout && pt4]}>
             <View style={flexRow}>
                 <View style={[emojiReactionListHeaderBubble, getEmojiReactionBubbleStyle(false, hasUserReacted)]}>
                     <Text style={[miniQuickEmojiReactionText, getEmojiReactionBubbleTextStyle(true)]}>{emojiCodes.join('')}</Text>

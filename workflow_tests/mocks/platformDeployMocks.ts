@@ -183,6 +183,8 @@ const PLATFORM_DEPLOY__WEB__DEPLOY_S3__STEP_MOCK = createMockStep('Deploy to S3'
 const PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK = createMockStep('Purge Cloudflare cache', 'Purging Cloudflare cache', 'WEB', null, ['CF_API_KEY']);
 const PLATFORM_DEPLOY__WEB__VERIFY_STAGING_DEPLOY = createMockStep('Verify staging deploy', 'Verifying staging deploy', 'WEB');
 const PLATFORM_DEPLOY__WEB__VERIFY_PROD_DEPLOY = createMockStep('Verify production deploy', 'Verifying production deploy', 'WEB');
+const PLATFORM_DEPLOY__WEB__UPlOAD_TO_GH_ARTIFACTS__STEP_MOCK = createMockStep('Upload web build to GitHub artifacts', 'Uploading web build to GitHub artifacts', 'WEB');
+const PLATFORM_DEPLOY__WEB__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload web build to GitHub Release', 'Uploading web build to GitHub Release', 'WEB', null, ['GITHUB_TOKEN']);
 const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__SETUP_NODE__STEP_MOCK,
@@ -194,6 +196,8 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__VERIFY_STAGING_DEPLOY,
     PLATFORM_DEPLOY__WEB__VERIFY_PROD_DEPLOY,
+    PLATFORM_DEPLOY__WEB__UPlOAD_TO_GH_ARTIFACTS__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__UPLOAD_TO_GH_RELEASE__STEP_MOCK,
 ];
 
 // post slack message on failure
