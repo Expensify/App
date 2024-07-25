@@ -12093,12 +12093,6 @@ class GithubUtils {
             .then((response) => response.data.workflow_runs[0]?.id);
     }
     /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
-    }
-    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
