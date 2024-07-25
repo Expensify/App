@@ -40,9 +40,6 @@ type ComposerProps = TextInputProps & {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
     shouldClear?: boolean;
 
-    /** When the input has cleared whoever owns this input should know about it */
-    onClear?: () => void;
-
     /** Whether or not this TextInput is disabled. */
     isDisabled?: boolean;
 

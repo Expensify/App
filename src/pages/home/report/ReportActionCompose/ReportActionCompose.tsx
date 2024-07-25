@@ -1,10 +1,8 @@
-import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -23,7 +21,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {forceClearInput} from '@libs/ComponentUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
@@ -46,12 +43,18 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 
+// TODO: move this to composer?!
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
     replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
     prepareCommentAndResetComposer: () => string;
     isFocused: () => boolean;
+    /**
+     * Calling clear will immediately clear the input on the UI thread (its a worklet).
+     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     */
+    clear: () => void;
 };
 
 type SuggestionsRef = {
@@ -123,7 +126,6 @@ function ReportActionCompose({
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
@@ -287,16 +289,11 @@ function ReportActionCompose({
      * Add a new comment to this chat
      */
     const submitForm = useCallback(
-        (event?: SyntheticEvent) => {
-            event?.preventDefault();
-
-            const newComment = composerRef.current?.prepareCommentAndResetComposer();
-            if (!newComment) {
-                return;
-            }
-
+        (newComment: string) => {
             playSound(SOUNDS.DONE);
-            onSubmit(newComment);
+
+            const newCommentTrimmed = newComment.trim();
+            onSubmit(newCommentTrimmed);
         },
         [onSubmit],
     );
@@ -326,15 +323,6 @@ function ReportActionCompose({
         onComposerFocus?.();
     }, [onComposerFocus]);
 
-    // resets the composer to normal size when
-    // the send button is pressed.
-    const resetFullComposerSize = useCallback(() => {
-        if (isComposerFullSize) {
-            Report.setIsComposerFullSize(reportID, false);
-        }
-        setIsFullComposerAvailable(false);
-    }, [isComposerFullSize, reportID]);
-
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
@@ -357,19 +345,17 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
 
+    const clearComposer = composerRef.current?.clear;
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        if (isSendDisabled || !isReportReadyForDisplay) {
+        if (isSendDisabled || !isReportReadyForDisplay || !clearComposer) {
             return;
         }
 
-        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-        runOnJS(setIsCommentEmpty)(true);
-        runOnJS(resetFullComposerSize)();
-        forceClearInput(animatedRef);
-        runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+        // This will cause onCleared to be triggered where we actually send the message
+        clearComposer();
+    }, [isSendDisabled, isReportReadyForDisplay, clearComposer]);
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
@@ -432,7 +418,6 @@ function ReportActionCompose({
                                     />
                                     <ComposerWithSuggestions
                                         ref={composerRef}
-                                        animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
@@ -460,6 +445,7 @@ function ReportActionCompose({
                                         shouldShowComposeInput={shouldShowComposeInput}
                                         onFocus={onFocus}
                                         onBlur={onBlur}
+                                        onCleared={submitForm}
                                         measureParentContainer={measureContainer}
                                         onValueChange={(value) => {
                                             if (value.length === 0 && isComposerFullSize) {

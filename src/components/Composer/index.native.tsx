@@ -1,6 +1,6 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
@@ -64,13 +64,13 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        if (!shouldClear) {
-            return;
-        }
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
+    // useEffect(() => {
+    //     if (!shouldClear) {
+    //         return;
+    //     }
+    //     textInput.current?.clear();
+    //     onClear();
+    // }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
@@ -99,6 +99,7 @@ function Composer(
                 }
                 props?.onBlur?.(e);
             }}
+            onClear={onClear}
         />
     );
 }

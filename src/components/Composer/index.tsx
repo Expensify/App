@@ -111,6 +111,7 @@ function Composer(
         if (!shouldClear) {
             return;
         }
+        console.log('>>> Clearing composer');
         textInput.current?.clear();
         onClear();
     }, [shouldClear, onClear]);
