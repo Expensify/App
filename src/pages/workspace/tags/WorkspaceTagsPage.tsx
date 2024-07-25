@@ -203,7 +203,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const getHeaderButtons = () => {
         const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
-        if (selectedTagsArray.length === 0) {
+        if (isSmallScreenWidth ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
                     {!hasAccountingConnections && !isMultiLevelTags && (

@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -233,7 +234,7 @@ function PolicyDistanceRatesPage({
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-            {selectedDistanceRates.length === 0 ? (
+            {(isSmallScreenWidth ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         medium
@@ -287,9 +288,17 @@ function PolicyDistanceRatesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.CarIce}
-                    title={translate('workspace.common.distanceRates')}
+                    icon={!selectionMode?.isEnabled ? Illustrations.CarIce : undefined}
+                    title={translate(!selectionMode?.isEnabled ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={isSmallScreenWidth}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedDistanceRates([]);
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
                 >
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
