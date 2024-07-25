@@ -202,8 +202,10 @@ function ReportActionsList({
     /**
      * The timestamp for the unread marker.
      *
-     * This should ONLY be updated when the user switches reports OR when they mark a
-     * message as read/unread
+     * This should ONLY be updated when the user
+     * - switches reports
+     * - marks a message as read/unread
+     * - reads a new message as it is received
      */
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
@@ -258,6 +260,20 @@ function ReportActionsList({
             readNewestActionSubscription.remove();
         };
     }, [report.reportID]);
+
+    /**
+     * When the user reads a new message as it is received, we'll push the unreadMarkerTime down to the timestamp of
+     * the latest report action. When new report actions are received and the user is not viewing them (they're above
+     * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
+     * lastReadTime.
+     */
+    useEffect(() => {
+        if (unreadMarkerReportActionID) {
+            return;
+        }
+
+        setUnreadMarkerTime(sortedVisibleReportActions[0]?.created ?? '');
+    }, [unreadMarkerReportActionID, sortedVisibleReportActions]);
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
