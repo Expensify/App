@@ -34,17 +34,17 @@ function BaseSidebarScreen() {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
 
-    const [selectedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
-        if (!!selectedPolicy || activeWorkspaceID === undefined || !!didResetActiveWorkspaceIDRef.current) {
+        if (!!activeWorkspace || activeWorkspaceID === undefined || !!didResetActiveWorkspaceIDRef.current) {
             return;
         }
 
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
         didResetActiveWorkspaceIDRef.current = true;
-    }, [selectedPolicy, activeWorkspaceID]);
+    }, [activeWorkspace, activeWorkspaceID]);
 
     return (
         <ScreenWrapper
