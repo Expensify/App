@@ -6314,6 +6314,14 @@ function getReportFromHoldRequestsOnyxData(
                 [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
             },
         },
+        // update total of the old iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                total: !!iouReport?.total ? iouReport.total - (firstHoldTransaction?.amount ?? 0) : 0,
+            },
+        },
         // remove hold report actions from old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE,
