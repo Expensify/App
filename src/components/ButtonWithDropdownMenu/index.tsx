@@ -73,7 +73,9 @@ function ButtonWithDropdownMenu<IValueType>({
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={(ref) => {
-                            caretButton.current = ref;
+                            if (!isSplitButton) {
+                                caretButton.current = ref;
+                            }
                         }}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
