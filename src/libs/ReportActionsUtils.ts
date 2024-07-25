@@ -955,6 +955,13 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
+// Get all IOU report actions for the report.
+const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
+    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+    CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+    CONST.IOU.REPORT_ACTION_TYPE.PAY,
+    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+]);
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
@@ -970,14 +977,6 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
     if (!reportActionsArray.length) {
         return;
     }
-
-    // Get all IOU report actions for the report.
-    const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-    ]);
 
     const iouRequestActions = [];
     for (const action of reportActionsArray) {
@@ -1015,7 +1014,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
-    if (isMoneyRequestAction(singleAction) && (originalMessage?.deleted ?? '') !== '') {
+    if ((originalMessage?.deleted ?? '') !== '' && isMoneyRequestAction(singleAction)) {
         return;
     }
 
