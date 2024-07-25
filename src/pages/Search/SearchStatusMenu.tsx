@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import type {SearchStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import {normalizeQuery} from '@libs/SearchUtils';
 import variables from '@styles/variables';
@@ -29,7 +29,7 @@ type SearchStatusMenuItem = {
 
 function SearchStatusMenu({status}: SearchStatusMenuProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
 
@@ -61,7 +61,7 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
     ];
     const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return (
             <SearchStatusMenuNarrow
                 statusMenuItems={statusMenuItems}

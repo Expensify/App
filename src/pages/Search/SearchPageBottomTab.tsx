@@ -5,8 +5,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchUtils';
@@ -18,7 +18,7 @@ import SearchStatusMenu from './SearchStatusMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
@@ -65,7 +65,7 @@ function SearchPageBottomTab() {
                         onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
                     />
                 )}
-                {isSmallScreenWidth && queryJSON && (
+                {shouldUseNarrowLayout && queryJSON && (
                     <Search
                         queryJSON={queryJSON}
                         policyIDs={policyIDs}
