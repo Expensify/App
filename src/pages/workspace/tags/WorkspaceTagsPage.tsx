@@ -59,7 +59,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const canSelectMultiple = !isMultiLevelTags && isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = !isMultiLevelTags && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
@@ -378,7 +378,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 {hasVisibleTag && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!isMultiLevelTags}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}

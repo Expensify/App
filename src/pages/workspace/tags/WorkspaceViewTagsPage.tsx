@@ -162,7 +162,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        if (selectedTagsArray.length === 0) {
+        if ((!isSmallScreenWidth && selectedTagsArray.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
             return null;
         }
 
@@ -170,7 +170,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
-        if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
+        if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTagsArray.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
