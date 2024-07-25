@@ -1,15 +1,15 @@
-import type {ConnectPolicyToAccountingIntegrationParams} from '@libs/API/parameters';
 import type {OnyxUpdate} from 'react-native-onyx';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCommandURL} from '@libs/ApiUtils';
-import type UpdateQuickbooksOnlineEnableNewCategoriesParams from '@libs/API/parameters/UpdateQuickbooksOnlineEnableNewCategories';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {ConnectPolicyToAccountingIntegrationParams} from '@libs/API/parameters';
+import type UpdateQuickbooksOnlineEnableNewCategoriesParams from '@libs/API/parameters/UpdateQuickbooksOnlineEnableNewCategoriesParams';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function getQuickBooksOnlineSetupLink(policyID: string) {
+function getQuickbooksOnlineSetupLink(policyID: string) {
     const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
@@ -18,18 +18,14 @@ function getQuickBooksOnlineSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-
-function updateQuickBooksOnlineEnableNewCategories(
-    policyID: string,
-    settingValue: boolean,
-) {
+function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValue: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {  
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: settingValue ?? null,
                             pendingFields: {
@@ -97,4 +93,4 @@ function updateQuickBooksOnlineEnableNewCategories(
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES, parameters, {optimisticData, failureData, successData});
 }
 
-export {getQuickBooksOnlineSetupLink, updateQuickBooksOnlineEnableNewCategories};
+export {getQuickbooksOnlineSetupLink, updateQuickbooksOnlineEnableNewCategories};

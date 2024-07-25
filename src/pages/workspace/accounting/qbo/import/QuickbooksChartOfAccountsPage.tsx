@@ -7,7 +7,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickBooksOnline from '@libs/actions/connections/QuickBooksOnline';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -59,9 +59,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                         <Switch
                             accessibilityLabel={translate('workspace.accounting.accounts')}
                             isOn={!!enableNewCategories}
-                            onToggle={() =>
-                                QuickBooksOnline.updateQuickBooksOnlineEnableNewCategories(policyID, !enableNewCategories)
-                            }
+                            onToggle={() => QuickbooksOnline.updateQuickbooksOnlineEnableNewCategories(policyID, !enableNewCategories)}
                         />
                     </View>
                 </OfflineWithFeedback>
