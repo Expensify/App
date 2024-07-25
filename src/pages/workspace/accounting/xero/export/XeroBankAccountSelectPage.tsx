@@ -46,7 +46,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const updateBankAccount = useCallback(
         ({value}: SelectorType) => {
             if (initiallyFocusedOptionKey !== value) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
+                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
                     nonReimbursableAccount: value,
                 });
             }
