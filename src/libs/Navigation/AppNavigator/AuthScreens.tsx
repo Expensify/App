@@ -95,6 +95,7 @@ function shouldOpenOnAdminRoom() {
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
+// @TODO: Add these params to SearchPage and ReportScreen
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
@@ -579,14 +580,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
                         const centralPaneName = screenName as CentralPaneName;
+                        const options = {...CentralPaneScreenOptions};
+
+                        if (centralPaneName === SCREENS.SETTINGS.WORKSPACES) {
+                            options.animationEnabled = false;
+                        }
+
                         return (
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
-                                options={CentralPaneScreenOptions}
-                                listeners={getCentralPaneScreenListeners(centralPaneName)}
+                                options={options}
                             />
                         );
                     })}

@@ -1,4 +1,5 @@
 import React from 'react';
+import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -29,22 +30,24 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 function WorkspaceNavigator() {
     return (
-        <RootStack.Navigator
-            sidebarScreen={SCREENS.WORKSPACE.INITIAL}
-            defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
-        >
-            <RootStack.Screen
-                name={SCREENS.WORKSPACE.INITIAL}
-                getComponent={loadWorkspaceInitialPage}
-            />
-            {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
+        <FocusTrapForScreens>
+            <RootStack.Navigator
+                sidebarScreen={SCREENS.WORKSPACE.INITIAL}
+                defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
+            >
                 <RootStack.Screen
-                    key={screenName}
-                    name={screenName as keyof Screens}
-                    getComponent={componentGetter}
+                    name={SCREENS.WORKSPACE.INITIAL}
+                    getComponent={loadWorkspaceInitialPage}
                 />
-            ))}
-        </RootStack.Navigator>
+                {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
+                    <RootStack.Screen
+                        key={screenName}
+                        name={screenName as keyof Screens}
+                        getComponent={componentGetter}
+                    />
+                ))}
+            </RootStack.Navigator>
+        </FocusTrapForScreens>
     );
 }
 
