@@ -438,4 +438,4 @@ Now, go back to **Settings > Workspaces > [Group Workspace Name] > Connections >
 
 Once the initial sync completes, you may receive the error "No Expense Types Found" if you're not using the Time and Expenses module. Close the error dialogue, and your configuration options will appear. Switch the reimbursable export option to **Vendor Bills** and click **Save** before completing your configuration.
 
-Next, refer to the Configure Sage Intacct article to finish setting up the Export, Coding, and Advanced tabs of the connection configuration.
+Next, refer to the [Configure Sage Intacct](https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Configure-Sage-Intacct) article to finish setting up the Export, Coding, and Advanced tabs of the connection configuration.
