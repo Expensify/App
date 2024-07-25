@@ -8,21 +8,9 @@ let isNewAppLaunch = true;
  * @param log the log to add
  */
 function addLog(log: Log) {
-    /**
-     * If this is the new app launch, we want to reset the log state in Onyx.
-     * This is because we don't want to keep logs from previous sessions and
-     * blow up the Onyx state.
-     */
-    if (isNewAppLaunch) {
-        isNewAppLaunch = false;
-        Onyx.set(ONYXKEYS.LOGS, {
-            [log.time.getTime()]: log,
-        });
-    } else {
-        Onyx.merge(ONYXKEYS.LOGS, {
-            [log.time.getTime()]: log,
-        });
-    }
+    Onyx.merge(ONYXKEYS.LOGS, {
+        [log.time.getTime()]: log,
+    });
 }
 
 /**
@@ -41,4 +29,17 @@ function disableLoggingAndFlushLogs() {
     Onyx.set(ONYXKEYS.LOGS, null);
 }
 
-export {addLog, setShouldStoreLogs, disableLoggingAndFlushLogs};
+/**
+ * Clears the persisted logs on app launch,
+ * so that we have fresh logs for the new app session.
+ */
+function flushAllLogsOnAppLaunch() {
+    if (!isNewAppLaunch) {
+        return Promise.resolve();
+    }
+
+    isNewAppLaunch = false;
+    return Onyx.set(ONYXKEYS.LOGS, {});
+}
+
+export {addLog, setShouldStoreLogs, disableLoggingAndFlushLogs, flushAllLogsOnAppLaunch};

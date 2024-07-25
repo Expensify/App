@@ -8,7 +8,7 @@ import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
-import {addLog} from './actions/Console';
+import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
@@ -71,11 +71,12 @@ const Log = new Logger({
             return;
         }
 
-        console.debug(message, extraData);
-
-        if (shouldCollectLogs) {
-            addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
-        }
+        flushAllLogsOnAppLaunch().then(() => {
+            console.debug(message, extraData);
+            if (shouldCollectLogs) {
+                addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
+            }
+        });
     },
     isDebug: true,
 });
