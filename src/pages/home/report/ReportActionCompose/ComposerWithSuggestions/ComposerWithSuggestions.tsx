@@ -764,7 +764,10 @@ function ComposerWithSuggestions(
                     onFocus={onFocus}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
-                    onPasteFile={displayFileInModal}
+                    onPasteFile={(file) => {
+                        textInputRef.current?.blur();
+                        displayFileInModal(file);
+                    }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose
