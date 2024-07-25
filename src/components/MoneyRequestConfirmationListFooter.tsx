@@ -253,10 +253,7 @@ function MoneyRequestConfirmationListFooter({
     const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
-    console.log('MoneyRequestConfirmationListFooter taxAmount', taxAmount);
-
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
-    console.log('MoneyRequestConfirmationListFooter formattedTaxAmount', formattedTaxAmount);
 
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
