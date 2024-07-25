@@ -36,10 +36,8 @@ function ExpiredValidateCodeModal() {
                         {translate('validateCodeModal.or')}{' '}
                         <TextLink
                             onPress={() => {
-                                requestAnimationFrame(() => {
-                                    Session.beginSignIn(credentials?.login ?? '');
-                                });
-                                Navigation.goBack();
+                                Session.beginSignIn(credentials?.login ?? '');
+                                Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                             }}
                         >
                             {translate('validateCodeModal.requestOneHere')}
