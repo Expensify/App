@@ -53,7 +53,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isIOUReport = ReportUtils.isIOUReport(report);
     const isFocused = useIsFocused();
-    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     useEffect(() => {
         if (isFocused) {
@@ -186,6 +186,10 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
      */
     const toggleUser = useCallback(
         (user: MemberOption) => {
+            if (user.accountID === currentUserAccountID) {
+                return;
+            }
+
             // Add or remove the user if the checkbox is enabled
             if (selectedMembers.includes(user.accountID)) {
                 removeUser(user.accountID);
@@ -193,7 +197,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                 addUser(user.accountID);
             }
         },
-        [selectedMembers, addUser, removeUser],
+        [selectedMembers, addUser, removeUser, currentUserAccountID],
     );
 
     const headerContent = useMemo(() => {
@@ -366,7 +370,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
                         ListItem={TableListItem}
