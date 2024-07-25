@@ -44,6 +44,10 @@ async function run() {
             lastSuccessfulDeploy = completedDeploys.shift();
         }
 
+        if (!lastSuccessfulDeploy) {
+            throw new Error('Could not find a prior successful deploy');
+        }
+
         const priorTag = lastSuccessfulDeploy.head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
