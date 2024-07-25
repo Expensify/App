@@ -5423,7 +5423,7 @@ function shouldDisplayTransactionThreadViolations(
         return false;
     }
     const {IOUReportID} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
-    if (isSettled(IOUReportID)) {
+    if (isSettled(IOUReportID) || isReportApproved(IOUReportID?.toString())) {
         return false;
     }
     return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
