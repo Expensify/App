@@ -256,13 +256,7 @@ function MoneyRequestConfirmationList({
 
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
-    const distance = useMemo(() => {
-        const value = TransactionUtils.getDistance(transaction);
-        if (canUseP2PDistanceRequests && isMovingTransactionFromTrackExpense && unit && !TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
-            return DistanceRequestUtils.convertToDistanceInMeters(value, unit);
-        }
-        return value;
-    }, [isMovingTransactionFromTrackExpense, unit, transaction, canUseP2PDistanceRequests]);
+    const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
 
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
@@ -359,7 +353,7 @@ function MoneyRequestConfirmationList({
         if (isDistanceRequest) {
             const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
             taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
-            taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
+            taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
         } else {
             taxableAmount = transaction?.amount ?? 0;
             taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
@@ -368,7 +362,7 @@ function MoneyRequestConfirmationList({
         const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
         IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
-    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID, currency]);
+    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID, currency, distance]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {

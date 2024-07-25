@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -13,6 +14,7 @@ import type {TransactionMergeParams} from './API/parameters';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import {getCurrencyDecimals} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import DistanceRequestUtils from './DistanceRequestUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
@@ -383,8 +385,14 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
-    return transaction?.comment?.customUnit?.quantity ?? 0;
+function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: Unit | undefined) {
+    if (transaction?.routes?.route0?.distance) {
+        return transaction.routes.route0.distance;
+    }
+    if (transaction?.comment?.customUnit?.quantity && unit) {
+        return DistanceRequestUtils.convertToDistanceInMeters(transaction.comment.customUnit.quantity, unit);
+    }
+    return 0;
 }
 
 /**
@@ -998,7 +1006,7 @@ export {
     getTaxAmount,
     getTaxCode,
     getCurrency,
-    getDistance,
+    getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,
