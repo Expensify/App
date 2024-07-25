@@ -89,7 +89,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
 
-    const canSelectMultiple = isPolicyAdmin && isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = isPolicyAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     useEffect(() => {
         if (!isSmallScreenWidth) {
@@ -270,6 +270,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
      */
     const toggleUser = useCallback(
         (accountID: number, pendingAction?: PendingAction) => {
+            if (accountID === policy?.ownerAccountID && accountID !== session?.accountID) {
+                return;
+            }
+
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
@@ -281,7 +285,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 addUser(accountID);
             }
         },
-        [selectedEmployees, addUser, removeUser],
+        [selectedEmployees, addUser, removeUser, policy?.ownerAccountID, session?.accountID],
     );
 
     /** Opens the member details page */
@@ -441,16 +445,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const getCustomListHeader = () => {
         const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, !canSelectMultiple && styles.m5]}>
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
-                    <Text style={[styles.searchInputStyle, isPolicyAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+                    <Text style={[styles.searchInputStyle, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
                 <View style={[StyleUtils.getMinimumWidth(60)]}>
                     <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
                 </View>
             </View>
         );
-        if (isPolicyAdmin) {
+        if (canSelectMultiple) {
             return header;
         }
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
@@ -587,8 +591,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             canSelectMultiple={canSelectMultiple}
                             sections={[{data, isDisabled: false}]}
                             ListItem={TableListItem}
-                            turnOnSelectionModeOnLongPress
-                            onTurnOnSelectionMode={(item) => toggleUser(item?.accountID ?? -1)}
+                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                            onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
                             shouldUseUserSkeletonView
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
