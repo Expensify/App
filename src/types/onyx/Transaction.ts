@@ -122,6 +122,9 @@ type Receipt = {
     /** Name of receipt file */
     name?: string;
 
+    /** ID of receipt file */
+    receiptID?: number;
+
     /** Path of the receipt file */
     source?: ReceiptSource;
 

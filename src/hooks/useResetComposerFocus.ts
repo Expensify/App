@@ -5,15 +5,15 @@ import type {TextInput} from 'react-native';
 
 export default function useResetComposerFocus(inputRef: MutableRefObject<TextInput | null>) {
     const isFocused = useIsFocused();
-    const shouldResetFocus = useRef(false);
+    const shouldResetFocusRef = useRef(false);
 
     useEffect(() => {
-        if (!isFocused || !shouldResetFocus.current) {
+        if (!isFocused || !shouldResetFocusRef.current) {
             return;
         }
         inputRef.current?.focus(); // focus input again
-        shouldResetFocus.current = false;
+        shouldResetFocusRef.current = false;
     }, [isFocused, inputRef]);
 
-    return {isFocused, shouldResetFocus};
+    return {isFocused, shouldResetFocusRef};
 }
