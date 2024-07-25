@@ -16,14 +16,14 @@ import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SelectedTransactions} from './types';
+import type {SearchStatus, SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
-    query: SearchQuery;
+    status: SearchStatus;
     selectedTransactions?: SelectedTransactions;
     selectedReports?: Array<SearchReport['reportID']>;
     clearSelectedItems?: () => void;
@@ -38,7 +38,7 @@ type SearchPageHeaderProps = {
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
 function SearchPageHeader({
-    query,
+    status,
     selectedTransactions = {},
     hash,
     clearSelectedItems,
@@ -57,7 +57,7 @@ function SearchPageHeader({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
 
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
+    const headerContent: {[key in SearchStatus]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
         shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
         drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
@@ -84,7 +84,7 @@ function SearchPageHeader({
                     return;
                 }
 
-                SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
+                SearchActions.exportSearchItemsToCSV(status, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
                     setDownloadErrorModalOpen?.();
                 });
             },
@@ -109,7 +109,7 @@ function SearchPageHeader({
                         setIsMobileSelectionModeActive?.(false);
                     }
                     setSelectedTransactionIDs(selectedTransactionsKeys);
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(query));
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
         }
@@ -176,6 +176,7 @@ function SearchPageHeader({
 
         return options;
     }, [
+        status,
         selectedTransactionsKeys,
         selectedTransactions,
         translate,
@@ -187,7 +188,6 @@ function SearchPageHeader({
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        query,
         isOffline,
         setOfflineModalOpen,
         setDownloadErrorModalOpen,
@@ -211,8 +211,8 @@ function SearchPageHeader({
 
     return (
         <HeaderWithBackButton
-            title={headerContent[query]?.title}
-            icon={headerContent[query]?.icon}
+            title={headerContent[status]?.title}
+            icon={headerContent[status]?.icon}
             shouldShowBackButton={false}
         >
             {headerButtonsOptions.length > 0 && (

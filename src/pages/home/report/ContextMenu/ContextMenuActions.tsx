@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -108,6 +108,7 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
     isAnonymousAction: boolean;
     shouldShow: ShouldShow;
     shouldPreventDefaultFocusOnPress?: boolean;
+    shouldDisable?: (download: OnyxEntry<DownloadOnyx>) => boolean;
 };
 
 // A list of all the context actions in this menu.
@@ -533,6 +534,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        shouldDisable: (download) => download?.isDownloading ?? false,
     },
     {
         isAnonymousAction: true,

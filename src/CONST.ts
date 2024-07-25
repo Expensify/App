@@ -230,6 +230,8 @@ const CONST = {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
+        OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
+        OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
@@ -5233,11 +5235,19 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
-        TAB: {
+        STATUS: {
             ALL: 'all',
             SHARED: 'shared',
             DRAFTS: 'drafts',
             FINISHED: 'finished',
+        },
+        TAB: {
+            EXPENSE: {
+                ALL: 'type:expense status:all',
+                SHARED: 'type:expense status:shared',
+                DRAFTS: 'type:expense status:drafts',
+                FINISHED: 'type:expense status:finished',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5268,7 +5278,6 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
-            OFFSET: 'offset',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
