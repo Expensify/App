@@ -314,4 +314,12 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection, copyExistingPolicyConnection, isConnectionUnverified};
+export {
+    removePolicyConnection,
+    updatePolicyConnectionConfig,
+    updateManyPolicyConnectionConfigs,
+    hasSynchronizationError,
+    syncConnection,
+    copyExistingPolicyConnection,
+    isConnectionUnverified,
+};
