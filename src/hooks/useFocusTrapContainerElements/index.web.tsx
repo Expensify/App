@@ -1,3 +1,7 @@
+/**
+ * This is a common hook to register the container elements of the focus trap
+ * Only available on web/desktop platform
+ */
 import {useCallback, useState} from 'react';
 import type {FocusTrapContainerElement, UseFocusTrapContainerElements} from './type';
 
