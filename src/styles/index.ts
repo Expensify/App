@@ -1050,6 +1050,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        invisiblePDF: {
+            position: 'absolute',
+            opacity: 0,
+            width: 1,
+            height: 1,
+        },
+
         headerAnonymousFooter: {
             color: theme.heading,
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
@@ -5058,6 +5065,13 @@ const styles = (theme: ThemeColors) =>
         computerIllustrationContainer: {
             width: 272,
             height: 188,
+        },
+
+        cardIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.cardBorderRadius,
+            height: variables.cardIconHeight,
+            alignSelf: 'center',
         },
 
         tripReservationIconContainer: {

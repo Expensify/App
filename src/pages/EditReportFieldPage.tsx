@@ -54,8 +54,10 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
+    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
-    if (!reportField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !report || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -70,8 +72,6 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
             </ScreenWrapper>
         );
     }
-
-    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
