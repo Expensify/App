@@ -3302,16 +3302,16 @@ export default {
             addRate: 'Add rate',
             trackTax: 'Track tax',
             deleteRates: () => ({
-                one: `Delete 1 rate`,
-                other: (count: number) => `Delete ${count} rates`,
+                one: 'Delete rate',
+                other: () => 'Delete rates',
             }),
             enableRates: () => ({
-                one: `Enable 1 rate`,
-                other: (count: number) => `Enable ${count} rates`,
+                one: 'Enable rate',
+                other: () => 'Enable rates',
             }),
             disableRates: () => ({
-                one: `Disable 1 rate`,
-                other: (count: number) => `Disable ${count} rates`,
+                one: 'Disable rate',
+                other: () => 'Disable rates',
             }),
             enableRate: 'Enable rate',
             status: 'Status',
@@ -3321,8 +3321,8 @@ export default {
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
-                one: `Are you sure you want to delete 1 rate?`,
-                other: (count: number) => `Are you sure you want to delete ${count} rates?`,
+                one: 'Are you sure you want to delete this rate?',
+                other: () => 'Are you sure you want to delete these rates?',
             }),
         },
         editor: {
