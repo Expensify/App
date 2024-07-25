@@ -2654,8 +2654,8 @@ function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, shouldKeepLeavedThread = true) {
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID, shouldKeepLeavedThread)?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
@@ -2793,7 +2793,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report);
+    navigateToMostRecentReport(report, false);
 }
 
 /** Invites people to a room */
