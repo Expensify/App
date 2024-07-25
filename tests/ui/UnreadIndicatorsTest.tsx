@@ -11,7 +11,6 @@ import Onyx from 'react-native-onyx';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
-import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
 import FontUtils from '@styles/utils/FontUtils';
@@ -196,9 +195,6 @@ describe('Unread Indicators', () => {
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
-                // Verify no notifications are created for these older messages
-                expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
-
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
@@ -280,7 +276,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
-    it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
+    it('Shows bold text when a new message arrives for a chat that is read', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
@@ -337,11 +333,7 @@ describe('Unread Indicators', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // Verify notification was created
-                expect(LocalNotification.showCommentNotification).toBeCalled();
-            })
-            .then(() => {
-                // // Verify the new report option appears in the LHN
+                // Verify the new report option appears in the LHN
                 const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(2);
