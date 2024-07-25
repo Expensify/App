@@ -109,7 +109,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             },
 
             // We need to turn off animation for the full screen to avoid delay when closing screens.
-            animationEnabled: isSmallScreenWidth,
+            animationEnabled: false,
         },
 
         centralPaneNavigator: {
