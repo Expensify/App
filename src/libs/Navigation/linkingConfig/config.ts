@@ -24,12 +24,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
-        [SCREENS.REPORT_AVATAR]: {
-            path: ROUTES.REPORT_AVATAR.route,
-            parse: {
-                isNewGroupChat: (isNewGroupChat: string) => isNewGroupChat === 'true',
-            },
-        },
+        [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
@@ -299,6 +294,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
@@ -479,6 +477,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
@@ -506,8 +507,17 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
-                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVER.route,
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
