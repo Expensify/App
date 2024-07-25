@@ -56,7 +56,7 @@ type PrivatePersonalDetails = {
     /** User's phone number */
     phoneNumber?: string;
 
-    /** User's home address */
+    /** @deprecated User's home address */
     address?: Address;
 
     /** User's home address history. The most recent address is the last item in the array */
