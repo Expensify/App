@@ -9,10 +9,11 @@ import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 function DebitCardPage() {
     // Temporarily disabled
-    return null;
+    return <NotFoundPage />;
 
     const {translate} = useLocalize();
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
