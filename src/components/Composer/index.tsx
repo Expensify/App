@@ -294,8 +294,21 @@ function Composer(
         }
 
         textInput.current.clear();
+
+        // We need to reset the selection to 0,0 manually after clearing the text input on web
+        const selectionEvent = {
+            nativeEvent: {
+                selection: {
+                    start: 0,
+                    end: 0,
+                },
+            },
+        } as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
+        onSelectionChange(selectionEvent);
+        setSelection({start: 0, end: 0});
+
         onClear(prevValue);
-    }, [onClear, prevValue]);
+    }, [onClear, onSelectionChange, prevValue]);
 
     useImperativeHandle(
         ref,
@@ -370,6 +383,10 @@ function Composer(
         [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
+    console.log({
+        value,
+        selection,
+    });
     return (
         <>
             <RNMarkdownTextInput
