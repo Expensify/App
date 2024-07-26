@@ -13,11 +13,11 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import type {SearchStatusMenuItem} from './SearchStatusMenu';
 
 type SearchStatusMenuNarrowProps = {
-    filterItems: SearchStatusMenuItem[];
+    statusMenuItems: SearchStatusMenuItem[];
     activeItemIndex: number;
 };
 
-function SearchStatusMenuNarrow({filterItems, activeItemIndex}: SearchStatusMenuNarrowProps) {
+function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex}: SearchStatusMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -29,7 +29,7 @@ function SearchStatusMenuNarrow({filterItems, activeItemIndex}: SearchStatusMenu
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
 
-    const popoverMenuItems = filterItems.map((item, index) => ({
+    const popoverMenuItems = statusMenuItems.map((item, index) => ({
         text: item.title,
         onSelected: singleExecution(() => Navigation.navigate(item.route)),
         icon: item.icon,

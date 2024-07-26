@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryString} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
@@ -68,7 +69,7 @@ function searchV2(queryString: SearchQueryString) {
 
     // TODO_SEARCH: uncomment this line after backend changes
     // @ts-expect-error waiting for backend changes
-    API.read(READ_COMMANDS.SEARCH, queryJSON, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery: JSON.stringify(queryJSON)}, {optimisticData, finallyData});
 }
 
 /**
@@ -126,4 +127,12 @@ function exportSearchItemsToCSV(status: string, reportIDList: Array<string | und
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
-export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV};
+
+/**
+ * Updates the form values for the advanced search form.
+ */
+function updateAdvancedFilters(values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) {
+    Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+}
+
+export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV, updateAdvancedFilters};

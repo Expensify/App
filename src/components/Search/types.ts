@@ -50,8 +50,6 @@ type QueryFilters = {
     [K in AllFieldKeys]: QueryFilter | QueryFilter[];
 };
 
-type QueryKind = ValueOf<typeof CONST.SEARCH.QUERY_KIND>;
-
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -59,7 +57,6 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    offset: number;
     filters: ASTNode;
 };
 
@@ -69,7 +66,6 @@ type SearchQueryJSON = {
 } & SearchQueryAST;
 
 export type {
-    QueryKind,
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,

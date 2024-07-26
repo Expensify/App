@@ -66,7 +66,11 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
 
     // Param types of the search central pane are also used for the search bottom tab screen.
-    [SCREENS.SEARCH.CENTRAL_PANE]: ({cq: SearchQueryString; q?: never} | {q: SearchQueryString; cq?: never}) & {policyIDs?: string};
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        q: SearchQueryString;
+        isCustomQuery: boolean;
+        policyIDs?: string;
+    };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
@@ -689,6 +693,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         cardID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+        policyID: string;
+        cardID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -1099,7 +1107,17 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
+        policyID: string;
+        firstApproverEmail: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
@@ -1232,7 +1250,6 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         };
         [SCREENS.REPORT_AVATAR]: {
             reportID: string;
-            isNewGroupChat: boolean;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;

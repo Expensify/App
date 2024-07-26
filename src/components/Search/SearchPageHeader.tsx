@@ -22,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
-import getDownloadOption from './SearchActionOptionsUtils';
 import {useSearchContext} from './SearchContext';
 import type {SearchQueryJSON, SearchStatus, SelectedTransactions} from './types';
 
@@ -105,21 +104,22 @@ function SearchPageHeader({
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
 
-        // Because of some problems with the lib we use for download on native we are only enabling download for web, we should remove the SearchActionOptionsUtils files when https://github.com/Expensify/App/issues/45511 is done
-        const downloadOption = getDownloadOption(translate('common.download'), () => {
-            if (isOffline) {
-                setOfflineModalOpen?.();
-                return;
-            }
+        options.push({
+            icon: Expensicons.Download,
+            text: translate('common.download'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setOfflineModalOpen?.();
+                    return;
+                }
 
-            SearchActions.exportSearchItemsToCSV(status, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
-                setDownloadErrorModalOpen?.();
-            });
+                SearchActions.exportSearchItemsToCSV(status, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
+                    setDownloadErrorModalOpen?.();
+                });
+            },
         });
-
-        if (downloadOption) {
-            options.push(downloadOption);
-        }
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 

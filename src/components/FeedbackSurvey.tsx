@@ -25,6 +25,15 @@ type FeedbackSurveyProps = {
 
     /** Styles for the option row element */
     optionRowStyles?: StyleProp<ViewStyle>;
+
+    /** Optional text to render over the submit button */
+    footerText?: React.ReactNode;
+
+    /** Indicates whether note field is required  */
+    isNoteRequired?: boolean;
+
+    /** Indicates whether a loading indicator should be shown */
+    isLoading?: boolean;
 };
 
 type Option = {
@@ -39,7 +48,7 @@ const OPTIONS: Option[] = [
     {key: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY},
 ];
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -55,7 +64,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
     };
 
     const handleSubmit = () => {
-        if (!reason) {
+        if (!reason || (isNoteRequired && !note.trim())) {
             setShouldShowReasonError(true);
             return;
         }
@@ -89,12 +98,15 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
                 )}
             </View>
             <FixedFooter>
+                {!!footerText && footerText}
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseCompleteForm')}
                     buttonText={translate('common.submit')}
                     enabledWhenOffline
+                    containerStyles={styles.mt3}
+                    isLoading={isLoading}
                 />
             </FixedFooter>
         </View>

@@ -3,11 +3,11 @@ import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON, getQueryStringFromParams} from '@libs/SearchUtils';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -15,16 +15,18 @@ import type SCREENS from '@src/SCREENS';
 type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(getQueryStringFromParams(route.params)), [route.params]);
+    const {policyIDs} = route.params;
+
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params.q, policyIDs]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return null;
     }
 
@@ -40,13 +42,13 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <Search
-                    // We won't show the Search if the query is undefined.
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    queryJSON={queryJSON!}
-                    policyIDs={route.params.policyIDs}
-                    isSearchResultsMode
-                />
+                {queryJSON && (
+                    <Search
+                        isSearchResultsMode
+                        queryJSON={queryJSON}
+                        policyIDs={policyIDs}
+                    />
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

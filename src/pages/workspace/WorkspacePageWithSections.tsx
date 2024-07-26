@@ -11,8 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -82,6 +82,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
+        /** Content to be added to the header */
+        headerContent?: ReactNode;
+
+        /** TestID of the component */
+        testID?: string;
+
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
     };
@@ -112,6 +118,8 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    headerContent,
+    testID,
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
@@ -125,7 +133,7 @@ function WorkspacePageWithSections({
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
@@ -160,7 +168,7 @@ function WorkspacePageWithSections({
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={WorkspacePageWithSections.displayName}
+            testID={testID ?? WorkspacePageWithSections.displayName}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
@@ -173,11 +181,13 @@ function WorkspacePageWithSections({
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
-                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
+                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
-                />
+                >
+                    {headerContent}
+                </HeaderWithBackButton>
                 {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,7 +14,8 @@ const IMAGE_OFFSET_Y = 20;
 
 function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
@@ -26,7 +28,7 @@ function AnimatedEmptyStateBackground() {
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        if (!isSmallScreenWidth || isReducedMotionEnabled) {
+        if (!shouldUseNarrowLayout || isReducedMotionEnabled) {
             return {};
         }
         /*
@@ -47,7 +49,7 @@ function AnimatedEmptyStateBackground() {
         <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
-                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}
                 resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
             />
         </View>

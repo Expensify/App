@@ -6,7 +6,6 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -306,15 +305,6 @@ function getCurrentSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-// Query may be in the q or cq parameter
-function getQueryStringFromParams(params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
-    return params.q ?? params.cq;
-}
-
-function isCustomQueryFromParams(params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
-    return !!params.cq;
-}
-
 function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
@@ -323,12 +313,15 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString) {
+function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     try {
         // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
         result.input = query;
-        result.hash = getQueryHashFromString(query);
+
+        // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
+        const policyIDPart = policyID ?? '';
+        result.hash = getQueryHashFromString(query + policyIDPart);
         return result;
     } catch (e) {
         console.error(e);
@@ -337,21 +330,23 @@ function buildSearchQueryJSON(query: SearchQueryString) {
 
 function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
     const queryParts: string[] = [];
-    const defualtQueryJSON = buildSearchQueryJSON('');
+    const defaultQueryJSON = buildSearchQueryJSON('');
 
     // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
     for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         if (partialQueryJSON?.[value]) {
             queryParts.push(`${value}:${partialQueryJSON[value]}`);
-        } else if (defualtQueryJSON) {
-            queryParts.push(`${value}:${defualtQueryJSON[value]}`);
+        } else if (defaultQueryJSON) {
+            queryParts.push(`${value}:${defaultQueryJSON[value]}`);
         }
     }
 
     return queryParts.join(' ');
 }
 
-// Fill query string with all default params.
+/**
+ * Update string query with all the default params that are set by parser
+ */
 function normalizeQuery(query: string) {
     const normalizedQueryJSON = buildSearchQueryJSON(query);
     return buildSearchQueryString(normalizedQueryJSON);
@@ -418,19 +413,17 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys
 }
 
 function getSearchHeaderTitle(queryJSON: SearchQueryJSON, isSmallScreenWidth: boolean) {
-    const {status} = queryJSON;
+    const {type, status} = queryJSON;
     if (isSmallScreenWidth) {
-        return `Type: Expense, Status: ${Str.recapitalize(status)}`;
+        return `Type: ${Str.recapitalize(type)}, Status: ${Str.recapitalize(status)}`;
     }
 
-    return `type:expense status:${status}`;
+    return `type:${type} status:${status}`;
 }
 
 export {
-    isCustomQueryFromParams,
     buildSearchQueryJSON,
     buildSearchQueryString,
-    getQueryStringFromParams,
     getCurrentSearchParams,
     getListItem,
     getQueryHash,

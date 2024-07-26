@@ -5,11 +5,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON, getQueryStringFromParams} from '@libs/SearchUtils';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -18,7 +18,7 @@ import SearchResultsStatusMenu from './SearchResultsStatusMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
@@ -32,7 +32,7 @@ function SearchPageBottomTab() {
         const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
 
         return {
-            queryJSON: buildSearchQueryJSON(getQueryStringFromParams(searchParams)),
+            queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
             policyIDs: searchParams.policyIDs,
         };
     }, [activeCentralPaneRoute]);
@@ -50,15 +50,14 @@ function SearchPageBottomTab() {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {!isMobileSelectionModeActive ? (
+                {!isMobileSelectionModeActive && queryJSON ? (
                     <>
                         <TopBar
                             activeWorkspaceID={policyIDs}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                        <SearchResultsStatusMenu queryJSON={queryJSON!} />
+                        <SearchResultsStatusMenu queryJSON={queryJSON} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -66,10 +65,9 @@ function SearchPageBottomTab() {
                         onBackButtonPress={() => setIsMobileSelectionModeActive(false)}
                     />
                 )}
-                {isSmallScreenWidth && (
+                {shouldUseNarrowLayout && queryJSON && (
                     <Search
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        queryJSON={queryJSON!}
+                        queryJSON={queryJSON}
                         policyIDs={policyIDs}
                         isMobileSelectionModeActive={isMobileSelectionModeActive}
                         setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}

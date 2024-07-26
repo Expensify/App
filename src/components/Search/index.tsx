@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import lodashMemoize from 'lodash/memoize';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -49,6 +49,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
+    const [offset, setOffset] = React.useState(0);
 
     const {status, sortBy, sortOrder, hash} = queryJSON;
 
@@ -74,15 +75,14 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = lodashMemoize(
-        (item: TransactionListItemType | ReportListItemType) => getItemHeight(item),
-        (item) => {
+    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+        transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
             const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
             return `${hash}-${item.keyForList}-${screenSizeHash}`;
         },
-    );
+    });
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
@@ -98,10 +98,9 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
         setCurrentSearchHash(hash);
 
-        // TODO_SEARCH: Function below will be deprecated soon. No point in refactoring to use status instead of query.
-        SearchActions.search({hash, query: status, policyIDs, offset: 0, sortBy, sortOrder});
+        SearchActions.search({hash, query: status, policyIDs, offset, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [hash, isOffline]);
+    }, [hash, isOffline, offset]);
 
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
@@ -155,20 +154,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
-
-        const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryString = SearchUtils.getQueryStringFromParams(currentSearchParams);
-        const isCustomQuery = SearchUtils.isCustomQueryFromParams(currentSearchParams);
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentQueryString);
-
-        if (!currentQueryJSON) {
-            return;
-        }
-
-        // TODO_SEARCH: offset should be a number but it is a string.
-        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, offset: Number(currentQueryJSON.offset) + CONST.SEARCH.RESULTS_PAGE_SIZE});
-
-        navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
+        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -185,12 +171,10 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryString = SearchUtils.getQueryStringFromParams(currentSearchParams);
-        const isCustomQuery = SearchUtils.isCustomQueryFromParams(currentSearchParams);
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentQueryString);
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q, policyIDs);
 
         const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, sortBy: column, sortOrder: order});
-        navigation.setParams(isCustomQuery ? {cq: newQuery} : {q: newQuery});
+        navigation.setParams({q: newQuery});
     };
 
     const isSortingAllowed = sortableSearchTabs.includes(status);
