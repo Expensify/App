@@ -19,16 +19,27 @@ import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getSynchronizationErrorMessage, isAuthenticationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {findCurrentXeroOrganization, getCurrentSageIntacctEntityName, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
+import {
+    areXeroSettingsInErrorFields,
+    findCurrentXeroOrganization,
+    getConnectedIntegration,
+    getCurrentSageIntacctEntityName,
+    getCurrentXeroOrganizationName,
+    getIntegrationLastSuccessfulDate,
+    getXeroTenants,
+    xeroSettingsPendingAction,
+} from '@libs/PolicyUtils';
+import type {XeroSettings} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
+import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,14 +48,131 @@ import {AccountingContextProvider, useAccountingContext} from './AccountingConte
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {accountingIntegrationData} from './utils';
 
+type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
+
+type PolicyAccountingPageOnyxProps = {
+    connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
+};
+
+type PolicyAccountingPageProps = WithPolicyConnectionsProps &
+    PolicyAccountingPageOnyxProps & {
+        // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
+        policy: Policy;
+    };
+
+type AccountingIntegration = {
+    title: string;
+    icon: IconAsset;
+    setupConnectionButton: React.ReactNode;
+    onImportPagePress: () => void;
+    subscribedImportSettings?: XeroSettings;
+    onExportPagePress: () => void;
+    subscribedExportSettings?: XeroSettings;
+    onAdvancedPagePress: () => void;
+    subscribedAdvancedSettings?: XeroSettings;
+    onCardReconciliationPagePress: () => void;
+};
+function accountingIntegrationData(
+    connectionName: PolicyConnectionName,
+    policyID: string,
+    translate: LocaleContextProps['translate'],
+    isConnectedToIntegration?: boolean,
+    integrationToDisconnect?: PolicyConnectionName,
+    policy?: Policy,
+): AccountingIntegration | undefined {
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return {
+                title: translate('workspace.accounting.qbo'),
+                icon: Expensicons.QBOSquare,
+                setupConnectionButton: (
+                    <ConnectToQuickbooksOnlineButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return {
+                title: translate('workspace.accounting.xero'),
+                icon: Expensicons.XeroSquare,
+                setupConnectionButton: (
+                    <ConnectToXeroButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+                    CONST.XERO_CONFIG.IMPORT_CUSTOMERS,
+                    CONST.XERO_CONFIG.IMPORT_TAX_RATES,
+                    ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
+                ],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.XERO_CONFIG.ENABLED,
+                    CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                    CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
+                ],
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return {
+                title: translate('workspace.accounting.netsuite'),
+                icon: Expensicons.NetSuiteSquare,
+                setupConnectionButton: (
+                    <ConnectToNetSuiteButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return {
+                title: translate('workspace.accounting.intacct'),
+                icon: Expensicons.IntacctSquare,
+                setupConnectionButton: (
+                    <ConnectToSageIntacctButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+            };
+        default:
+            return undefined;
+    }
+}
+
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteIntegration, canUseSageIntacctIntegration} = usePermissions();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {canUseSageIntacctIntegration} = usePermissions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -58,12 +186,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
-        (name) =>
-            !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration) || (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration)),
-    );
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration));
 
-    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
@@ -130,8 +255,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                     },
-                    pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
-                    brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                    pendingAction: xeroSettingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
+                    brickRoadIndicator: areXeroSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
+                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                        : undefined,
                 };
             case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                 return {
@@ -206,7 +333,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const shouldShowSynchronizationError = !!synchronizationError;
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -255,6 +382,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
+                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.errorFields)
+                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                              : undefined,
+                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.pendingFields),
                       },
                       {
                           icon: Expensicons.Send,
@@ -263,6 +394,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
+                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.errorFields)
+                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                              : undefined,
+                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.pendingFields),
                       },
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -280,6 +415,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
+                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.errorFields)
+                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                              : undefined,
+                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.pendingFields),
                       },
                   ]),
         ];
@@ -371,12 +510,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.accounting')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('workspace.accounting.title')}
                             subtitle={translate('workspace.accounting.subtitle')}
