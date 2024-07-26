@@ -5,5 +5,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, user: OnyxEntry<OnyxTypes.User>): string {
     return user?.isFromPublicDomain ? 'https://' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
 }
-// eslint-disable-next-line import/prefer-default-export
-export {getDefaultCompanyWebsite};
+
+function getLastFourDigits(bankAccountNumber: string): string {
+    return bankAccountNumber ? bankAccountNumber.slice(-4) : '';
+}
+
+export {getDefaultCompanyWebsite, getLastFourDigits};

@@ -765,7 +765,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'>>) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -859,23 +859,52 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
     ];
 
     Object.values(policies ?? {}).forEach((policy) => {
-        if (policy?.ownerAccountID !== currentUserAccountID) {
+        if (!policy) {
             return;
         }
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
+
+        let optimisticPolicyDataValue;
+        let failurePolicyDataValue;
+
+        if (policy.employeeList) {
+            const currentEmployee = policy.employeeList[oldDefaultContactMethod];
+            optimisticPolicyDataValue = {
+                employeeList: {
+                    [oldDefaultContactMethod]: null,
+                    [newDefaultContactMethod]: currentEmployee,
+                },
+            };
+            failurePolicyDataValue = {
+                employeeList: {
+                    [oldDefaultContactMethod]: currentEmployee,
+                    [newDefaultContactMethod]: null,
+                },
+            };
+        }
+
+        if (policy.ownerAccountID === currentUserAccountID) {
+            optimisticPolicyDataValue = {
+                ...optimisticPolicyDataValue,
                 owner: newDefaultContactMethod,
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
+            };
+            failurePolicyDataValue = {
+                ...failurePolicyDataValue,
                 owner: policy.owner,
-            },
-        });
+            };
+        }
+
+        if (optimisticPolicyDataValue && failurePolicyDataValue) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: optimisticPolicyDataValue,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: failurePolicyDataValue,
+            });
+        }
     });
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
