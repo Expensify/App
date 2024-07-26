@@ -103,42 +103,38 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
 
         return [
-            ...(canUseDelayedSubmission
-                ? [
-                      {
-                          title: translate('workflowsPage.delaySubmissionTitle'),
-                          subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                          switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
-                          onToggle: (isEnabled: boolean) => {
-                              Policy.setWorkspaceAutoReportingFrequency(
-                                  route.params.policyID,
-                                  isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                              );
-                          },
-                          subMenuItems: (
-                              <MenuItemWithTopDescription
-                                  title={
-                                      getAutoReportingFrequencyDisplayNames(preferredLocale)[
-                                          (PolicyUtils.getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                                      ]
-                                  }
-                                  titleStyle={styles.textNormalThemeText}
-                                  descriptionTextStyle={styles.textLabelSupportingNormal}
-                                  onPress={onPressAutoReportingFrequency}
-                                  // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                                  description={translate('workflowsPage.submissionFrequency')}
-                                  shouldShowRightIcon
-                                  wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                  brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                              />
-                          ),
-                          isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
-                          pendingAction: policy?.pendingFields?.autoReporting,
-                          errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                      },
-                  ]
-                : []),
+            {
+                title: translate('workflowsPage.delaySubmissionTitle'),
+                subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
+                onToggle: (isEnabled: boolean) => {
+                    Policy.setWorkspaceAutoReportingFrequency(
+                        route.params.policyID,
+                        isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    );
+                },
+                subMenuItems: (
+                    <MenuItemWithTopDescription
+                        title={
+                            getAutoReportingFrequencyDisplayNames(preferredLocale)[
+                                (PolicyUtils.getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                            ]
+                        }
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        onPress={onPressAutoReportingFrequency}
+                        // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
+                        description={translate('workflowsPage.submissionFrequency')}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                ),
+                isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
+                pendingAction: policy?.pendingFields?.autoReporting,
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+            },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
@@ -275,8 +271,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         route.params.policyID,
     ]);
 
-    const renderOptionItem = (item: ToggleSettingOptionRowProps) => (
-        <Section containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}>
+    const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
+        <Section
+            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+            key={`toggleSettingOptionItem-${index}`}
+        >
             <ToggleSettingOptionRow
                 title={item.title}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.textStrong]}
