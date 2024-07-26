@@ -79,19 +79,19 @@ function SearchPageHeader({
     }, [isSearchResultsMode, translate]);
 
     const headerTitle = useMemo(() => {
-        if (isSearchResultsMode) {
-            return SearchUtils.getSearchHeaderTitle(queryJSON, false);
+        if (!isSearchResultsMode) {
+            return translate(headerContent[status]?.titleTx);
         }
 
-        return translate(headerContent[status]?.titleTx);
+        return SearchUtils.getSearchHeaderTitle(queryJSON, false);
     }, [isSearchResultsMode, queryJSON, status, translate]);
 
     const headerIcon = useMemo(() => {
-        if (isSearchResultsMode) {
-            return Illustrations.Filters;
+        if (!isSearchResultsMode) {
+            return headerContent[status]?.icon;
         }
 
-        return headerContent[status]?.icon;
+        return Illustrations.Filters;
     }, [isSearchResultsMode, status]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
