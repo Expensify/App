@@ -64,14 +64,22 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-const onboardingChoices = {
+const selectableOnboardingChoices = {
     PERSONAL_SPEND: 'newDotPersonalSpend',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
     CHAT_SPLIT: 'newDotSplitChat',
     LOOKING_AROUND: 'newDotLookingAround',
+};
+
+const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
+};
+
+const onboardingChoices = {
+    ...selectableOnboardingChoices,
+    ...backendOnboardingChoices,
 };
 
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
@@ -4209,6 +4217,7 @@ const CONST = {
 
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
+    SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
