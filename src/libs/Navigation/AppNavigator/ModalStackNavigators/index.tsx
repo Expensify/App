@@ -574,9 +574,9 @@ const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<Miss
 });
 
 const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
-    [SCREENS.DEBUG.REPORT]: () => require<ReactComponentModule>('../../../../pages/debug/Report/DebugReportPage').default,
-    [SCREENS.DEBUG.REPORT_ACTION]: () => require<ReactComponentModule>('../../../../pages/debug/Report/DebugReportActionPage').default,
-    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: () => require<ReactComponentModule>('../../../../pages/debug/Report/DebugReportActionCreatePage').default,
+    [SCREENS.DEBUG.REPORT]: () => require<ReactComponentModule>('../../../../pages/Debug/Report/DebugReportPage').default,
+    [SCREENS.DEBUG.REPORT_ACTION]: () => require<ReactComponentModule>('../../../../pages/Debug/Report/DebugReportActionPage').default,
+    [SCREENS.DEBUG.REPORT_ACTION_CREATE]: () => require<ReactComponentModule>('../../../../pages/Debug/Report/DebugReportActionCreatePage').default,
 });
 
 export {
