@@ -1,7 +1,7 @@
-import {fastMerge} from 'expensify-common';
+import {fastMerge, Str} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -10,8 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
@@ -68,6 +68,7 @@ Onyx.connect({
 });
 
 let currentUserAccountID: number | undefined;
+let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -77,6 +78,7 @@ Onyx.connect({
         }
 
         currentUserAccountID = value.accountID;
+        currentEmail = value?.email ?? '';
     },
 });
 
@@ -103,6 +105,8 @@ const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
  * Url to the QBO expenses list
  */
 const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
+
+const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -160,7 +164,7 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
 }
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
+    return isActionOfType(reportAction, ...POLICY_CHANGE_LOG_ARRAY);
 }
 
 function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
@@ -715,10 +719,12 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInputValue<ReportAction> = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!_.isEmpty(actionsToMerge)) {
-        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true));
+        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
+            ReportAction | null | undefined
+        >;
     } else {
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
@@ -732,7 +738,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
 
 function getLastVisibleMessage(
     reportID: string,
-    actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInputValue<ReportAction> = {},
+    actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
 ): LastVisibleMessage {
     const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
@@ -752,7 +758,7 @@ function getLastVisibleMessage(
         };
     }
 
-    let messageText = getTextFromHtml(message?.html) ?? '';
+    let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
     if (messageText) {
         messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
@@ -1139,28 +1145,6 @@ function getTextFromHtml(html?: string): string {
     return html ? Parser.htmlToText(html) : '';
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
-    const html = messageElements
-        .map((messageElement) => {
-            switch (messageElement.kind) {
-                case 'userMention':
-                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
-                case 'roomReference':
-                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
-                default:
-                    return messageElement.content;
-            }
-        })
-        .join('');
-
-    return {
-        html: `<muted-text>${html}</muted-text>`,
-        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
-        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-    };
-}
-
 function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -1217,7 +1201,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction): string {
+function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
@@ -1265,7 +1249,7 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
             return Localize.translateLocal('report.actions.type.reimbursementDelayed');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
+            return Localize.translateLocal(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
             return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
@@ -1277,9 +1261,50 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const html = messageElements
+        .map((messageElement) => {
+            switch (messageElement.kind) {
+                case 'userMention':
+                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
+                case 'roomReference':
+                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
+                default:
+                    return messageElement.content;
+            }
+        })
+        .join('');
+
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
+}
+
+function getReportActionMessageFragments(action: ReportAction): Message[] {
+    if (isOldDotReportAction(action)) {
+        const oldDotMessage = getMessageOfOldDotReportAction(action);
+        const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
+        return [{text: oldDotMessage, html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
+        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    const actionMessage = action.previousMessage ?? action.message;
+    if (Array.isArray(actionMessage)) {
+        return actionMessage.filter((item): item is Message => !!item);
+    }
+    return actionMessage ? [actionMessage] : [];
 }
 
 /**
@@ -1417,6 +1442,23 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '-1');
 }
 
+function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.mentionedAccountIDs ?? [] : [];
+}
+
+function getMentionedEmailsFromMessage(message: string) {
+    const mentionEmailRegex = /<mention-user>(.*?)<\/mention-user>/g;
+    const matches = [...message.matchAll(mentionEmailRegex)];
+    return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
+}
+
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>) {
+    const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
+    const message = getReportActionMessage(reportAction)?.html ?? '';
+    const emailsFromMessage = getMentionedEmailsFromMessage(message);
+    return accountIDsFromMessage.includes(currentUserAccountID ?? -1) || emailsFromMessage.includes(currentEmail) || message.includes('<mention-here>');
+}
+
 /**
  * Check if the current user is the requestor of the action
  */
@@ -1534,96 +1576,98 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 }
 
 export {
+    doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
+    getActionableMentionWhisperMessage,
+    getAllReportActions,
+    getCombinedReportActions,
     getDismissedViolationMessageText,
-    getOneTransactionThreadReportID,
+    getFilteredForOneTransactionView,
+    getFirstVisibleReportActionID,
+    getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getMemberChangeMessageFragment,
+    getMemberChangeMessagePlainText,
+    getReportActionMessageFragments,
+    getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
     getParentReportAction,
     getReportAction,
+    getReportActionHtml,
+    getReportActionMessage,
     getReportActionMessageText,
-    getWhisperedTo,
-    isApprovedOrSubmittedReportAction,
+    getReportActionText,
     getReportPreviewAction,
     getSortedReportActions,
-    getCombinedReportActions,
     getSortedReportActionsForDisplay,
+    getTextFromHtml,
+    getTrackExpenseActionableWhisper,
+    getWhisperedTo,
+    hasRequestFromCurrentAccount,
+    isActionOfType,
+    isActionableJoinRequest,
+    isActionableJoinRequestPending,
+    isActionableMentionWhisper,
+    isActionableReportMentionWhisper,
+    isActionableTrackExpense,
+    isAddCommentAction,
+    isApprovedOrSubmittedReportAction,
+    isChronosOOOListAction,
+    isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isCreatedTaskReportAction,
+    isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isLinkedTransactionHeld,
+    isMemberChangeAction,
     isExportIntegrationAction,
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
+    isOldDotReportAction,
+    isPayAction,
     isPendingRemove,
-    isReversedTransaction,
+    isPolicyChangeLogAction,
+    isReimbursementDeQueuedAction,
+    isReimbursementQueuedAction,
+    isRenamedAction,
     isReportActionAttachment,
     isReportActionDeprecated,
     isReportPreviewAction,
+    isResolvedActionTrackExpense,
+    isReversedTransaction,
+    isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
-    isTrackExpenseAction,
-    isPayAction,
     isTaskAction,
-    doesReportHaveVisibleActions,
     isThreadParentMessage,
+    isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isWhisperAction,
     isWhisperActionTargetedToOthers,
-    isReimbursementQueuedAction,
-    shouldReportActionBeVisible,
     shouldHideNewMarker,
+    shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
-    hasRequestFromCurrentAccount,
-    getFirstVisibleReportActionID,
-    isMemberChangeAction,
-    getMemberChangeMessageFragment,
-    isOldDotReportAction,
-    getTrackExpenseActionableWhisper,
-    getMessageOfOldDotReportAction,
-    getMemberChangeMessagePlainText,
-    isReimbursementDeQueuedAction,
-    isActionableMentionWhisper,
-    isActionableReportMentionWhisper,
-    getActionableMentionWhisperMessage,
-    isCurrentActionUnread,
-    isActionableJoinRequest,
-    isActionableJoinRequestPending,
-    getReportActionText,
-    getReportActionHtml,
-    getReportActionMessage,
-    getOriginalMessage,
-    isActionOfType,
-    isActionableTrackExpense,
-    getAllReportActions,
-    isLinkedTransactionHeld,
     wasActionTakenByCurrentUser,
-    isResolvedActionTrackExpense,
-    isClosedAction,
-    isRenamedAction,
-    isRoomChangeLogAction,
     isInviteOrRemovedAction,
-    isChronosOOOListAction,
-    isAddCommentAction,
-    isPolicyChangeLogAction,
-    getTextFromHtml,
-    isTripPreview,
-    getIOUActionForReportID,
-    getFilteredForOneTransactionView,
     isActionableAddPaymentCard,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
+    didMessageMentionCurrentUser,
 };
 
 export type {LastVisibleMessage};

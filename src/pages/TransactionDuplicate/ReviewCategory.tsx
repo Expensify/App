@@ -23,7 +23,7 @@ function ReviewCategory() {
         () =>
             compareResult.change.category?.map((category) =>
                 !category
-                    ? {text: translate('violations.none'), value: undefined}
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: category,
                           value: category,
@@ -32,9 +32,9 @@ function ReviewCategory() {
         [compareResult.change.category, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const setCategory = (data: FieldItemType<'category'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({category: data.value as string});
+            setReviewDuplicatesKey({category: data.value});
         }
         navigateToNextScreen();
     };
@@ -42,12 +42,12 @@ function ReviewCategory() {
     return (
         <ScreenWrapper testID={ReviewCategory.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'category'>
                 stepNames={stepNames}
                 label={translate('violations.categoryToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={onSelectRow}
+                onSelectRow={setCategory}
             />
         </ScreenWrapper>
     );

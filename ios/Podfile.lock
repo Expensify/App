@@ -2361,7 +2361,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.103):
+  - RNLiveMarkdown (0.1.108):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2381,9 +2381,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.103)
+    - RNLiveMarkdown/common (= 0.1.108)
     - Yoga
-  - RNLiveMarkdown/common (0.1.103):
+  - RNLiveMarkdown/common (0.1.108):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2552,7 +2552,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (15.3.0):
+  - RNSVG (15.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2572,9 +2572,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.3.0)
+    - RNSVG/common (= 15.4.0)
     - Yoga
-  - RNSVG/common (15.3.0):
+  - RNSVG/common (15.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3177,7 +3177,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: be8c33f01e470b19f886f32a139ced3e1555c93f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 1a90510b3b87217bd7175427f4b223a1acca7d62
+  RNLiveMarkdown: b10c45358ffe5427ead4e4f347deefc920ed539d
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
@@ -3186,7 +3186,7 @@ SPEC CHECKSUMS:
   RNScreens: 83aa5357fbb09aa87130fbea02325b53b7260fd6
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 8d3bf8086771755b029b034929cf913e8324ed4f
+  RNSVG: 6b65086b51556fd9723d5570a3455e865e1304a3
   SDWebImage: 066c47b573f408f18caa467d71deace7c0f8280d
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
