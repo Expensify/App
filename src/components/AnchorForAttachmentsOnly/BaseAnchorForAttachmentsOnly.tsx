@@ -53,11 +53,10 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
-                    onLongPress={
-                        (event) =>
-                            onShowContextMenu(() =>
-                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs)),
-                            )
+                    onLongPress={(event) =>
+                        onShowContextMenu(() =>
+                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs)),
+                        )
                     }
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}

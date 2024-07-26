@@ -162,7 +162,10 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View onLayout={onLayout} style={[styles.m5, contentStyles]}>
+            <View
+                onLayout={onLayout}
+                style={[styles.m5, contentStyles]}
+            >
                 {shouldShowDismissIcon && (
                     <View style={styles.alignItemsEnd}>
                         <Tooltip text={translate('common.close')}>
