@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+import type NonPartial from '@src/types/utils/NonPartial';
 import type {TakeFirst} from '@src/types/utils/TupleOperations';
 import ArrayCache from './cache/ArrayCache';
 import {MemoizeStats} from './stats';
@@ -42,7 +43,7 @@ class Memoize {
  * @param opts - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends IsomorphicFn, MaxArgs extends number = IsomorphicParameters<Fn>['length'], Key = TakeFirst<IsomorphicParameters<Fn>, MaxArgs>>(
+function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<IsomorphicParameters<Fn>>['length'], Key = TakeFirst<IsomorphicParameters<Fn>, MaxArgs>>(
     fn: Fn,
     opts?: ClientOptions<Fn, MaxArgs, Key>,
 ) {
