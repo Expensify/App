@@ -348,6 +348,11 @@ type DeleteExpenseTranslationParams = {
     count: number;
 };
 
+type IssueVirtualCardParams = {
+    assignee: string;
+    link: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -376,6 +381,7 @@ export type {
     GoToRoomParams,
     HeldRequestParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
