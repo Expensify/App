@@ -46,11 +46,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
         const DOMAIN_BASE_REGEX = '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)';
         const match = String(url).match(DOMAIN_BASE_REGEX);
 
-        if (!match) {
-            return undefined;
-        }
-
-        return match[1];
+        return match?.[1];
     };
 
     const validate = useCallback(

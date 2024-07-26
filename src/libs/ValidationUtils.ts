@@ -244,7 +244,7 @@ function isValidWebsite(url: string): boolean {
 
 /** Checks if the domain is public */
 function isPublicDomain(domain: string): boolean {
-    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain);
+    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase());
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
