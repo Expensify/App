@@ -104,7 +104,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
                             return;
                         }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL)));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL})));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
