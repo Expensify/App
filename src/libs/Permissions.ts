@@ -28,8 +28,8 @@ function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | 
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;
 }
 
-function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
+function canUseWorkflowsAdvancedApproval(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKFLOWS_ADVANCED_APPROVAL) || canUseAllBetas(betas);
 }
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
@@ -66,7 +66,7 @@ export default {
     canUseViolations,
     canUseDupeDetection,
     canUseP2PDistanceRequests,
-    canUseWorkflowsDelayedSubmission,
+    canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
     canUseSageIntacctIntegration,
     canUseReportFieldsFeature,

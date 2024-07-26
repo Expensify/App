@@ -4,8 +4,8 @@ import {FlatList} from 'react-native';
 import type {FlatListProps} from 'react-native';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
 });
 
 function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
 
     if (!isVisible) {
@@ -95,7 +95,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
                 keyExtractor={keyExtractor}
                 getItemLayout={getItemLayout}
                 contentContainerStyle={pv2}
-                style={[reactionListContainer, !isSmallScreenWidth && reactionListContainerFixedWidth]}
+                style={[reactionListContainer, !shouldUseNarrowLayout && reactionListContainerFixedWidth]}
             />
         </>
     );
