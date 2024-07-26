@@ -53,7 +53,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
 
     const policyApproverEmail = policy?.approver;
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
