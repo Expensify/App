@@ -4153,6 +4153,7 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            authenticatePayment: 'Authenticate payment',
             requestRefund: 'Request refund',
             requestRefundModal: {
                 phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',

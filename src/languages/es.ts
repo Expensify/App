@@ -4676,6 +4676,7 @@ export default {
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
             retryPaymentButton: 'Reintentar el pago',
+            authenticatePayment: 'Autenticar el pago',
             requestRefund: 'Solicitar reembolso',
             requestRefundModal: {
                 phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
