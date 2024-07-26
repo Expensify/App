@@ -27,6 +27,7 @@ import Bolt from '@assets/images/bolt.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
+import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
@@ -373,5 +374,6 @@ export {
     CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
+    CalendarSolid,
     Filter,
 };
