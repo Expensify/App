@@ -123,8 +123,19 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
+    /**
+     * Approval workflow to convert
+     */
     approvalWorkflow: ApprovalWorkflow;
+
+    /**
+     * Current list of employees in the policy
+     */
     employeeList: PolicyEmployeeList;
+
+    /**
+     * Should the workflow be removed from the employees
+     */
     removeWorkflow?: boolean;
 };
 
