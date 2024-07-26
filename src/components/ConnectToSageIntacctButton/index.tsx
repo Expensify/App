@@ -63,7 +63,13 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
             <Button
                 onPress={() => {
                     if (!isControlPolicy(policy)) {
-                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                policyID,
+                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
+                                ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID),
+                            ),
+                        );
                         return;
                     }
 
