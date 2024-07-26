@@ -52,12 +52,12 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
-    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
-    if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
-        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${containsOnlyEmojis ? 'islarge' : ''}></edited>` : '';
+    const doesTextContainOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
+    if (!shouldRenderAsText(html, text ?? '') && !(doesTextContainOnlyEmojis && styleAsDeleted)) {
+        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${doesTextContainOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        const htmlContent = doesTextContainOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
         if (styleAsMuted) {
@@ -76,26 +76,26 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
 
     return (
-        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
+        <Text style={[doesTextContainOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            {emojisRegex.test(message ?? '') && !containsOnlyEmojis ? (
+            {emojisRegex.test(message ?? '') && !doesTextContainOnlyEmojis ? (
                 <TextWithEmojiFragment
                     message={message}
                     passedStyles={style}
                     styleAsDeleted={styleAsDeleted}
                     styleAsMuted={styleAsMuted}
                     isEdited={fragment?.isEdited}
-                    hasEmojisOnly={containsOnlyEmojis}
+                    hasEmojisOnly={doesTextContainOnlyEmojis}
                 />
             ) : (
                 <>
                     <Text
                         style={[
                             styles.enhancedLineHeight,
-                            containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            doesTextContainOnlyEmojis ? styles.onlyEmojisText : undefined,
                             styles.ltr,
                             style,
                             styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
@@ -108,7 +108,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     {fragment?.isEdited && (
                         <>
                             <Text
-                                style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                                style={[doesTextContainOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {' '}
