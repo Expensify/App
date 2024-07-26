@@ -88,7 +88,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     styleAsDeleted={styleAsDeleted}
                     styleAsMuted={styleAsMuted}
                     isEdited={fragment?.isEdited}
-                    emojisOnly={containsOnlyEmojis}
+                    hasEmojisOnly={containsOnlyEmojis}
                 />
             ) : (
                 <>
