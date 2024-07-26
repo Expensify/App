@@ -45,7 +45,7 @@ type PaymentMethodListOnyxProps = {
     cardList: OnyxEntry<CardList>;
 
     /** List of user's cards */
-    fundList: OnyxEntry<FundList>;
+    // fundList: OnyxEntry<FundList>;
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: OnyxEntry<boolean>;
