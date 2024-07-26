@@ -506,8 +506,8 @@ export default {
         collapse: 'Colapsar',
         expand: 'Expandir',
         tooltip: {
-            title: 'Comenzar!',
-            subtitle: ' Submit your first expense',
+            title: '¡Empecemos!',
+            subtitle: ' Presenta tu primer gasto',
         },
     },
     reportActionContextMenu: {
