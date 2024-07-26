@@ -46,6 +46,7 @@ function CardTypeStep() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
                 title={translate('workspace.card.issueCard')}

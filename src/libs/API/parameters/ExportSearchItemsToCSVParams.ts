@@ -1,7 +1,7 @@
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type {SearchStatus} from '@components/Search/types';
 
 type ExportSearchItemsToCSVParams = {
-    query: SearchQuery;
+    query: SearchStatus;
     reportIDList: string[];
     transactionIDList: string[];
     policyIDs: string[];
