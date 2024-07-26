@@ -11,13 +11,16 @@ const POLLING_STOPPED = {
 };
 let polling = POLLING_STOPPED;
 
-const start = (bundleId: string) => {
+const start = (bundleId: string, {onAttachFailed}: {onAttachFailed: () => Promise<void>}) => {
     // clear our measurements results
     measures = [];
 
     polling = profiler.pollPerformanceMeasures(bundleId, {
         onMeasure: (measure: Measure) => {
             measures.push(measure);
+        },
+        onPidChanged: () => {
+            onAttachFailed();
         },
     });
 };
