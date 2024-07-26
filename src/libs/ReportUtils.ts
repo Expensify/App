@@ -1207,15 +1207,15 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>, shouldKeepLeavedThread = true): OnyxEntry<Report> {
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        const shouldKeep = shouldKeepLeavedThread || !isChatThread(report) || (isChatThread(report) && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        const shouldKeep = !isChatThread(report) || report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
     return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
 }
 
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string, shouldKeepLeavedThread = true): OnyxEntry<Report> {
+function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
@@ -1287,7 +1287,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     }
 
     // We are getting the last read report from the metadata of the report.
-    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata, shouldKeepLeavedThread);
+    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
 
     return adminReport ?? lastRead;
 }
