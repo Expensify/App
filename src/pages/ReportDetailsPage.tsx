@@ -194,7 +194,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
         canModifyTask;
-    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
@@ -396,7 +396,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
@@ -461,6 +461,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isRootGroupChat,
         leaveChat,
         unapproveExpenseReportOrShowModal,
+        isExpenseReport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -621,6 +622,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     interactive={!shouldDisableRename}
                     title={reportName}
                     titleStyle={styles.newKansasLarge}
+                    titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
@@ -650,11 +652,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const nameSectionTitleField = titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey]}
-            errors={report.errorFields?.[fieldKey]}
+            pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
+            errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
-            onClose={() => Report.clearReportFieldErrors(report.reportID, titleField)}
+            onClose={() => {
+                if (report.errorFields?.reportName) {
+                    Report.clearPolicyRoomNameErrors(report.reportID);
+                }
+                Report.clearReportFieldKeyErrors(report.reportID, fieldKey);
+            }}
         >
             <View style={[styles.flex1]}>
                 <MenuItemWithTopDescription
