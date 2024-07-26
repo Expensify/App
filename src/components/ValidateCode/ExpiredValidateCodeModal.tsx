@@ -45,10 +45,7 @@ function ExpiredValidateCodeModal() {
                             </TextLink>
                         </Text>
                     ) : (
-                        <Text style={styles.textAlignCenter}>
-                            {translate('validateCodeModal.expiredCodeDescription')}
-                            {translate('validateCodeModal.dot')}
-                        </Text>
+                        <Text style={styles.textAlignCenter}>{translate('validateCodeModal.expiredCodeDescription')}.</Text>
                     )}
                 </View>
             </View>
