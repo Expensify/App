@@ -412,9 +412,10 @@ export default withOnyx<PaymentMethodListProps, PaymentMethodListOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
+    // Temporarily disabled - used for P2P debit cards
+    // fundList: {
+    //     key: ONYXKEYS.FUND_LIST,
+    // },
     isLoadingPaymentMethods: {
         key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
     },
