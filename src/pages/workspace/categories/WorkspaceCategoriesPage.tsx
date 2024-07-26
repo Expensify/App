@@ -26,7 +26,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -66,13 +65,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    const {isSmallScreenWidth} = useWindowDimensions();
 
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedKeys.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -81,7 +79,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [isSmallScreenWidth, selectedCategories, selectionMode?.isEnabled]);
+    }, [shouldUseNarrowLayout, selectedCategories, selectionMode?.isEnabled]);
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -182,7 +180,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
-        if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
+        if (shouldUseNarrowLayout ? canSelectMultiple : selectedCategoriesArray.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,

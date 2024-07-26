@@ -25,7 +25,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,7 +55,6 @@ function WorkspaceReportFieldsPage({
     },
 }: WorkspaceReportFieldsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -77,10 +75,10 @@ function WorkspaceReportFieldsPage({
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = !hasAccountingConnections && shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedReportFields.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -89,7 +87,7 @@ function WorkspaceReportFieldsPage({
         if (selectedReportFields.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [isSmallScreenWidth, selectedReportFields, selectionMode?.isEnabled]);
+    }, [shouldUseNarrowLayout, selectedReportFields, selectionMode?.isEnabled]);
 
     const fetchReportFields = useCallback(() => {
         ReportField.openPolicyReportFieldsPage(policyID);
@@ -166,7 +164,7 @@ function WorkspaceReportFieldsPage({
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
-        if (isSmallScreenWidth ? canSelectMultiple : selectedReportFields.length > 0) {
+        if (shouldUseNarrowLayout ? canSelectMultiple : selectedReportFields.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
@@ -188,14 +186,14 @@ function WorkspaceReportFieldsPage({
             );
         }
         return (
-            <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
+            <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 <Button
                     medium
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                     icon={Expensicons.Plus}
                     text={translate('workspace.reportFields.addField')}
-                    style={[isSmallScreenWidth && styles.flex1]}
+                    style={[shouldUseNarrowLayout && styles.flex1]}
                 />
             </View>
         );
@@ -240,7 +238,7 @@ function WorkspaceReportFieldsPage({
             )}
         </View>
     );
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
         <AccessOrNotFoundWrapper
@@ -258,7 +256,7 @@ function WorkspaceReportFieldsPage({
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.Pencil : undefined}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.reportFields')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionModeHeader) {
                             setSelectedReportFields([]);
@@ -268,9 +266,9 @@ function WorkspaceReportFieldsPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
+                    {!shouldUseNarrowLayout && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 <ConfirmModal
                     isVisible={deleteReportFieldsConfirmModalVisible}
                     onConfirm={handleDeleteReportFields}
@@ -281,7 +279,7 @@ function WorkspaceReportFieldsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!isSmallScreenWidth || reportFieldsSections[0].data.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || reportFieldsSections[0].data.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -307,7 +305,7 @@ function WorkspaceReportFieldsPage({
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
-                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}

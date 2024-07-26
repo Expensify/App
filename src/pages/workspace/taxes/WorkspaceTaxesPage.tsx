@@ -23,7 +23,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -50,7 +49,6 @@ function WorkspaceTaxesPage({
     },
 }: WorkspaceTaxesPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -65,7 +63,7 @@ function WorkspaceTaxesPage({
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -80,7 +78,7 @@ function WorkspaceTaxesPage({
     );
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedTaxesIDs.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -89,7 +87,7 @@ function WorkspaceTaxesPage({
         if (selectedTaxesIDs.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [isSmallScreenWidth, selectedTaxesIDs, selectionMode?.isEnabled]);
+    }, [shouldUseNarrowLayout, selectedTaxesIDs, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -229,7 +227,7 @@ function WorkspaceTaxesPage({
         return options;
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
-    const shouldShowBulkActionsButton = isSmallScreenWidth ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
     const headerButtons = !shouldShowBulkActionsButton ? (
         <View style={[styles.w100, styles.flexRow, shouldUseNarrowLayout && styles.mb3]}>
             {!hasAccountingConnections && (

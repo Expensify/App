@@ -26,7 +26,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -77,7 +76,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
@@ -91,10 +89,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
 
-    const canSelectMultiple = isPolicyAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedEmployees.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -103,7 +101,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (isPolicyAdmin && selectedEmployees.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [isPolicyAdmin, isSmallScreenWidth, selectedEmployees.length, selectionMode?.isEnabled]);
+    }, [isPolicyAdmin, shouldUseNarrowLayout, selectedEmployees.length, selectionMode?.isEnabled]);
 
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
@@ -520,7 +518,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         }
         return (
             <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedEmployees.length > 0) ? (
+                {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter

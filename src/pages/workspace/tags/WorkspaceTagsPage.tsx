@@ -25,7 +25,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -46,7 +45,6 @@ type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typ
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -61,7 +59,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const canSelectMultiple = !isMultiLevelTags && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
@@ -73,7 +71,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTags).filter((key) => selectedTags[key]);
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedKeys.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -82,7 +80,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [isSmallScreenWidth, selectedTags, selectionMode?.isEnabled]);
+    }, [shouldUseNarrowLayout, selectedTags, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -205,7 +203,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const getHeaderButtons = () => {
         const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
-        if (isSmallScreenWidth ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
+        if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                     {!hasAccountingConnections && !isMultiLevelTags && (
