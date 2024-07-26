@@ -70,4 +70,12 @@ function hasURL(text: string) {
     return urlPattern.test(text);
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash};
+function extractUrlDomain(url: string): string | undefined {
+    const DOMAIN_BASE_REGEX = '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)';
+
+    const match = String(url).match(DOMAIN_BASE_REGEX);
+
+    return match?.[1];
+}
+
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};
