@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import type {XeroSettings} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -22,8 +23,11 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
+    subscribedImportSettings?: XeroSettings;
     onExportPagePress: () => void;
+    subscribedExportSettings?: XeroSettings;
     onAdvancedPagePress: () => void;
+    subscribedAdvancedSettings?: XeroSettings;
     onCardReconciliationPagePress: () => void;
 };
 
