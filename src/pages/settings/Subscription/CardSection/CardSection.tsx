@@ -70,6 +70,10 @@ function CardSection() {
         Subscription.clearOutstandingBalance();
     };
 
+    const handleAuthenticatePayment = () => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+    };
+
     const handleBillingBannerClose = () => {
         setBillingStatus(undefined);
     };
@@ -136,6 +140,16 @@ function CardSection() {
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
                         onPress={handleRetryPayment}
+                        style={[styles.w100, styles.mt5]}
+                        large
+                    />
+                )}
+                {billingStatus?.isAuthenticationRequired !== undefined && (
+                    <Button
+                        text={translate('subscription.cardSection.authenticatePayment')}
+                        isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
+                        isLoading={subscriptionRetryBillingStatusPending}
+                        onPress={handleAuthenticatePayment}
                         style={[styles.w100, styles.mt5]}
                         large
                     />
