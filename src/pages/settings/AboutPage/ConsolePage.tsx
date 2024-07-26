@@ -19,6 +19,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addLog} from '@libs/actions/Console';
 import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
@@ -56,7 +57,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
+    const {windowWidth} = useWindowDimensions();
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
 
     const menuItems: PopoverMenuItem[] = useMemo(
@@ -164,6 +165,9 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={menuItems}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                threeDotsMenuIcon={Expensicons.Filter}
+                threeDotsMenuIconFill={theme.icon}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
                 <InvertedFlatList
