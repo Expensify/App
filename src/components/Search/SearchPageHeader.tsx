@@ -248,14 +248,6 @@ function SearchPageHeader({
             subtitle={subtitle}
             shouldUseBaseFontWithIcon
         >
-            {isSearchResultsMode && (
-                <Button
-                    icon={Expensicons.Filters}
-                    text={translate('search.filtersHeader')}
-                    medium
-                />
-            )}
-
             {headerButtonsOptions.length > 0 && (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
