@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -130,6 +131,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const navigation = useNavigation();
     const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const animatedRef = useAnimatedRef();
@@ -144,6 +146,7 @@ function ReportActionCompose({
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
+    const [shouldShowEducationalTooltip, setShouldShowEducationalTooltip] = useState(!!workspaceTooltip?.shouldShow);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -256,6 +259,7 @@ function ReportActionCompose({
     );
 
     const onAddActionPressed = useCallback(() => {
+        setShouldShowEducationalTooltip(false);
         if (!willBlurTextInputOnTapOutside) {
             isKeyboardVisibleWhenShowingModalRef.current = !!composerRef.current?.isFocused();
         }
@@ -387,7 +391,14 @@ function ReportActionCompose({
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [styles]);
 
-    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow;
+    useEffect(() => {
+        const unsubscribeBlur = navigation.addListener('blur', () => setShouldShowEducationalTooltip(false));
+        return unsubscribeBlur;
+    }, [navigation]);
+
+    useEffect(() => {
+        setShouldShowEducationalTooltip(!!workspaceTooltip?.shouldShow);
+    }, [workspaceTooltip?.shouldShow]);
 
     const renderWorkspaceChatTooltip = useCallback(
         () => (

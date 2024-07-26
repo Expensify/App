@@ -1,5 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {memo, useCallback, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
@@ -10,32 +9,19 @@ import getBounds from './getBounds';
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
 function BaseEducationalTooltip({children, ...props}: TooltipProps) {
-    const navigation = useNavigation();
     const hideTooltipRef = useRef<() => void>();
 
-    const triggerHideTooltip = useCallback(() => {
+    // Automatically hide tooltip after 5 seconds
+    useEffect(() => {
         if (!hideTooltipRef.current) {
             return;
         }
 
-        hideTooltipRef.current();
-    }, []);
-
-    useEffect(() => {
-        const unsubscribeBlur = navigation.addListener('blur', triggerHideTooltip);
+        const intervalID = setInterval(hideTooltipRef.current, 5000);
         return () => {
-            unsubscribeBlur?.();
-            triggerHideTooltip();
+            clearInterval(intervalID);
         };
-    }, [navigation, triggerHideTooltip]);
-
-    // // Automatically hide tooltip after 5 seconds
-    // useEffect(() => {
-    //     const intervalID = setInterval(triggerHideTooltip, 5000);
-    //     return () => {
-    //         clearInterval(intervalID);
-    //     };
-    // }, []);
+    }, []);
 
     return (
         <GenericTooltip
