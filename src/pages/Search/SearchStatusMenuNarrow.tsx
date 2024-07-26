@@ -45,7 +45,7 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
 
     const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
-    const titleViewStyles = title && {...styles.flex1, ...styles.justifyContentCenter};
+    const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5]}>
