@@ -7,16 +7,13 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
-import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -48,6 +45,7 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMembersPageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -71,7 +69,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
     const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -526,74 +524,65 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            style={[styles.defaultModalContainer]}
+        <WorkspacePageWithSections
+            headerText={translate('workspace.common.members')}
+            route={route}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+            headerContent={!isSmallScreenWidth && getHeaderButtons()}
+            icon={Illustrations.ReceiptWrangler}
             testID={WorkspaceMembersPage.displayName}
+            shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
+            shouldShowNonAdmin
         >
-            <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.members')}
-                    icon={Illustrations.ReceiptWrangler}
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                >
-                    {!isSmallScreenWidth && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ConfirmModal
-                    danger
-                    title={translate('workspace.people.removeMembersTitle')}
-                    isVisible={removeMembersConfirmModalVisible}
-                    onConfirm={removeUsers}
-                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={confirmModalPrompt}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                    onModalHide={() => {
-                        InteractionManager.runAfterInteractions(() => {
-                            if (!textInputRef.current) {
-                                return;
-                            }
-                            textInputRef.current.focus();
-                        });
-                    }}
-                />
-                <View style={[styles.w100, styles.flex1]}>
-                    <SelectionList
-                        ref={selectionListRef}
-                        canSelectMultiple={isPolicyAdmin}
-                        sections={[{data, isDisabled: false}]}
-                        ListItem={TableListItem}
-                        shouldUseUserSkeletonView
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={getHeaderMessage()}
-                        headerContent={!isSmallScreenWidth && getHeaderContent()}
-                        onSelectRow={openMemberDetails}
-                        shouldDebounceRowSelect={!isPolicyAdmin}
-                        onCheckboxPress={(item) => toggleUser(item.accountID)}
-                        onSelectAll={() => toggleAllUsers(data)}
-                        onDismissError={dismissError}
-                        showLoadingPlaceholder={isLoading}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        textInputRef={textInputRef}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
-                        showScrollIndicator={false}
+            {() => (
+                <>
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    <ConfirmModal
+                        danger
+                        title={translate('workspace.people.removeMembersTitle')}
+                        isVisible={removeMembersConfirmModalVisible}
+                        onConfirm={removeUsers}
+                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
+                        prompt={confirmModalPrompt}
+                        confirmText={translate('common.remove')}
+                        cancelText={translate('common.cancel')}
+                        onModalHide={() => {
+                            InteractionManager.runAfterInteractions(() => {
+                                if (!textInputRef.current) {
+                                    return;
+                                }
+                                textInputRef.current.focus();
+                            });
+                        }}
                     />
-                </View>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                    <View style={[styles.w100, styles.flex1]}>
+                        <SelectionList
+                            ref={selectionListRef}
+                            canSelectMultiple={isPolicyAdmin}
+                            sections={[{data, isDisabled: false}]}
+                            ListItem={TableListItem}
+                            shouldUseUserSkeletonView
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                            headerMessage={getHeaderMessage()}
+                            headerContent={!isSmallScreenWidth && getHeaderContent()}
+                            onSelectRow={openMemberDetails}
+                            shouldDebounceRowSelect={!isPolicyAdmin}
+                            onCheckboxPress={(item) => toggleUser(item.accountID)}
+                            onSelectAll={() => toggleAllUsers(data)}
+                            onDismissError={dismissError}
+                            showLoadingPlaceholder={isLoading}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            textInputRef={textInputRef}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                            showScrollIndicator={false}
+                        />
+                    </View>
+                </>
+            )}
+        </WorkspacePageWithSections>
     );
 }
 
