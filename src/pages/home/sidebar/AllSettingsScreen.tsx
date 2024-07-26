@@ -7,9 +7,9 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
@@ -29,7 +29,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
@@ -47,7 +47,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
                     })();
                 },
-                focused: !isSmallScreenWidth,
+                focused: !shouldUseNarrowLayout,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             ...(privateSubscription
@@ -90,7 +90,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, policies, privateSubscription, waitForNavigate, translate, styles]);
+    }, [shouldUseNarrowLayout, policies, privateSubscription, waitForNavigate, translate, styles]);
 
     return (
         <ScreenWrapper

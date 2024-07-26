@@ -438,10 +438,11 @@ export default {
         or: ', or',
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
-        expiredCodeDescription: 'Go back to the original device and request a new code.',
+        expiredCodeDescription: 'Go back to the original device and request a new code',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two-factor authentication\nrequired',
         tfaRequiredDescription: "Please enter the two-factor authentication code\nwhere you're trying to sign in.",
+        requestOneHere: 'request one here.',
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
@@ -1242,6 +1243,7 @@ export default {
         submissionFrequency: 'Submission frequency',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
+        addApprovalButton: 'Add approval workflow',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -1271,6 +1273,15 @@ export default {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
+    },
+    workflowsCreateApprovalsPage: {
+        title: 'Add approval workflow',
+    },
+    workflowsEditApprovalsPage: {
+        title: 'Edit approval workflow',
+    },
+    workflowsExpensesFromPage: {
+        title: 'Expenses from',
     },
     workflowsApprovalPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -2096,9 +2107,7 @@ export default {
             taxesJournalEntrySwitchNote: "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             date: 'Export date',
-            exportExpenses: 'Export out-of-pocket expenses as',
             exportInvoices: 'Export invoices to',
-            exportCompany: 'Export company cards as',
             exportExpensifyCard: 'Export Expensify Card transactions as',
             deepDiveExpensifyCard: 'Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
@@ -2201,13 +2210,11 @@ export default {
                 tag: 'Tags',
             },
             exportDescription: 'Configure how Expensify data exports to Xero.',
-            exportCompanyCard: 'Export company card expenses as',
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
-            exportExpenses: 'Export out-of-pocket expenses as',
             exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Export invoices as',
@@ -2274,7 +2281,6 @@ export default {
                 },
             },
             reimbursableExpenses: {
-                label: 'Export out-of-pocket expenses as',
                 description: 'Set how out-of-pocket expenses export to Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Expense reports',
@@ -2282,7 +2288,6 @@ export default {
                 },
             },
             nonReimbursableExpenses: {
-                label: 'Export company cards as',
                 description: 'Set how company card purchases export to Sage Intacct.',
                 values: {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit cards',
@@ -2312,8 +2317,6 @@ export default {
             subsidiary: 'Subsidiary',
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
             exportDescription: 'Configure how Expensify data exports to NetSuite.',
-            exportReimbursable: 'Export reimbursable expenses as',
-            exportNonReimbursable: 'Export non-reimbursable expenses as',
             exportInvoices: 'Export invoices to',
             journalEntriesTaxPostingAccount: 'Journal entries tax posting account',
             journalEntriesProvTaxPostingAccount: 'Journal entries provincial tax posting account',
@@ -2653,7 +2656,12 @@ export default {
             collect: 'Collect',
         },
         expensifyCard: {
+            issueAndManageCards: 'Issue and manage your Expensify Cards',
+            getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
+            disclaimer:
+                'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
             issueCard: 'Issue card',
+            newCard: 'New card',
             name: 'Name',
             lastFour: 'Last 4',
             limit: 'Limit',
@@ -2672,6 +2680,18 @@ export default {
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
             accountEndingIn: 'Account ending in',
             addNewBankAccount: 'Add a new bank account',
+            settlementAccount: 'Settlement account',
+            settlementAccountDescription: 'Choose an account to pay your Expensify Card balance.',
+            settlementAccountInfoPt1: 'Make sure this account matches your',
+            settlementAccountInfoPt2: 'so Continuous Reconciliation works properly.',
+            reconciliationAccount: 'Reconciliation account',
+            settlementFrequency: 'Settlement frequency',
+            settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
+            settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
+            frequency: {
+                daily: 'Daily',
+                monthly: 'Monthly',
+            },
             cardDetails: 'Card details',
             virtual: 'Virtual',
             physical: 'Physical',
@@ -2681,6 +2701,12 @@ export default {
             smartLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined until you approve more expenses on the card.`,
             monthlyLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined until next month.`,
             fixedLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined.`,
+            changeCardLimitType: 'Change card limit type',
+            changeLimitType: 'Change limit type',
+            changeCardSmartLimitTypeWarning: (limit: string) =>
+                `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
+            changeCardMonthlyLimitTypeWarning: (limit: string) =>
+                `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -2943,6 +2969,8 @@ export default {
             benefit4: 'Customizable limits and spend controls',
             addWorkEmail: 'Add work email address',
             checkingDomain: "Hang tight! We're still working on enabling your Expensify Cards. Check back here in a few minutes.",
+            issueAndManageCards: 'Issue and manage your Expensify Cards',
+            getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
@@ -3181,6 +3209,8 @@ export default {
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportAs: 'Export as',
+            exportOutOfPocket: 'Export out-of-pocket expenses as',
+            exportCompanyCard: 'Export company card expenses as',
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
@@ -3664,7 +3694,7 @@ export default {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to ${newValue}`,
-                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed policy from ${fromPolicy} to ${toPolicy}`,
+                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed workspace from ${fromPolicy} to ${toPolicy}`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
@@ -3686,7 +3716,8 @@ export default {
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
                 reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
-                selectedForRandomAudit: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
+                selectedForRandomAudit: `randomly selected for review`,
+                selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: ({to}: ShareParams) => `invited user ${to}`,
                 unshare: ({to}: UnshareParams) => `removed user ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
@@ -3990,6 +4021,9 @@ export default {
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
         hold: 'Hold',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marked this receipt as cash.',
@@ -4039,6 +4073,7 @@ export default {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
     subscription: {
+        authenticatePaymentCard: 'Authenticate payment card',
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         badge: {
             freeTrial: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
@@ -4201,6 +4236,33 @@ export default {
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}) => `Renews on ${date}.`,
         },
+        requestEarlyCancellation: {
+            title: 'Request early cancellation',
+            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+            subscriptionCanceled: {
+                title: 'Subscription canceled',
+                subtitle: 'Your annual subscription has been canceled.',
+                info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
+                preventFutureActivity: {
+                    part1: 'If you’d like to prevent future activity and charges, you must ',
+                    link: 'delete your workspace(s)',
+                    part2: '. Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+                },
+            },
+            requestSubmitted: {
+                title: 'Request submitted',
+                subtitle: {
+                    part1: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
+            },
+            acknowledgement: {
+                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
+                link: 'Terms of Service',
+                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
+            },
+        },
     },
     feedbackSurvey: {
         tooLimited: 'Functionality needs improvement',
@@ -4212,5 +4274,6 @@ export default {
     },
     roomChangeLog: {
         updateRoomDescription: 'set the room description to:',
+        clearRoomDescription: 'cleared the room description',
     },
 } satisfies TranslationBase;
