@@ -175,7 +175,8 @@ function PaymentMethodList({
     bankAccountList = {},
     buttonRef = () => {},
     cardList = {},
-    fundList = {},
+    // Temporarily disabled because P2P debit cards are disabled.
+    // fundList = {},
     filterType = '',
     listHeaderComponent,
     isLoadingPaymentMethods = true,
@@ -303,19 +304,7 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [
-        shouldShowAssignedCards,
-        bankAccountList,
-        styles,
-        filterType,
-        isOffline,
-        cardList,
-        actionPaymentMethodType,
-        activePaymentMethodID,
-        StyleUtils,
-        shouldShowRightIcon,
-        onPress,
-    ]);
+    }, [shouldShowAssignedCards, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, shouldShowRightIcon, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
