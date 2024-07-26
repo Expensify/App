@@ -18,7 +18,9 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isCustomQuery} = route.params;
-    const isSearchResultsMode = String(isCustomQuery) !== 'false';
+
+    const isSearchResultsMode = isCustomQuery !== 'false';
+    console.log('isCustomQuery', isCustomQuery, typeof isCustomQuery, route.params, isSearchResultsMode);
     const {policyIDs} = route.params;
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params.q, policyIDs]);

@@ -110,7 +110,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         return (
             <>
                 <SearchPageHeader
-                    isSearchResultsMode
+                    isSearchResultsMode={isSearchResultsMode}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -125,7 +125,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         return (
             <>
                 <SearchPageHeader
-                    isSearchResultsMode
+                    isSearchResultsMode={isSearchResultsMode}
                     queryJSON={queryJSON}
                     hash={hash}
                 />

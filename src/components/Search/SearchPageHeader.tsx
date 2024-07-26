@@ -68,7 +68,7 @@ function SearchPageHeader({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
-
+    console.log('isSearchResultsMode', isSearchResultsMode);
     const {status} = queryJSON;
 
     const subtitle = useMemo(() => {
@@ -247,6 +247,7 @@ function SearchPageHeader({
             shouldShowBackButton={false}
             showSubtitleAboveTitle={isSearchResultsMode}
             subtitle={subtitle}
+            shouldUseBaseFontWithIcon
         >
             {isSearchResultsMode && (
                 <Button

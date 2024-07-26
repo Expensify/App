@@ -61,6 +61,7 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     showSubtitleAboveTitle = false,
+    shouldUseBaseFontWithIcon = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -103,7 +104,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && !shouldUseBaseFontWithIcon && styles.textHeadlineH2]}
                 showSubtitleAboveTitle={showSubtitleAboveTitle}
             />
         );
@@ -126,6 +127,7 @@ function HeaderWithBackButton({
         titleColor,
         translate,
         showSubtitleAboveTitle,
+        shouldUseBaseFontWithIcon,
     ]);
 
     return (
