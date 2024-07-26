@@ -2,34 +2,33 @@
 
 ## What is the React Compiler?
 
-[React Compiler](https://react.dev/learn/react-compiler) is a tool that improves the performance of React by applying auto-memoization to components that are missing optimizations.
+[React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-At Expensify we are earlier adopters of this tool and we want to make sure we use all power of it.
+At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
 
 ## React Compiler CI check
 
-We have a CI check that runs the React Compiler on all PRs. This check compares compilable files from PR branch with target branch. If it detects files that were compiled before successfully and now this file fails to be compiled then it will fail the check.
+We have implemented a CI check that runs the React Compiler on all pull requests (PRs). This check compares compilable files from the PR branch with those in the target branch. If it detects that a file was previously compiled successfully but now fails to compile, the check will fail.
 
 ## What if CI check fails in my PR?
 
-If the CI check fails for your PR, then you need to fix the problem. If you are not sure how to fix it, then you can ask for help in the `#expensify-open-source` Slack channel (and tag `@Kiryl Ziusko`).
+If the CI check fails for your PR, you need to fix the problem. If you're unsure how to resolve it, you can ask for help in the `#expensify-open-source` Slack channel (and tag `@Kiryl Ziusko`).
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
-You can run `npm run react-compiler-healthcheck` and check the output. You should see the list of files that were compiled unsuccessfully and what exactly prevents them from being successfully compiled. The output can be very big, so you may write output to a file and then check it:
+You can run `npm run react-compiler-healthcheck` and examine the output. This command will list the files that failed to compile and provide details on what caused the failures. The output can be extensive, so you may want to write it to a file for easier review:
 
 ```bash
 npm run react-compiler-healthcheck &> output.txt
 ```
 
-
 ## How to fix a particular problems?
 
-Below are the most common failures and approaches on how to fix them:
+Below are the most common failures and approaches to fix them:
 
 ### New `ref` produces `Mutating a value returned from a function whose return value should not be mutated`
 
-If you encounter this error, then you need to add `Ref` postfix to the variable name. For example:
+If you encounter this error, you need to add the `Ref` postfix to the variable name. For example:
 
 ```diff
 -const rerender = useRef();
@@ -38,12 +37,12 @@ If you encounter this error, then you need to add `Ref` postfix to the variable 
 
 ### New `SharedValue` produces `Mutating a value returned from a function whose return value should not be mutated`
 
-If you added a modification of `SharedValue`, then most likely you'll encounter this error. In this case you can ignore the error, because current `react-native-reanimated` API is not compatible with `react-compiler` rules. When [this PR](https://github.com/software-mansion/react-native-reanimated/pull/6312) will be merged we'll rewrite the code to be compatible with `react-compiler` at once, but for now you can ignore this error.
+If you added a modification to `SharedValue`, you'll likely encounter this error. You can ignore this error for now because the current `react-native-reanimated` API is not compatible with `react-compiler` rules. Once [this PR](https://github.com/software-mansion/react-native-reanimated/pull/6312) is merged, we'll rewrite the code to be compatible with `react-compiler`. Until then, you can ignore this error.
 
 ### `manual memoization could not be preserved`
 
-In this case most likely you omitted a dependency which you are using inside the hook. In this case you create a memoization that is more complex and can not be optimized automatically. Try to include missing dependencies.
+This error usually occurs when a dependency used inside a hook is omitted. This omission creates a memoization that is too complex to optimize automatically. Try including the missing dependencies.
 
 ## What if my type of error is not listed here?
 
-This list is in active development. If you discovered a new error that is not listed here and found a wau to fix it, then you can update this documentation and create a PR.
+This list is actively maintained. If you discover a new error that is not listed and find a way to fix it, please update this documentation and create a PR.
