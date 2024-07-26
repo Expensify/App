@@ -305,7 +305,6 @@ function PaymentMethodList({
         return combinedPaymentMethods;
     }, [
         shouldShowAssignedCards,
-        fundList,
         bankAccountList,
         styles,
         filterType,
