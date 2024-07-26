@@ -11468,7 +11468,7 @@ function getReleaseBody(pullRequests) {
 async function run() {
     const allPRs = await GithubUtils_1.default.fetchAllPullRequests(PRList);
     if (!allPRs) {
-        core.setFailed(`something went wrong getting PRList ${PRList}`);
+        core.setFailed(`something went wrong getting PRList ${JSON.stringify(PRList)}`);
         return;
     }
     const releaseBody = getReleaseBody(allPRs);
