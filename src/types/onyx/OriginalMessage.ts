@@ -318,10 +318,10 @@ type OriginalMessageModifiedExpense = {
     oldTaxRate?: string;
 
     /** Edited expense reimbursable */
-    reimbursable?: boolean;
+    reimbursable?: string;
 
     /** Old expense reimbursable */
-    oldReimbursable?: boolean;
+    oldReimbursable?: string;
 
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];

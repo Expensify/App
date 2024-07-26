@@ -839,6 +839,8 @@ export default {
         headsUp: 'Atención!',
         unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
+        reimbursable: 'reembolsable',
+        nonReimbursable: 'no reembolsable',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
