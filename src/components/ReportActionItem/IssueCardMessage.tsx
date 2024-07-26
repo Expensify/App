@@ -4,18 +4,15 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-let environmentURL: string;
-Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
@@ -24,6 +21,7 @@ type IssueCardMessageProps = {
 function IssueCardMessage({action}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     // TODO: now mocking accountID with current user accountID instead of action.message.assigneeAccountID
     const personalData = useCurrentUserPersonalDetails();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
