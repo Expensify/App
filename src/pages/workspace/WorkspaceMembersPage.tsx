@@ -23,6 +23,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -75,6 +76,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
@@ -527,7 +529,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
-                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     />
                 ) : (
                     <Button
@@ -536,8 +538,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     />
                 )}
             </View>
@@ -549,8 +551,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             headerText={selectionMode?.isEnabled ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-            headerContent={!isSmallScreenWidth && getHeaderButtons()}
             icon={!selectionMode?.isEnabled ? Illustrations.ReceiptWrangler : undefined}
+            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -566,7 +568,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         >
             {() => (
                 <>
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <ConfirmModal
                         danger
                         title={translate('workspace.people.removeMembersTitle')}
@@ -596,7 +598,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             shouldUseUserSkeletonView
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
-                            headerContent={!isSmallScreenWidth && getHeaderContent()}
+                            headerContent={!shouldUseNarrowLayout && getHeaderContent()}
                             onSelectRow={openMemberDetails}
                             shouldDebounceRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
@@ -607,7 +609,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             textInputRef={textInputRef}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
                         />
                     </View>

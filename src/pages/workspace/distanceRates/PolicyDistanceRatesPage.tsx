@@ -17,6 +17,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -44,6 +45,7 @@ function PolicyDistanceRatesPage({
     },
 }: PolicyDistanceRatesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -246,14 +248,14 @@ function PolicyDistanceRatesPage({
     const isLoading = !isOffline && customUnit === undefined;
 
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             {(isSmallScreenWidth ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
-                        style={[isSmallScreenWidth && styles.flex1]}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
                         icon={Expensicons.Plus}
                         success
                     />
@@ -262,7 +264,7 @@ function PolicyDistanceRatesPage({
                         medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
-                        style={[isSmallScreenWidth && styles.flex1]}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
                         icon={Expensicons.Gear}
                     />
                 </>
@@ -274,7 +276,7 @@ function PolicyDistanceRatesPage({
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     wrapperStyle={styles.w100}
                     isSplitButton={false}
                 />
@@ -303,7 +305,7 @@ function PolicyDistanceRatesPage({
                 <HeaderWithBackButton
                     icon={!selectionMode?.isEnabled ? Illustrations.CarIce : undefined}
                     title={translate(!selectionMode?.isEnabled ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedDistanceRates([]);
@@ -313,10 +315,10 @@ function PolicyDistanceRatesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && headerButtons}
+                    {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                {!isSmallScreenWidth && getHeaderText()}
+                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
+                {!shouldUseNarrowLayout && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -338,7 +340,7 @@ function PolicyDistanceRatesPage({
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}

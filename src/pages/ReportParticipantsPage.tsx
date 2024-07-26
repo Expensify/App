@@ -18,6 +18,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionList/type
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,6 +42,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSmallScreenWidth} = useWindowDimensions();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
@@ -281,7 +283,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 ) : (
                     <Button
@@ -290,13 +292,13 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat, canSelectMultiple]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(

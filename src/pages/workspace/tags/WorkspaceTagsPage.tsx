@@ -22,6 +22,7 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -44,6 +45,7 @@ import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -205,7 +207,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (isSmallScreenWidth ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
-                <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
+                <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                     {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
                             medium
@@ -213,7 +215,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onPress={navigateToCreateTagPage}
                             icon={Expensicons.Plus}
                             text={translate('workspace.tags.addTag')}
-                            style={[isSmallScreenWidth && styles.flex1]}
+                            style={[shouldUseNarrowLayout && styles.flex1]}
                         />
                     )}
                     <Button
@@ -221,7 +223,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onPress={navigateToTagsSettings}
                         icon={Expensicons.Gear}
                         text={translate('common.settings')}
-                        style={[isSmallScreenWidth && styles.flex1]}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
                     />
                 </View>
             );
@@ -291,7 +293,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                 options={options}
-                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
             />
         );
     };
@@ -333,7 +335,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <HeaderWithBackButton
                     icon={!selectionMode?.isEnabled ? Illustrations.Tag : undefined}
                     title={translate(selectionMode?.isEnabled ? 'common.selectMultiple' : 'workspace.common.tags')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedTags({});
@@ -343,9 +345,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     isVisible={isDeleteTagsConfirmModalVisible}
                     onConfirm={deleteTags}
@@ -356,7 +358,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!isSmallScreenWidth || tagList.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || tagList.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -390,7 +392,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => !isMultiLevelTags && Tag.clearPolicyTagErrors(policyID, item.value, 0)}
-                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}

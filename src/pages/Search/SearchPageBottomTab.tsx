@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -7,51 +6,41 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
-import SearchFilters from './SearchFilters';
+import SearchStatusMenu from './SearchStatusMenu';
 
-type SearchPageProps = StackScreenProps<CentralPaneScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
-
-const defaultSearchProps = {
-    query: '' as SearchQuery,
-    policyIDs: undefined,
-    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-};
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {
-        query: rawQuery,
-        policyIDs,
-        sortBy,
-        sortOrder,
-    } = useMemo(() => {
-        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeCentralPaneRoute.params) {
-            return defaultSearchProps;
+    const {queryJSON, policyIDs} = useMemo(() => {
+        if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
+            return {queryJSON: undefined, policyIDs: undefined};
         }
-        return {...defaultSearchProps, ...activeCentralPaneRoute.params} as SearchPageProps['route']['params'];
+
+        // This will be SEARCH_CENTRAL_PANE as we checked that in if.
+        const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+
+        return {
+            queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
+            policyIDs: searchParams.policyIDs,
+        };
     }, [activeCentralPaneRoute]);
 
-    const query = rawQuery as SearchQuery;
-
-    const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
-
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
     return (
         <ScreenWrapper
@@ -60,18 +49,18 @@ function SearchPageBottomTab() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
-                shouldShow={!isValidQuery}
+                shouldShow={!queryJSON}
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {!selectionMode?.isEnabled ? (
+                {!selectionMode?.isEnabled && queryJSON ? (
                     <>
                         <TopBar
                             activeWorkspaceID={policyIDs}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchFilters query={query} />
+                        <SearchStatusMenu status={queryJSON.status} />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -79,12 +68,10 @@ function SearchPageBottomTab() {
                         onBackButtonPress={turnOffMobileSelectionMode}
                     />
                 )}
-                {isSmallScreenWidth && (
+                {shouldUseNarrowLayout && queryJSON && (
                     <Search
+                        queryJSON={queryJSON}
                         policyIDs={policyIDs}
-                        query={query}
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
                     />
                 )}
             </FullPageNotFoundView>

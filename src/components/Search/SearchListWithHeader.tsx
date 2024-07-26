@@ -9,12 +9,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {SearchDataTypes, SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
-import type {SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchStatus, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
-    query: SearchQuery;
+    status: SearchStatus;
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
@@ -38,7 +38,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
           };
 }
 
-function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
+function SearchListWithHeader({ListItem, onSelectRow, status, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [selectedTransactions, setSelectedTransactions] = useState<SelectedTransactions>({});
@@ -148,7 +148,7 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
             <SearchPageHeader
                 selectedTransactions={selectedTransactions}
                 clearSelectedItems={clearSelectedItems}
-                query={query}
+                status={status}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 selectedReports={selectedReports}
