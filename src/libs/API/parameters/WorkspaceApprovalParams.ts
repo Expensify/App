@@ -6,16 +6,8 @@ type CreateWorkspaceApprovalParams = {
     employees: PolicyEmployee[];
 };
 
-type UpdateWorkspaceApprovalParams = {
-    authToken: string;
-    policyID: string;
-    employees: PolicyEmployee[];
-};
+type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 
-type RemoveWorkspaceApprovalParams = {
-    authToken: string;
-    policyID: string;
-    employees: PolicyEmployee[];
-};
+type RemoveWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams};
