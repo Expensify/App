@@ -1033,6 +1033,25 @@ function dismissTrackTrainingModal() {
     });
 }
 
+function dismissWorkspaceTooltip() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
+        value: false,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
+            value: {shouldShow: false},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1042,6 +1061,7 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
+    dismissWorkspaceTooltip,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

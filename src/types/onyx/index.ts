@@ -97,6 +97,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
+import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -214,4 +215,5 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
+    WorkspaceTooltip,
 };

@@ -617,7 +617,6 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
-        tooltip: 'Get started here!',
     },
     allSettingsScreen: {
         subscription: 'Subscription',

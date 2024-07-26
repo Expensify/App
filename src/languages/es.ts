@@ -506,7 +506,7 @@ export default {
         collapse: 'Colapsar',
         expand: 'Expandir',
         tooltip: {
-            title: 'Get started!',
+            title: 'Comenzar!',
             subtitle: ' Submit your first expense',
         },
     },
@@ -610,7 +610,6 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
-        tooltip: '¡Comienza aquí!',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',

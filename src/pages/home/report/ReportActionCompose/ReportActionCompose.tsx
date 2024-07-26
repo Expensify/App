@@ -74,6 +74,9 @@ type ReportActionComposeOnyxProps = {
 
     /** Whether the composer input should be shown */
     shouldShowComposeInput: OnyxEntry<boolean>;
+
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 };
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
@@ -110,6 +113,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails,
+    workspaceTooltip,
     disabled = false,
     isComposerFullSize = false,
     onSubmit,
@@ -383,6 +387,8 @@ function ReportActionCompose({
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [styles]);
 
+    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow;
+
     const renderWorkspaceChatTooltip = useCallback(
         () => (
             <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
@@ -424,7 +430,7 @@ function ReportActionCompose({
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
                     <EducationalTooltip
-                        shouldRender
+                        shouldRender={shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -566,6 +572,9 @@ export default withCurrentUserPersonalDetails(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        workspaceTooltip: {
+            key: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
         },
     })(memo(ReportActionCompose)),
 );
