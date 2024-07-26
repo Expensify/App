@@ -71,7 +71,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
         if (!isApprover) {
-            translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+            return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
         return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policyOwnerDisplayName});
     }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);

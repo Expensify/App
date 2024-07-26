@@ -50,10 +50,6 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type BackToParams = {
-    backTo?: Routes;
-};
-
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
@@ -77,6 +73,15 @@ type CentralPaneScreensParamList = {
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
+};
+
+type BackToAndForwardToParms = {
+    backTo?: Routes;
+    forwardTo?: Routes;
 };
 
 type SearchNavigatorParamList = {
@@ -624,7 +629,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
@@ -663,12 +671,29 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
+        policyID: string;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
     };
@@ -1082,9 +1107,6 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
         policyID: string;
     };
@@ -1266,6 +1288,8 @@ type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
 
+type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
+
 type SwitchPolicyIDParams = {
     policyID?: string;
     route?: Routes;
@@ -1278,6 +1302,7 @@ export type {
     CentralPaneScreensParamList,
     CentralPaneName,
     BackToParams,
+    BackToAndForwardToParms,
     BottomTabName,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
@@ -1296,6 +1321,7 @@ export type {
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingModalNavigatorParamList,
+    OnboardingFlowName,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
