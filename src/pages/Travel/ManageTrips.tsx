@@ -9,11 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const tripsFeatures: FeatureListItem[] = [
     {
@@ -34,6 +36,7 @@ function ManageTrips() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
+    const hasPolicyAddress = !isEmptyObject(getPolicy(activePolicyID)?.address);
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
@@ -49,6 +52,10 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
+                        if (!hasPolicyAddress) {
+                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1'));
+                            return;
+                        }
                         if (!hasAcceptedTravelTerms) {
                             Navigation.navigate(ROUTES.TRAVEL_TCS);
                             return;
