@@ -68,7 +68,6 @@ function SearchPageHeader({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
-    console.log('isSearchResultsMode', isSearchResultsMode);
     const {status} = queryJSON;
 
     const subtitle = useMemo(() => {
@@ -76,8 +75,8 @@ function SearchPageHeader({
             return '';
         }
 
-        return 'Filters';
-    }, [isSearchResultsMode]);
+        return translate('search.filtersHeader');
+    }, [isSearchResultsMode, translate]);
 
     const headerTitle = useMemo(() => {
         if (isSearchResultsMode) {
@@ -252,7 +251,7 @@ function SearchPageHeader({
             {isSearchResultsMode && (
                 <Button
                     icon={Expensicons.Filters}
-                    text="Filters"
+                    text={translate('search.filtersHeader')}
                     medium
                 />
             )}
