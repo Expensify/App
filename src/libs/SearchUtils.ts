@@ -6,6 +6,7 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -421,6 +422,10 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON, isSmallScreenWidth: bo
     return `type:${type} status:${status}`;
 }
 
+function isCustomQuery(routeParams: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
+    return routeParams.isCustomQuery !== 'false';
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -438,4 +443,5 @@ export {
     getFilters,
     getSearchHeaderTitle,
     normalizeQuery,
+    isCustomQuery,
 };

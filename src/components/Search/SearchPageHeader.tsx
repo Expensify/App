@@ -70,29 +70,9 @@ function SearchPageHeader({
     const {setSelectedTransactionIDs} = useSearchContext();
     const {status} = queryJSON;
 
-    const subtitle = useMemo(() => {
-        if (!isCustomQueryMode) {
-            return '';
-        }
-
-        return translate('search.filtersHeader');
-    }, [isCustomQueryMode, translate]);
-
-    const headerTitle = useMemo(() => {
-        if (!isCustomQueryMode) {
-            return translate(headerContent[status]?.titleTx);
-        }
-
-        return SearchUtils.getSearchHeaderTitle(queryJSON, false);
-    }, [isCustomQueryMode, queryJSON, status, translate]);
-
-    const headerIcon = useMemo(() => {
-        if (!isCustomQueryMode) {
-            return headerContent[status]?.icon;
-        }
-
-        return Illustrations.Filters;
-    }, [isCustomQueryMode, status]);
+    const headerTitle = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(queryJSON, false) : translate(headerContent[status]?.titleTx);
+    const headerSubtitle = isCustomQueryMode ? translate('search.filtersHeader') : '';
+    const headerIcon = isCustomQueryMode ? Illustrations.Filters : headerContent[status]?.icon;
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
 
@@ -242,10 +222,10 @@ function SearchPageHeader({
     return (
         <HeaderWithBackButton
             title={headerTitle}
+            subtitle={headerSubtitle}
             icon={headerIcon}
             shouldShowBackButton={false}
             showSubtitleAboveTitle={isCustomQueryMode}
-            subtitle={subtitle}
             shouldUseBaseFontWithIcon
         >
             <Button
