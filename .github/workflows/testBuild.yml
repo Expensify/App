@@ -184,14 +184,19 @@ jobs:
           echo "RORY_DEBUG Podfile"
           cat ios/Podfile
           echo ""
+          echo ""
           echo "RORY_DEBUG Podfile.lock"
           cat ios/Podfile.lock
           echo ""
           echo "RORY_DEBUG Hermes podspec from node_modules"
           cat node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec
           echo ""
-          echo "RORY_DEBUG local podspecs"
-          ls 'ios/Pods/Local Podspecs'
+          if [ -d 'ios/Pods/Local Podspecs' ]; then
+            echo "RORY_DEBUG local podspecs"
+            ls 'ios/Pods/Local Podspecs'
+            echo ""
+            echo ""
+          fi
 
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
