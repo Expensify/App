@@ -765,14 +765,14 @@ function getInviteOnboardingDetails() {
         return {
             firstName,
             lastName,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES.ADMIN,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.ADMIN],
         };
     }
     if (choice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         return {
             firstName,
             lastName,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES.EMPLOYER,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.EMPLOYER],
         };
     }
 }
