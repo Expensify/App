@@ -307,26 +307,26 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 shouldUseScrollView
             >
                 <View style={[styles.mt3, styles.textStrong, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
+                    {/* <Section
                         title={translate('workflowsPage.workflowTitle')}
                         titleStyles={styles.textStrong}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
-                    >
-                        <View>
-                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                            {optionItems.map(renderOptionItem)}
-                            <ConfirmModal
-                                title={translate('workspace.bankAccount.workspaceCurrency')}
-                                isVisible={isCurrencyModalOpen}
-                                onConfirm={confirmCurrencyChangeAndHideModal}
-                                onCancel={() => setIsCurrencyModalOpen(false)}
-                                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                                confirmText={translate('workspace.bankAccount.updateToUSD')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                            />
-                        </View>
-                    </Section>
+                    > */}
+                    <View>
+                        {/* <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text> */}
+                        {optionItems.map(renderOptionItem)}
+                        <ConfirmModal
+                            title={translate('workspace.bankAccount.workspaceCurrency')}
+                            isVisible={isCurrencyModalOpen}
+                            onConfirm={confirmCurrencyChangeAndHideModal}
+                            onCancel={() => setIsCurrencyModalOpen(false)}
+                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                            confirmText={translate('workspace.bankAccount.updateToUSD')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                    </View>
+                    {/* </Section> */}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
