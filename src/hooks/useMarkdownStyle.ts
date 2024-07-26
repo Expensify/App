@@ -6,7 +6,7 @@ import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
 
-function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
+function useMarkdownStyle(doesInputContainOnlyEmojis?: boolean, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
@@ -34,7 +34,7 @@ function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Arra
                 fontSize: variables.fontSizeLarge,
             },
             emoji: {
-                fontSize: inputContainsOnlyEmojis ? variables.fontSizeEmojisOnlyComposer : variables.fontSizeEmojisWithinText,
+                fontSize: doesInputContainOnlyEmojis ? variables.fontSizeEmojisOnlyComposer : variables.fontSizeEmojisWithinText,
             },
             blockquote: {
                 borderColor: theme.border,
@@ -86,7 +86,7 @@ function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Arra
         }
 
         return styling;
-    }, [theme, inputContainsOnlyEmojis, excludeStyles, nonStylingDefaultValues]);
+    }, [theme, doesInputContainOnlyEmojis, excludeStyles, nonStylingDefaultValues]);
 
     return markdownStyle;
 }

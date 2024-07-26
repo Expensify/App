@@ -107,7 +107,7 @@ const getEmojiUnicode = memoize(
                 .charCodeAt(0)
                 .toString()
                 .split(' ')
-                .map((val: string) => parseInt(val, 10).toString(16))
+                .map((val) => parseInt(val, 10).toString(16))
                 .join(' ');
         }
 
