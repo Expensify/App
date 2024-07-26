@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflow, Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -32,12 +33,15 @@ Onyx.connect({
 });
 
 function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    if (!authToken) {
+    const policy = allPolicies?.[policyID];
+
+    if (!authToken || !policy) {
         return;
     }
 
-    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
-    const employeeList = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList});
+    const previousEmployeeList = {...policy.employeeList};
+    const previousApprovalMode = policy.approvalMode;
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -50,7 +54,10 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList},
+            value: {
+                employeeList: updatedEmployees,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            },
         },
     ];
 
@@ -63,7 +70,10 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList: previousEmployeeList},
+            value: {
+                employeeList: previousEmployeeList,
+                approvalMode: previousApprovalMode,
+            },
         },
     ];
 
@@ -75,17 +85,19 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(employeeList)};
+    const parameters: CreateWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(updatedEmployees)};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    if (!authToken) {
+    const policy = allPolicies?.[policyID];
+
+    if (!authToken || !policy) {
         return;
     }
 
-    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
-    const employeeList = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList});
+    const previousEmployeeList = {...policy.employeeList};
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -98,7 +110,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList},
+            value: {employeeList: updatedEmployees},
         },
     ];
 
@@ -123,17 +135,23 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: UpdateWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(employeeList)};
+    const parameters: UpdateWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(updatedEmployees)};
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    if (!authToken) {
+    const policy = allPolicies?.[policyID];
+
+    if (!authToken || !policy) {
         return;
     }
 
-    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
-    const employeeList = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, removeWorkflow: true});
+    const previousEmployeeList = {...policy.employeeList};
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, removeWorkflow: true});
+    const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
+
+    // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
+    const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== policy.approver);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -146,7 +164,10 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList},
+            value: {
+                employeeList: updatedEmployees,
+                approvalMode: hasMoreThanOneWorkflow ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
+            },
         },
     ];
 
@@ -159,7 +180,10 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList: previousEmployeeList},
+            value: {
+                employeeList: previousEmployeeList,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            },
         },
     ];
 
@@ -171,7 +195,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: RemoveWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(employeeList)};
+    const parameters: RemoveWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(updatedEmployees)};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
