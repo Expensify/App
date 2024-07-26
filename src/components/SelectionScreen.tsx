@@ -21,16 +21,18 @@ import type TableListItem from './SelectionList/TableListItem';
 import type {ListItem, SectionListDataType} from './SelectionList/types';
 import type UserListItem from './SelectionList/UserListItem';
 
-type SelectorType = ListItem & {
-    value: string;
+type SelectorType<T = string> = ListItem & {
+    value: T;
+
+    onPress?: () => void;
 };
 
-type SelectionScreenProps = {
+type SelectionScreenProps<T = string> = {
     /** Used to set the testID for tests */
     displayName: string;
 
     /** Title of the selection component */
-    title: TranslationPaths;
+    title?: TranslationPaths;
 
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
@@ -42,7 +44,7 @@ type SelectionScreenProps = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType>>;
+    sections: Array<SectionListDataType<SelectorType<T>>>;
 
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -51,7 +53,7 @@ type SelectionScreenProps = {
     initiallyFocusedOptionKey?: string | null | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType) => void;
+    onSelectRow: (selection: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress: () => void;
@@ -82,9 +84,15 @@ type SelectionScreenProps = {
 
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
+
+    /** Whether to debounce `onRowSelect` */
+    shouldDebounceRowSelect?: boolean;
+
+    /** Used for dynamic header title translation with parameters */
+    headerTitleAlreadyTranslated?: string;
 };
 
-function SelectionScreen({
+function SelectionScreen<T = string>({
     displayName,
     title,
     headerContent,
@@ -104,7 +112,9 @@ function SelectionScreen({
     errors,
     errorRowStyles,
     onClose,
-}: SelectionScreenProps) {
+    shouldDebounceRowSelect,
+    headerTitleAlreadyTranslated,
+}: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -123,7 +133,7 @@ function SelectionScreen({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    title={translate(title)}
+                    title={headerTitleAlreadyTranslated ?? (title ? translate(title) : '')}
                     onBackButtonPress={onBackButtonPress}
                 />
                 {headerContent}
@@ -142,6 +152,7 @@ function SelectionScreen({
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
                         sectionListStyle={[styles.flexGrow0]}
+                        shouldDebounceRowSelect={shouldDebounceRowSelect}
                     >
                         <ErrorMessageRow
                             errors={errors}

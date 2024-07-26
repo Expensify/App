@@ -223,7 +223,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<
     GetOptionsConfig,
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
-> & {preferChatroomsOverThreads?: boolean};
+> & {preferChatroomsOverThreads?: boolean; includeChatRoomsByParticipants?: boolean};
 
 type HasText = {
     text?: string;
@@ -737,8 +737,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(reportID);
     } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
+        lastMessageTextFromReport = ReportActionUtils.getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && ReportActionUtils.isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction);
+        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -2471,7 +2473,15 @@ function getFirstKeyForList(data?: Option[] | null) {
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], maxRecentReportsToShow = 0, excludeLogins = [], preferChatroomsOverThreads = false} = config ?? {};
+    const {
+        sortByReportTypeInSearch = false,
+        canInviteUser = true,
+        betas = [],
+        maxRecentReportsToShow = 0,
+        excludeLogins = [],
+        preferChatroomsOverThreads = false,
+        includeChatRoomsByParticipants = false,
+    } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
     }
@@ -2531,6 +2541,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
+
+                if (includeChatRoomsByParticipants) {
+                    values = values.concat(getParticipantsLoginsArray(item));
+                }
             }
 
             if (!item.isChatRoom) {
@@ -2545,11 +2559,19 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
 
+        const currentUserOptionSearchText = uniqFast([
+            items.currentUserOption?.text ?? '',
+            items.currentUserOption?.login ?? '',
+            items.currentUserOption?.login?.replace(emailRegex, '') ?? '',
+        ]).join(' ');
+
+        const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
+
         return {
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
             userToInvite: null,
-            currentUserOption: null,
+            currentUserOption,
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],

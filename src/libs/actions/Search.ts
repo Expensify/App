@@ -1,8 +1,15 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
+import type {SearchQueryString} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
+import fileDownload from '@libs/fileDownload';
+import enhanceParameters from '@libs/Network/enhanceParameters';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -49,6 +56,22 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
     API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
 }
 
+// TODO_SEARCH: use this function after backend changes.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function searchV2(queryString: SearchQueryString) {
+    const queryJSON = buildSearchQueryJSON(queryString);
+
+    if (!queryJSON) {
+        return;
+    }
+
+    const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
+
+    // TODO_SEARCH: uncomment this line after backend changes
+    // @ts-expect-error waiting for backend changes
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery: JSON.stringify(queryJSON)}, {optimisticData, finallyData});
+}
+
 /**
  * It's possible that we return legacy transactions that don't have a transaction thread created yet.
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
@@ -83,4 +106,33 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};
+type Params = Record<string, string | string[]>;
+
+function exportSearchItemsToCSV(status: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[], onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+        status,
+        reportIDList,
+        transactionIDList,
+        policyIDs,
+    }) as Params;
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            formData.append(key, value.join(','));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
+/**
+ * Updates the form values for the advanced search form.
+ */
+function updateAdvancedFilters(values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) {
+    Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+}
+
+export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV, updateAdvancedFilters};

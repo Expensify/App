@@ -19,7 +19,7 @@ let timestampData: Record<string, TimestampData> = {};
  * @param eventName
  * @param shouldUseFirebase - adds an additional trace in Firebase
  */
-function start(eventName: string, shouldUseFirebase = false) {
+function start(eventName: string, shouldUseFirebase = true) {
     timestampData[eventName] = {startTime: Date.now(), shouldUseFirebase};
 
     if (!shouldUseFirebase) {
