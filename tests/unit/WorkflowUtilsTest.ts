@@ -141,7 +141,7 @@ describe('WorkflowUtils', () => {
             ]);
         });
 
-        it('Should return a list of approver with circular references', () => {
+        it('Should return a list of approvers with circular references', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {
                     email: '1@example.com',
@@ -183,7 +183,7 @@ describe('WorkflowUtils', () => {
             ]);
         });
 
-        it('Should return a list of approver with circular references', () => {
+        it('Should return a list of approvers with circular references', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {
                     email: '1@example.com',
