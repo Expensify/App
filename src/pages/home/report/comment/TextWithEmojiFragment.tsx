@@ -2,9 +2,9 @@ import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import variables from '@styles/variables';
@@ -34,7 +34,7 @@ function TextWithEmojiFragment({message, passedStyles, styleAsDeleted, styleAsMu
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
 
@@ -50,7 +50,7 @@ function TextWithEmojiFragment({message, passedStyles, styleAsDeleted, styleAsMu
                             passedStyles,
                             styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                             styleAsMuted ? styles.colorMuted : undefined,
-                            !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                            !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                             hasEmojisOnly ? styles.onlyEmojisText : styles.enhancedLineHeight,
                         ]}
                     >
