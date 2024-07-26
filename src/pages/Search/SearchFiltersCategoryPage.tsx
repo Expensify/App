@@ -18,29 +18,41 @@ function SearchFiltersStatusPage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [allPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const policyId = Object.values(allPolicy ?? {})[0]?.id;
-
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
-
     const activeItems = searchAdvancedFiltersForm?.category;
+    const policyId = searchAdvancedFiltersForm?.policyId ?? '-1';
+
+    const [callCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [singlePolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+
+    let categories: string[] = [];
+    if (!singlePolicyCategories) {
+        categories = Object.values(callCategories ?? {})
+            .map((value) => Object.values(value ?? {}))
+            .map((value2) => value2.map((value3) => value3?.name))
+            .flat();
+    } else {
+        categories = Object.values(singlePolicyCategories ?? {}).map((value) => value.name);
+    }
+
+    const removeDuplicates = (array: string[]) => array.filter((value, index) => array.indexOf(value) === index);
+
+    const categoryNames = removeDuplicates(categories);
 
     const categoryList = useMemo(
         () =>
-            Object.values(policyCategories ?? {})
-                .sort((a, b) => localeCompare(a.name, b.name))
-                .map((value) => ({
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: activeItems?.includes(value.name) ?? false,
-                    value: value.name,
+            categoryNames
+                .sort((a, b) => localeCompare(a, b))
+                .map((name) => ({
+                    text: name,
+                    keyForList: name,
+                    isSelected: activeItems?.includes(name) ?? false,
+                    value: name,
                 })),
-        [activeItems, policyCategories],
+        [categoryNames, activeItems],
     );
 
-    const updateType = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
+    const updateCategory = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
         SearchActions.updateAdvancedFilters(values);
-        // Navigation.goBack();
     };
 
     return (
@@ -65,7 +77,7 @@ function SearchFiltersStatusPage() {
                                 newCategories = [...(activeItems ?? []), item.value];
                             }
 
-                            updateType({
+                            updateCategory({
                                 category: newCategories,
                             });
                         }}
