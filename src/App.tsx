@@ -54,7 +54,8 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+// eslint-disable-next-line no-constant-condition
+const StrictModeWrapper = false ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
