@@ -14,7 +14,7 @@ import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopB
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchResultsStatusMenu from './SearchResultsStatusMenu';
+import SearchStatusMenu from './SearchStatusMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -23,7 +23,7 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
-    const {queryJSON, policyIDs} = useMemo(() => {
+    const {queryJSON, policyIDs, isSearchResultsMode} = useMemo(() => {
         if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
             return {queryJSON: undefined, policyIDs: undefined};
         }
@@ -34,6 +34,7 @@ function SearchPageBottomTab() {
         return {
             queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
             policyIDs: searchParams.policyIDs,
+            isSearchResultsMode: String(searchParams.isCustomQuery) !== 'false',
         };
     }, [activeCentralPaneRoute]);
 
@@ -57,7 +58,10 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchResultsStatusMenu queryJSON={queryJSON} />
+                        <SearchStatusMenu
+                            isSearchResultsMode={isSearchResultsMode}
+                            queryJSON={queryJSON}
+                        />
                     </>
                 ) : (
                     <HeaderWithBackButton

@@ -17,7 +17,8 @@ type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEA
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-
+    const {isCustomQuery} = route.params;
+    const isSearchResultsMode = String(isCustomQuery) !== 'false';
     const {policyIDs} = route.params;
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params.q, policyIDs]);
@@ -44,7 +45,7 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {queryJSON && (
                     <Search
-                        isSearchResultsMode
+                        isSearchResultsMode={isSearchResultsMode}
                         queryJSON={queryJSON}
                         policyIDs={policyIDs}
                     />

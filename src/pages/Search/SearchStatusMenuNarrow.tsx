@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
@@ -15,9 +15,10 @@ import type {SearchStatusMenuItem} from './SearchStatusMenu';
 type SearchStatusMenuNarrowProps = {
     statusMenuItems: SearchStatusMenuItem[];
     activeItemIndex: number;
+    title?: string;
 };
 
-function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex}: SearchStatusMenuNarrowProps) {
+function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: SearchStatusMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -40,6 +41,10 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex}: SearchStatus
         containerStyle: index === activeItemIndex ? [{backgroundColor: theme.border}] : undefined,
     }));
 
+    const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
+    const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
+    const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
+
     return (
         <View style={[styles.pb4]}>
             <PressableWithFeedback
@@ -51,12 +56,17 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex}: SearchStatus
             >
                 {({hovered}) => (
                     <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
-                        <View style={[styles.flexRow]}>
+                        <View style={[styles.flexRow, titleViewStyles]}>
                             <Icon
-                                src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt}
+                                src={menuIcon}
                                 fill={theme.icon}
                             />
-                            <Text style={[styles.mh1, styles.textStrong]}>{popoverMenuItems[activeItemIndex]?.text}</Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.mh1, styles.textStrong]}
+                            >
+                                {menuTitle}
+                            </Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}

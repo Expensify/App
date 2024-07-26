@@ -1,13 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import type {SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {normalizeQuery} from '@libs/SearchUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -17,7 +18,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SearchStatusMenuNarrow from './SearchStatusMenuNarrow';
 
 type SearchStatusMenuProps = {
-    status: SearchStatus;
+    queryJSON: SearchQueryJSON;
+    isSearchResultsMode: boolean;
 };
 
 type SearchStatusMenuItem = {
@@ -27,7 +29,8 @@ type SearchStatusMenuItem = {
     route: Route;
 };
 
-function SearchStatusMenu({status}: SearchStatusMenuProps) {
+function SearchStatusMenu({queryJSON, isSearchResultsMode}: SearchStatusMenuProps) {
+    const {status} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
@@ -62,10 +65,13 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
     const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
     if (shouldUseNarrowLayout) {
+        const title = isSearchResultsMode ? SearchUtils.getSearchHeaderTitle(queryJSON, true) : undefined;
+
         return (
             <SearchStatusMenuNarrow
                 statusMenuItems={statusMenuItems}
                 activeItemIndex={activeItemIndex}
+                title={title}
             />
         );
     }
