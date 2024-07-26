@@ -20,7 +20,6 @@ function SearchPage({route}: SearchPageProps) {
     const {isCustomQuery} = route.params;
 
     const isSearchResultsMode = isCustomQuery !== 'false';
-    console.log('isCustomQuery', isCustomQuery, typeof isCustomQuery, route.params, isSearchResultsMode);
     const {policyIDs} = route.params;
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params.q, policyIDs]);
