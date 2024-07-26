@@ -740,7 +740,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
         lastMessageTextFromReport = ReportActionUtils.getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && ReportActionUtils.isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction);
+        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -2559,11 +2559,19 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
 
+        const currentUserOptionSearchText = uniqFast([
+            items.currentUserOption?.text ?? '',
+            items.currentUserOption?.login ?? '',
+            items.currentUserOption?.login?.replace(emailRegex, '') ?? '',
+        ]).join(' ');
+
+        const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
+
         return {
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
             userToInvite: null,
-            currentUserOption: null,
+            currentUserOption,
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],

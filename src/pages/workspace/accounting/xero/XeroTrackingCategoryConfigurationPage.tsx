@@ -54,7 +54,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 isActive={isSwitchOn}
                 wrapperStyle={styles.mv3}
                 onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(
+                    Connections.updatePolicyXeroConnectionConfig(
                         policyID,
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,

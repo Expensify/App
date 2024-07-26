@@ -34,7 +34,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE],
             },
             {
-                description: translate('workspace.sageIntacct.reimbursableExpenses.label'),
+                description: translate('workspace.accounting.exportOutOfPocket'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)),
                 title: exportConfig?.reimbursable
                     ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`)
@@ -42,7 +42,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
             },
             {
-                description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
+                description: translate('workspace.accounting.exportCompanyCard'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)),
                 title: exportConfig?.nonReimbursable
                     ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)

@@ -68,7 +68,7 @@ function createErrorFields<TConnectionName extends ConnectionNameExceptNetSuite,
     }, {});
 }
 
-function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
@@ -101,7 +101,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                     [connectionName]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                         },
                     },
@@ -121,6 +121,88 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                             [settingName]: settingValue ?? null,
                             pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, null),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdatePolicyConnectionConfigParams = {
+        policyID,
+        connectionName,
+        settingName: String(settingName),
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(settingName),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
+}
+
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    policyID: string,
+    connectionName: TConnectionName,
+    settingName: TSettingName,
+    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: {
+                        config: {
+                            [settingName]: settingValue ?? null,
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: {
+                        config: {
+                            [settingName]: settingValue ?? null,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: {
+                        config: {
+                            [settingName]: settingValue ?? null,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
                         },
                     },
                 },
@@ -324,4 +406,12 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection, copyExistingPolicyConnection};
+export {
+    removePolicyConnection,
+    updatePolicyConnectionConfig,
+    updatePolicyXeroConnectionConfig,
+    updateManyPolicyConnectionConfigs,
+    hasSynchronizationError,
+    syncConnection,
+    copyExistingPolicyConnection,
+};

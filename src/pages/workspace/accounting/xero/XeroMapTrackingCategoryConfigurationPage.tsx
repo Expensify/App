@@ -62,7 +62,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const updateMapping = useCallback(
         (option: {value: string}) => {
             if (option.value !== categoryName) {
-                Connections.updatePolicyConnectionConfig(
+                Connections.updatePolicyXeroConnectionConfig(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.MAPPINGS,

@@ -193,7 +193,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
         canModifyTask;
-    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
@@ -226,14 +226,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
+    const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
+
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if (PolicyUtils.hasAccountingConnections(policy)) {
+        if (isMoneyRequestExported) {
             setIsUnapproveModalVisible(true);
             return;
         }
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [moneyRequestReport, policy]);
+    }, [isMoneyRequestExported, moneyRequestReport]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
@@ -392,7 +395,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView) {
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
@@ -444,6 +447,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         leaveChat,
         canUnapproveRequest,
         unapproveExpenseReportOrShowModal,
+        isExpenseReport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -604,6 +608,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     interactive={!shouldDisableRename}
                     title={reportName}
                     titleStyle={styles.newKansasLarge}
+                    titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
@@ -633,11 +638,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const nameSectionTitleField = titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey]}
-            errors={report.errorFields?.[fieldKey]}
+            pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
+            errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
-            onClose={() => Report.clearReportFieldErrors(report.reportID, titleField)}
+            onClose={() => {
+                if (report.errorFields?.reportName) {
+                    Report.clearPolicyRoomNameErrors(report.reportID);
+                }
+                Report.clearReportFieldKeyErrors(report.reportID, fieldKey);
+            }}
         >
             <View style={[styles.flex1]}>
                 <MenuItemWithTopDescription
@@ -713,22 +723,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         promotedActions={promotedActions}
                     />
 
-                    {menuItems.map((item) => {
-                        const brickRoadIndicator =
-                            ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    {menuItems.map((item) => (
+                        <MenuItem
+                            key={item.key}
+                            title={translate(item.translationKey)}
+                            subtitle={item.subtitle}
+                            icon={item.icon}
+                            onPress={item.action}
+                            isAnonymousAction={item.isAnonymousAction}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                        />
+                    ))}
 
                     {shouldShowDeleteButton && (
                         <MenuItem

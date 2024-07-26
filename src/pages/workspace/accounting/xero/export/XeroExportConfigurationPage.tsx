@@ -38,7 +38,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
         },
         {
-            description: translate('workspace.xero.exportExpenses'),
+            description: translate('workspace.accounting.exportOutOfPocket'),
             title: translate('workspace.xero.purchaseBill'),
             interactive: false,
             shouldShowRightIcon: false,
@@ -64,7 +64,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
         {
-            description: translate('workspace.xero.exportCompanyCard'),
+            description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),
             shouldShowRightIcon: false,
             interactive: false,

@@ -453,6 +453,14 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+/**
+ * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ */
+function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
+    return getAccountIDsByLogins([reimburserEmail])[0];
+}
+
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -807,6 +815,10 @@ function hasNoPolicyOtherThanPersonalType() {
     );
 }
 
+function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -885,14 +897,16 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
-    areSettingsInErrorFields,
-    settingsPendingAction,
+    getCurrentTaxID,
+	areSettingsInErrorFields,
+	settingsPendingAction,
 };
 
 export type {MemberEmailsToAccountIDs, XeroSettings};
