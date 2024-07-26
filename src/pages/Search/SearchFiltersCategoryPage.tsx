@@ -13,7 +13,7 @@ import localeCompare from '@libs/LocaleCompare';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function SearchFiltersStatusPage() {
+function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -21,35 +21,30 @@ function SearchFiltersStatusPage() {
     const activeItems = searchAdvancedFiltersForm?.category;
     const policyId = searchAdvancedFiltersForm?.policyId ?? '-1';
 
-    const [callCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyIdCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [singlePolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
-    let categories: string[] = [];
-    if (!singlePolicyCategories) {
-        categories = Object.values(callCategories ?? {})
-            .map((value) => Object.values(value ?? {}))
-            .map((value2) => value2.map((value3) => value3?.name))
-            .flat();
-    } else {
-        categories = Object.values(singlePolicyCategories ?? {}).map((value) => value.name);
-    }
+    const categoryList = useMemo(() => {
+        let categories: string[] = [];
+        if (!singlePolicyCategories) {
+            categories = Object.values(allPolicyIdCategories ?? {})
+                .map((policyCategories) => Object.values(policyCategories ?? {}).map((category) => category.name))
+                .flat();
+        } else {
+            categories = Object.values(singlePolicyCategories ?? {}).map((value) => value.name);
+        }
 
-    const removeDuplicates = (array: string[]) => array.filter((value, index) => array.indexOf(value) === index);
+        const categoryNames = [...new Set(categories)];
 
-    const categoryNames = removeDuplicates(categories);
-
-    const categoryList = useMemo(
-        () =>
-            categoryNames
-                .sort((a, b) => localeCompare(a, b))
-                .map((name) => ({
-                    text: name,
-                    keyForList: name,
-                    isSelected: activeItems?.includes(name) ?? false,
-                    value: name,
-                })),
-        [categoryNames, activeItems],
-    );
+        return categoryNames
+            .sort((a, b) => localeCompare(a, b))
+            .map((name) => ({
+                text: name,
+                keyForList: name,
+                isSelected: activeItems?.includes(name) ?? false,
+                value: name,
+            }));
+    }, [activeItems, allPolicyIdCategories, singlePolicyCategories]);
 
     const updateCategory = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
         SearchActions.updateAdvancedFilters(values);
@@ -57,7 +52,7 @@ function SearchFiltersStatusPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersStatusPage.displayName}
+            testID={SearchFiltersCategoryPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -67,11 +62,9 @@ function SearchFiltersStatusPage() {
                     <SelectionList
                         sections={[{data: categoryList}]}
                         onSelectRow={(item) => {
-                            const isActive = activeItems?.includes(item.value);
-
                             let newCategories;
 
-                            if (isActive) {
+                            if (item.isSelected) {
                                 newCategories = activeItems?.filter((category) => category !== item.value);
                             } else {
                                 newCategories = [...(activeItems ?? []), item.value];
@@ -91,6 +84,6 @@ function SearchFiltersStatusPage() {
     );
 }
 
-SearchFiltersStatusPage.displayName = 'SearchFiltersCategoryPage';
+SearchFiltersCategoryPage.displayName = 'SearchFiltersCategoryPage';
 
-export default SearchFiltersStatusPage;
+export default SearchFiltersCategoryPage;
