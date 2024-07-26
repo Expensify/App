@@ -1,7 +1,8 @@
+import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
-const ATTACHMENT_PATTERN = new RegExp(`\\s${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}=".*"`, 'i');
+const attachmentRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
 
 /**
  * Check whether a report action is Attachment or not.
@@ -14,9 +15,21 @@ export default function isReportMessageAttachment(message: Message | undefined):
         return false;
     }
 
-    if (message.translationKey && message.text === CONST.ATTACHMENT_MESSAGE_TEXT) {
-        return message?.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
+    if (message.translationKey) {
+        return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && message.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
-    return ATTACHMENT_PATTERN.test(message.html);
+    const hasAttachmentHtml = attachmentRegex.test(message.html);
+
+    if (!hasAttachmentHtml) {
+        return false;
+    }
+
+    const isAttachmentMessageText = message.text === CONST.ATTACHMENT_MESSAGE_TEXT;
+
+    if (isAttachmentMessageText) {
+        return true;
+    }
+
+    return Str.isVideo(message.text);
 }
