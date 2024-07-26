@@ -15,6 +15,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /*
  * This is a "utility page", that does this:
@@ -25,13 +26,14 @@ function TrackExpensePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
-    const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
+    const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
+    const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
             App.confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
-                if (isUnmounted.current) {
+                if (isUnmounted.current || isLoadingHasSeenTrackTraining) {
                     return;
                 }
                 Navigation.goBack();
