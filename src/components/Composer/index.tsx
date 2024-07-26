@@ -287,12 +287,12 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const prevValue = usePrevious(value);
     const clear = useCallback(() => {
-        if (!textInput.current || prevValue === undefined) {
+        if (!textInput.current) {
             return;
         }
 
+        const currentText = textInput.current.value;
         textInput.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
@@ -307,8 +307,8 @@ function Composer(
         onSelectionChange(selectionEvent);
         setSelection({start: 0, end: 0});
 
-        onClear(prevValue);
-    }, [onClear, onSelectionChange, prevValue]);
+        onClear(currentText);
+    }, [onClear, onSelectionChange]);
 
     useImperativeHandle(
         ref,
