@@ -88,6 +88,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                 <OfflineWithFeedback
                     pendingAction={settingsPendingAction([`dimension_${editedUserDimensionName}`], config?.pendingFields)}
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, `dimension_${editedUserDimensionName}`)}
+                    errorRowStyles={[styles.pb3]}
                     onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
                 >
                     <View style={[styles.mb4]}>

@@ -124,8 +124,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                             const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
                             updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
                         }}
-                        pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR], config?.pendingFields)}
-                        errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
+                        pendingAction={!reimbursableExpenseReportDefaultVendor ? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR], config?.pendingFields) : undefined}
+                        errors={!reimbursableExpenseReportDefaultVendor ? ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR) : undefined}
                         wrapperStyle={[styles.ph5, styles.pv3]}
                         onCloseError={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
                     />
