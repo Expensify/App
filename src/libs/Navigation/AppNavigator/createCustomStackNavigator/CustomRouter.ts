@@ -15,7 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
-function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute, isNarrowLayout: boolean) {
+function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
     const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
 
@@ -29,11 +29,9 @@ function insertRootRoute(state: State<RootStackParamList>, routeToInsert: Naviga
     // noinspection JSConstantReassignment
     state.index = state.routes.length - 1; // eslint-disable-line
 
-    // If there is no central pane route in the state, we need to mark the state as stale.
-    if (nonModalRoutes.find((route) => isCentralPaneName(route.name)) && isNarrowLayout) {
-        // @ts-expect-error Updating read only property
-        state.stale = true; // eslint-disable-line
-    }
+    // @ts-expect-error Updating read only property
+    // noinspection JSConstantReassignment
+    state.stale = true; // eslint-disable-line
 }
 
 function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
@@ -68,7 +66,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 
         // If templateFullScreenRoute is defined, and full screen route is not in the state, we need to add it.
         if (templateFullScreenRoute) {
-            insertRootRoute(state, templateFullScreenRoute, isNarrowLayout);
+            insertRootRoute(state, templateFullScreenRoute);
             return;
         }
 
@@ -85,7 +83,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 
         // If there is no topmostCentralPaneRoute in the state and template state has one, we need to add it.
         if (!topmostCentralPaneRoute) {
-            insertRootRoute(state, templateCentralPaneRoute, isNarrowLayout);
+            insertRootRoute(state, templateCentralPaneRoute);
             return;
         }
 
@@ -97,7 +95,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
             if (templateCentralPaneRouteExtracted.name === SCREENS.REPORT) {
                 return;
             }
-            insertRootRoute(state, templateCentralPaneRoute, isNarrowLayout);
+            insertRootRoute(state, templateCentralPaneRoute);
         }
     }
 }
