@@ -392,7 +392,7 @@ function ComposerWithSuggestions(
      * Update the value of the comment in Onyx
      */
     const updateComment = useCallback(
-        (commentValue: string, shouldDebounceSaveComment?: boolean, skipTextInputStateUpdates = false) => {
+        (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
@@ -417,22 +417,20 @@ function ComposerWithSuggestions(
             }
             emojisPresentBefore.current = emojis;
 
-            if (!skipTextInputStateUpdates) {
-                setValue(newCommentConverted);
-                if (commentValue !== newComment) {
-                    const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
+            setValue(newCommentConverted);
+            if (commentValue !== newComment) {
+                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
-                    if (commentWithSpaceInserted !== newComment && isIOSNative) {
-                        syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
-                    }
-
-                    setSelection((prevSelection) => ({
-                        start: position,
-                        end: position,
-                        positionX: prevSelection.positionX,
-                        positionY: prevSelection.positionY,
-                    }));
+                if (commentWithSpaceInserted !== newComment && isIOSNative) {
+                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
                 }
+
+                setSelection((prevSelection) => ({
+                    start: position,
+                    end: position,
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
             }
 
             commentRef.current = newCommentConverted;
@@ -702,7 +700,7 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('', true, true);
+            updateComment('', true);
         },
         [onCleared, updateComment],
     );
