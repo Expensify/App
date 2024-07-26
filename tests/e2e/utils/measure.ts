@@ -11,7 +11,11 @@ const POLLING_STOPPED = {
 };
 let polling = POLLING_STOPPED;
 
-const start = (bundleId: string, {onAttachFailed}: {onAttachFailed: () => Promise<void>}) => {
+type StartOptions = {
+    onAttachFailed: () => Promise<void>;
+};
+
+const start = (bundleId: string, {onAttachFailed}: StartOptions) => {
     // clear our measurements results
     measures = [];
 

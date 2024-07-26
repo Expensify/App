@@ -3,7 +3,12 @@ import CONFIG from '../config';
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
 const TIMEOUT = Number(process.env.INTERACTION_TIMEOUT || CONFIG.INTERACTION_TIMEOUT);
 
-const withFailTimeout = (promise: Promise<void>, name: string): {promise: Promise<unknown>; resetTimeout: () => void} => {
+type WithFailTimeoutReturn = {
+    promise: Promise<unknown>;
+    resetTimeout: () => void;
+};
+
+const withFailTimeout = (promise: Promise<void>, name: string): WithFailTimeoutReturn => {
     let timeoutId: NodeJS.Timeout;
     const resetTimeout = () => {
         clearTimeout(timeoutId);
