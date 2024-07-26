@@ -659,7 +659,11 @@ function ReportActionItem({
             // @ts-expect-error html does not exist on type '{}'
             originalMessage?.html === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL ||
             // @ts-expect-error html does not exist on type '{}'
-            originalMessage?.html === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
+            originalMessage?.html === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS ||
+            // @ts-expect-error html does not exist on type '{}'
+            originalMessage?.html === 'NOMAILINGADDRESS' ||
+            // @ts-expect-error html does not exist on type '{}'
+            originalMessage?.html === 'ADDRESSADDED'
         ) {
             children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
