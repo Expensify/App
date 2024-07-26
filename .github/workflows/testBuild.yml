@@ -191,9 +191,9 @@ jobs:
           echo "RORY_DEBUG Hermes podspec from node_modules"
           cat node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec
           echo ""
-          if [ -d 'ios/Pods/Local Podspecs' ]; then
-            echo "RORY_DEBUG local podspecs"
-            ls 'ios/Pods/Local Podspecs'
+          if [ -f 'ios/Pods/Local Podspecs/hermes-engine.podspec.json' ]; then
+            echo "RORY_DEBUG local podspec"
+            cat 'ios/Pods/Local Podspecs/hermes-engine.podspec.json'
             echo ""
             echo ""
           fi
