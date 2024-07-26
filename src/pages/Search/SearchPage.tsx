@@ -17,12 +17,11 @@ type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEA
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {isCustomQuery} = route.params;
+    const {isCustomQuery, policyIDs, q} = route.params;
 
     const isSearchResultsMode = isCustomQuery !== 'false';
-    const {policyIDs} = route.params;
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, policyIDs), [route.params.q, policyIDs]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(q, policyIDs), [q, policyIDs]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
