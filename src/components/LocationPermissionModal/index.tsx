@@ -69,12 +69,20 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setHasError(false);
     };
 
+    const getConfirmText = (): string => {
+        if (!hasError) {
+            return translate('common.continue');
+        }
+
+        return isWeb ? translate('common.buttonConfirm') : translate('common.settings');
+    };
+
     return (
         <ConfirmModal
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
-            confirmText={hasError ? (isWeb ? translate('common.buttonConfirm') : translate('common.settings')) : translate('common.continue')}
+            confirmText={getConfirmText()}
             cancelText={translate('common.notNow')}
             prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
