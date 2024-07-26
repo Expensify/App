@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as NetworkStore from '@libs/Network/NetworkStore';
 import {convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflow, Policy} from '@src/types/onyx';
@@ -24,8 +23,15 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+let authToken: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        authToken = value?.authToken;
+    },
+});
+
 function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
         return;
     }
@@ -74,7 +80,6 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 }
 
 function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
         return;
     }
@@ -123,7 +128,6 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 }
 
 function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
         return;
     }
