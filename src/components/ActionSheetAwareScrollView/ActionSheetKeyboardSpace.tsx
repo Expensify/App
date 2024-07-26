@@ -97,10 +97,9 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
     // Reset state machine when component unmounts
     useEffect(() => () => resetStateMachine(), [resetStateMachine]);
-
     useAnimatedReaction(
         () => keyboard.state.value,
-        (lastState) => {
+        (lastState, prev) => {
             if (lastState === syncLocalWorkletState.lastState) {
                 return;
             }
@@ -149,9 +148,10 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
+
         switch (current.state) {
             case States.KEYBOARD_OPEN: {
-                if (previous.state === States.KEYBOARD_CLOSED_POPOVER) {
+                if (previous.state === States.KEYBOARD_CLOSED_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
                     return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0) + Math.max(elementOffset, 0);
                 }
 
@@ -285,7 +285,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     return lastKeyboardHeight - keyboardHeight;
                 }
 
-                console.log(132, lastKeyboardHeight);
+                console.log(132, lastKeyboardHeight, lastKeyboardHeight - keyboardHeight, keyboardHeight);
                 return lastKeyboardHeight;
             }
 
@@ -303,7 +303,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
 
                 if (keyboard.height.value > 0) {
-                    console.log(135, keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset);
+                    console.log(135, keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset, 'elementOffset', elementOffset);
                     return keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset;
                 }
 
