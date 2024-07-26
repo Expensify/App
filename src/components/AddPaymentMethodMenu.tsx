@@ -99,13 +99,14 @@ function AddPaymentMethodMenu({
                           },
                       ]
                     : []),
-                ...[
-                    {
-                        text: translate('common.debitCard'),
-                        icon: Expensicons.CreditCard,
-                        onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
-                    },
-                ],
+                // Adding a debit card for P2P payments is temporarily disabled
+                // ...[
+                //     {
+                //         text: translate('common.debitCard'),
+                //         icon: Expensicons.CreditCard,
+                //         onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                //     },
+                // ],
             ]}
             withoutOverlay
         />
