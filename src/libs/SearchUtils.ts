@@ -1,10 +1,11 @@
 import type {ValueOf} from 'type-fest';
-import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -316,7 +317,7 @@ function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     try {
         // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
-        result.input = query;
+        result.inputQuery = query;
 
         // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
         const policyIDPart = policyID ?? '';
@@ -351,7 +352,15 @@ function normalizeQuery(query: string) {
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys>>) {
+function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    // Object.entries(filterValues).map(([filterKey, filterValue]) => {
+    //     if (filterKey === 'dateFrom' || filterKey === 'dateTo') {
+    //     }
+    // });
+    return '';
+}
+
+function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFiltersKeys>>) {
     let queryAST;
 
     try {
@@ -427,4 +436,5 @@ export {
     isSearchResultsEmpty,
     getFilters,
     normalizeQuery,
+    buildQueryStringFromFilters,
 };

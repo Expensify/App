@@ -13,6 +13,7 @@ import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersStatusPage() {
     const styles = useThemeStyles();
@@ -26,27 +27,27 @@ function SearchFiltersStatusPage() {
         () => [
             {
                 text: translate('common.all'),
-                value: CONST.SEARCH.TAB.ALL,
-                keyForList: CONST.SEARCH.TAB.ALL,
-                isSelected: activeItem === CONST.SEARCH.TAB.ALL,
+                value: CONST.SEARCH.STATUS.ALL,
+                keyForList: CONST.SEARCH.STATUS.ALL,
+                isSelected: activeItem === CONST.SEARCH.STATUS.ALL,
             },
             {
                 text: translate('common.shared'),
-                value: CONST.SEARCH.TAB.SHARED,
-                keyForList: CONST.SEARCH.TAB.SHARED,
-                isSelected: activeItem === CONST.SEARCH.TAB.SHARED,
+                value: CONST.SEARCH.STATUS.SHARED,
+                keyForList: CONST.SEARCH.STATUS.SHARED,
+                isSelected: activeItem === CONST.SEARCH.STATUS.SHARED,
             },
             {
                 text: translate('common.drafts'),
-                value: CONST.SEARCH.TAB.DRAFTS,
-                keyForList: CONST.SEARCH.TAB.DRAFTS,
-                isSelected: activeItem === CONST.SEARCH.TAB.DRAFTS,
+                value: CONST.SEARCH.STATUS.DRAFTS,
+                keyForList: CONST.SEARCH.STATUS.DRAFTS,
+                isSelected: activeItem === CONST.SEARCH.STATUS.DRAFTS,
             },
             {
                 text: translate('common.finished'),
-                value: CONST.SEARCH.TAB.FINISHED,
-                keyForList: CONST.SEARCH.TAB.FINISHED,
-                isSelected: activeItem === CONST.SEARCH.TAB.FINISHED,
+                value: CONST.SEARCH.STATUS.FINISHED,
+                keyForList: CONST.SEARCH.STATUS.FINISHED,
+                isSelected: activeItem === CONST.SEARCH.STATUS.FINISHED,
             },
         ],
         [translate, activeItem],
@@ -54,7 +55,7 @@ function SearchFiltersStatusPage() {
 
     const updateStatus = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
         SearchActions.updateAdvancedFilters(values);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (

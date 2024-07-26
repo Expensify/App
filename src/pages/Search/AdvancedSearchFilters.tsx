@@ -2,26 +2,25 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import type {AdvancedFiltersKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
-// the values of dateBefore+dateAfter map to just a single 'date' field on advanced filters
-type AvailableFilters = ValueOf<typeof INPUT_IDS> | 'date';
-
-function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AvailableFilters, translate: LocaleContextProps['translate']) {
+function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === 'date') {
+        // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
         if (dateBefore) {
@@ -37,7 +36,10 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    const filterValue = filters[fieldName];
+    // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
+    // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
+    // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
+    const filterValue = filters[fieldName] as string;
     return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
 
@@ -52,23 +54,34 @@ function AdvancedSearchFilters() {
     const advancedFilters = useMemo(
         () => [
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, 'type', translate),
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, translate),
                 description: 'common.type' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, 'date', translate),
-                description: 'common.date' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, 'status', translate),
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, translate),
                 description: 'search.filters.status' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
+                description: 'common.date' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
             },
         ],
         [searchAdvancedFilters, translate],
     );
+
+    const onFormSubmit = () => {
+        const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
+        SearchActions.clearAdvancedFilters();
+        Navigation.navigate(
+            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                query,
+                isCustomQuery: true,
+            }),
+        );
+    };
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -90,12 +103,7 @@ function AdvancedSearchFilters() {
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4]}
-                onSubmit={() => {
-                    // here set the selected filters as new query and redirect to SearchResults page
-                    // waiting for: https://github.com/Expensify/App/issues/45028 and https://github.com/Expensify/App/issues/45027
-                    SearchActions.clearAdvancedFilters();
-                    Navigation.goBack();
-                }}
+                onSubmit={onFormSubmit}
             />
         </View>
     );

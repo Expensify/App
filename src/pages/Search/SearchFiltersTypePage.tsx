@@ -13,6 +13,7 @@ import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersTypePage() {
     const styles = useThemeStyles();
@@ -36,7 +37,7 @@ function SearchFiltersTypePage() {
 
     const updateType = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
         SearchActions.updateAdvancedFilters(values);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
