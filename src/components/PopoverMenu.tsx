@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -112,18 +112,21 @@ function PopoverMenu({
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
-    const selectItem = (index: number) => {
-        const selectedItem = currentMenuItems[index];
-        if (selectedItem?.subMenuItems) {
-            setCurrentMenuItems([...selectedItem.subMenuItems]);
-            setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
-            const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
-            setFocusedIndex(selectedSubMenuItemIndex);
-        } else {
-            onItemSelected(selectedItem, index);
-            selectedItem.onSelected?.();
-        }
-    };
+    const selectItem = useCallback(
+        (index: number) => {
+            const selectedItem = currentMenuItems[index];
+            if (selectedItem?.subMenuItems) {
+                setCurrentMenuItems([...selectedItem.subMenuItems]);
+                setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
+                const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
+                setFocusedIndex(selectedSubMenuItemIndex);
+            } else {
+                onItemSelected(selectedItem, index);
+                selectedItem.onSelected?.();
+            }
+        },
+        [currentMenuItems, enteredSubMenuIndexes, onItemSelected, setFocusedIndex],
+    );
 
     const getPreviousSubMenu = () => {
         let currentItems = menuItems;
