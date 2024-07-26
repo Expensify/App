@@ -81,7 +81,6 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
             <Button
                 icon={Expensicons.Filters}
                 onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
-                medium
                 innerStyles={styles.searchNarrowFilterButton}
             />
             <PopoverMenu
