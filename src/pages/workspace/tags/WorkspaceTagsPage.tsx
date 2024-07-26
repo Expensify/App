@@ -1,5 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -101,19 +102,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ),
             }));
         }
-        return Object.values(policyTagLists[0]?.tags ?? {})
-            .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
-            .map((tag) => ({
-                value: tag.name,
-                text: PolicyUtils.getCleanedTagName(tag.name),
-                keyForList: tag.name,
-                isSelected: selectedTags[tag.name],
-                pendingAction: tag.pendingAction,
-                errors: tag.errors ?? undefined,
-                enabled: tag.enabled,
-                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-            }));
+        const sortedTags = lodashSortBy(Object.values(policyTagLists[0]?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+        return sortedTags.map((tag) => ({
+            value: tag.name,
+            text: PolicyUtils.getCleanedTagName(tag.name),
+            keyForList: tag.name,
+            isSelected: selectedTags[tag.name],
+            pendingAction: tag.pendingAction,
+            errors: tag.errors ?? undefined,
+            enabled: tag.enabled,
+            isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+        }));
     }, [isMultiLevelTags, policyTagLists, selectedTags, translate]);
 
     const tagListKeyedByName = useMemo(
