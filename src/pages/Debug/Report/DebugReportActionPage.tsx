@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -17,7 +16,6 @@ import DebugJSON from '@pages/Debug/DebugJSON';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ReportAction} from '@src/types/onyx';
 import DebugReportActionPreview from './DebugReportActionPreview';
 
 type DebugReportActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
@@ -55,9 +53,14 @@ function DebugReportActionPage({
                             {() => (
                                 <DebugDetails
                                     data={reportAction ?? {}}
-                                    onyxKey={`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`}
-                                    idSelector={(data) => (data as OnyxEntry<ReportAction>)?.reportActionID ?? ''}
-                                    isCollection
+                                    onSave={(data) => {
+                                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+                                    }}
+                                    onDelete={() => {
+                                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                                    }}
                                 />
                             )}
                         </TopTab.Screen>

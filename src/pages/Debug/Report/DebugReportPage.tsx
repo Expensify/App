@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -50,7 +50,14 @@ function DebugReportPage({
                             {() => (
                                 <DebugDetails
                                     data={report ?? {}}
-                                    onyxKey={`${ONYXKEYS.COLLECTION.REPORT}${reportID}`}
+                                    onSave={(data) => {
+                                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
+                                    }}
+                                    onDelete={() => {
+                                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+                                    }}
                                 />
                             )}
                         </TopTab.Screen>
