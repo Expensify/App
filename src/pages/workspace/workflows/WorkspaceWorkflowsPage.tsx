@@ -274,6 +274,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         <Section
             containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
             key={`toggleSettingOptionItem-${index}`}
+            renderTitle={() => <></>}
         >
             <ToggleSettingOptionRow
                 title={item.title}
@@ -309,20 +310,18 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 shouldShowLoading={isLoading}
                 shouldUseScrollView
             >
-                <View style={[styles.mt3, styles.textStrong, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <View>
-                        {optionItems.map(renderOptionItem)}
-                        <ConfirmModal
-                            title={translate('workspace.bankAccount.workspaceCurrency')}
-                            isVisible={isCurrencyModalOpen}
-                            onConfirm={confirmCurrencyChangeAndHideModal}
-                            onCancel={() => setIsCurrencyModalOpen(false)}
-                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                            confirmText={translate('workspace.bankAccount.updateToUSD')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </View>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {optionItems.map(renderOptionItem)}
+                    <ConfirmModal
+                        title={translate('workspace.bankAccount.workspaceCurrency')}
+                        isVisible={isCurrencyModalOpen}
+                        onConfirm={confirmCurrencyChangeAndHideModal}
+                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={translate('workspace.bankAccount.updateToUSD')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
