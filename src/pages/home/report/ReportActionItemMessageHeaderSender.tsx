@@ -43,21 +43,12 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
             delegateAccountID={delegateAccountID}
             icon={actorIcon}
         >
-            {processedTextArray.length !== 0 ? (
-                <Text
-                    numberOfLines={isSingleLine ? 1 : undefined}
-                    style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                >
-                    {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithinDisplayName}>{text}</Text> : text))}
-                </Text>
-            ) : (
-                <Text
-                    numberOfLines={isSingleLine ? 1 : undefined}
-                    style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                >
-                    {fragmentText}
-                </Text>
-            )}
+            <Text
+                numberOfLines={isSingleLine ? 1 : undefined}
+                style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
+            >
+                {processedTextArray.length !== 0 ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithinDisplayName}>{text}</Text> : text)) : fragmentText}
+            </Text>
         </UserDetailsTooltip>
     );
 }
