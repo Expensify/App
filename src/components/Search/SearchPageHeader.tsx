@@ -248,6 +248,12 @@ function SearchPageHeader({
             subtitle={subtitle}
             shouldUseBaseFontWithIcon
         >
+            <Button
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                text={translate('search.filtersHeader')}
+                icon={Expensicons.Filters}
+                medium
+            />
             {headerButtonsOptions.length > 0 && (
                 <ButtonWithDropdownMenu
                     onPress={() => null}

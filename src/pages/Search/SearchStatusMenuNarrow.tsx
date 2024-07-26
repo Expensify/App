@@ -1,5 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -10,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import ROUTES from '@src/ROUTES';
 import type {SearchStatusMenuItem} from './SearchStatusMenu';
 
 type SearchStatusMenuNarrowProps = {
@@ -46,12 +48,13 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
     const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
 
     return (
-        <View style={[styles.pb4]}>
+        <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5]}>
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
                 ref={buttonRef}
-                style={[styles.tabSelectorButton, styles.ph5]}
+                style={[styles.tabSelectorButton, styles.pl0]}
+                wrapperStyle={styles.flex1}
                 onPress={openMenu}
             >
                 {({hovered}) => (
@@ -75,6 +78,12 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
                     </Animated.View>
                 )}
             </PressableWithFeedback>
+            <Button
+                icon={Expensicons.Filters}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                medium
+                innerStyles={styles.searchNarrowFilterButton}
+            />
             <PopoverMenu
                 menuItems={popoverMenuItems}
                 isVisible={isPopoverVisible}
