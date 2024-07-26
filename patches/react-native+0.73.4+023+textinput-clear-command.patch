@@ -62,10 +62,6 @@ index 481938f..346acaa 100644
          onChange={_onChange}
          onFocus={_onFocus}
          /* $FlowFixMe[prop-missing] the types for AndroidTextInput don't match
-diff --git a/node_modules/react-native/Libraries/Text/.DS_Store b/node_modules/react-native/Libraries/Text/.DS_Store
-new file mode 100644
-index 0000000..7c455d8
-Binary files /dev/null and b/node_modules/react-native/Libraries/Text/.DS_Store differ
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
 index a19b555..4785987 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
@@ -78,10 +74,6 @@ index a19b555..4785987 100644
  RCT_EXPORT_VIEW_PROPERTY(onChangeSync, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onTextInput, RCTDirectEventBlock)
-diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/.DS_Store b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/.DS_Store
-new file mode 100644
-index 0000000..5b10679
-Binary files /dev/null and b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/.DS_Store differ
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 index 7ce04da..70754bf 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
@@ -138,10 +130,6 @@ index fe3376a..6889eed 100644
    if ([commandName isEqualToString:@"setTextAndSelection"]) {
  #if RCT_DEBUG
      if ([args count] != 4) {
-diff --git a/node_modules/react-native/ReactAndroid/.DS_Store b/node_modules/react-native/ReactAndroid/.DS_Store
-new file mode 100644
-index 0000000..bbbb59c
-Binary files /dev/null and b/node_modules/react-native/ReactAndroid/.DS_Store differ
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java
 new file mode 100644
 index 0000000..0c142a0
