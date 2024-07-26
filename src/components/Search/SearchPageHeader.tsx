@@ -34,7 +34,7 @@ type SearchPageHeaderProps = {
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
-    isSearchResultsMode?: boolean;
+    isCustomQueryMode?: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
 };
@@ -56,7 +56,7 @@ function SearchPageHeader({
     onSelectDeleteOption,
     isMobileSelectionModeActive,
     setIsMobileSelectionModeActive,
-    isSearchResultsMode = false,
+    isCustomQueryMode = false,
     setOfflineModalOpen,
     setDownloadErrorModalOpen,
     selectedReports,
@@ -71,28 +71,28 @@ function SearchPageHeader({
     const {status} = queryJSON;
 
     const subtitle = useMemo(() => {
-        if (!isSearchResultsMode) {
+        if (!isCustomQueryMode) {
             return '';
         }
 
         return translate('search.filtersHeader');
-    }, [isSearchResultsMode, translate]);
+    }, [isCustomQueryMode, translate]);
 
     const headerTitle = useMemo(() => {
-        if (!isSearchResultsMode) {
+        if (!isCustomQueryMode) {
             return translate(headerContent[status]?.titleTx);
         }
 
         return SearchUtils.getSearchHeaderTitle(queryJSON, false);
-    }, [isSearchResultsMode, queryJSON, status, translate]);
+    }, [isCustomQueryMode, queryJSON, status, translate]);
 
     const headerIcon = useMemo(() => {
-        if (!isSearchResultsMode) {
+        if (!isCustomQueryMode) {
             return headerContent[status]?.icon;
         }
 
         return Illustrations.Filters;
-    }, [isSearchResultsMode, status]);
+    }, [isCustomQueryMode, status]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
 
@@ -244,7 +244,7 @@ function SearchPageHeader({
             title={headerTitle}
             icon={headerIcon}
             shouldShowBackButton={false}
-            showSubtitleAboveTitle={isSearchResultsMode}
+            showSubtitleAboveTitle={isCustomQueryMode}
             subtitle={subtitle}
             shouldUseBaseFontWithIcon
         >

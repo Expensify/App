@@ -23,7 +23,7 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
-    const {queryJSON, policyIDs, isSearchResultsMode} = useMemo(() => {
+    const {queryJSON, policyIDs, isCustomQueryMode} = useMemo(() => {
         if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
             return {queryJSON: undefined, policyIDs: undefined};
         }
@@ -34,7 +34,7 @@ function SearchPageBottomTab() {
         return {
             queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
             policyIDs: searchParams.policyIDs,
-            isSearchResultsMode: searchParams.isCustomQuery !== 'false',
+            isCustomQueryMode: searchParams.isCustomQuery !== 'false',
         };
     }, [activeCentralPaneRoute]);
 
@@ -59,7 +59,7 @@ function SearchPageBottomTab() {
                             shouldDisplaySearch={false}
                         />
                         <SearchStatusMenu
-                            isSearchResultsMode={isSearchResultsMode}
+                            isCustomQueryMode={isCustomQueryMode}
                             queryJSON={queryJSON}
                         />
                     </>

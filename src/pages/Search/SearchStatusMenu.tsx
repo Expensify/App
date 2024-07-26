@@ -19,7 +19,7 @@ import SearchStatusMenuNarrow from './SearchStatusMenuNarrow';
 
 type SearchStatusMenuProps = {
     queryJSON: SearchQueryJSON;
-    isSearchResultsMode: boolean;
+    isCustomQueryMode: boolean;
 };
 
 type SearchStatusMenuItem = {
@@ -29,7 +29,7 @@ type SearchStatusMenuItem = {
     route: Route;
 };
 
-function SearchStatusMenu({queryJSON, isSearchResultsMode}: SearchStatusMenuProps) {
+function SearchStatusMenu({queryJSON, isCustomQueryMode}: SearchStatusMenuProps) {
     const {status} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -65,7 +65,7 @@ function SearchStatusMenu({queryJSON, isSearchResultsMode}: SearchStatusMenuProp
     const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
     if (shouldUseNarrowLayout) {
-        const title = isSearchResultsMode ? SearchUtils.getSearchHeaderTitle(queryJSON, true) : undefined;
+        const title = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(queryJSON, true) : undefined;
 
         return (
             <SearchStatusMenuNarrow
