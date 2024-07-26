@@ -1,6 +1,4 @@
 import React, {useState} from 'react';
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -12,12 +10,11 @@ import isObject from '@src/utils/isObject';
 
 type DebugDetailsProps = {
     data: Record<string, unknown>;
-    onyxKey: OnyxKey;
-    isCollection?: boolean;
-    idSelector?: (data: Record<string, unknown>) => string;
+    onSave: (data: Record<string, unknown>) => void;
+    onDelete: () => void;
 };
 
-function DebugDetails({data, onyxKey, isCollection = false, idSelector = () => ''}: DebugDetailsProps) {
+function DebugDetails({data, onSave, onDelete}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draftData, setDraftData] = useState(data);
@@ -55,9 +52,8 @@ function DebugDetails({data, onyxKey, isCollection = false, idSelector = () => '
                     setErrors({});
                     const results = Object.entries(draftData).map(([key, value]) => {
                         try {
-                            if (data && isObject(data) && isObject(data[key])) {
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                                return [key, typeof value === 'string' ? JSON.parse(value.replaceAll('\n', '')) : value];
+                            if (isObject(data[key])) {
+                                return [key, typeof value === 'string' ? JSON.parse(value.replaceAll('\n', '')) : value] as [string, unknown];
                             }
                         } catch (e) {
                             setErrors((currentErrors) => ({...currentErrors, [key]: (e as SyntaxError).message}));
@@ -65,27 +61,19 @@ function DebugDetails({data, onyxKey, isCollection = false, idSelector = () => '
                         }
                         return [key, value];
                     });
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    updatedData = Object.fromEntries(results);
+                    updatedData = Object.fromEntries(results) as Record<string, unknown>;
                     if (hasErrors) {
                         return;
                     }
                     setHasChanges(false);
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.merge(onyxKey, updatedData);
+                    onSave(updatedData);
                 }}
             />
             <Button
                 danger
                 text={translate('common.delete')}
                 onPress={() => {
-                    if (isCollection) {
-                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                        Onyx.merge(onyxKey, {[idSelector(data)]: null});
-                    } else {
-                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                        Onyx.set(onyxKey, null);
-                    }
+                    onDelete();
                     Navigation.goBack();
                 }}
             />
