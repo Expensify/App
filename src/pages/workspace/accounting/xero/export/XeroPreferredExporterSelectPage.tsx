@@ -9,10 +9,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,7 +24,7 @@ type CardListItem = ListItem & {
 };
 
 function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
+    const {config} = policy?.connections?.xero ?? {};
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
@@ -55,20 +58,20 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: exportConfiguration?.exporter === exporter.email,
+                isSelected: config?.export?.exporter === exporter.email,
             });
             return options;
         }, []);
-    }, [exportConfiguration, exporters, policyOwner, currentUserLogin]);
+    }, [config?.export?.exporter, exporters, policyOwner, currentUserLogin]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
+            if (row.value !== config?.export?.exporter) {
+                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
-        [policyID, exportConfiguration],
+        [policyID, config?.export?.exporter],
     );
 
     const headerContent = useMemo(
@@ -95,6 +98,10 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            pendingAction={PolicyUtils.xeroSettingsPendingAction([CONST.XERO_CONFIG.EXPORTER], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.EXPORTER)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.EXPORTER)}
         />
     );
 }
