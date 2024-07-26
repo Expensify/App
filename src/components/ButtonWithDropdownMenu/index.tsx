@@ -141,7 +141,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     anchorPosition={popoverAnchorPosition}
                     anchorRef={() => {
                         if (caretButton === null) {
-                            return;
+                            return null;
                         }
                         return caretButton;
                     }}
