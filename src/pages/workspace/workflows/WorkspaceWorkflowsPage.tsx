@@ -5,11 +5,14 @@ import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import getBankIcon from '@components/Icon/BankIcons';
+import type {BankName} from '@components/Icon/BankIconsUtils';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -51,7 +55,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
     const policyApproverEmail = policy?.approver;
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
-    const containerStyle = useMemo(() => [styles.ph8, styles.mhn5, styles.ml0, styles.pv3, styles.pr0, styles.pl2, styles.mr0, styles.widthAuto, styles.mt4, styles.pb0], [styles]);
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
@@ -87,6 +90,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         let bankDisplayName = bankName ?? addressName;
         if (accountNumber && bankDisplayName !== accountNumber) {
@@ -100,7 +104,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             ...(canUseDelayedSubmission
                 ? [
                       {
-                          icon: Illustrations.ReceiptEnvelope,
                           title: translate('workflowsPage.delaySubmissionTitle'),
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
@@ -135,7 +138,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                   ]
                 : []),
             {
-                icon: Illustrations.Approval,
                 title: translate('workflowsPage.addApprovalsTitle'),
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
@@ -160,7 +162,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
-                icon: Illustrations.WalletAlt,
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
@@ -186,13 +187,15 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                         />
                     ) : (
                         <>
+                            {shouldShowBankAccount && (
+                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.mbn3, styles.pb1, styles.pt1]}>
+                                    <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
+                                </View>
+                            )}
                             <MenuItem
-                                titleStyle={shouldShowBankAccount ? styles.textLabelSupportingNormal : styles.textLabelSupportingEmptyValue}
-                                descriptionTextStyle={styles.textNormalThemeText}
-                                title={shouldShowBankAccount ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
-                                description={bankDisplayName}
-                                disabled={isOffline || !isPolicyAdmin}
-                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                title={shouldShowBankAccount ? addressName : translate('workflowsPage.connectBankAccount')}
+                                titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
+                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                         setIsCurrencyModalOpen(true);
@@ -200,9 +203,16 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     }
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                 }}
+                                icon={shouldShowBankAccount ? bankIcon.icon : undefined}
+                                iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                iconStyles={bankIcon.iconStyles}
+                                disabled={isOffline || !isPolicyAdmin}
+                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 shouldShowRightIcon={!isOffline && isPolicyAdmin}
-                                wrapperStyle={containerStyle}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                displayInDefaultIconColor
+                                brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                             {shouldShowBankAccount && (
                                 <OfflineWithFeedback
@@ -212,15 +222,14 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     errorRowStyles={[styles.ml7]}
                                 >
-                                    <MenuItem
-                                        titleStyle={styles.textLabelSupportingNormal}
-                                        descriptionTextStyle={styles.textNormalThemeText}
-                                        title={translate('workflowsPayerPage.title')}
-                                        description={displayNameForAuthorizedPayer}
+                                    <MenuItemWithTopDescription
+                                        title={displayNameForAuthorizedPayer ?? ''}
+                                        titleStyle={styles.textNormalThemeText}
+                                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                                        description={translate('workflowsPayerPage.payer')}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
                                         shouldShowRightIcon
-                                        wrapperStyle={[...containerStyle, styles.mt0]}
-                                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                         brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     />
                                 </OfflineWithFeedback>
@@ -236,28 +245,24 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         ];
     }, [
         policy,
-        route.params.policyID,
         styles,
-        translate,
-        policyApproverName,
-        containerStyle,
-        onPressAutoReportingFrequency,
-        preferredLocale,
         canUseDelayedSubmission,
-        displayNameForAuthorizedPayer,
+        translate,
+        preferredLocale,
+        onPressAutoReportingFrequency,
+        policyApproverName,
         isOffline,
+        theme.spinner,
         isPolicyAdmin,
-        theme,
+        displayNameForAuthorizedPayer,
+        route.params.policyID,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps) => (
-        <Section
-            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-            titleStyles={styles.accountSettingsSectionTitle}
-        >
+        <Section containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}>
             <ToggleSettingOptionRow
                 title={item.title}
-                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
+                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.textStrong]}
                 subtitle={item.subtitle}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}

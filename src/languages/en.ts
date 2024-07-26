@@ -1279,6 +1279,8 @@ export default {
         title: 'Authorized payer',
         genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
         admins: 'Admins',
+        payer: 'Payer',
+        paymentAccount: 'Payment account',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
