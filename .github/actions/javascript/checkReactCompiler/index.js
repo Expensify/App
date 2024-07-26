@@ -2734,7 +2734,7 @@ const run = function () {
     });
     if (errors.length > 0) {
         errors.forEach((error) => console.error(error));
-        throw new Error('Some files could be compiled with react-compiler before successfully, but now they can not be compiled.');
+        throw new Error('Some files could be compiled with react-compiler before successfully, but now they can not be compiled. Check https://github.com/Expensify/App/blob/main/contributingGuides/REACT_COMPILER.md documentation to see how you can fix this.');
     }
     return Promise.resolve();
 };
