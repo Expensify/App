@@ -311,6 +311,9 @@ function MoneyRequestPreviewContent({
                 }}
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
+                pendingAction={action.pendingAction}
+                shouldDisableStrikeThrough={!isDeleted}
+                shouldDisableOpacity={!isDeleted}
             >
                 <View
                     style={[
