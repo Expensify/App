@@ -1416,29 +1416,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.3.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - react-native-pager-view/common (= 6.3.3)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-pager-view/common (6.3.3):
+  - react-native-pager-view (6.2.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2016,7 +1994,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.105):
+  - RNLiveMarkdown (0.1.107):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2038,7 +2016,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - RNLiveMarkdown/common (= 0.1.107)
     - Yoga
-  - RNLiveMarkdown/common (0.1.105):
+  - RNLiveMarkdown/common (0.1.107):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2742,7 +2720,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: 2267e3fccc2cf407d8dc671000f53bca0da181f6
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: c6a690d71ddcef41a3f852e50b83b0e442d2b5f7
-  react-native-pager-view: b082c41ed422d67f20fdff729a982865a973e292
+  react-native-pager-view: 4e6aa953e54d75bd17fe4d4426fc964247cd7085
   react-native-pdf: 14b2da67d900fa6480cc4ea0c50f166a0ea7d985
   react-native-performance: b0fbe5a6f07abba144600ca39c231204be6371e8
   react-native-plaid-link-sdk: 79a7f130762fe9834f58f9621e8ef09b39776107
@@ -2788,7 +2766,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9265c3b902cd8408ba4376b1a34d9708a6da4ac3
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 149d2844b1f2334ed00d958a79de379fd7561309
+  RNLiveMarkdown: fbd7b5246da02cb23eb3daf2ff7b46a052ebe47e
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: eeb7640075061acf3cfea37fed31620732b6f848
   RNPermissions: 4bab204ff52610898246b0e09e21b5628ef81c7d
