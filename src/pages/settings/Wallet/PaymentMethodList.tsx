@@ -260,10 +260,9 @@ function PaymentMethodList({
             return assignedCardsGrouped;
         }
 
-        const paymentCardList = fundList ?? {};
-
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         // All payment cards are temporarily disabled for use as a payment method
+        // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, filteredCardList, styles);

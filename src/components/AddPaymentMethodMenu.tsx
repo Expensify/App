@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -79,7 +79,7 @@ function AddPaymentMethodMenu({
         }
 
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [isPersonalOnlyOption, isVisible]);
+    }, [isPersonalOnlyOption, isVisible, onItemSelected]);
 
     if (isPersonalOnlyOption) {
         return null;
