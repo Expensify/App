@@ -16,6 +16,12 @@ const KeyboardState = {
     CLOSED: 4,
 };
 
+const SPRING_CONFIG = {
+    mass: 3,
+    stiffness: 1000,
+    damping: 500,
+};
+
 const useAnimatedKeyboard = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
@@ -31,12 +37,7 @@ const useAnimatedKeyboard = () => {
                 if (e.height === 0) {
                     heightWhenOpened.value = height.value;
                 }
-
-                if (e.height > 0) {
-                    state.value = KeyboardState.OPENING;
-                } else {
-                    state.value = KeyboardState.CLOSING;
-                }
+                state.value = e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING;
             },
             onMove: (e) => {
                 'worklet';
@@ -46,13 +47,7 @@ const useAnimatedKeyboard = () => {
             },
             onEnd: (e) => {
                 'worklet';
-
-                if (e.height > 0) {
-                    state.value = KeyboardState.OPEN;
-                } else {
-                    state.value = KeyboardState.CLOSED;
-                }
-
+                state.value = e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED;
                 height.value = e.height;
                 progress.value = e.progress;
             },
@@ -77,12 +72,6 @@ const useSafeAreaPaddings = () => {
     return {top: paddingTop, bottom: paddingBottom};
 };
 
-const config = {
-    mass: 3,
-    stiffness: 1000,
-    damping: 500,
-};
-
 function ActionSheetKeyboardSpace(props: ViewProps) {
     const styles = useThemeStyles();
     const safeArea = useSafeAreaPaddings();
@@ -97,23 +86,22 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
     // Reset state machine when component unmounts
     useEffect(() => () => resetStateMachine(), [resetStateMachine]);
+    // eslint-disable-next-line arrow-body-style
+    // useEffect(() => {
+    //     return () => resetStateMachine();
+    // }, [resetStateMachine]);
+
     useAnimatedReaction(
         () => keyboard.state.value,
-        (lastState, prev) => {
+        (lastState) => {
             if (lastState === syncLocalWorkletState.lastState) {
                 return;
             }
 
-            syncLocalWorkletState.lastState = lastState;
-
             if (lastState === KeyboardState.OPEN) {
-                runOnJS(transitionActionSheetState)({
-                    type: Actions.OPEN_KEYBOARD,
-                });
+                runOnJS(transitionActionSheetState)({type: Actions.OPEN_KEYBOARD});
             } else if (lastState === KeyboardState.CLOSED) {
-                runOnJS(transitionActionSheetState)({
-                    type: Actions.CLOSE_KEYBOARD,
-                });
+                runOnJS(transitionActionSheetState)({type: Actions.CLOSE_KEYBOARD});
             }
         },
         [],
@@ -125,22 +113,17 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         // we don't need to run any additional logic
         // it will always return 0 for idle state
         if (current.state === States.IDLE) {
-            return withSpring(0, config);
+            return withSpring(0, SPRING_CONFIG);
         }
 
         const keyboardHeight = keyboard.height.value === 0 ? 0 : keyboard.height.value - safeArea.bottom;
         // sometimes we need to know the last keyboard height
         const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom;
-
         const {popoverHeight = 0, fy, height, composerHeight = 0} = current.payload ?? {};
-
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
-
         const elementOffset = fy !== undefined && height !== undefined && popoverHeight !== undefined ? fy + safeArea.top + height - (windowHeight - popoverHeight) : 0;
-
         // when the sate is not idle we know for sure we have previous state
         const previousPayload = previous.payload ?? {};
-
         const previousElementOffset =
             previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined
                 ? previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight)
@@ -156,12 +139,12 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
 
                 console.log(111, 0);
-                return withSpring(0, config);
+                return withSpring(0, SPRING_CONFIG);
             }
 
             case States.POPOVER_CLOSED: {
                 console.log(112, 0);
-                return withSpring(0, config, () => {
+                return withSpring(0, SPRING_CONFIG, () => {
                     transition({
                         type: Actions.END_TRANSITION,
                     });
@@ -174,11 +157,11 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
                         console.log(113, elementOffset < 0 ? 0 : elementOffset, elementOffset);
-                        return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
+                        return withSpring(elementOffset < 0 ? 0 : elementOffset, SPRING_CONFIG);
                     }
 
                     console.log(114, Math.max(previousElementOffset, 0), previousElementOffset);
-                    return withSpring(Math.max(previousElementOffset, 0), config);
+                    return withSpring(Math.max(previousElementOffset, 0), SPRING_CONFIG);
                 }
 
                 console.log(115, 0);
@@ -200,7 +183,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
                     if (previousElementOffset === 0 || nextOffset > previousOffset) {
                         console.log(117, nextOffset);
-                        return withSpring(nextOffset, config);
+                        return withSpring(nextOffset, SPRING_CONFIG);
                     }
 
                     console.log(118, previousOffset);
@@ -222,7 +205,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
                 if (keyboard.progress.value === 0) {
                     console.log(1201, keyboard.progress.value, interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]), popoverHeight, composerHeight);
-                    return withSpring(popoverHeight - composerHeight, config);
+                    return withSpring(popoverHeight - composerHeight, SPRING_CONFIG);
                 }
 
                 // when keyboard appears -> we already have all values so we do interpolation based on keyboard position
@@ -235,7 +218,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     return 0;
                 }
                 console.log(122, lastKeyboardHeight, popoverHeight - composerHeight);
-                return setInitialValueAndRunAnimation(lastKeyboardHeight, withSpring(popoverHeight - composerHeight, config));
+                return setInitialValueAndRunAnimation(lastKeyboardHeight, withSpring(popoverHeight - composerHeight, SPRING_CONFIG));
             }
             case States.CALL_POPOVER_WITH_KEYBOARD_CLOSED: {
                 // keyboard is opened
@@ -245,7 +228,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
 
                 console.log(124, lastKeyboardHeight);
-                return withSpring(lastKeyboardHeight, config);
+                return withSpring(lastKeyboardHeight, SPRING_CONFIG);
             }
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
@@ -277,7 +260,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
                 if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
                     console.log(130, nextOffset < 0 ? 0 : nextOffset, nextOffset);
-                    return withSpring(nextOffset < 0 ? 0 : nextOffset, config);
+                    return withSpring(nextOffset < 0 ? 0 : nextOffset, SPRING_CONFIG);
                 }
 
                 if (elementOffset < 0) {
