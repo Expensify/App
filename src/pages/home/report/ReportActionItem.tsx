@@ -86,7 +86,7 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
     const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
     const draftMessage = drafts?.[draftKey]?.[action.reportActionID];
-    return typeof draftMessage === 'string' ? draftMessage : draftMessage?.message;
+    return draftMessage?.message;
 };
 
 type ReportActionItemOnyxProps = {
