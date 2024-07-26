@@ -174,7 +174,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         participants.forEach((accountID) => {
             const details = personalDetails[accountID];
 
-            if (!details) {
+            if (!details || (details.isOptimisticPersonalDetail && participants.some((accID) => accID !== accountID && details.login === personalDetails[accID]?.login))) {
                 Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
                 return;
             }
