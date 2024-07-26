@@ -424,10 +424,7 @@ function getOptionData({
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-            const lastActionOriginalMessage = ReportActionsUtils.getOriginalMessage(lastAction);
-            result.alternateText = `${lastActorDisplayName} ${Localize.translate(preferredLocale, 'roomChangeLog.updateRoomDescription')} ${Parser.htmlToText(
-                lastActionOriginalMessage?.description ?? '',
-            )}`.trim();
+            result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
