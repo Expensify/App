@@ -1,5 +1,7 @@
+import {decode} from 'base-64';
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
+import RNFS from 'react-native-fs';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
@@ -255,6 +257,24 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
     });
 }
 
+function verifyFileFormat({fileUri, formatSignature}: {fileUri: string; formatSignature: string}) {
+    return RNFS.read(fileUri, 12, 0, 'base64')
+        .then((fileContent) => {
+            const hexSignature = Array.from(decode(fileContent))
+                .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+                .slice(0, 32)
+                .join('')
+                .toUpperCase();
+
+            const isHEIC = hexSignature.startsWith(formatSignature);
+            return isHEIC;
+        })
+        .catch((error: Error) => {
+            Log.hmmm('Failed to verify the file format: ', error);
+            return null;
+        });
+}
+
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -302,4 +322,5 @@ export {
     isImage,
     getFileResolution,
     isHighResolutionImage,
+    verifyFileFormat,
 };
