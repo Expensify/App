@@ -2734,14 +2734,9 @@ const styles = (theme: ThemeColors) =>
             width: 110,
         },
 
-        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
             let paddingHorizontal = spacing.ph5;
             let paddingVertical = spacing.pv5;
-
-            if (isSmallScreenWidth) {
-                paddingHorizontal = spacing.ph4;
-                paddingVertical = spacing.pv4;
-            }
 
             if (isExtraSmallScreenWidth) {
                 paddingHorizontal = spacing.ph2;
