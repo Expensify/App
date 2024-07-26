@@ -2,13 +2,10 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import type {TextWithEmoji} from '@libs/EmojiUtils';
-import * as EmojiUtils from '@libs/EmojiUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -17,6 +14,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
+import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
 
 type ReportActionItemFragmentProps = {
     /** Users accountID */
@@ -160,35 +158,14 @@ function ReportActionItemFragment({
                 );
             }
 
-            const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
-            const containEmoji = emojisRegex.test(fragment.text);
-            let processedTextArray: TextWithEmoji[] = [];
-            if (containEmoji) {
-                processedTextArray = EmojiUtils.splitTextWithEmojis(fragment.text);
-            }
-
             return (
-                <UserDetailsTooltip
+                <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    icon={actorIcon}
-                >
-                    {containEmoji ? (
-                        <Text
-                            numberOfLines={isSingleLine ? 1 : undefined}
-                            style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                        >
-                            {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithinDisplayName}>{text}</Text> : text))}
-                        </Text>
-                    ) : (
-                        <Text
-                            numberOfLines={isSingleLine ? 1 : undefined}
-                            style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                        >
-                            {fragment?.text}
-                        </Text>
-                    )}
-                </UserDetailsTooltip>
+                    fragmentText={fragment.text}
+                    actorIcon={actorIcon}
+                    isSingleLine={isSingleLine}
+                />
             );
         }
         case 'LINK':
