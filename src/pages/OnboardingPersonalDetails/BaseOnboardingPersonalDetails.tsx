@@ -5,9 +5,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useSession} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -40,7 +40,7 @@ function BaseOnboardingPersonalDetails({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {accountID} = useSession();
@@ -131,18 +131,19 @@ function BaseOnboardingPersonalDetails({
     const PersonalDetailsFooterInstance = <OfflineIndicator />;
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-            <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={75}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <KeyboardAvoidingView
-                style={[styles.flex1, styles.dFlex]}
-                behavior="padding"
-            >
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID="BaseOnboardingPersonalDetails"
+        >
+            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    progressBarPercentage={75}
+                    onBackButtonPress={Navigation.goBack}
+                />
                 <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                     footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
@@ -154,7 +155,7 @@ function BaseOnboardingPersonalDetails({
                     shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>
@@ -187,8 +188,8 @@ function BaseOnboardingPersonalDetails({
                         />
                     </View>
                 </FormProvider>
-            </KeyboardAvoidingView>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 }
 
