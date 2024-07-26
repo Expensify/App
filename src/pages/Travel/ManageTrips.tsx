@@ -3,13 +3,13 @@ import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -34,9 +34,14 @@ function ManageTrips() {
     const {translate} = useLocalize();
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+
+    if (isEmptyObject(policy)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
-    const hasPolicyAddress = !isEmptyObject(getPolicy(activePolicyID)?.address);
+    const hasPolicyAddress = !isEmptyObject(policy?.address);
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
