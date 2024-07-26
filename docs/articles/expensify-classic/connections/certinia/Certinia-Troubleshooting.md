@@ -61,7 +61,7 @@ Once this step has been completed, sync the connection within Expensify by going
 
 # ExpensiError FF0132: Insufficient access. Make sure you are connecting to Certinia with a user that has the 'Modify All Data' permission
 
-Log into Certinia go to Setup > Manage Users > Users and find the user whose credentials made the connection. 
+Log into Certinia, go to Setup > Manage Users > Users and find the user whose credentials made the connection. 
 
 * Click on their profile on the far right side of the page
 * Go to System > System Permissions
