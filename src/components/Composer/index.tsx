@@ -383,10 +383,6 @@ function Composer(
         [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
-    console.log({
-        value,
-        selection,
-    });
     return (
         <>
             <RNMarkdownTextInput
