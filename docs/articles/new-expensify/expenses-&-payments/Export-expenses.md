@@ -26,7 +26,7 @@ The CSV download will save locally to your device with the file naming prefix _â
  - Type (i.e. cash, card, distance)
  - Receipt URL
 
-## FAQ
+{% include faq-begin.md %}
 
 **Can I export in a different format, like PDF or XLS?**
 
@@ -39,5 +39,7 @@ No, the CSV template cannot be customized.
 **Can I select expenses or reports in bulk?**
 
 Yes, you can select expenses or reports in bulk by selecting the **Select multiple** or **Select all** option. To display these options on the mobile app, simply long press an item. 
+
+{% include faq-end.md %}
 
 </div>
