@@ -132,7 +132,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
     }
 
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
-        let reportID = SearchUtils.isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
+        let reportID = SearchUtils.isTransactionListItemType(item) && !item.isFromSingleExpenseReport ? item.transactionThreadReportID : item.reportID;
 
         if (!reportID) {
             return;

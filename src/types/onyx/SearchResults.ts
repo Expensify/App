@@ -235,6 +235,9 @@ type SearchTransaction = {
 
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
+
+    /** Whether the transaction report has only a single expense */
+    isFromSingleExpenseReport?: boolean;
 };
 
 /** Model of account details search result */
