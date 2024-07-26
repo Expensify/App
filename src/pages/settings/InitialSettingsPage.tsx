@@ -366,14 +366,16 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
-    const currentUserDetails = currentUserPersonalDetails;
-    const avatarURL = currentUserDetails?.avatar ?? '';
-    const accountID = currentUserDetails?.accountID ?? '-1';
-    const usernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
-    let processedTextArray: TextWithEmoji[] = [];
-    if (usernameContainEmojis) {
-        processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName ?? '');
-    }
+    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
+    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
+
+    const processedTextArray: TextWithEmoji[] = useMemo(() => {
+        const doesUsernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
+        if (!doesUsernameContainEmojis) {
+            return [];
+        }
+        return splitTextWithEmojis(currentUserPersonalDetails?.displayName ?? '');
+    }, [currentUserPersonalDetails?.displayName]);
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
@@ -423,7 +425,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     </View>
                     <View style={[styles.mb3, styles.w100]}>
                         <AvatarWithImagePicker
-                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
+                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
                             source={avatarURL}
                             avatarID={accountID}
                             onImageSelected={PersonalDetails.updateAvatar}
@@ -436,13 +438,13 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             onErrorClose={PersonalDetails.clearAvatarErrors}
                             onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                            originalFileName={currentUserDetails.originalFileName}
+                            originalFileName={currentUserPersonalDetails.originalFileName}
                             headerTitle={translate('profilePage.profileAvatar')}
-                            fallbackIcon={currentUserDetails?.fallbackIcon}
+                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                             editIconStyle={styles.smallEditIconAccount}
                         />
                     </View>
-                    {currentUserPersonalDetails?.displayName && usernameContainEmojis ? (
+                    {processedTextArray.length !== 0 ? (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                             numberOfLines={1}
