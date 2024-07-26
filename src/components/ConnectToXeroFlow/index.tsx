@@ -54,9 +54,13 @@ function ConnectToXeroFlow({policyID, shouldDisconnectIntegrationBeforeConnectin
                         removePolicyConnection(policyID, integrationToDisconnect);
                         Link.openLink(getXeroSetupLink(policyID), environmentURL);
                         setIsDisconnectModalOpen(false);
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                     }}
                     integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
-                    onCancel={() => setIsDisconnectModalOpen(false)}
+                    onCancel={() => {
+                        setIsDisconnectModalOpen(false);
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
+                    }}
                 />
             )}
             {isRequire2FAModalOpen && (
@@ -65,8 +69,12 @@ function ConnectToXeroFlow({policyID, shouldDisconnectIntegrationBeforeConnectin
                         setIsRequire2FAModalOpen(false);
                         Navigation.dismissModal();
                         Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                     }}
-                    onCancel={() => setIsRequire2FAModalOpen(false)}
+                    onCancel={() => {
+                        setIsRequire2FAModalOpen(false);
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
+                    }}
                     isVisible
                     description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
                 />

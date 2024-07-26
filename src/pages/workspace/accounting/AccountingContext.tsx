@@ -52,7 +52,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, activeIntegration.shouldStartIntegrationFlow)
+        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, policy, activeIntegration.shouldStartIntegrationFlow)
             ?.setupConnectionButton;
     };
 

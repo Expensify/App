@@ -53,6 +53,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
 
         if (!isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias));
+            startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO, shouldStartIntegrationFlow: false});
             return;
         }
 
@@ -63,6 +64,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
 
         if (!hasPoliciesConnectedToNetSuite) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
+            startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO, shouldStartIntegrationFlow: false});
             return;
         }
 
@@ -94,6 +96,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
                         return;
                     }
                     item.onSelected();
+                    startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO, shouldStartIntegrationFlow: false});
                 }}
                 anchorPosition={reuseConnectionPopoverPosition}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
@@ -104,7 +107,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
-
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO, shouldStartIntegrationFlow: false});
                         if (!hasPoliciesConnectedToNetSuite) {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
                             return;

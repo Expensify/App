@@ -42,6 +42,7 @@ function ConnectToQuickbooksOnlineFlow({policyID, shouldDisconnectIntegrationBef
                     removePolicyConnection(policyID, integrationToDisconnect);
                     Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
                     setIsDisconnectModalOpen(false);
+                    startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO, shouldStartIntegrationFlow: false});
                 }}
                 integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.QBO}
                 onCancel={() => setIsDisconnectModalOpen(false)}

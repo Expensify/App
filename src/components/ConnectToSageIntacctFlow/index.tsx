@@ -63,6 +63,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
 
         if (!isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
+            startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
             return;
         }
 
@@ -72,6 +73,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
         }
         if (!hasPoliciesConnectedToSageIntacct) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
+            startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
             return;
         }
         if (!isSmallScreenWidth) {
@@ -86,9 +88,9 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
         startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldStartIntegrationFlow]);
+    }, []);
 
-    return shouldStartIntegrationFlow ? (
+    return (
         <>
             <PopoverMenu
                 isVisible={isReuseConnectionsPopoverOpen}
@@ -98,11 +100,11 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
                 withoutOverlay
                 menuItems={connectionOptions}
                 onItemSelected={(item) => {
-                    startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                     if (!item?.onSelected) {
                         return;
                     }
                     item.onSelected();
+                    startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                 }}
                 anchorPosition={reuseConnectionPopoverPosition}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
@@ -111,9 +113,9 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
-                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
+                        startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, shouldStartIntegrationFlow: false});
                         if (!hasPoliciesConnectedToSageIntacct) {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
                             return;
@@ -133,7 +135,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
                 />
             )}
         </>
-    ) : null;
+    );
 }
 
 export default ConnectToSageIntacctFlow;
