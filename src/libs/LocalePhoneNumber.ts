@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import memoize from './memoize';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
@@ -14,7 +15,7 @@ Onyx.connect({
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
-function formatPhoneNumber(number: string): string {
+function formatPhoneNumberBase(number: string): string {
     if (!number) {
         return '';
     }
@@ -45,6 +46,8 @@ function formatPhoneNumber(number: string): string {
 
     return parsedPhoneNumber.number.international;
 }
+
+const formatPhoneNumber = memoize(formatPhoneNumberBase, {monitoringName: 'formatPhoneNumber'});
 
 export {
     // eslint-disable-next-line import/prefer-default-export
