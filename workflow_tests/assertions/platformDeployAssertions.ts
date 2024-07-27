@@ -160,7 +160,7 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
         createStepAssertion('Install cocoapods', true, null, 'IOS', 'Installing cocoapods', [
             {key: 'timeout_minutes', value: '10'},
             {key: 'max_attempts', value: '5'},
-            {key: 'command', value: 'cd ios && bundle exec pod install'},
+            {key: 'command', value: 'scripts/pod-install.sh'},
         ]),
         createStepAssertion('Decrypt AppStore profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         createStepAssertion('Decrypt AppStore Notification Service profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
