@@ -429,10 +429,11 @@ export default {
         description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
-        expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
+        expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
+        requestOneHere: 'solicite uno aquí.',
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
@@ -1252,6 +1253,7 @@ export default {
         submissionFrequency: 'Frecuencia de envíos',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Requerir aprobaciones',
+        addApprovalButton: 'Añadir flujo de aprobación',
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
@@ -1281,6 +1283,15 @@ export default {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
         autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
         monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
+    workflowsCreateApprovalsPage: {
+        title: 'Añadir flujo de aprobación',
+    },
+    workflowsEditApprovalsPage: {
+        title: 'Edicion flujo de aprobación',
+    },
+    workflowsExpensesFromPage: {
+        title: 'Gastos de',
     },
     workflowsApprovalPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -2700,6 +2711,7 @@ export default {
             disclaimer:
                 'La tarjeta comercial Expensify Visa® es emitida por The Bancorp Bank, N.A., miembro de la FDIC, en virtud de una licencia de Visa U.S.A. Inc. y no puede utilizarse en todos los comercios que aceptan tarjetas Visa. Apple® y el logotipo de Apple® son marcas comerciales de Apple Inc. registradas en EE.UU. y otros países. App Store es una marca de servicio de Apple Inc. Google Play y el logotipo de Google Play son marcas comerciales de Google LLC.',
             issueCard: 'Emitir tarjeta',
+            newCard: 'Nueva tarjeta',
             name: 'Nombre',
             lastFour: '4 últimos',
             limit: 'Limite',
@@ -2742,6 +2754,12 @@ export default {
                 `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta que apruebes antiguos gastos de la tarjeta.`,
             monthlyLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta el próximo mes.`,
             fixedLimitWarning: (limit: string) => `Si cambias el límite de esta tarjeta a ${limit}, se rechazarán las nuevas transacciones.`,
+            changeCardLimitType: 'Modificar el tipo de límite de la tarjeta',
+            changeLimitType: 'Modificar el tipo de límite',
+            changeCardSmartLimitTypeWarning: (limit: string) =>
+                `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
+            changeCardMonthlyLimitTypeWarning: (limit: string) =>
+                `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -3735,7 +3753,7 @@ export default {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} de ${oldValue} a ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a ${newValue}`,
-                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `cambió policy de ${fromPolicy} a ${toPolicy}`,
+                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `cambió el espacio de trabajo de ${fromPolicy} a ${toPolicy}`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
@@ -4525,6 +4543,9 @@ export default {
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Bloqueado',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} es obligatorio`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',
@@ -4574,6 +4595,7 @@ export default {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
     },
     subscription: {
+        authenticatePaymentCard: 'Autenticar tarjeta de pago',
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
         badge: {
             freeTrial: ({numOfDays}) => `Prueba gratuita: ${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}`,
@@ -4632,8 +4654,9 @@ export default {
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
-                subtitle: '¡Ya casi estamos! Completa ',
-                subtitleLink: 'la lista de configuración.',
+                subtitleStart: 'El próximo paso es ',
+                subtitleLink: 'completar la configuración ',
+                subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
@@ -4738,6 +4761,33 @@ export default {
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
         },
+        requestEarlyCancellation: {
+            title: 'Solicitar cancelación anticipada',
+            subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
+            subscriptionCanceled: {
+                title: 'Suscripción cancelada',
+                subtitle: 'Tu suscripción anual ha sido cancelada.',
+                info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
+                preventFutureActivity: {
+                    part1: 'Si quieres evitar actividad y cargos futuros, debes ',
+                    link: 'eliminar tu(s) espacio(s) de trabajo.',
+                    part2: ' Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
+                },
+            },
+            requestSubmitted: {
+                title: 'Solicitud enviada',
+                subtitle: {
+                    part1: 'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
+            },
+            acknowledgement: {
+                part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
+                link: 'Condiciones de Servicio',
+                part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
+            },
+        },
     },
     feedbackSurvey: {
         tooLimited: 'Hay que mejorar la funcionalidad',
@@ -4749,5 +4799,6 @@ export default {
     },
     roomChangeLog: {
         updateRoomDescription: 'establece la descripción de la sala a:',
+        clearRoomDescription: 'la descripción de la habitación ha sido borrada',
     },
 } satisfies EnglishTranslation;
