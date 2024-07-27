@@ -67,5 +67,7 @@ for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo 
   fi
 done
 
+bundle exec pod install --verbose
+
 # Go back to where we started
 cleanupAndExit 0
