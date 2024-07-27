@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -36,6 +36,8 @@ function ManageTrips() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
+    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
+
     if (isEmptyObject(policy)) {
         return <FullScreenLoadingIndicator />;
     }
@@ -65,8 +67,14 @@ function ManageTrips() {
                             Navigation.navigate(ROUTES.TRAVEL_TCS);
                             return;
                         }
-                        Link.openTravelDotLink(activePolicyID);
+                        if (ctaErrorMessage) {
+                            setCtaErrorMessage('');
+                        }
+                        Link.openTravelDotLink(activePolicyID)?.catch(() => {
+                            setCtaErrorMessage(translate('travel.errorMessage'));
+                        });
                     }}
+                    ctaErrorMessage={ctaErrorMessage}
                     illustration={Illustrations.EmptyStateTravel}
                     illustrationStyle={[styles.mv4, styles.tripIllustrationSize]}
                     secondaryButtonText={translate('travel.bookDemo')}
