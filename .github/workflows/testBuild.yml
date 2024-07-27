@@ -179,25 +179,6 @@ jobs:
         id: compare-podfile-and-manifest
         run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
-      - name: Add debug info
-        run: |
-          echo "RORY_DEBUG Podfile"
-          cat ios/Podfile
-          echo ""
-          echo ""
-          echo "RORY_DEBUG Podfile.lock"
-          cat ios/Podfile.lock
-          echo ""
-          echo "RORY_DEBUG Hermes podspec from node_modules"
-          cat node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec
-          echo ""
-          if [ -f 'ios/Pods/Local Podspecs/hermes-engine.podspec.json' ]; then
-            echo "RORY_DEBUG local podspec"
-            cat 'ios/Pods/Local Podspecs/hermes-engine.podspec.json'
-            echo ""
-            echo ""
-          fi
-
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
         if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
