@@ -14,7 +14,14 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
 
     if (!isSafari || shouldSkipCustomSafariLogic) {
         promise.then((params) => {
-            Linking.openURL(typeof url === 'string' ? url : url(params));
+            if (typeof url === 'string') {
+                Linking.openURL(url);
+                return;
+            }
+            if (!params) {
+                return;
+            }
+            Linking.openURL(url(params));
         });
     } else {
         const windowRef = window.open();
@@ -23,7 +30,14 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
                 if (!windowRef) {
                     return;
                 }
-                windowRef.location = typeof url === 'string' ? url : url(params);
+                if (typeof url === 'string') {
+                    windowRef.location = url;
+                    return;
+                }
+                if (!params) {
+                    return;
+                }
+                windowRef.location = url(params);
             })
             .catch(() => windowRef?.close());
     }
