@@ -486,6 +486,7 @@ function ReportActionsView({
     if (!reportActions.length) {
         return null;
     }
+
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
     return (
