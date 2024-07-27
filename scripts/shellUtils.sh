@@ -43,7 +43,6 @@ function title {
 
 # Function to clear the last printed line
 clear_last_line() {
-#  echo -ne "\r\033[K"
   echo -ne "\033[1A\033[K"
 }
 
