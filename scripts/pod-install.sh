@@ -40,7 +40,8 @@ if ! yq --version > /dev/null 2>&1; then
   cleanupAndExit 1
 fi
 
-if [ -d 'ios/Pods/Local Podspecs' ]; then
+CACHED_PODSPEC_DIR='ios/Pods/Local Podspecs'
+if [ -d "$CACHED_PODSPEC_DIR" ]; then
   info "Verifying pods from Podfile.lock match local podspecs..."
 
   # Convert podfile.lock to json since yq is missing some features of jq (namely, if/else)
@@ -53,18 +54,19 @@ if [ -d 'ios/Pods/Local Podspecs' ]; then
     cleanupAndExit 1
   fi
 
-  for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); do
-    LOCAL_PODSPEC_PATH="ios/Pods/Local Podspecs/$EXTERNAL_SOURCE_POD.podspec.json"
-    if [ -f "$LOCAL_PODSPEC_PATH" ]; then
-      info "🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
-      POD_VERSION_FROM_LOCAL_PODSPECS="$(jq -r '.version' < <(cat "$LOCAL_PODSPEC_PATH"))"
+  for CACHED_PODSPEC_PATH in "$CACHED_PODSPEC_DIR"/*; do
+    if [ -f "$CACHED_PODSPEC_PATH" ]; then
+      CACHED_POD_NAME="${CACHED_PODSPEC_PATH##*/}"
+      CACHED_POD_NAME="${CACHED_POD_NAME%%.*}"
+      info "🫛 Verifying local pod $CACHED_POD_NAME"
+      CACHED_POD_VERSION="$(jq -r '.version' < <(cat "$CACHED_PODSPEC_PATH"))"
       for POD_FROM_LOCKFILE in "${PODS_FROM_LOCKFILE[@]}"; do
         IFS=' ' read -r POD_NAME_FROM_LOCKFILE POD_VERSION_FROM_LOCKFILE <<< "$POD_FROM_LOCKFILE"
-        if [[ "$EXTERNAL_SOURCE_POD" == "$POD_NAME_FROM_LOCKFILE" ]]; then
-          if [[ "$POD_VERSION_FROM_LOCKFILE" != "($POD_VERSION_FROM_LOCAL_PODSPECS)" ]]; then
+        if [[ "$CACHED_POD_NAME" == "$POD_NAME_FROM_LOCKFILE" ]]; then
+          if [[ "$POD_VERSION_FROM_LOCKFILE" != "($CACHED_POD_VERSION)" ]]; then
             clear_last_line
-            info "⚠️  found mismatched pod: $EXTERNAL_SOURCE_POD, removing local podspec $LOCAL_PODSPEC_PATH"
-            rm "$LOCAL_PODSPEC_PATH"
+            info "⚠️  found mismatched pod: $CACHED_POD_NAME, removing local podspec $CACHED_PODSPEC_PATH"
+            rm "$CACHED_PODSPEC_PATH"
             echo -e "\n"
           fi
           break
