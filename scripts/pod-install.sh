@@ -40,38 +40,40 @@ if ! yq --version > /dev/null 2>&1; then
   cleanupAndExit 1
 fi
 
-info "Verifying pods from Podfile.lock match local podspecs..."
+if [ -d 'ios/Pods/Local Podspecs' ]; then
+  info "Verifying pods from Podfile.lock match local podspecs..."
 
-# Convert podfile.lock to json since yq is missing some features of jq (namely, if/else)
-PODFILE_LOCK_AS_JSON="$(yq -o=json ios/Podfile.lock)"
+  # Convert podfile.lock to json since yq is missing some features of jq (namely, if/else)
+  PODFILE_LOCK_AS_JSON="$(yq -o=json ios/Podfile.lock)"
 
-# Retrieve a list of pods and their versions from Podfile.lock
-declare PODS_FROM_LOCKFILE
-if ! read_lines_into_array PODS_FROM_LOCKFILE < <(jq -r '.PODS | map (if (.|type) == "object" then keys[0] else . end) | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); then
-  error "Error: Could not parse pod versions from Podfile.lock"
-  cleanupAndExit 1
-fi
-
-for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); do
-  LOCAL_PODSPEC_PATH="ios/Pods/Local Podspecs/$EXTERNAL_SOURCE_POD.podspec.json"
-  if [ -f "$LOCAL_PODSPEC_PATH" ]; then
-    info "🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
-    POD_VERSION_FROM_LOCAL_PODSPECS="$(jq -r '.version' < <(cat "$LOCAL_PODSPEC_PATH"))"
-    for POD_FROM_LOCKFILE in "${PODS_FROM_LOCKFILE[@]}"; do
-      IFS=' ' read -r POD_NAME_FROM_LOCKFILE POD_VERSION_FROM_LOCKFILE <<< "$POD_FROM_LOCKFILE"
-      if [[ "$EXTERNAL_SOURCE_POD" == "$POD_NAME_FROM_LOCKFILE" ]]; then
-        if [[ "$POD_VERSION_FROM_LOCKFILE" != "($POD_VERSION_FROM_LOCAL_PODSPECS)" ]]; then
-          clear_last_line
-          info "⚠️  found mismatched pod: $EXTERNAL_SOURCE_POD, removing local podspec $LOCAL_PODSPEC_PATH"
-          rm "$LOCAL_PODSPEC_PATH"
-          echo -e "\n"
-        fi
-        break
-      fi
-    done
-    clear_last_line
+  # Retrieve a list of pods and their versions from Podfile.lock
+  declare PODS_FROM_LOCKFILE
+  if ! read_lines_into_array PODS_FROM_LOCKFILE < <(jq -r '.PODS | map (if (.|type) == "object" then keys[0] else . end) | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); then
+    error "Error: Could not parse pod versions from Podfile.lock"
+    cleanupAndExit 1
   fi
-done
+
+  for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); do
+    LOCAL_PODSPEC_PATH="ios/Pods/Local Podspecs/$EXTERNAL_SOURCE_POD.podspec.json"
+    if [ -f "$LOCAL_PODSPEC_PATH" ]; then
+      info "🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
+      POD_VERSION_FROM_LOCAL_PODSPECS="$(jq -r '.version' < <(cat "$LOCAL_PODSPEC_PATH"))"
+      for POD_FROM_LOCKFILE in "${PODS_FROM_LOCKFILE[@]}"; do
+        IFS=' ' read -r POD_NAME_FROM_LOCKFILE POD_VERSION_FROM_LOCKFILE <<< "$POD_FROM_LOCKFILE"
+        if [[ "$EXTERNAL_SOURCE_POD" == "$POD_NAME_FROM_LOCKFILE" ]]; then
+          if [[ "$POD_VERSION_FROM_LOCKFILE" != "($POD_VERSION_FROM_LOCAL_PODSPECS)" ]]; then
+            clear_last_line
+            info "⚠️  found mismatched pod: $EXTERNAL_SOURCE_POD, removing local podspec $LOCAL_PODSPEC_PATH"
+            rm "$LOCAL_PODSPEC_PATH"
+            echo -e "\n"
+          fi
+          break
+        fi
+      done
+      clear_last_line
+    fi
+  done
+fi
 
 cd ios || cleanupAndExit 1
 bundle exec pod install
