@@ -274,7 +274,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         <Section
             containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
             key={`toggleSettingOptionItem-${index}`}
-            renderTitle={() => <></>}
+            renderTitle={() => <View />}
         >
             <ToggleSettingOptionRow
                 title={item.title}
