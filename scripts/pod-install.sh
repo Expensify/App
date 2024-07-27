@@ -50,7 +50,7 @@ fi
 for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); do
   LOCAL_PODSPEC_PATH="ios/Pods/Local Podspecs/$EXTERNAL_SOURCE_POD.podspec.json"
   if [ -f "$LOCAL_PODSPEC_PATH" ]; then
-    echo -e "\r$BLUE 🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
+    info "$BLUE 🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
     POD_VERSION_FROM_LOCAL_PODSPECS="$(jq -r '.version' < <(cat "$LOCAL_PODSPEC_PATH"))"
     for POD_FROM_LOCKFILE in "${PODS_FROM_LOCKFILE[@]}"; do
       IFS=' ' read -r POD_NAME_FROM_LOCKFILE POD_VERSION_FROM_LOCKFILE <<< "$POD_FROM_LOCKFILE"
@@ -58,6 +58,7 @@ for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo 
         if [[ "$POD_VERSION_FROM_LOCKFILE" != "($POD_VERSION_FROM_LOCAL_PODSPECS)" ]]; then
           clear_last_line
           info "⚠️  found mismatched pod: $EXTERNAL_SOURCE_POD, removing local podspec $LOCAL_PODSPEC_PATH"
+          rm "$LOCAL_PODSPEC_PATH"
           echo -e "\n"
         fi
         break
@@ -67,6 +68,7 @@ for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo 
   fi
 done
 
+cd ios || cleanupAndExit 1
 bundle exec pod install --verbose
 
 # Go back to where we started
