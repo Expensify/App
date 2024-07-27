@@ -1,7 +1,7 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
-import type {CanSetHtml, GetImage, SetHtml, SetString} from './types';
+import type {CanSetHtml, SetHtml, SetString} from './types';
 
 type ComposerSelection = {
     start: number;
@@ -136,11 +136,8 @@ const setString: SetString = (text) => {
     Clipboard.setString(text);
 };
 
-const getImage: GetImage = () => Promise.reject(new Error('getImage not supported on web'));
-
 export default {
     setString,
     canSetHtml,
     setHtml,
-    getImage,
 };

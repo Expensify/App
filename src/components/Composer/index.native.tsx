@@ -1,8 +1,10 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {TextInput} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
+import {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -10,7 +12,6 @@ import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Clipboard from '@libs/Clipboard';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type {ComposerProps} from './types';
@@ -66,14 +67,18 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const pasteImage = useCallback(() => {
-        Clipboard.getImage().then((image) => {
-            if (!image) {
+    const pasteFile = useCallback(
+        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
+            const clipboardContent = e.nativeEvent.items[0];
+            if (clipboardContent.type === 'text/plain') {
                 return;
             }
-            onPasteFile(image);
-        });
-    }, [onPasteFile]);
+            const filename = 'file.' + mimeDb[clipboardContent.type].extensions?.[0] ?? 'bin';
+            const file: FileObject = {uri: clipboardContent.data, name: filename, type: clipboardContent.type};
+            onPasteFile(file);
+        },
+        [onPasteFile],
+    );
 
     useEffect(() => {
         if (!shouldClear) {
@@ -106,7 +111,7 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
-            onPaste={pasteImage}
+            onPaste={pasteFile}
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
