@@ -1275,6 +1275,18 @@ export default {
                 two: '.º',
                 few: '.º',
                 other: '.º',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'Primero',
+                '2': 'Segundo',
+                '3': 'Tercero',
+                '4': 'Cuarto',
+                '5': 'Quinto',
+                '6': 'Sexto',
+                '7': 'Séptimo',
+                '8': 'Octavo',
+                '9': 'Noveno',
+                '10': 'Décimo',
+                /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
     },
