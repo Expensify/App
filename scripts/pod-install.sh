@@ -74,7 +74,7 @@ for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo 
 done
 
 cd ios || cleanupAndExit 1
-bundle exec pod install --verbose
+bundle exec pod install
 
 # Go back to where we started
 cleanupAndExit 0
