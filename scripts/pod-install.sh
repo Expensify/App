@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# This script ensures pod installs respect Podfile.lock as the source of truth.
+# Specifically, the podspecs for pods listed under the 'EXTERNAL SOURCES' key in the Podfile.lock are cached in the `ios/Pods/Local Podspecs` directory.
+# While caching results in significantly faster installs, if a cached podspec doesn't match the version in Podfile.lock, pod install will fail.
+# To prevent this, this script will find and deleted any mismatched cached podspecs before running pod install
+
 # Exit immediately if any command exits with a non-zero status
 set -e
 
