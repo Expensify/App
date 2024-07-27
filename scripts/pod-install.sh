@@ -55,7 +55,7 @@ fi
 for EXTERNAL_SOURCE_POD in $(jq -cr '."EXTERNAL SOURCES" | keys | .[]' < <(echo "$PODFILE_LOCK_AS_JSON")); do
   LOCAL_PODSPEC_PATH="ios/Pods/Local Podspecs/$EXTERNAL_SOURCE_POD.podspec.json"
   if [ -f "$LOCAL_PODSPEC_PATH" ]; then
-    info "$BLUE 🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
+    info "🫛 Verifying local pod $EXTERNAL_SOURCE_POD"
     POD_VERSION_FROM_LOCAL_PODSPECS="$(jq -r '.version' < <(cat "$LOCAL_PODSPEC_PATH"))"
     for POD_FROM_LOCKFILE in "${PODS_FROM_LOCKFILE[@]}"; do
       IFS=' ' read -r POD_NAME_FROM_LOCKFILE POD_VERSION_FROM_LOCKFILE <<< "$POD_FROM_LOCKFILE"
