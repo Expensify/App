@@ -66,6 +66,15 @@ const restrictedImportPaths = [
             "For 'ExpensiMark', please use '@libs/Parser' instead.",
         ].join('\n'),
     },
+    {
+        name: 'lodash/memoize',
+        message: "Please use '@src/libs/memoize' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['memoize'],
+        message: "Please use '@src/libs/memoize' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -97,7 +106,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
         'plugin:you-dont-need-lodash-underscore/all',
-        'prettier',
+        'plugin:prettier/recommended',
     ],
     plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler'],
     ignorePatterns: ['lib/**'],
