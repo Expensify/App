@@ -178,7 +178,7 @@ type MenuItemBaseProps = {
     label?: string;
 
     /** Limit to truncate description for menu item */
-    limit?: number;
+    limit: number;
 
     isLabelHoverable?: boolean;
 
@@ -362,7 +362,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
-        limit,
+        limit = 100,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
