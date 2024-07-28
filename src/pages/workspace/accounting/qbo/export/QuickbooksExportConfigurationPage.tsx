@@ -52,7 +52,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             errorText: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
-            description: translate('workspace.qbo.exportExpenses'),
+            description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
             brickRoadIndicator: !!errorFields?.exportEntity || !!errorFields?.reimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined,
@@ -68,7 +68,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             errorText: errorFields?.receivableAccount ? translate('common.genericErrorMessage') : undefined,
         },
         {
-            description: translate('workspace.qbo.exportCompany'),
+            description: translate('workspace.accounting.exportCompanyCard'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined,
