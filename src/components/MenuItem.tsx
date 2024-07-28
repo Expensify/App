@@ -362,7 +362,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
-        limit = 100,
+        limit,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
