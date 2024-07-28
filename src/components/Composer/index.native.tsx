@@ -4,7 +4,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
-import {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -73,7 +73,7 @@ function Composer(
             if (clipboardContent.type === 'text/plain') {
                 return;
             }
-            const filename = 'file.' + mimeDb[clipboardContent.type].extensions?.[0] ?? 'bin';
+            const filename = `file.${mimeDb[clipboardContent.type].extensions?.[0] ?? 'bin'}`;
             const file: FileObject = {uri: clipboardContent.data, name: filename, type: clipboardContent.type};
             onPasteFile(file);
         },
