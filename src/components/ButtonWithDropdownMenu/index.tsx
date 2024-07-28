@@ -1,3 +1,4 @@
+import type {MutableRefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -10,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import nullCheckRef from '@src/types/utils/nullCheckRef';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
@@ -43,10 +43,10 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef<View | null>(null);
-    const nullRef = useRef<View | null>(null);
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
 
     useEffect(() => {
         if (!caretButton.current) {
@@ -141,7 +141,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={nullCheckRef(caretButton, nullRef)}
+                    anchorRef={nullCheckRef(caretButton)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
