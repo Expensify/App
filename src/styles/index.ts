@@ -4770,7 +4770,7 @@ const styles = (theme: ThemeColors) =>
 
         walletBalance: {
             lineHeight: undefined,
-            fontSize: 45,
+            fontSize: variables.fontSizeXLarge,
             paddingTop: 0,
             paddingBottom: 0,
         },
