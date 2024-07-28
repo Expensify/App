@@ -178,7 +178,7 @@ type MenuItemBaseProps = {
     label?: string;
 
     /** Limit to truncate description for menu item */
-    limit: number;
+    limit?: number;
 
     isLabelHoverable?: boolean;
 
@@ -362,7 +362,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
-        limit = 100,
+        limit,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -669,7 +669,7 @@ function MenuItem(
                                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
-                                                                        <RenderHTML html={Parser.truncateHTML(processedTitle, limit, {ellipsis: '...'})} />
+                                                                        <RenderHTML html={Parser.truncateHTML(processedTitle, limit || 100, {ellipsis: '...'})} />
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
