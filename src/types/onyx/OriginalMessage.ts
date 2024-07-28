@@ -121,6 +121,9 @@ type OriginalMessageAddComment = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo: number[];
+
+    /** List accountIDs are mentioned in message */
+    mentionedAccountIDs?: number[];
 };
 
 /** Model of `actionable mention whisper` report action */
