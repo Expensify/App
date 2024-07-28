@@ -272,7 +272,9 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
  * It's useful in a case where we want to close an RHP and navigate to another RHP to prevent any blink effect.
  */
 function closeAndNavigate(route: Route) {
-    if (!navigationRef.current) return;
+    if (!navigationRef.current) {
+        return;
+    }
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
     if (isFirstRouteInNavigator) {
