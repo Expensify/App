@@ -58,7 +58,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
         Welcome.isOnboardingFlowCompleted({
             onNotCompleted: () => {
-                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
                 navigationRef.resetRoot(adaptedState);
             },
         });

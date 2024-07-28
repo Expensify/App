@@ -438,10 +438,11 @@ export default {
         or: ', or',
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
-        expiredCodeDescription: 'Go back to the original device and request a new code.',
+        expiredCodeDescription: 'Go back to the original device and request a new code',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two-factor authentication\nrequired',
         tfaRequiredDescription: "Please enter the two-factor authentication code\nwhere you're trying to sign in.",
+        requestOneHere: 'request one here.',
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
@@ -4130,8 +4131,9 @@ export default {
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             preTrial: {
                 title: 'Start a free trial',
-                subtitle: 'Almost there! Just complete your ',
-                subtitleLink: 'setup checklist.',
+                subtitleStart: 'As a next step, ',
+                subtitleLink: 'complete your setup checklist ',
+                subtitleEnd: 'so your team can start expensing.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
