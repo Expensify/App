@@ -4,8 +4,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
 import * as Report from '@userActions/Report';
 import * as Subscription from '@userActions/Subscription';
@@ -17,7 +17,7 @@ const anchorAlignment = {
 };
 
 function TaxExemptActions() {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -38,7 +38,7 @@ function TaxExemptActions() {
     );
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             return;
         }
         threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
@@ -47,7 +47,7 @@ function TaxExemptActions() {
                 vertical: y + height,
             });
         });
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     return (
         <View

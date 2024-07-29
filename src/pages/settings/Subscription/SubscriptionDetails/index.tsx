@@ -86,18 +86,16 @@ function SubscriptionDetails() {
             isCentralPane
             titleStyles={styles.textStrong}
         >
-            <View style={styles.flexRow}>
-                <View style={[styles.flexShrink1, styles.w100, styles.justifyContentBetween]}>
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{translate('subscription.details.title')}</Text>
-                        {privateTaxExempt && (
-                            <View style={styles.mtn1}>
-                                <Badge text={translate('subscription.details.taxExemptEnabled')} />
-                            </View>
-                        )}
-                    </View>
-                    {!privateTaxExempt && <TaxExemptActions />}
+            <View style={[styles.flexShrink1, styles.w100, styles.justifyContentBetween]}>
+                <View style={styles.flexRow}>
+                    <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{translate('subscription.details.title')}</Text>
+                    {privateTaxExempt && (
+                        <View style={styles.mtn1}>
+                            <Badge text={translate('subscription.details.taxExemptEnabled')} />
+                        </View>
+                    )}
                 </View>
+                {!privateTaxExempt && <TaxExemptActions />}
             </View>
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>

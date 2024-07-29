@@ -267,5 +267,4 @@ export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuit
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
 export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
-export type {default as RequestSubscriptionTaxExemptParams} from './RequestSubscriptionTaxExemptParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';

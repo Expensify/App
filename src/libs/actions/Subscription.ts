@@ -1,15 +1,8 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    CancelBillingSubscriptionParams,
-    RequestSubscriptionTaxExemptParams,
-    UpdateSubscriptionAddNewUsersAutomaticallyParams,
-    UpdateSubscriptionAutoRenewParams,
-    UpdateSubscriptionTypeParams,
-} from '@libs/API/parameters';
+import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -296,17 +289,7 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
 }
 
 function requestSubscriptionTaxExempt() {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!authToken) {
-        return;
-    }
-
-    const params: RequestSubscriptionTaxExemptParams = {
-        authToken,
-    };
-
-    API.write(WRITE_COMMANDS.REQUEST_SUBSCRIPTIONS_TAX_EXEMPT, params);
+    API.write(WRITE_COMMANDS.REQUEST_SUBSCRIPTIONS_TAX_EXEMPT, null);
 }
 
 export {
