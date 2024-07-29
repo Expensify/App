@@ -28,9 +28,10 @@ type SearchStatus = ValueOf<typeof CONST.SEARCH.STATUS>;
 
 type SearchContext = {
     currentSearchHash: number;
-    selectedTransactionIDs: string[];
+    selectedTransactions: SelectedTransactions;
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions) => void;
+    clearSelectedTransactions: (hash?: number) => void;
 };
 
 type ASTNode = {

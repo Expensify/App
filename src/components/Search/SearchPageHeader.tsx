@@ -5,6 +5,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -23,38 +25,27 @@ import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SearchStatus, SelectedTransactions} from './types';
+import type {SearchStatus} from './types';
 
 type SearchPageHeaderProps = {
     status: SearchStatus;
-    selectedTransactions?: SelectedTransactions;
-    selectedReports?: Array<SearchReport['reportID']>;
-    clearSelectedItems?: () => void;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
+    data?: TransactionListItemType[] | ReportListItemType[];
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({
-    status,
-    selectedTransactions = {},
-    hash,
-    clearSelectedItems,
-    onSelectDeleteOption,
-    setOfflineModalOpen,
-    setDownloadErrorModalOpen,
-    selectedReports,
-}: SearchPageHeaderProps) {
+function SearchPageHeader({status, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {setSelectedTransactionIDs} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const headerContent: {[key in SearchStatus]: {icon: IconAsset; title: string}} = {
@@ -64,7 +55,20 @@ function SearchPageHeader({
         finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
     };
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    const selectedReports: Array<SearchReport['reportID']> = useMemo(
+        () =>
+            (data ?? [])
+                .filter(
+                    (item) =>
+                        !SearchUtils.isTransactionListItemType(item) &&
+                        item.reportID &&
+                        item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
+                )
+                .map((item) => item.reportID),
+        [data, selectedTransactions],
+    );
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -105,11 +109,9 @@ function SearchPageHeader({
                         return;
                     }
 
-                    clearSelectedItems?.();
                     if (selectionMode?.isEnabled) {
                         turnOffMobileSelectionMode();
                     }
-                    setSelectedTransactionIDs(selectedTransactionsKeys);
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -129,7 +131,7 @@ function SearchPageHeader({
                         return;
                     }
 
-                    clearSelectedItems?.();
+                    clearSelectedTransactions();
                     if (selectionMode?.isEnabled) {
                         turnOffMobileSelectionMode();
                     }
@@ -182,7 +184,7 @@ function SearchPageHeader({
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedItems,
+        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -193,7 +195,6 @@ function SearchPageHeader({
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        setSelectedTransactionIDs,
         selectionMode?.isEnabled,
     ]);
 
