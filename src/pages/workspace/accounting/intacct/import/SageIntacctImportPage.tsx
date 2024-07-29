@@ -58,7 +58,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     subscribedSettings: [mapping],
                 };
             }),
-        [policyID, sageIntacctConfig?.errorFields, sageIntacctConfig?.mappings, sageIntacctConfig?.pendingFields, translate],
+        [policyID, sageIntacctConfig?.mappings, translate],
     );
 
     return (

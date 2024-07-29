@@ -89,8 +89,8 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                         updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
                     }
                 }}
-                pendingAction={!(importMapping ?? false) ? settingsPendingAction([mappingName], config?.pendingFields) : undefined}
-                errors={!(importMapping ?? false) ? ErrorUtils.getLatestErrorField(config ?? {}, mappingName) : undefined}
+                pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
             />
             {importMapping && (
