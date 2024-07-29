@@ -155,16 +155,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
                             }}
                             wrapperStyle={[styles.ph5, styles.pv3]}
-                            pendingAction={
-                                !config?.export.nonReimbursableCreditCardChargeDefaultVendor
-                                    ? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields)
-                                    : undefined
-                            }
-                            errors={
-                                !config?.export.nonReimbursableCreditCardChargeDefaultVendor
-                                    ? ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)
-                                    : undefined
-                            }
+                            pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields)}
+                            errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)}
                             onCloseError={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)}
                         />
                         {!!config?.export.nonReimbursableCreditCardChargeDefaultVendor && defaultVendor}

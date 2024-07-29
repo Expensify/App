@@ -110,14 +110,14 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                             defaultValue={editedUserDimension?.mapping}
                         />
                     </View>
+                    <View style={[styles.mhn5]}>
+                        <MenuItem
+                            title={translate('common.remove')}
+                            icon={Expensicons.Trashcan}
+                            onPress={() => setIsDeleteModalOpen(true)}
+                        />
+                    </View>
                 </OfflineWithFeedback>
-                <View style={[styles.mhn5]}>
-                    <MenuItem
-                        title={translate('common.remove')}
-                        icon={Expensicons.Trashcan}
-                        onPress={() => setIsDeleteModalOpen(true)}
-                    />
-                </View>
                 <ConfirmModal
                     title={translate('workspace.intacct.removeDimension')}
                     isVisible={isDeleteModalOpen}
