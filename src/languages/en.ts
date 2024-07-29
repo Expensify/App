@@ -3211,6 +3211,7 @@ export default {
             exportAs: 'Export as',
             exportOutOfPocket: 'Export out-of-pocket expenses as',
             exportCompanyCard: 'Export company card expenses as',
+            exportDate: 'Export date',
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
@@ -3570,6 +3571,7 @@ export default {
     search: {
         selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
+        viewResults: 'View results',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
@@ -3587,9 +3589,10 @@ export default {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: 'Before',
-                after: 'After',
+                before: (date?: string) => `Before ${date ?? ''}`,
+                after: (date?: string) => `After ${date ?? ''}`,
             },
+            status: 'Status',
         },
     },
     genericErrorPage: {
@@ -4130,8 +4133,9 @@ export default {
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             preTrial: {
                 title: 'Start a free trial',
-                subtitle: 'Almost there! Just complete your ',
-                subtitleLink: 'setup checklist.',
+                subtitleStart: 'As a next step, ',
+                subtitleLink: 'complete your setup checklist ',
+                subtitleEnd: 'so your team can start expensing.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,

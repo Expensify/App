@@ -8,10 +8,8 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -42,7 +40,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
-import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -413,6 +410,12 @@ function ReportScreen({
         ? reportActions.length > 0
         : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
 
+    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
+    const isLinkedActionInaccessibleWhisper = useMemo(
+        () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
+        [currentUserAccountID, linkedAction],
+    );
+
     /**
      * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
      * is not evaluated. This causes issues where we have `isLoading` set to false and later set to true and then set to false again.
@@ -428,10 +431,25 @@ function ReportScreen({
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundLinkedAction =
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted) ||
+        (shouldShowSkeleton &&
+            !reportMetadata.isLoadingInitialReportActions &&
+            !!reportActionIDFromRoute &&
+            !!sortedAllReportActions &&
+            sortedAllReportActions?.length > 0 &&
+            reportActions.length === 0 &&
+            !isLinkingToMessage);
+
     const currentReportIDFormRoute = route.params?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
+        if (shouldShowNotFoundLinkedAction) {
+            return true;
+        }
+
         // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
         if (isLoadingApp !== false) {
             return false;
@@ -451,7 +469,17 @@ function ReportScreen({
             return true;
         }
         return !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
-    }, [isLoadingApp, finishedLoadingApp, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute]);
+    }, [
+        shouldShowNotFoundLinkedAction,
+        isLoadingApp,
+        finishedLoadingApp,
+        report.reportID,
+        isOptimisticDelete,
+        reportMetadata?.isLoadingInitialReportActions,
+        userLeavingStatus,
+        shouldHideReport,
+        currentReportIDFormRoute,
+    ]);
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -705,12 +733,6 @@ function ReportScreen({
         fetchReport();
     }, [fetchReport]);
 
-    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
-    const isLinkedActionInaccessibleWhisper = useMemo(
-        () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
-        [currentUserAccountID, linkedAction],
-    );
-
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
     useEffect(() => {
@@ -730,29 +752,6 @@ function ReportScreen({
         Report.readNewestAction(report.reportID);
     }, [report]);
 
-    if (
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted) ||
-        (shouldShowSkeleton &&
-            !reportMetadata.isLoadingInitialReportActions &&
-            reportActionIDFromRoute &&
-            sortedAllReportActions &&
-            sortedAllReportActions?.length > 0 &&
-            reportActions.length === 0 &&
-            !isLinkingToMessage)
-    ) {
-        return (
-            <BlockingView
-                icon={Illustrations.ToddBehindCloud}
-                iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopIconHeight}
-                title={translate('notFound.notHere')}
-                shouldShowLink
-                linkKey="notFound.noAccess"
-                onLinkPress={navigateToEndOfReport}
-            />
-        );
-    }
-
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -764,10 +763,12 @@ function ReportScreen({
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
-                        subtitleKey="notFound.noAccess"
+                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowLink={false}
+                        onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
+                        shouldShowLink={shouldShowNotFoundLinkedAction}
+                        linkKey="notFound.noAccess"
+                        onLinkPress={navigateToEndOfReport}
                     >
                         <OfflineWithFeedback
                             pendingAction={reportPendingAction}
