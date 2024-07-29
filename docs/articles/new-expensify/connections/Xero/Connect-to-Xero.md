@@ -1,8 +1,8 @@
 ---
-title: Set up Xero connection
+title: Connect to Xero
 description: Integrate Xero with Expensify
+order: 1
 ---
-<div id="new-expensify" markdown="1">
 
 {% include info.html %}
 To use the Xero connection, you must have a Xero account and an Expensify Collect plan.
@@ -104,5 +104,3 @@ The following steps help you determine the advanced settings for your connection
 
 You will no longer see the imported options from Xero.
 {% include faq-end.md %}
-
-</div>

@@ -1241,6 +1241,8 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = CentralPaneScreensParamList &
     SharedScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TRACK_EXPENSE]: undefined;
+        [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.ATTACHMENTS]: {
             reportID: string;
             source: string;
