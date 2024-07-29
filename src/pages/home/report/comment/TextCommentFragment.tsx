@@ -59,7 +59,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${doesTextContainOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        let htmlContent = doesTextContainOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        let htmlContent = htmlWithDeletedTag;
 
         if (doesTextContainOnlyEmojis) {
             htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>');
