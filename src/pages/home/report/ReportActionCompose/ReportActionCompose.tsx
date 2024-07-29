@@ -202,7 +202,7 @@ function ReportActionCompose({
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
-            return translate('reportActionCompose.conciergePlaceholderOptions', isSmallScreenWidth);
+            return translate('reportActionCompose.conciergePlaceholderOptions', shouldUseNarrowLayout);
         }
 
         return translate('reportActionCompose.writeSomething');
