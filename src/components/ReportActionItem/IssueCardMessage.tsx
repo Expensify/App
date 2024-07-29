@@ -30,9 +30,6 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     const assignee = `<mention-user accountID=${personalData.accountID}></mention-user>`;
     const link = `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('cardPage.expensifyCard')}</a>`;
 
-    console.log(action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS);
-    console.log(isEmptyObject(privatePersonalDetails?.address), privatePersonalDetails?.address);
-
     // TODO: remove two last cases from the condition - added only for testing purposes, change privatePersonalDetails?.address for a proper address of user with assigneeAccountID
     const noMailingAddress =
         (action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address)) ||
