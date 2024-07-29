@@ -1716,6 +1716,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightEmojisWithTextComposer,
         },
 
+        emojisWithinTextFontSize: {
+            fontSize: variables.fontSizeEmojisWithinText,
+        },
+
         emojisWithinText: {
             fontSize: variables.fontSizeEmojisWithinText,
             lineHeight: variables.lineHeightComment,
