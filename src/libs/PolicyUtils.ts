@@ -905,8 +905,8 @@ export {
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
     getCurrentTaxID,
-	areSettingsInErrorFields,
-	settingsPendingAction,
+    areSettingsInErrorFields,
+    settingsPendingAction,
 };
 
 export type {MemberEmailsToAccountIDs, XeroSettings};

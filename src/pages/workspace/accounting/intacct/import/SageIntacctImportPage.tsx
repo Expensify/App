@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentSageIntacctEntityName} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -55,8 +55,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
                     action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
                     title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
-                    hasError: !!sageIntacctConfig?.errorFields?.[mapping],
-                    pendingAction: sageIntacctConfig?.pendingFields?.[mapping],
+                    subscribedSettings: [mapping],
                 };
             }),
         [policyID, sageIntacctConfig?.errorFields, sageIntacctConfig?.mappings, sageIntacctConfig?.pendingFields, translate],
@@ -91,7 +90,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}
                 onToggle={() => updateSageIntacctBillable(policyID, !sageIntacctConfig?.mappings?.syncItems)}
-                pendingAction={sageIntacctConfig?.pendingFields?.syncItems}
+                pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS], sageIntacctConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
@@ -99,14 +98,14 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             {mapingItems.map((section) => (
                 <OfflineWithFeedback
                     key={section.description}
-                    pendingAction={section.pendingAction}
+                    pendingAction={settingsPendingAction(section.subscribedSettings, sageIntacctConfig?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
                         shouldShowRightIcon
                         onPress={section.action}
-                        brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(section.subscribedSettings, sageIntacctConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}
@@ -119,7 +118,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.tax?.syncTax ?? false}
                 onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !sageIntacctConfig?.tax?.syncTax)}
-                pendingAction={sageIntacctConfig?.pendingFields?.tax}
+                pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX], sageIntacctConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.TAX)}
             />
