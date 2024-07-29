@@ -4,7 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@navigation/Navigation';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ const anchorAlignment = {
 };
 
 function CardSectionActions() {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -38,7 +38,7 @@ function CardSectionActions() {
     );
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             return;
         }
         threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
@@ -47,7 +47,7 @@ function CardSectionActions() {
                 vertical: y + height,
             });
         });
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     return (
         <View ref={threeDotsMenuContainerRef}>

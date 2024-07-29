@@ -23,6 +23,8 @@ type TwoFactorAuthStepProps = BaseTwoFactorAuthFormOnyxProps;
 function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
     const backTo = route.params?.backTo ?? '';
+    const forwardTo = route.params?.forwardTo ?? '';
+
     const currentStep = useMemo(() => {
         if (account?.twoFactorAuthStep) {
             return account.twoFactorAuthStep;
@@ -50,7 +52,12 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep backTo={backTo} />;
+                return (
+                    <SuccessStep
+                        backTo={backTo}
+                        forwardTo={forwardTo}
+                    />
+                );
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
