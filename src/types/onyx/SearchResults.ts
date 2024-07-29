@@ -111,13 +111,16 @@ type SearchReport = {
     currency?: string;
 
     /** The report type */
-    type?: string;
+    type?: ValueOf<typeof CONST.REPORT.TYPE>;
 
     /** The accountID of the report manager */
     managerID?: number;
 
     /** The accountID of the user who created the report  */
     accountID?: number;
+
+    /** The policyID of the report */
+    policyID?: string;
 
     /** The date the report was created */
     created?: string;
@@ -142,6 +145,12 @@ type SearchTransaction = {
 
     /** If the transaction can be deleted */
     canDelete: boolean;
+
+    /** If the transaction can be put on hold */
+    canHold: boolean;
+
+    /** If the transaction can be removed from hold */
+    canUnhold: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -180,7 +189,7 @@ type SearchTransaction = {
     category: string;
 
     /** The type of request */
-    type: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The type of report the transaction is associated with */
     reportType: string;
@@ -234,9 +243,6 @@ type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
-/** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
-
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -252,7 +258,6 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    SearchQuery,
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,

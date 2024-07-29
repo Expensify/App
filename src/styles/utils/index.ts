@@ -18,11 +18,11 @@ import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
-import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
@@ -599,16 +599,6 @@ function getModalPaddingStyles({
 }
 
 /**
- * Takes fontStyle and fontWeight and returns the correct fontFamily
- */
-function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
-    const italic = fontStyle === 'italic' && FontUtils.fontFamily.platform.MONOSPACE_ITALIC;
-    const bold = fontWeight === 'bold' && FontUtils.fontFamily.platform.MONOSPACE_BOLD;
-    const italicBold = italic && bold && FontUtils.fontFamily.platform.MONOSPACE_BOLD_ITALIC;
-
-    return italicBold || bold || italic || FontUtils.fontFamily.platform.MONOSPACE;
-}
-/**
  * Returns the font size for the HTML code tag renderer.
  */
 function getCodeFontSize(isInsideH1: boolean) {
@@ -1150,7 +1140,6 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
-    getFontFamilyMonospace,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
@@ -1182,6 +1171,7 @@ const staticStyleUtils = {
     getCharacterWidth,
     getAmountWidth,
     getBorderRadiusStyle,
+    getHighResolutionInfoWrapperStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
