@@ -195,6 +195,8 @@ function AttachmentModal({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
+
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
@@ -413,7 +415,7 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline && allowDownload) {
+        if (!isOffline && allowDownload && !isLocalSource) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
@@ -440,7 +442,7 @@ function AttachmentModal({
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
