@@ -94,7 +94,8 @@ function SearchPageHeader({
                     return;
                 }
 
-                SearchActions.exportSearchItemsToCSV(status, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
+                const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
+                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
                     setDownloadErrorModalOpen?.();
                 });
             },
