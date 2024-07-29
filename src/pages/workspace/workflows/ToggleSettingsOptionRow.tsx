@@ -42,6 +42,9 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the Title */
     titleStyle?: StyleProp<TextStyle>;
 
+    /** Used to apply styles to the Subtitle */
+    subtitleStyle?: StyleProp<TextStyle>;
+
     /** Whether the option is enabled or not */
     isActive: boolean;
 
@@ -76,6 +79,7 @@ function ToggleSettingOptionRow({
     title,
     customTitle,
     subtitle,
+    subtitleStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldEscapeText = undefined,
@@ -119,7 +123,7 @@ function ToggleSettingOptionRow({
                 </View>
             );
         }
-        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>{subtitle}</Text>;
+        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
     }, [subtitle, shouldParseSubtitle, styles.mutedNormalTextLabel, styles.mt1, styles.mr5, styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch, processedSubtitle]);
 
     return (
