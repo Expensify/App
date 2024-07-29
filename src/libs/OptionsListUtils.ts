@@ -1716,14 +1716,7 @@ function getUserToInviteOption({
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
-    if (
-        !searchValue ||
-        isCurrentUserLogin ||
-        isInSelectedOption ||
-        (!isValidEmail && !isValidPhoneNumber) ||
-        isInOptionToExclude ||
-        excludeUnknownUsers
-    ) {
+    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude || excludeUnknownUsers) {
         return null;
     }
 
