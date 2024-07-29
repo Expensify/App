@@ -216,7 +216,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
-            participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+            participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
         );
 
         return [newSections, headerMessage];

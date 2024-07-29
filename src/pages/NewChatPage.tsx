@@ -86,16 +86,14 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
 
-    const headerMessage = useMemo(
-        () =>
-            OptionsListUtils.getHeaderMessage(
-                options.personalDetails.length + options.recentReports.length !== 0,
-                !!options.userToInvite,
-                debouncedSearchTerm.trim(),
-                selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
-            ),
-        [debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions],
-    );
+    const headerMessage = useMemo(() => {
+        return OptionsListUtils.getHeaderMessage(
+            options.personalDetails.length + options.recentReports.length !== 0,
+            !!options.userToInvite,
+            debouncedSearchTerm.trim(),
+            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
+        );
+    }, [debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {

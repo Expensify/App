@@ -2451,7 +2451,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = participant.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase());
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(searchTerm.trim().toLowerCase());
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
         return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
@@ -2483,6 +2483,10 @@ function getFirstKeyForList(data?: Option[] | null) {
 
     return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
 }
+
+function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {
+    return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+}
 /**
  * Filters options based on the search input value
  */
@@ -2504,10 +2508,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-    // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-    const emailRegex = /\.(?=[^\s@]*@)/g;
-
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     excludeLogins.forEach((login) => {
@@ -2527,7 +2527,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
                 if (login) {
                     keys.push(login);
-                    keys.push(login.replace(emailRegex, ''));
+                    keys.push(login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
                 }
             });
         }
@@ -2543,7 +2543,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
             if (item.login) {
                 values.push(item.login);
-                values.push(item.login.replace(emailRegex, ''));
+                values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
             }
 
             if (item.isThread) {
@@ -2569,14 +2569,12 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
             return uniqFast(values);
         });
-        const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
-            uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
-        );
+        const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) => uniqFast(getPersonalDetailSearchTerms(item)));
 
         const currentUserOptionSearchText = uniqFast([
             items.currentUserOption?.text ?? '',
             items.currentUserOption?.login ?? '',
-            items.currentUserOption?.login?.replace(emailRegex, '') ?? '',
+            items.currentUserOption?.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '',
         ]).join(' ');
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
@@ -2673,6 +2671,7 @@ export {
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
     shouldShowViolations,
+    getPersonalDetailSearchTerms,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
