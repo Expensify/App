@@ -173,8 +173,12 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         participants.forEach((accountID) => {
             const details = personalDetails[accountID];
+            // When adding a new member to a room (whose personal detail doesn't exist in onyx), optimistc personal detail
+            // is created but after the real personal detail is return from BE until the optimistic personal detail
+            // is deleted a duplicate member is appearing for a second, so we filter out the optimistically created member here.
+            const isDuplicateOptimisticDetail = details?.isOptimisticPersonalDetail && participants.some((accID) => accID !== accountID && details.login === personalDetails[accID]?.login);
 
-            if (!details || (details.isOptimisticPersonalDetail && participants.some((accID) => accID !== accountID && details.login === personalDetails[accID]?.login))) {
+            if (!details || isDuplicateOptimisticDetail) {
                 Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
                 return;
             }
