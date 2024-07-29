@@ -56,11 +56,16 @@ if [ -d "$CACHED_PODSPEC_DIR" ]; then
 
   for CACHED_PODSPEC_PATH in "$CACHED_PODSPEC_DIR"/*; do
     if [ -f "$CACHED_PODSPEC_PATH" ]; then
+      # The next two lines use bash parameter expansion to get just the pod name from the path
+      # i.e: `ios/Pods/Local Podspecs/hermes-engine.podspec.json` to just `hermes-engine`
+      # It extracts the part of the string between the last `/` and the first `.`
       CACHED_POD_NAME="${CACHED_PODSPEC_PATH##*/}"
       CACHED_POD_NAME="${CACHED_POD_NAME%%.*}"
+
       info "🫛 Verifying local pod $CACHED_POD_NAME"
       CACHED_POD_VERSION="$(jq -r '.version' < <(cat "$CACHED_PODSPEC_PATH"))"
       for POD_FROM_LOCKFILE in "${PODS_FROM_LOCKFILE[@]}"; do
+        # Extract the pod name and version that was parsed from the lockfile. POD_FROM_LOCKFILE looks like `PodName (version)`
         IFS=' ' read -r POD_NAME_FROM_LOCKFILE POD_VERSION_FROM_LOCKFILE <<< "$POD_FROM_LOCKFILE"
         if [[ "$CACHED_POD_NAME" == "$POD_NAME_FROM_LOCKFILE" ]]; then
           if [[ "$POD_VERSION_FROM_LOCKFILE" != "($CACHED_POD_VERSION)" ]]; then
