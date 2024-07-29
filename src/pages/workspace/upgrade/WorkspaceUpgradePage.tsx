@@ -5,8 +5,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
@@ -18,34 +20,46 @@ import UpgradeIntro from './UpgradeIntro';
 type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
+    const styles = useThemeStyles();
     const policyID = route.params.policyID;
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.find((f) => f.alias === route.params.featureName);
+    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === route.params.featureName);
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
+
+    const isUpgraded = React.useMemo(() => isControlPolicy(policy), [policy]);
 
     if (!feature || !policy) {
         return <NotFoundPage />;
     }
 
     const upgradeToCorporate = () => {
-        Policy.upgradeToCorporate(policy.id, feature.id);
+        Policy.upgradeToCorporate(policy.id, feature.name);
     };
 
-    const isUpgraded = policy.type === CONST.POLICY.TYPE.CORPORATE;
+    const confirmUpgrade = () => {
+        switch (feature.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
+                Policy.enablePolicyReportFields(policyID, true);
+                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), CONST.NAVIGATION.TYPE.UP);
+            default:
+                return route.params.backTo ? Navigation.navigate(route.params.backTo, CONST.NAVIGATION.TYPE.UP) : Navigation.goBack();
+        }
+    };
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isUpgraded && (
                 <UpgradeConfirmation
-                    policyID={policy.id}
+                    onConfirmUpgrade={confirmUpgrade}
                     policyName={policy.name}
                 />
             )}

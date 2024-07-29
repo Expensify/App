@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -34,6 +35,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
+import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderProps = {
@@ -92,13 +94,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && ReportUtils.canDeleteTransaction(moneyRequestReport) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
@@ -113,15 +116,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
-
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
+
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
+
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
-    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
+    const shouldShowAnyButton =
+        shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation || shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
@@ -275,6 +282,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
+                {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
+                    <View style={[styles.pv2]}>
+                        <ExportWithDropdownMenu
+                            policy={policy}
+                            report={moneyRequestReport}
+                            connectionName={connectedIntegration}
+                        />
+                    </View>
+                )}
                 {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
@@ -287,7 +303,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                {allHavePendingRTERViolation && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
                             medium
@@ -319,6 +335,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             isLoading={!isOffline && !canAllowSettlement}
                         />
                     )}
+                    {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                        <ExportWithDropdownMenu
+                            policy={policy}
+                            report={moneyRequestReport}
+                            connectionName={connectedIntegration}
+                        />
+                    )}
                     {shouldShowSubmitButton && shouldUseNarrowLayout && (
                         <Button
                             medium
@@ -329,7 +352,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             isDisabled={shouldDisableSubmitButton}
                         />
                     )}
-                    {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                    {allHavePendingRTERViolation && shouldUseNarrowLayout && (
                         <Button
                             medium
                             success
@@ -353,7 +376,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={shouldUseNarrowLayout}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}

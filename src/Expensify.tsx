@@ -3,12 +3,13 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
+import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAuthenticationModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -19,6 +20,7 @@ import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import BootSplash from './libs/BootSplash';
+import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -36,6 +38,7 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
+import ROUTES from './ROUTES';
 import type {ScreenShareRequest, Session} from './types/onyx';
 
 Onyx.registerLogger(({level, message}) => {
@@ -100,6 +103,16 @@ function Expensify({
     const [isSplashHidden, setIsSplashHidden] = useState(false);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
+
+    useEffect(() => {
+        if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
+            return;
+        }
+        setShouldShowRequire2FAModal(true);
+    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
+
     const [initialUrl, setInitialUrl] = useState<string | null>(null);
 
     useEffect(() => {
@@ -146,6 +159,9 @@ function Expensify({
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
+
+        // Initialize Fullstory lib
+        FS.init();
 
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
@@ -249,6 +265,16 @@ function Expensify({
                         />
                     ) : null}
                     {focusModeNotification ? <FocusModeNotification /> : null}
+                    {shouldShowRequire2FAModal ? (
+                        <RequireTwoFactorAuthenticationModal
+                            onSubmit={() => {
+                                setShouldShowRequire2FAModal(false);
+                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
+                            }}
+                            isVisible
+                            description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
+                        />
+                    ) : null}
                 </>
             )}
 

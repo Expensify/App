@@ -4,7 +4,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
@@ -20,16 +20,18 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveRoute from '@hooks/useActiveRoute';
+import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {splitTextWithEmojis} from '@libs/EmojiUtils';
+import type {TextWithEmoji} from '@libs/EmojiUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
@@ -105,8 +107,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate, formatPhoneNumber} = useLocalize();
-    const activeRoute = useActiveRoute();
+    const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
+
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const subscriptionPlan = useSubscriptionPlan();
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -202,16 +207,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             },
         ];
 
-        if (shouldShowSubscriptionsMenu) {
+        if (subscriptionPlan) {
             items.splice(1, 0, {
-                translationKey: 'allSettingsScreen.subscriptions',
-                icon: Expensicons.MoneyBag,
-                action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
-                },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+                translationKey: 'allSettingsScreen.subscription',
+                icon: Expensicons.CreditCard,
+                routeName: ROUTES.SETTINGS_SUBSCRIPTION,
+                brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
                 badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
             });
@@ -222,7 +223,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, translate]);
+    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -332,7 +333,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={!!activeRoute && !!item.routeName && !!(activeRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))}
+                                focused={
+                                    !!activeCentralPaneRoute &&
+                                    !!item.routeName &&
+                                    !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
+                                }
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
@@ -352,7 +357,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             userWallet?.currentBalance,
             isExecuting,
             singleExecution,
-            activeRoute,
+            activeCentralPaneRoute,
             waitForNavigate,
         ],
     );
@@ -361,9 +366,16 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
-    const currentUserDetails = currentUserPersonalDetails;
-    const avatarURL = currentUserDetails?.avatar ?? '';
-    const accountID = currentUserDetails?.accountID ?? '-1';
+    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
+    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
+
+    const processedTextArray: TextWithEmoji[] = useMemo(() => {
+        const doesUsernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
+        if (!doesUsernameContainEmojis) {
+            return [];
+        }
+        return splitTextWithEmojis(currentUserPersonalDetails?.displayName ?? '');
+    }, [currentUserPersonalDetails?.displayName]);
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
@@ -413,7 +425,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     </View>
                     <View style={[styles.mb3, styles.w100]}>
                         <AvatarWithImagePicker
-                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
+                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
                             source={avatarURL}
                             avatarID={accountID}
                             onImageSelected={PersonalDetails.updateAvatar}
@@ -426,18 +438,27 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             onErrorClose={PersonalDetails.clearAvatarErrors}
                             onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                            originalFileName={currentUserDetails.originalFileName}
+                            originalFileName={currentUserPersonalDetails.originalFileName}
                             headerTitle={translate('profilePage.profileAvatar')}
-                            fallbackIcon={currentUserDetails?.fallbackIcon}
+                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                             editIconStyle={styles.smallEditIconAccount}
                         />
                     </View>
-                    <Text
-                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                        numberOfLines={1}
-                    >
-                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
-                    </Text>
+                    {processedTextArray.length !== 0 ? (
+                        <Text
+                            style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))}
+                        </Text>
+                    ) : (
+                        <Text
+                            style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
+                        </Text>
+                    )}
                     {!!currentUserPersonalDetails.displayName && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}

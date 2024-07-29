@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {SelectedTagOption} from '@components/TagPicker';
+import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -177,6 +178,7 @@ type GetOptionsConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
+    action?: IOUAction;
 };
 
 type GetUserToInviteConfig = {
@@ -221,7 +223,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<
     GetOptionsConfig,
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
-> & {preferChatroomsOverThreads?: boolean};
+> & {preferChatroomsOverThreads?: boolean; includeChatRoomsByParticipants?: boolean};
 
 type HasText = {
     text?: string;
@@ -275,6 +277,13 @@ Onyx.connect({
 
         policies[key] = policy;
     },
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 const lastReportActions: ReportActions = {};
@@ -654,6 +663,20 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
 }
 
 /**
+ * Get IOU report ID of report last action if the action is report action preview
+ */
+function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefined {
+    if (!report?.reportID) {
+        return;
+    }
+    const lastAction = visibleReportActionItems[report.reportID];
+    if (!ReportActionUtils.isReportPreviewAction(lastAction)) {
+        return;
+    }
+    return getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+}
+
+/**
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
@@ -663,8 +686,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[reportID] ?? null;
     let lastMessageTextFromReport = '';
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
 
-    if (ReportUtils.isArchivedRoom(report)) {
+    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -725,6 +749,12 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(reportID);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(reportID);
+    } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
+        lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
+        lastMessageTextFromReport = ReportActionUtils.getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName && ReportActionUtils.isOldDotReportAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -784,10 +814,11 @@ function createOption(
     let reportName;
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
-        result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+        result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1809,6 +1840,7 @@ function getOptions(
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
         includeDomainEmail = false,
+        action,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -2048,7 +2080,14 @@ function getOptions(
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
-            recentReportOptions.push(reportOption);
+            if (action === CONST.IOU.ACTION.CATEGORIZE) {
+                const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
+                if (getEnabledCategoriesCount(policyCategories) !== 0) {
+                    recentReportOptions.push(reportOption);
+                }
+            } else {
+                recentReportOptions.push(reportOption);
+            }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
@@ -2211,6 +2250,7 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includeInvoiceRooms = false,
+    action: IOUAction | undefined = undefined,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2238,6 +2278,7 @@ function getFilteredOptions(
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
+            action,
         },
     );
 }
@@ -2446,7 +2487,15 @@ function getFirstKeyForList(data?: Option[] | null) {
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], maxRecentReportsToShow = 0, excludeLogins = [], preferChatroomsOverThreads = false} = config ?? {};
+    const {
+        sortByReportTypeInSearch = false,
+        canInviteUser = true,
+        betas = [],
+        maxRecentReportsToShow = 0,
+        excludeLogins = [],
+        preferChatroomsOverThreads = false,
+        includeChatRoomsByParticipants = false,
+    } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
     }
@@ -2506,6 +2555,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
+
+                if (includeChatRoomsByParticipants) {
+                    values = values.concat(getParticipantsLoginsArray(item));
+                }
             }
 
             if (!item.isChatRoom) {
@@ -2520,11 +2573,19 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
 
+        const currentUserOptionSearchText = uniqFast([
+            items.currentUserOption?.text ?? '',
+            items.currentUserOption?.login ?? '',
+            items.currentUserOption?.login?.replace(emailRegex, '') ?? '',
+        ]).join(' ');
+
+        const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
+
         return {
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
             userToInvite: null,
-            currentUserOption: null,
+            currentUserOption,
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],
@@ -2587,6 +2648,7 @@ export {
     isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
+    getIOUReportIDOfLastAction,
     getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,

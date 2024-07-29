@@ -30,9 +30,13 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
 
     // A reanimated memoized style, which tracks
     // a translateX shared value and updates the slider position.
-    const rSliderStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: sliderValue.value}],
-    }));
+    const rSliderStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        return {
+            transform: [{translateX: sliderValue.value}],
+        };
+    });
 
     const panGesture = Gesture.Pan()
         .minDistance(5)

@@ -1,4 +1,5 @@
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {ValueOf} from 'type-fest';
+import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -11,6 +12,7 @@ import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -22,7 +24,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'type' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'transactionType' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
@@ -158,15 +160,20 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-            const value = {...data[key]};
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
+            const reportItem = {...data[key]};
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
+            const isExpenseReport = reportItem.type === CONST.REPORT.TYPE.EXPENSE;
+
+            const to = isExpenseReport
+                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
+                : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
 
             reportIDToTransactions[reportKey] = {
-                ...value,
-                keyForList: value.reportID,
-                from: data.personalDetailsList?.[value.accountID],
-                to: data.personalDetailsList?.[value.managerID],
+                ...reportItem,
+                keyForList: reportItem.reportID,
+                from: data.personalDetailsList?.[reportItem.accountID],
+                to,
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -292,7 +299,7 @@ function getSortedReportData(data: ReportListItemType[]) {
     });
 }
 
-function getSearchParams() {
+function getCurrentSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
@@ -301,16 +308,123 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
+function getQueryHashFromString(query: SearchQueryString): number {
+    return UserUtils.hashText(query, 2 ** 32);
+}
+
+function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
+    try {
+        // Add the full input and hash to the results
+        const result = searchParser.parse(query) as SearchQueryJSON;
+        result.input = query;
+
+        // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
+        const policyIDPart = policyID ?? '';
+        result.hash = getQueryHashFromString(query + policyIDPart);
+        return result;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
+    const queryParts: string[] = [];
+    const defaultQueryJSON = buildSearchQueryJSON('');
+
+    // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
+    for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (partialQueryJSON?.[value]) {
+            queryParts.push(`${value}:${partialQueryJSON[value]}`);
+        } else if (defaultQueryJSON) {
+            queryParts.push(`${value}:${defaultQueryJSON[value]}`);
+        }
+    }
+
+    return queryParts.join(' ');
+}
+
+/**
+ * Update string query with all the default params that are set by parser
+ */
+function normalizeQuery(query: string) {
+    const normalizedQueryJSON = buildSearchQueryJSON(query);
+    return buildSearchQueryString(normalizedQueryJSON);
+}
+
+function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys>>) {
+    let queryAST;
+
+    try {
+        queryAST = searchParser.parse(query) as SearchQueryJSON;
+    } catch (e) {
+        console.error(e);
+        return;
+    }
+
+    const filters = {} as QueryFilters;
+
+    fields.forEach((field) => {
+        const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+        if (queryAST[rootFieldKey] === undefined) {
+            return;
+        }
+
+        filters[field] = {
+            operator: 'eq',
+            value: queryAST[rootFieldKey],
+        };
+    });
+
+    function traverse(node: ASTNode) {
+        if (!node.operator) {
+            return;
+        }
+
+        if (typeof node?.left === 'object') {
+            traverse(node.left);
+        }
+
+        if (typeof node?.right === 'object') {
+            traverse(node.right);
+        }
+
+        const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
+        if (!fields.includes(nodeKey)) {
+            return;
+        }
+
+        if (!filters[nodeKey]) {
+            filters[nodeKey] = [];
+        }
+
+        const filterArray = filters[nodeKey] as QueryFilter[];
+        filterArray.push({
+            operator: node.operator,
+            value: node.right as string | number,
+        });
+    }
+
+    if (queryAST.filters) {
+        traverse(queryAST.filters);
+    }
+
+    return filters;
+}
+
 export {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getCurrentSearchParams,
     getListItem,
     getQueryHash,
     getSections,
     getSortedSections,
     getShouldShowMerchant,
     getSearchType,
-    getSearchParams,
     shouldShowYear,
     isReportListItemType,
     isTransactionListItemType,
     isSearchResultsEmpty,
+    getFilters,
+    normalizeQuery,
 };

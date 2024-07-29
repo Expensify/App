@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -19,9 +19,9 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Report from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,12 +52,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
     const currentUserAccountID = Number(session?.accountID);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isIOUReport = ReportUtils.isIOUReport(report);
     const isFocused = useIsFocused();
 
     useEffect(() => {
@@ -69,7 +71,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const shouldExcludeHiddenParticipants = !isGroupChat;
+        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
         const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
@@ -112,7 +114,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -270,7 +272,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 ) : (
                     <Button
@@ -279,13 +281,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat]);
+    }, [bulkActionsButtonOptions, inviteUser, shouldUseNarrowLayout, selectedMembers, styles, translate, isGroupChat]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -317,7 +319,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
