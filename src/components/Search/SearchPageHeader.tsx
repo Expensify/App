@@ -1,9 +1,14 @@
 import React, {useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +28,61 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import type {SearchQueryJSON, SearchStatus, SelectedTransactions} from './types';
+
+type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
+    subtitleStyles?: StyleProp<TextStyle>;
+};
+
+function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: HeaderWrapperProps) {
+    const styles = useThemeStyles();
+
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
+    const middleContent = useMemo(() => {
+        return (
+            <Header
+                title={
+                    <Text
+                        style={[styles.mutedTextLabel, styles.pre]}
+                        numberOfLines={1}
+                    >
+                        {title}
+                    </Text>
+                }
+                subtitle={
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.textLarge, subtitleStyles]}
+                    >
+                        {subtitle}
+                    </Text>
+                }
+            />
+        );
+    }, [styles.mutedTextLabel, styles.pre, styles.textLarge, subtitle, subtitleStyles, title]);
+
+    return (
+        <View
+            dataSet={{dragArea: false}}
+            style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
+        >
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
+                    />
+                )}
+
+                {middleContent}
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>{children}</View>
+            </View>
+        </View>
+    );
+}
 
 type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
@@ -68,12 +128,13 @@ function SearchPageHeader({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
     const {status, input} = queryJSON;
-    console.log('queryJSON', queryJSON)
-    const headerTitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(input) : translate(headerContent[status]?.titleTx);
-    const headerSubtitle = isCustomQuery ? translate('search.filtersHeader') : '';
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(input) : translate(headerContent[status]?.titleTx);
+    const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
+
+    const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -220,13 +281,11 @@ function SearchPageHeader({
     }
 
     return (
-        <HeaderWithBackButton
+        <HeaderWrapper
             title={headerTitle}
             subtitle={headerSubtitle}
             icon={headerIcon}
-            shouldShowBackButton={false}
-            showSubtitleAboveTitle={isCustomQuery}
-            shouldUseBaseFontWithIcon
+            subtitleStyles={subtitleStyles}
         >
             {headerButtonsOptions.length > 0 && (
                 <ButtonWithDropdownMenu
@@ -240,7 +299,7 @@ function SearchPageHeader({
                     style={styles.ml2}
                 />
             )}
-        </HeaderWithBackButton>
+        </HeaderWrapper>
     );
 }
 

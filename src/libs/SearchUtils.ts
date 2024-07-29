@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
@@ -8,8 +7,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
@@ -426,18 +425,18 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
+    getFilters,
     getListItem,
     getQueryHash,
-    getSections,
-    getSortedSections,
-    getShouldShowMerchant,
-    getSearchType,
-    shouldShowYear,
-    isReportListItemType,
-    isTransactionListItemType,
-    isSearchResultsEmpty,
-    getFilters,
     getSearchHeaderTitle,
-    normalizeQuery,
+    getSearchType,
+    getSections,
+    getShouldShowMerchant,
+    getSortedSections,
     isCustomQuery,
+    isReportListItemType,
+    isSearchResultsEmpty,
+    isTransactionListItemType,
+    normalizeQuery,
+    shouldShowYear,
 };

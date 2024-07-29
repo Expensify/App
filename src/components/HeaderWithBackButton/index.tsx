@@ -60,8 +60,6 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     progressBarPercentage,
     style,
-    showSubtitleAboveTitle = false,
-    shouldUseBaseFontWithIcon = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -104,8 +102,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && !shouldUseBaseFontWithIcon && styles.textHeadlineH2]}
-                showSubtitleAboveTitle={showSubtitleAboveTitle}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
             />
         );
     }, [
@@ -126,8 +123,6 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
-        showSubtitleAboveTitle,
-        shouldUseBaseFontWithIcon,
     ]);
 
     return (
