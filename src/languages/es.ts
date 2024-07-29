@@ -3627,6 +3627,7 @@ export default {
     search: {
         selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+        viewResults: 'Ver resultados',
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
@@ -3644,9 +3645,10 @@ export default {
         filtersHeader: 'Filtros',
         filters: {
             date: {
-                before: 'Antes de',
-                after: 'Después de',
+                before: (date?: string) => `Antes de ${date ?? ''}`,
+                after: (date?: string) => `Después de ${date ?? ''}`,
             },
+            status: 'Estado',
         },
     },
     genericErrorPage: {

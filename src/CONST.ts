@@ -5251,6 +5251,9 @@ const CONST = {
             DRAFTS: 'drafts',
             FINISHED: 'finished',
         },
+        TYPE: {
+            EXPENSE: 'expense',
+        },
         TAB: {
             EXPENSE: {
                 ALL: 'type:expense status:all',
