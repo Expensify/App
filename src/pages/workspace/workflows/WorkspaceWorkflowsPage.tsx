@@ -278,7 +278,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         >
             <ToggleSettingOptionRow
                 title={item.title}
-                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
+                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 subtitle={item.subtitle}
                 subtitleStyle={[styles.textLabelSupportingEmptyValue]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
