@@ -26,7 +26,7 @@ To assign a report approver to a specific member of your workspace,
     - Approves To: Determines who must approve a report after this user has approved it. This creates an approval chain. When added, a note is visible in the Details column of the Workspace Members table. If blank, the user is a “final approver.” 
     - If Report Total is Over $X then Approves To: These two fields add an extra approver if the report total exceeds the set amount. When added, a note is visible in the Details column of the Workspace Members table.
 
-[Image coming soon]
+![Image of user approval settings]({{site.url}}/assets/images/Approves_To.png){:width="100%"}
 
 ## Example
 
