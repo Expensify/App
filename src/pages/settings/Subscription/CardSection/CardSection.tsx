@@ -85,7 +85,8 @@ function CardSection() {
         BillingBanner = <TrialStartedBillingBanner />;
     } else if (SubscriptionUtils.hasUserFreeTrialEnded()) {
         BillingBanner = <TrialEndedBillingBanner />;
-    } else if (billingStatus) {
+    }
+    if (billingStatus) {
         BillingBanner = (
             <SubscriptionBillingBanner
                 title={billingStatus.title}
@@ -144,7 +145,7 @@ function CardSection() {
                         large
                     />
                 )}
-                {billingStatus?.isAuthenticationRequired !== undefined && (
+                {SubscriptionUtils.hasCardAuthenticatedError() && (
                     <Button
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}

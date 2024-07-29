@@ -28,7 +28,7 @@ function getBillingStatus(
 
     const amountOwed = SubscriptionUtils.getAmountOwed();
 
-    const subscriptionStatus = SubscriptionUtils.getSubscriptionStatus();
+    const subscriptionStatus = SubscriptionUtils.PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED;
 
     const endDate = SubscriptionUtils.getOverdueGracePeriodDate();
 
@@ -36,7 +36,7 @@ function getBillingStatus(
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
-    switch (subscriptionStatus?.status) {
+    switch (subscriptionStatus) {
         case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwed.title'),
