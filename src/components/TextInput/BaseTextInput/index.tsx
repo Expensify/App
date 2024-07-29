@@ -67,6 +67,7 @@ function BaseTextInput(
         prefixContainerStyle = [],
         prefixStyle = [],
         contentWidth,
+        requiresLabelBackground = true,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -310,7 +311,7 @@ function BaseTextInput(
                             <>
                                 {/* Adding this background to the label only for multiline text input,
                 to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
+                                {isMultiline && requiresLabelBackground && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
                                     label={label}

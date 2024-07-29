@@ -4788,6 +4788,9 @@ export default {
                 part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
             },
         },
+        debug: {
+            title: 'Subscription depuración'
+        }
     },
     feedbackSurvey: {
         tooLimited: 'Hay que mejorar la funcionalidad',

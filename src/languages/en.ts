@@ -4265,6 +4265,9 @@ export default {
                 part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
             },
         },
+        debug: {
+            title: 'Subscription debug'
+        }
     },
     feedbackSurvey: {
         tooLimited: 'Functionality needs improvement',

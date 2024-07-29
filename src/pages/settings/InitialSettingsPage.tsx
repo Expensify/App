@@ -24,6 +24,7 @@ import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSubscriptionDebugData from '@hooks/useSubscriptionDebugData';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -101,6 +102,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies, user}: InitialSettingsPageProps) {
+    const subscriptionDebugData = useSubscriptionDebugData();
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -224,7 +226,10 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate]);
+        // subscriptionDebugData is required here to trigger UI changes while debugging
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate, subscriptionDebugData]);
 
     /**
      * Retuns a list of menu items data for general section

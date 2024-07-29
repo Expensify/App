@@ -123,6 +123,9 @@ type CustomBaseTextInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
+
+    /** Whether we need to apply a background to the input label */
+    requiresLabelBackground?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

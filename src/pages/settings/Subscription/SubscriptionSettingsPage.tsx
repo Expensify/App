@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubscriptionDebugData from '@hooks/useSubscriptionDebugData';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,6 +14,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Subscription from '@userActions/Subscription';
 import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
+import SubscriptionDebug from './SubscriptionDebug';
 import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
 import SubscriptionSettings from './SubscriptionSettings';
@@ -49,6 +51,7 @@ function SubscriptionSettingsPage() {
                     <SubscriptionPlan />
                     <SubscriptionDetails />
                     <SubscriptionSettings />
+                    <SubscriptionDebug />
                 </View>
             </ScrollView>
         </ScreenWrapper>
