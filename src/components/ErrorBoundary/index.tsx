@@ -9,7 +9,16 @@ const logError: LogError = (errorMessage, error, errorInfo) => {
 };
 
 const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-    Log.alert(`Unhandled Promise Rejection: ${event.reason}`, {}, false);
+    let rejection: unknown = event.reason;
+    if (event.reason instanceof Error) {
+        Log.alert(`Unhandled Promise Rejection: ${event.reason.message}\nStack: ${event.reason.stack}`, {}, false);
+        return;
+    }
+
+    if (typeof event.reason === 'object' && event.reason !== null) {
+        rejection = JSON.stringify(event.reason);
+    }
+    Log.alert(`Unhandled Promise Rejection: ${String(rejection)}`, {}, false);
 };
 
 function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'logError'>) {
