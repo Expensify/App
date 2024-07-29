@@ -413,13 +413,9 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys
     return filters;
 }
 
-function getSearchHeaderTitle(queryJSON: SearchQueryJSON, isSmallScreenWidth: boolean) {
-    const {type, status} = queryJSON;
-    if (isSmallScreenWidth) {
-        return `Type: ${Str.recapitalize(type)}, Status: ${Str.recapitalize(status)}`;
-    }
-
-    return `type:${type} status:${status}`;
+function getSearchHeaderTitle(input: string) {
+    // sortBy and sortOrder params aren't shown in the title, so they are removed from the input
+    return input.replace(/sortBy:\w*\s?|sortOrder:\w*\s?/g, '');
 }
 
 function isCustomQuery(routeParams: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {

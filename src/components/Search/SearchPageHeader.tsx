@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -68,9 +67,9 @@ function SearchPageHeader({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
-    const {status} = queryJSON;
+    const {status, input} = queryJSON;
 
-    const headerTitle = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(queryJSON, false) : translate(headerContent[status]?.titleTx);
+    const headerTitle = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(input) : translate(headerContent[status]?.titleTx);
     const headerSubtitle = isCustomQueryMode ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQueryMode ? Illustrations.Filters : headerContent[status]?.icon;
 
@@ -229,12 +228,6 @@ function SearchPageHeader({
             showSubtitleAboveTitle={isCustomQueryMode}
             shouldUseBaseFontWithIcon
         >
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
-                text={translate('search.filtersHeader')}
-                icon={Expensicons.Filters}
-                medium
-            />
             {headerButtonsOptions.length > 0 && (
                 <ButtonWithDropdownMenu
                     onPress={() => null}

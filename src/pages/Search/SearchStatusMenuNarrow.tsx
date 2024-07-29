@@ -1,6 +1,5 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -11,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
-import ROUTES from '@src/ROUTES';
 import type {SearchStatusMenuItem} from './SearchStatusMenu';
 
 type SearchStatusMenuNarrowProps = {
@@ -32,16 +30,33 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
 
-    const popoverMenuItems = statusMenuItems.map((item, index) => ({
-        text: item.title,
-        onSelected: singleExecution(() => Navigation.navigate(item.route)),
-        icon: item.icon,
-        iconFill: index === activeItemIndex ? theme.iconSuccessFill : theme.icon,
-        iconRight: Expensicons.Checkmark,
-        shouldShowRightIcon: index === activeItemIndex,
-        success: index === activeItemIndex,
-        containerStyle: index === activeItemIndex ? [{backgroundColor: theme.border}] : undefined,
-    }));
+    const popoverMenuItems = statusMenuItems.map((item, index) => {
+        const isSelected = title ? false : index === activeItemIndex;
+
+        return {
+            text: item.title,
+            onSelected: singleExecution(() => Navigation.navigate(item.route)),
+            icon: item.icon,
+            iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+            iconRight: Expensicons.Checkmark,
+            shouldShowRightIcon: isSelected,
+            success: isSelected,
+            containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+        };
+    });
+
+    if (title) {
+        popoverMenuItems.push({
+            text: title,
+            onSelected: closeMenu,
+            icon: Expensicons.Filters,
+            iconFill: theme.iconSuccessFill,
+            success: true,
+            containerStyle: [{backgroundColor: theme.border}],
+            iconRight: Expensicons.Checkmark,
+            shouldShowRightIcon: false,
+        });
+    }
 
     const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
@@ -59,14 +74,14 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
             >
                 {({hovered}) => (
                     <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
-                        <View style={[styles.flexRow, titleViewStyles]}>
+                        <View style={[styles.flexRow, styles.gap2, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
                                 fill={theme.icon}
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.mh1, styles.textStrong]}
+                                style={[styles.textStrong]}
                             >
                                 {menuTitle}
                             </Text>
@@ -78,11 +93,6 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
                     </Animated.View>
                 )}
             </PressableWithFeedback>
-            <Button
-                icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
-                innerStyles={styles.searchNarrowFilterButton}
-            />
             <PopoverMenu
                 menuItems={popoverMenuItems}
                 isVisible={isPopoverVisible}

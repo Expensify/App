@@ -26,11 +26,11 @@ type SearchStatusMenuItem = {
     title: string;
     status: SearchStatus;
     icon: IconAsset;
-    route: Route;
+    route?: Route;
 };
 
 function SearchStatusMenu({queryJSON, isCustomQueryMode}: SearchStatusMenuProps) {
-    const {status} = queryJSON;
+    const {status, input} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
@@ -65,7 +65,7 @@ function SearchStatusMenu({queryJSON, isCustomQueryMode}: SearchStatusMenuProps)
     const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
     if (shouldUseNarrowLayout) {
-        const title = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(queryJSON, true) : undefined;
+        const title = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(input) : undefined;
 
         return (
             <SearchStatusMenuNarrow
