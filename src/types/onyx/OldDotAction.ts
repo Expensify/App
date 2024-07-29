@@ -453,7 +453,6 @@ export type {
     OriginalMessageDelegateSubmit,
     OriginalMessageExportedToCSV,
     OriginalMessageExportedToIntegration,
-    OriginalMessageForwarded,
     OriginalMessageIntegrationsMessage,
     OriginalMessageManagerAttachReceipt,
     OriginalMessageManagerDetachReceipt,
