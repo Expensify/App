@@ -37,7 +37,8 @@ function getTextMatrix(text: string): string[][] {
  * Validates if the text contains any emoji
  */
 function containsEmoji(text: string): boolean {
-    return CONST.REGEX.EMOJIS.test(text);
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+    return emojisRegex.test(text);
 }
 
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {

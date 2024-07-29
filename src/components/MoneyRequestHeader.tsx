@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
@@ -58,15 +57,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const theme = useTheme();
     const {translate} = useLocalize();
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
-    const isSelfDMTrackExpenseReport = ReportUtils.isTrackExpenseReport(report) && ReportUtils.isSelfDM(parentReport);
-    const moneyRequestReport = !isSelfDMTrackExpenseReport ? parentReport : undefined;
-    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-    const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
 
     const markAsCash = useCallback(() => {
         TransactionActions.markAsCash(transaction?.transactionID ?? '-1', report.reportID);
@@ -142,7 +137,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 >
-                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                    {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
                         <Button
                             success
                             medium
@@ -163,7 +158,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                         />
                     )}
                 </HeaderWithBackButton>
-                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             medium
