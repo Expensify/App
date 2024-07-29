@@ -4,11 +4,15 @@ description: What to alter when your main Expensify person leaves the business
 ---
 Many Expensify customers have one person who handles all the main roles in Expensify Classic: the Billing Owner, Workspace Admin, Domain Admin, Technical Contact, and Bank Account Owner. That means that if this person leaves the company or needs to be offboarded from their current position, you’ll need to assign these roles to another employee.
 
-{% include info.html %} Your current admin and the person who will be your new admin should complete the following checklist _before_ your admin leaves the company.{% include end-info.html %}
+{% include info.html %}
+Your current admin and the person who will be your new admin should complete the following checklist _before_ your admin leaves the company.
+{% include end-info.html %}
 
 ## Checklist for the current admin
 ### 1. Assign a new admin 
-{% include info.html %} The current admin must add the new admin to all company workspaces they own, even if they are not in use. When someone takes over ownership of all workspaces, they also take over ownership of the existing Annual Subscription. If the new admin does not take ownership of all company workspaces, the previous owner will continue to be charged for the other workspaces they still own, along with their existing annual subscription, which can result in multiple subscriptions.{% include end-info.html %}
+{% include info.html %} 
+The current admin must add the new admin to all company workspaces they own, even if they are not in use. When someone takes over ownership of all workspaces, they also take over ownership of the existing Annual Subscription. If the new admin does not take ownership of all company workspaces, the previous owner will continue to be charged for the other workspaces they still own, along with their existing annual subscription, which can result in multiple subscriptions.
+{% include end-info.html %}
 
 1. [Add the new admin](https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles) to the workspace.
 2. [Assign the Admin role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles) to the new admin.
@@ -34,7 +38,9 @@ Once the previous admin has left the company, the new admin (or any admin with a
 4. To the right of the dropdown, click the Settings tab.
 5. If the bank account set as the Expensify Card settlement account matches the company bank account, use the green chat icon to send a message to Concierge or your Account Manager. We will link the settlement account to the bank account once it has been reverified by the new settlement owner. 
 
-{% include info.html %} The settlement owner must also be a Domain Admin.{% include end-info.html %}
+{% include info.html %} 
+The settlement owner must also be a Domain Admin.
+{% include end-info.html %}
 
 ### 5. Update default reimburser assignment
 1. Hover over Settings, then click Workspaces.
