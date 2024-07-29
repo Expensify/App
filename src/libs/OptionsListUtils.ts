@@ -2112,7 +2112,7 @@ function getOptions(
     });
 
     let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, getCurrentUserSearchTerms(currentUserOption).join(' '))) {
         currentUserOption = undefined;
     }
 
@@ -2487,6 +2487,10 @@ function getFirstKeyForList(data?: Option[] | null) {
 function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {
     return [item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
+
+function getCurrentUserSearchTerms(item: ReportUtils.OptionData) {
+    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+}
 /**
  * Filters options based on the search input value
  */
@@ -2571,11 +2575,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         });
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) => uniqFast(getPersonalDetailSearchTerms(item)));
 
-        const currentUserOptionSearchText = uniqFast([
-            items.currentUserOption?.text ?? '',
-            items.currentUserOption?.login ?? '',
-            items.currentUserOption?.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '',
-        ]).join(' ');
+        const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
 
         const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
 
@@ -2672,6 +2672,7 @@ export {
     getUserToInviteOption,
     shouldShowViolations,
     getPersonalDetailSearchTerms,
+    getCurrentUserSearchTerms,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
