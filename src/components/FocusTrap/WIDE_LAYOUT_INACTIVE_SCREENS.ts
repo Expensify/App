@@ -1,7 +1,10 @@
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-// Screens that should not have active focus trap when rendered on wide screen in order to allow Tab navigation in LHP and RHP
+/**
+ * Screens displayed in the BottomTab and CentralPane displayed side by side that should not have active
+ * focus trap when rendered on a wide screen to allow navigation between them using the keyboard
+ */
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
     SCREENS.HOME,
@@ -14,13 +17,11 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.SETTINGS.ABOUT,
     SCREENS.SETTINGS.WORKSPACES,
     SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+    SCREENS.WORKSPACE.ACCOUNTING.ROOT,
     SCREENS.WORKSPACE.INITIAL,
     SCREENS.WORKSPACE.PROFILE,
     SCREENS.WORKSPACE.CARD,
     SCREENS.WORKSPACE.WORKFLOWS,
-    SCREENS.WORKSPACE.WORKFLOWS_APPROVER,
-    SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY,
-    SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET,
     SCREENS.WORKSPACE.REIMBURSE,
     SCREENS.WORKSPACE.BILLS,
     SCREENS.WORKSPACE.INVOICES,

@@ -85,7 +85,9 @@ function ReportActionItemSingle({
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, [action?.actionName]);
+    const isTripRoom = ReportUtils.isTripRoom(report);
+    const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const displayAllActors = isReportPreviewAction && !isTripRoom;
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
@@ -106,6 +108,8 @@ function ReportActionItemSingle({
         displayName = actorHint;
         avatarSource = delegateDetails?.avatar;
         avatarId = action.delegateAccountID;
+    } else if (isReportPreviewAction && isTripRoom) {
+        displayName = report?.reportName ?? '';
     }
 
     // If this is a report preview, display names and avatars of both people involved
