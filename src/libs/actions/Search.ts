@@ -3,7 +3,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {SearchQueryString} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {SearchParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, SearchParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
@@ -106,11 +106,11 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-type Params = Record<string, string | string[]>;
+type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV(status: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[], onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
-        status,
+        query,
         reportIDList,
         transactionIDList,
         policyIDs,

@@ -940,10 +940,22 @@ const ROUTES = {
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',
-    ONBOARDING_ROOT: 'onboarding',
-    ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
-    ONBOARDING_WORK: 'onboarding/work',
-    ONBOARDING_PURPOSE: 'onboarding/purpose',
+    ONBOARDING_ROOT: {
+        route: 'onboarding',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+    },
+    ONBOARDING_PERSONAL_DETAILS: {
+        route: 'onboarding/personal-details',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+    },
+    ONBOARDING_WORK: {
+        route: 'onboarding/work',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work`, backTo),
+    },
+    ONBOARDING_PURPOSE: {
+        route: 'onboarding/purpose',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
 
