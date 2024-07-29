@@ -4143,6 +4143,9 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
             iouMessage = `approved ${amount}`;
             break;
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+            iouMessage = `approved ${amount}`;
+            break;
         case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
             iouMessage = `unapproved ${amount}`;
             break;
