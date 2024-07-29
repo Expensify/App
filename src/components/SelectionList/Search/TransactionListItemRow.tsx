@@ -270,7 +270,6 @@ function TransactionListItemRow({
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
-                        transactionID={item.transactionID}
                     />
                 )}
 
@@ -306,7 +305,7 @@ function TransactionListItemRow({
                             showTooltip={showTooltip}
                             isLargeScreenWidth={false}
                         />
-                        {item.category && (
+                        {!!item.category && (
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
                                 <CategoryCell
                                     isLargeScreenWidth={false}
@@ -432,7 +431,6 @@ function TransactionListItemRow({
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
-                        transactionID={item.transactionID}
                         isSelected={isButtonSelected}
                         isChildListItem={isChildListItem}
                         parentAction={parentAction}

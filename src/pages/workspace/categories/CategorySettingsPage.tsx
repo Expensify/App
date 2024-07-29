@@ -140,7 +140,19 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                         <MenuItemWithTopDescription
                             title={policyCategory['GL Code']}
                             description={translate(`workspace.categories.glCode`)}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name))}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
@@ -148,7 +160,19 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                         <MenuItemWithTopDescription
                             title={policyCategory['Payroll Code']}
                             description={translate(`workspace.categories.payrollCode`)}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name))}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
                             shouldShowRightIcon
                             disabled={shouldDisablePayrollCode}
                         />

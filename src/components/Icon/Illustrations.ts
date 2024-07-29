@@ -1,4 +1,6 @@
+import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
@@ -114,6 +116,7 @@ export {
     ConciergeExclamation,
     CreditCardsBlue,
     EmailAddress,
+    EmptyCardState,
     EmptyStateExpenses,
     FolderOpen,
     HandCard,
@@ -146,6 +149,7 @@ export {
     PinkBill,
     CreditCardsNew,
     InvoiceBlue,
+    LaptopwithSecondScreenandHourglass,
     LockOpen,
     Luggage,
     MoneyIntoWallet,

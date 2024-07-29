@@ -29,7 +29,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/onyx';
+import type {AccountData, BankAccountList, CardList} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -45,7 +45,7 @@ type PaymentMethodListOnyxProps = {
     cardList: OnyxEntry<CardList>;
 
     /** List of user's cards */
-    fundList: OnyxEntry<FundList>;
+    // fundList: OnyxEntry<FundList>;
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: OnyxEntry<boolean>;
@@ -175,7 +175,8 @@ function PaymentMethodList({
     bankAccountList = {},
     buttonRef = () => {},
     cardList = {},
-    fundList = {},
+    // Temporarily disabled because P2P debit cards are disabled.
+    // fundList = {},
     filterType = '',
     listHeaderComponent,
     isLoadingPaymentMethods = true,
@@ -226,7 +227,7 @@ function PaymentMethodList({
                     return;
                 }
 
-                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy;
+                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
                 if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
@@ -242,7 +243,7 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isAdminIssuedVirtualCard ? card?.nameValuePairs?.cardTitle || card.bank : card.bank,
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
                     description: card.domainName,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
@@ -260,10 +261,11 @@ function PaymentMethodList({
             return assignedCardsGrouped;
         }
 
-        const paymentCardList = fundList ?? {};
-
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
+        // All payment cards are temporarily disabled for use as a payment method
+        // const paymentCardList = fundList ?? {};
+        // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
+        const filteredCardList = {};
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, filteredCardList, styles);
 
         if (filterType !== '') {
@@ -302,20 +304,7 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [
-        shouldShowAssignedCards,
-        fundList,
-        bankAccountList,
-        styles,
-        filterType,
-        isOffline,
-        cardList,
-        actionPaymentMethodType,
-        activePaymentMethodID,
-        StyleUtils,
-        shouldShowRightIcon,
-        onPress,
-    ]);
+    }, [shouldShowAssignedCards, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, shouldShowRightIcon, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -423,9 +412,10 @@ export default withOnyx<PaymentMethodListProps, PaymentMethodListOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
+    // Temporarily disabled - used for P2P debit cards
+    // fundList: {
+    //     key: ONYXKEYS.FUND_LIST,
+    // },
     isLoadingPaymentMethods: {
         key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
     },

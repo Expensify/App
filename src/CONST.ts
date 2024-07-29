@@ -182,6 +182,8 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
+
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
     },
@@ -228,6 +230,8 @@ const CONST = {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
+        OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
+        OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
     DATE: {
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
@@ -364,9 +368,8 @@ const CONST = {
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -624,6 +627,8 @@ const CONST = {
 
     SIGN_IN_FORM_WIDTH: 300,
 
+    REQUEST_CODE_DELAY: 30,
+
     DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
 
     SIGN_IN_METHOD: {
@@ -664,6 +669,7 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
+        MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -842,6 +848,8 @@ const CONST = {
             IOU: 'iou',
             TASK: 'task',
             INVOICE: 'invoice',
+        },
+        UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
             BILL: 'bill',
         },
@@ -897,9 +905,17 @@ const CONST = {
             INDIVIDUAL: 'individual',
             BUSINESS: 'policy',
         },
+        EXPORT_OPTIONS: {
+            EXPORT_TO_INTEGRATION: 'exportToIntegration',
+            MARK_AS_EXPORTED: 'markAsExported',
+        },
     },
     NEXT_STEP: {
-        FINISHED: 'Finished!',
+        ICONS: {
+            HOURGLASS: 'hourglass',
+            CHECKMARK: 'checkmark',
+            STOPWATCH: 'stopwatch',
+        },
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -1205,6 +1221,8 @@ const CONST = {
         NOTE: 'n',
     },
 
+    IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
+
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
         INITIAL: 'initial',
@@ -1324,9 +1342,17 @@ const CONST = {
 
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
+        ENABLED: 'enabled',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
         SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORT: 'export',
+        EXPORTER: 'exporter',
+        BILL_DATE: 'billDate',
+        BILL_STATUS: 'billStatus',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
         TENANT_ID: 'tenantID',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
@@ -1381,6 +1407,7 @@ const CONST = {
         SYNC: 'sync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        ENTITY: 'entity',
     },
 
     SAGE_INTACCT: {
@@ -2086,8 +2113,12 @@ const CONST = {
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
+                quickbooksDesktop: 'Quickbooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
+                financialForce: 'FinancialForce',
+                billCom: 'Bill.com',
+                zenefits: 'Zenefits',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2234,6 +2265,10 @@ const CONST = {
             PHYSICAL: 'physical',
             VIRTUAL: 'virtual',
         },
+        FREQUENCY_SETTING: {
+            DAILY: 'daily',
+            MONTHLY: 'monthly',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2270,8 +2305,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -2335,6 +2370,8 @@ const CONST = {
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
+
+        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
     },
 
     PRONOUNS: {
@@ -2355,6 +2392,7 @@ const CONST = {
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
+        WORKSPACE_FEATURES: 'WorkspaceFeatures',
     },
     get EXPENSIFY_EMAILS() {
         return [
@@ -2394,7 +2432,7 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
-        ];
+        ].filter((id) => id !== -1);
     },
 
     // Emails that profile view is prohibited
@@ -2453,6 +2491,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
         CANCEL_PAYMENT: 'cancelPayment',
@@ -3843,6 +3882,9 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
     },
+    STRIPE_GBP_AUTH_STATUSES: {
+        SUCCEEDED: 'succeeded',
+    },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
         NEW_CHAT: 'chat',
@@ -4013,6 +4055,15 @@ const CONST = {
     },
 
     /**
+     * Constants with different types for the modifiedAmount violation
+     */
+    MODIFIED_AMOUNT_VIOLATION_DATA: {
+        DISTANCE: 'distance',
+        CARD: 'card',
+        SMARTSCAN: 'smartscan',
+    },
+
+    /**
      * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
@@ -4054,6 +4105,14 @@ const CONST = {
         HOLD: 'hold',
     },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
+
+    REPORT_VIOLATIONS: {
+        FIELD_REQUIRED: 'fieldRequired',
+    },
+
+    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
+        TEXT_TITLE: 'text_title',
+    },
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -5119,6 +5178,7 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
+        RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
     },
 
     RESERVATION_TYPE: {
@@ -5165,12 +5225,16 @@ const CONST = {
             REPORT: 'report',
         },
         ACTION_TYPES: {
-            DONE: 'done',
-            PAID: 'paid',
             VIEW: 'view',
             REVIEW: 'review',
+            DONE: 'done',
+            PAID: 'paid',
+        },
+        BULK_ACTION_TYPES: {
+            EXPORT: 'export',
             HOLD: 'hold',
             UNHOLD: 'unhold',
+            DELETE: 'delete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -5181,11 +5245,22 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
-        TAB: {
+        STATUS: {
             ALL: 'all',
             SHARED: 'shared',
             DRAFTS: 'drafts',
             FINISHED: 'finished',
+        },
+        TYPE: {
+            EXPENSE: 'expense',
+        },
+        TAB: {
+            EXPENSE: {
+                ALL: 'type:expense status:all',
+                SHARED: 'type:expense status:shared',
+                DRAFTS: 'type:expense status:drafts',
+                FINISHED: 'type:expense status:finished',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5200,14 +5275,6 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
-        },
-        BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            HOLD: 'hold',
-            UNHOLD: 'unhold',
-            SUBMIT: 'submit',
-            APPROVE: 'approve',
-            PAY: 'pay',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -5224,7 +5291,6 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
-            OFFSET: 'offset',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
@@ -5256,8 +5322,10 @@ const CONST = {
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',
+        GBP: 'GBP',
         NZD: 'NZD',
     },
+    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
@@ -5288,27 +5356,68 @@ const CONST = {
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
 
+    CANCELLATION_TYPE: {
+        MANUAL: 'manual',
+        AUTOMATIC: 'automatic',
+        NONE: 'none',
+    },
     EMPTY_STATE_MEDIA: {
         ANIMATION: 'animation',
         ILLUSTRATION: 'illustration',
         VIDEO: 'video',
     },
-
-    UPGRADE_FEATURE_INTRO_MAPPING: [
-        {
-            id: 'reportFields',
-            alias: 'report-fields',
-            name: 'Report Fields',
-            title: 'workspace.upgrade.reportFields.title',
-            description: 'workspace.upgrade.reportFields.description',
-            icon: 'Pencil',
-        },
-    ],
-
+    get UPGRADE_FEATURE_INTRO_MAPPING() {
+        return {
+            reportFields: {
+                id: 'reportFields' as const,
+                alias: 'report-fields',
+                name: 'Report Fields',
+                title: 'workspace.upgrade.reportFields.title' as const,
+                description: 'workspace.upgrade.reportFields.description' as const,
+                icon: 'Pencil',
+            },
+            [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
+                alias: 'netsuite',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.NETSUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.NETSUITE}.description` as const,
+                icon: 'NetSuiteSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                id: this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+                alias: 'sage-intacct',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
+                icon: 'IntacctSquare',
+            },
+            glCodes: {
+                id: 'glCodes' as const,
+                alias: 'gl-codes',
+                name: 'GL codes',
+                title: 'workspace.upgrade.glCodes.title' as const,
+                description: 'workspace.upgrade.glCodes.description' as const,
+                icon: 'Tag',
+            },
+            glAndPayrollCodes: {
+                id: 'glAndPayrollCodes' as const,
+                alias: 'gl-and-payroll-codes',
+                name: 'GL & Payroll codes',
+                title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
+                description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
+                icon: 'FolderOpen',
+            },
+        };
+    },
     REPORT_FIELD_TYPES: {
         TEXT: 'text',
         DATE: 'date',
         LIST: 'dropdown',
+    },
+
+    NAVIGATION_ACTIONS: {
+        RESET: 'RESET',
     },
 } as const;
 
@@ -5320,7 +5429,8 @@ type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
 
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType};
 
 export default CONST;
