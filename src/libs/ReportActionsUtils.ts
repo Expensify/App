@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1039,8 +1039,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     const message = getReportActionMessage(reportAction);
 
-    if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
-        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
+    if (reportAction && ('isAttachmentOnly' in reportAction || 'isAttachmentWithText' in reportAction)) {
+        return reportAction.isAttachmentOnly ?? reportAction.isAttachmentWithText ?? false;
     }
 
     if (message) {
@@ -1575,6 +1575,15 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     return result;
 }
 
+function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
+    const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
+    if (originalMessage?.description) {
+        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
+    }
+
+    return Localize.translateLocal('roomChangeLog.clearRoomDescription');
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1667,6 +1676,7 @@ export {
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
+    getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
 };
 
