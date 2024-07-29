@@ -28,6 +28,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
         return {
             title: policy.name,
             key: policy.id,
+            avatarID: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             description: date
@@ -44,7 +45,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
         <ConnectionLayout
             displayName={NetSuiteExistingConnectionsPage.displayName}
             headerTitle="workspace.common.existingConnections"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}

@@ -1,4 +1,4 @@
-import {fastMerge} from 'expensify-common';
+import {fastMerge, Str} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -68,6 +68,7 @@ Onyx.connect({
 });
 
 let currentUserAccountID: number | undefined;
+let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -77,6 +78,7 @@ Onyx.connect({
         }
 
         currentUserAccountID = value.accountID;
+        currentEmail = value?.email ?? '';
     },
 });
 
@@ -1037,8 +1039,8 @@ function getAllReportActions(reportID: string): ReportActions {
 function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     const message = getReportActionMessage(reportAction);
 
-    if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
-        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
+    if (reportAction && ('isAttachmentOnly' in reportAction || 'isAttachmentWithText' in reportAction)) {
+        return reportAction.isAttachmentOnly ?? reportAction.isAttachmentWithText ?? false;
     }
 
     if (message) {
@@ -1143,28 +1145,6 @@ function getTextFromHtml(html?: string): string {
     return html ? Parser.htmlToText(html) : '';
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
-    const html = messageElements
-        .map((messageElement) => {
-            switch (messageElement.kind) {
-                case 'userMention':
-                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
-                case 'roomReference':
-                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
-                default:
-                    return messageElement.content;
-            }
-        })
-        .join('');
-
-    return {
-        html: `<muted-text>${html}</muted-text>`,
-        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
-        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-    };
-}
-
 function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -1221,7 +1201,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction): string {
+function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
@@ -1269,7 +1249,7 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
             return Localize.translateLocal('report.actions.type.reimbursementDelayed');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
+            return Localize.translateLocal(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
             return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
@@ -1281,9 +1261,50 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const html = messageElements
+        .map((messageElement) => {
+            switch (messageElement.kind) {
+                case 'userMention':
+                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
+                case 'roomReference':
+                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
+                default:
+                    return messageElement.content;
+            }
+        })
+        .join('');
+
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
+}
+
+function getReportActionMessageFragments(action: ReportAction): Message[] {
+    if (isOldDotReportAction(action)) {
+        const oldDotMessage = getMessageOfOldDotReportAction(action);
+        const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
+        return [{text: oldDotMessage, html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
+        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    const actionMessage = action.previousMessage ?? action.message;
+    if (Array.isArray(actionMessage)) {
+        return actionMessage.filter((item): item is Message => !!item);
+    }
+    return actionMessage ? [actionMessage] : [];
 }
 
 /**
@@ -1421,6 +1442,23 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '-1');
 }
 
+function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.mentionedAccountIDs ?? [] : [];
+}
+
+function getMentionedEmailsFromMessage(message: string) {
+    const mentionEmailRegex = /<mention-user>(.*?)<\/mention-user>/g;
+    const matches = [...message.matchAll(mentionEmailRegex)];
+    return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
+}
+
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>) {
+    const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
+    const message = getReportActionMessage(reportAction)?.html ?? '';
+    const emailsFromMessage = getMentionedEmailsFromMessage(message);
+    return accountIDsFromMessage.includes(currentUserAccountID ?? -1) || emailsFromMessage.includes(currentEmail) || message.includes('<mention-here>');
+}
+
 /**
  * Check if the current user is the requestor of the action
  */
@@ -1537,6 +1575,15 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     return result;
 }
 
+function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
+    const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
+    if (originalMessage?.description) {
+        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
+    }
+
+    return Localize.translateLocal('roomChangeLog.clearRoomDescription');
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1555,6 +1602,7 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
+    getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
@@ -1628,6 +1676,8 @@ export {
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
+    getUpdateRoomDescriptionMessage,
+    didMessageMentionCurrentUser,
 };
 
 export type {LastVisibleMessage};

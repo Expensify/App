@@ -94,7 +94,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && ReportUtils.canDeleteTransaction(moneyRequestReport) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -124,7 +124,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
-    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
@@ -304,7 +303,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                {allHavePendingRTERViolation && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
                             medium
@@ -353,7 +352,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             isDisabled={shouldDisableSubmitButton}
                         />
                     )}
-                    {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                    {allHavePendingRTERViolation && shouldUseNarrowLayout && (
                         <Button
                             medium
                             success
@@ -377,7 +376,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={shouldUseNarrowLayout}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}

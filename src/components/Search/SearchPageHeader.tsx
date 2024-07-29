@@ -16,15 +16,14 @@ import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
-import getDownloadOption from './SearchActionOptionsUtils';
 import {useSearchContext} from './SearchContext';
-import type {SelectedTransactions} from './types';
+import type {SearchStatus, SelectedTransactions} from './types';
 
 type SearchPageHeaderProps = {
-    query: SearchQuery;
+    status: SearchStatus;
     selectedTransactions?: SelectedTransactions;
     selectedReports?: Array<SearchReport['reportID']>;
     clearSelectedItems?: () => void;
@@ -39,7 +38,7 @@ type SearchPageHeaderProps = {
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
 function SearchPageHeader({
-    query,
+    status,
     selectedTransactions = {},
     hash,
     clearSelectedItems,
@@ -58,7 +57,7 @@ function SearchPageHeader({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
 
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
+    const headerContent: {[key in SearchStatus]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
         shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
         drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
@@ -74,21 +73,23 @@ function SearchPageHeader({
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
 
-        // Because of some problems with the lib we use for download on native we are only enabling download for web, we should remove the SearchActionOptionsUtils files when https://github.com/Expensify/App/issues/45511 is done
-        const downloadOption = getDownloadOption(translate('common.download'), () => {
-            if (isOffline) {
-                setOfflineModalOpen?.();
-                return;
-            }
+        options.push({
+            icon: Expensicons.Download,
+            text: translate('common.download'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setOfflineModalOpen?.();
+                    return;
+                }
 
-            SearchActions.exportSearchItemsToCSV(query, selectedReports, selectedTransactionsKeys, [activeWorkspaceID ?? ''], () => {
-                setDownloadErrorModalOpen?.();
-            });
+                const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
+                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
+                    setDownloadErrorModalOpen?.();
+                });
+            },
         });
-
-        if (downloadOption) {
-            options.push(downloadOption);
-        }
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
@@ -109,7 +110,7 @@ function SearchPageHeader({
                         setIsMobileSelectionModeActive?.(false);
                     }
                     setSelectedTransactionIDs(selectedTransactionsKeys);
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute(query));
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
         }
@@ -176,6 +177,7 @@ function SearchPageHeader({
 
         return options;
     }, [
+        status,
         selectedTransactionsKeys,
         selectedTransactions,
         translate,
@@ -187,7 +189,6 @@ function SearchPageHeader({
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        query,
         isOffline,
         setOfflineModalOpen,
         setDownloadErrorModalOpen,
@@ -211,8 +212,8 @@ function SearchPageHeader({
 
     return (
         <HeaderWithBackButton
-            title={headerContent[query]?.title}
-            icon={headerContent[query]?.icon}
+            title={headerContent[status]?.title}
+            icon={headerContent[status]?.icon}
             shouldShowBackButton={false}
         >
             {headerButtonsOptions.length > 0 && (

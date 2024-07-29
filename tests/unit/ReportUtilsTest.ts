@@ -935,4 +935,60 @@ describe('ReportUtils', () => {
             expect(ReportUtils.isChatUsedForOnboarding(report2)).toBeFalsy();
         });
     });
+
+    describe('getChatByParticipants', () => {
+        const userAccountID = 1;
+        const userAccountID2 = 2;
+        let oneOnOneChatReport: Report;
+        let groupChatReport: Report;
+
+        beforeAll(() => {
+            const invoiceReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            const taskReport: Report = {
+                reportID: '2',
+                type: CONST.REPORT.TYPE.TASK,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            const iouReport: Report = {
+                reportID: '3',
+                type: CONST.REPORT.TYPE.IOU,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            groupChatReport = {
+                reportID: '4',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {[userAccountID]: {hidden: false}, [userAccountID2]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            oneOnOneChatReport = {
+                reportID: '5',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+            };
+            const reportCollectionDataSet = toCollectionDataSet(
+                ONYXKEYS.COLLECTION.REPORT,
+                [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
+                (item) => item.reportID,
+            );
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
+        });
+        it('should return the 1:1 chat', () => {
+            const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID]);
+            expect(report?.reportID).toEqual(oneOnOneChatReport.reportID);
+        });
+
+        it('should return the group chat', () => {
+            const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID, userAccountID2], undefined, true);
+            expect(report?.reportID).toEqual(groupChatReport.reportID);
+        });
+
+        it('should return undefined when no report is found', () => {
+            const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID2], undefined);
+            expect(report).toEqual(undefined);
+        });
+    });
 });

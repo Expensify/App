@@ -54,4 +54,4 @@ type Icon = {
     fill?: string;
 };
 
-export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};

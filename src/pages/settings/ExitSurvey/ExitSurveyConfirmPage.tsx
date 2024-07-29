@@ -91,6 +91,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                                 return;
                             }
                             Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            Navigation.dismissModal();
                         });
                     }}
                     isLoading={isLoading ?? false}

@@ -19,9 +19,9 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -45,7 +45,7 @@ function WorkspaceTaxesPage({
         params: {policyID},
     },
 }: WorkspaceTaxesPageProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -211,7 +211,7 @@ function WorkspaceTaxesPage({
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, shouldUseNarrowLayout && styles.mb3]}>
             {!hasAccountingConnections && (
                 <Button
                     medium
@@ -219,7 +219,7 @@ function WorkspaceTaxesPage({
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                     icon={Expensicons.Plus}
                     text={translate('workspace.taxes.addRate')}
-                    style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                    style={[styles.mr3, shouldUseNarrowLayout && styles.flex1]}
                 />
             )}
             <Button
@@ -227,7 +227,7 @@ function WorkspaceTaxesPage({
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.flex1]}
+                style={[shouldUseNarrowLayout && styles.flex1]}
             />
         </View>
     ) : (
@@ -239,7 +239,7 @@ function WorkspaceTaxesPage({
             shouldAlwaysShowDropdownMenu
             pressOnEnter
             isSplitButton={false}
-            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
     );
 
@@ -277,13 +277,13 @@ function WorkspaceTaxesPage({
                 <HeaderWithBackButton
                     icon={Illustrations.Coins}
                     title={translate('workspace.common.taxes')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                 >
-                    {!isSmallScreenWidth && headerButtons}
+                    {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
-                {!isSmallScreenWidth && getHeaderText()}
+                {!shouldUseNarrowLayout && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -299,7 +299,7 @@ function WorkspaceTaxesPage({
                     onSelectAll={toggleAllTaxes}
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
-                    listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                    listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}

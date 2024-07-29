@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
@@ -19,9 +20,6 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Full amount of expense report to pay */
     fullAmount: string;
-
-    /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: boolean;
 
     /** Whether modal is visible */
     isVisible: boolean;
@@ -49,7 +47,6 @@ function ProcessMoneyReportHoldMenu({
     requestType,
     nonHeldAmount,
     fullAmount,
-    isSmallScreenWidth = false,
     onClose,
     isVisible,
     paymentType,
@@ -59,6 +56,7 @@ function ProcessMoneyReportHoldMenu({
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {

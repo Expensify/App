@@ -20,8 +20,8 @@ import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
@@ -120,7 +120,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -492,10 +492,10 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
-                        {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
