@@ -29,7 +29,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccountList, CardList} from '@src/types/onyx';
+import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -45,7 +45,7 @@ type PaymentMethodListOnyxProps = {
     cardList: OnyxEntry<CardList>;
 
     /** List of user's cards */
-    // fundList: OnyxEntry<FundList>;
+    fundList: OnyxEntry<FundList>;
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: OnyxEntry<boolean>;
@@ -175,8 +175,7 @@ function PaymentMethodList({
     bankAccountList = {},
     buttonRef = () => {},
     cardList = {},
-    // Temporarily disabled because P2P debit cards are disabled.
-    // fundList = {},
+    fundList = {},
     filterType = '',
     listHeaderComponent,
     isLoadingPaymentMethods = true,
@@ -261,11 +260,10 @@ function PaymentMethodList({
             return assignedCardsGrouped;
         }
 
+        const paymentCardList = fundList ?? {};
+
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        // All payment cards are temporarily disabled for use as a payment method
-        // const paymentCardList = fundList ?? {};
-        // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
-        const filteredCardList = {};
+        const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, filteredCardList, styles);
 
         if (filterType !== '') {
@@ -304,7 +302,20 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, shouldShowRightIcon, onPress]);
+    }, [
+        shouldShowAssignedCards,
+        fundList,
+        bankAccountList,
+        styles,
+        filterType,
+        isOffline,
+        cardList,
+        actionPaymentMethodType,
+        activePaymentMethodID,
+        StyleUtils,
+        shouldShowRightIcon,
+        onPress,
+    ]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -412,10 +423,9 @@ export default withOnyx<PaymentMethodListProps, PaymentMethodListOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
-    // Temporarily disabled - used for P2P debit cards
-    // fundList: {
-    //     key: ONYXKEYS.FUND_LIST,
-    // },
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
+    },
     isLoadingPaymentMethods: {
         key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
     },
