@@ -1,8 +1,8 @@
 ---
-title: Set up QuickBooks Online connection
+title: Connect to QuickBooks Online
 description: Integrate QuickBooks Online with Expensify
+order: 1
 ---
-<div id="new-expensify" markdown="1">
 
 {% include info.html %}
 To use the QuickBooks Online connection, you must have a QuickBooks Online account and an Expensify Collect plan. The QuickBooks Self-employed subscription is not supported.
@@ -134,5 +134,3 @@ This may occur if you incorrectly enter your QuickBooks Online login information
 3. Enter your Intuit login details (the login information you use for QuickBooks Online) to establish the connection.
 
 {% include faq-end.md %}
-
-</div>
