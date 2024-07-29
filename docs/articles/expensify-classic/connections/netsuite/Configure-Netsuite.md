@@ -2,10 +2,9 @@
 title: Configure Netsuite
 description: Configure NetSuite's export, coding, and advanced settings. 
 ---
-
 By correctly configuring your NetSuite settings in Expensify, you can leverage the connection's settings to automate most of the tasks, making your workflow more efficient.
 
-# Configure Export Settings
+# Step 1: Configure Export Settings
 
 There are numerous options for exporting Expensify reports to NetSuite. Let's explore how to configure these settings to align with your business needs.
 
@@ -86,7 +85,7 @@ Select the Accounts Receivable account you want your Invoice Reports to export. 
 
 When selecting the option to export non-reimbursable expenses as vendor bills, the list of vendors will be available in the dropdown menu.
 
-# Configure Coding Settings
+# Step 2: Configure Coding Settings
 
 The Coding tab is where NetSuite information is configured in Expensify, which allows employees to code expenses and reports accurately. There are several coding options in NetSuite. Let’s go over each of those below. 
 
@@ -224,7 +223,7 @@ Lastly, head over to Expensify, and do the following:
 
 From there, you should see the values for the Custom Lists under the Tag or Report Field settings in Expensify. 
 
-# Configure Advanced Settings
+# Step 3: Configure Advanced Settings
 
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > Group > _[Workspace Name]_ > Connections > NetSuite > Configure > Advanced tab**.
 
