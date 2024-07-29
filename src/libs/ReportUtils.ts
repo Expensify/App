@@ -1897,6 +1897,13 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
     return allPersonalDetails?.[accountID] ?? defaultDetails;
 }
 
+/**
+ * Returns the personal details or a default object if the personal details are not available.
+ */
+function getPersonalDetailsOrDefault(personalDetails: Partial<PersonalDetails> | undefined | null): Partial<PersonalDetails> {
+    return personalDetails ?? {isOptimisticPersonalDetail: true};
+}
+
 const hiddenTranslation = Localize.translateLocal('common.hidden');
 
 const phoneNumberCache: Record<string, string> = {};
@@ -1909,7 +1916,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         return '';
     }
 
-    const personalDetails = getPersonalDetailsForAccountID(accountID);
+    const personalDetails = getPersonalDetailsOrDefault(allPersonalDetails?.[accountID]);
     if (!personalDetails) {
         return '';
     }

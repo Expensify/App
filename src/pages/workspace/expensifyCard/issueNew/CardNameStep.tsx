@@ -75,8 +75,7 @@ function CardNameStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                // TODO: change the submitButtonText to 'common.confirm' when editing and navigate to ConfirmationStep
-                submitButtonText={translate('common.next')}
+                submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
