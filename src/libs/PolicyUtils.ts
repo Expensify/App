@@ -557,14 +557,9 @@ function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefin
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
-function findSelectedPayableAccountWithDefaultSelect(payableAccounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
-    const selectedPayableAccount = (payableAccounts ?? []).find(({id}) => id === selectedBankAccountId);
-    return selectedPayableAccount ?? payableAccounts?.[0] ?? undefined;
-}
-
-function findSelectedReceivableAccountWithDefaultSelect(receivableAccounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
-    const selectedReceivableAccount = (receivableAccounts ?? []).find(({id}) => id === selectedBankAccountId);
-    return selectedReceivableAccount ?? receivableAccounts?.[0] ?? undefined;
+function findSelectedBankAccountWithDefaultSelect(accounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
+    const selectedBankAccount = (accounts ?? []).find(({id}) => id === selectedBankAccountId);
+    return selectedBankAccount ?? accounts?.[0] ?? undefined;
 }
 
 function findSelectedInvoiceItemWithDefaultSelect(invoiceItems: InvoiceItem[] | undefined, selectedItemId: string | undefined) {
@@ -593,7 +588,7 @@ function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: 
 function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
 
-    const selectedPayableAccount = findSelectedPayableAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
 
     return (payableAccounts ?? []).map(({id, name}) => ({
         value: id,
@@ -606,7 +601,7 @@ function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBa
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const receivableAccounts = policy?.connections?.netsuite.options.data.receivableList;
 
-    const selectedReceivableAccount = findSelectedReceivableAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
+    const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
 
     return (receivableAccounts ?? []).map(({id, name}) => ({
         value: id,
@@ -659,7 +654,7 @@ function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selec
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
     const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
 
-    const selectedPayableAccount = findSelectedPayableAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
@@ -677,7 +672,7 @@ function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selecte
     const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
     const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
 
-    const selectedPayableAccount = findSelectedPayableAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
@@ -700,7 +695,7 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     };
     const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
 
-    const selectedPayableAccount = findSelectedPayableAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
@@ -930,8 +925,7 @@ export {
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
     findSelectedVendorWithDefaultSelect,
-    findSelectedPayableAccountWithDefaultSelect,
-    findSelectedReceivableAccountWithDefaultSelect,
+    findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     getNetSuiteVendorOptions,

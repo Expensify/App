@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelectedPayableAccountWithDefaultSelect, getFilteredApprovalAccountOptions, getFilteredCollectionAccountOptions, getFilteredReimbursableAccountOptions} from '@libs/PolicyUtils';
+import {findSelectedBankAccountWithDefaultSelect, getFilteredApprovalAccountOptions, getFilteredCollectionAccountOptions, getFilteredReimbursableAccountOptions} from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -28,11 +28,11 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const selectedReimbursementAccount = useMemo(
-        () => findSelectedPayableAccountWithDefaultSelect(getFilteredReimbursableAccountOptions(payableList), config?.reimbursementAccountID),
+        () => findSelectedBankAccountWithDefaultSelect(getFilteredReimbursableAccountOptions(payableList), config?.reimbursementAccountID),
         [payableList, config?.reimbursementAccountID],
     );
     const selectedCollectionAccount = useMemo(
-        () => findSelectedPayableAccountWithDefaultSelect(getFilteredCollectionAccountOptions(payableList), config?.collectionAccount),
+        () => findSelectedBankAccountWithDefaultSelect(getFilteredCollectionAccountOptions(payableList), config?.collectionAccount),
         [payableList, config?.collectionAccount],
     );
     const selectedApprovalAccount = useMemo(() => {
@@ -42,7 +42,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
             };
         }
-        return findSelectedPayableAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
+        return findSelectedBankAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
 
     const menuItems: Array<MenuItem | ToggleItem | DividerLineItem> = [

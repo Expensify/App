@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelectedPayableAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect} from '@libs/PolicyUtils';
+import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -37,10 +37,10 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     const defaultVendor = useMemo(() => findSelectedVendorWithDefaultSelect(vendors, config?.defaultVendor), [vendors, config?.defaultVendor]);
 
-    const selectedPayableAccount = useMemo(() => findSelectedPayableAccountWithDefaultSelect(payableList, config?.payableAcct), [payableList, config?.payableAcct]);
+    const selectedPayableAccount = useMemo(() => findSelectedBankAccountWithDefaultSelect(payableList, config?.payableAcct), [payableList, config?.payableAcct]);
 
     const selectedReimbursablePayableAccount = useMemo(
-        () => findSelectedPayableAccountWithDefaultSelect(payableList, config?.reimbursablePayableAccount),
+        () => findSelectedBankAccountWithDefaultSelect(payableList, config?.reimbursablePayableAccount),
         [payableList, config?.reimbursablePayableAccount],
     );
 
