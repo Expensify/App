@@ -5,7 +5,6 @@ import type {
     ChangePolicyParams,
     DelegateSubmitParams,
     ExportedToIntegrationParams,
-    ForwardedParams,
     IntegrationsMessageParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
@@ -22,7 +21,6 @@ type OldDotOriginalMessageActionName =
     | 'DELEGATESUBMIT'
     | 'EXPORTCSV'
     | 'EXPORTINTEGRATION'
-    | 'FORWARDED'
     | 'INTEGRATIONSMESSAGE'
     | 'MANAGERATTACHRECEIPT'
     | 'MANAGERDETACHRECEIPT'
@@ -120,17 +118,6 @@ type OriginalMessageExportedToIntegration = {
      *
      */
     originalMessage: ExportedToIntegrationParams & Record<string, unknown>;
-};
-
-type OriginalMessageForwarded = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
-    /**
-     *
-     */
-    originalMessage: ForwardedParams & Record<string, unknown>;
 };
 
 /**

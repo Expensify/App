@@ -315,8 +315,6 @@ type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
-type ForwardedParams = {to: string};
-
 type IntegrationsMessageParams = {
     label: string;
     result: {
@@ -462,7 +460,6 @@ export type {
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
-    ForwardedParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
