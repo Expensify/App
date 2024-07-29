@@ -12,7 +12,7 @@ To export your expense data to a CSV,
  2. Select the checkbox to the left of the expenses or reports you wish to export.
  3. Click **# selected** at the top-right and select **Download**. 
 
-The CSV download will save locally to your device with the file naming prefix _“Expensify_.”_ This file provides the following data for each expense: 
+The CSV download will save locally to your device with the file naming prefix _“Expensify.”_ This file provides the following data for each expense: 
  - Date	
  - Merchant
  - Description
