@@ -585,12 +585,6 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: never;
-    /** */
-    // TODO: remove after BE is ready - added for testing purposes
-    [CONST.REPORT.ACTIONS.TYPE.NO_MAILING_ADDRESS]: never;
-    /** */
-    // TODO: remove after BE is ready - added for testing purposes
-    [CONST.REPORT.ACTIONS.TYPE.ADDRESS_ADDED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {

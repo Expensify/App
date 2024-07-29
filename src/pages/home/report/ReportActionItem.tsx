@@ -655,18 +655,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
         } else if (
-            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
-            // TODO: Remove this once the above condition is working (after BE integration)
-            // @ts-expect-error html does not exist on type '{}'
-            originalMessage?.html === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED ||
-            // @ts-expect-error html does not exist on type '{}'
-            originalMessage?.html === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL ||
-            // @ts-expect-error html does not exist on type '{}'
-            originalMessage?.html === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS ||
-            // @ts-expect-error html does not exist on type '{}'
-            originalMessage?.html === 'NOMAILINGADDRESS' ||
-            // @ts-expect-error html does not exist on type '{}'
-            originalMessage?.html === 'ADDRESSADDED'
+            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
             children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {

@@ -30,30 +30,16 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     const assignee = `<mention-user accountID=${personalData.accountID}></mention-user>`;
     const link = `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('cardPage.expensifyCard')}</a>`;
 
-    // TODO: remove two last cases from the condition - added only for testing purposes, change privatePersonalDetails?.address for a proper address of user with assigneeAccountID
-    const noMailingAddress =
-        (action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address)) ||
-        // @ts-expect-error 'action.originalMessage' is of type 'unknown'.
-        action?.originalMessage.html === CONST.REPORT.ACTIONS.TYPE.NO_MAILING_ADDRESS ||
-        // @ts-expect-error 'action.originalMessage' is of type 'unknown'.
-        (action?.originalMessage.html === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address));
+    const noMailingAddress = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address);
 
     const getTranslation = () => {
-        // switch (action?.actionName) {
-        // TODO: replace with previous line - added only for testing purposes
-        // @ts-expect-error 'action.originalMessage' is of type 'unknown'.
-        switch (action?.originalMessage?.html) {
+        switch (action?.actionName) {
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
                 return translate('workspace.expensifyCard.issuedCard', assignee);
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
                 return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
             case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
                 return translate(`workspace.expensifyCard.${noMailingAddress ? 'issuedCardNoMailingAddress' : 'addedAddress'}`, assignee);
-            // TODO: remove two following cases - added only for testing purposes
-            case CONST.REPORT.ACTIONS.TYPE.ADDRESS_ADDED:
-                return translate('workspace.expensifyCard.addedAddress', assignee);
-            case CONST.REPORT.ACTIONS.TYPE.NO_MAILING_ADDRESS:
-                return translate('workspace.expensifyCard.issuedCardNoMailingAddress', assignee);
             default:
                 return '';
         }
