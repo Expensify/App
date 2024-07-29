@@ -34,7 +34,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const clearSelectedTransactions = useCallback(
         (searchHash?: number) => {
-            if (!searchHash || searchHash === searchContextData.currentSearchHash) {
+            if (searchHash === searchContextData.currentSearchHash) {
                 return;
             }
             setSearchContextData((prevState) => ({
