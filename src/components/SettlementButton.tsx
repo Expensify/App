@@ -285,10 +285,7 @@ function SettlementButton({
                 <ButtonWithDropdownMenu<PaymentType>
                     success
                     buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu={isInvoiceReport}
-                    customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                    isSplitButton={!isInvoiceReport}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
