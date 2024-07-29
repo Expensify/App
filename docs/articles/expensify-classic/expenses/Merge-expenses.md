@@ -54,7 +54,7 @@ Look carefully at your expenses. Each expense has an icon that denotes where the
 
 Ideally, your credit card expenses will all also have a SmartScanned receipt attached. If you are in the US and your admin has allowed eReceipts for low-value expenses, your expense may include the locked credit card icon and a QR code for the receipt image.
 
-[Image coming soon]
+![Image of different expenses]({{site.url}}/assets/images/Expenses.png){:width="100%"}
 
 If you see any other combination of icon and image, there is likely a duplicate expense and you will need to manually merge the expenses using the steps above.
 
