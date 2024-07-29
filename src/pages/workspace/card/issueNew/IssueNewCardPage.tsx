@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AssigneeStep from './AssigneeStep';
@@ -17,7 +18,9 @@ function IssueNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {currentStep} = issueNewCard ?? {};
 
     // TODO: add logic to skip Assignee step when the flow is started from the member's profile page
-    // TODO: StartIssueNewCardFlow call to API
+    useEffect(() => {
+        Card.startIssueNewCardFlow(policy?.id ?? '-1');
+    }, [policy?.id]);
 
     switch (currentStep) {
         case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
