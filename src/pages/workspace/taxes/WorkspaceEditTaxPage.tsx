@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,7 +35,8 @@ function WorkspaceEditTaxPage({
 }: WorkspaceEditTaxPageBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
+    const currentTaxID = PolicyUtils.getCurrentTaxID(policy, taxID);
+    const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, taxID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
@@ -48,6 +49,13 @@ function WorkspaceEditTaxPage({
         }
         setPolicyTaxesEnabled(policyID, [taxID], !!currentTaxRate.isDisabled);
     };
+
+    useEffect(() => {
+        if (currentTaxID === taxID || !currentTaxID) {
+            return;
+        }
+        Navigation.setParams({taxID: currentTaxID});
+    }, [taxID, currentTaxID]);
 
     const deleteTaxRate = () => {
         if (!policyID) {
@@ -142,6 +150,7 @@ function WorkspaceEditTaxPage({
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
                             }}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
                     {shouldShowDeleteMenuItem && (
