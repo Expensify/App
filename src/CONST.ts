@@ -682,6 +682,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
+                CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
+                CARD_ISSUED: 'CARDISSUED',
+                CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
