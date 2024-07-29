@@ -142,7 +142,13 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             description={translate(`workspace.categories.glCode`)}
                             onPress={() => {
                                 if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
@@ -156,7 +162,13 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             description={translate(`workspace.categories.payrollCode`)}
                             onPress={() => {
                                 if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
