@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
@@ -131,6 +132,7 @@ function UserListItem<TItem extends ListItem>({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
+                                emojiFontSize={variables.emojiSizeSmall}
                                 text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
