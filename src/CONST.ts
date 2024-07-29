@@ -4266,7 +4266,7 @@ const CONST = {
     },
 
     ONBOARDING_MESSAGES: {
-        [(onboardingChoices.EMPLOYER || onboardingChoices.SUBMIT)]: {
+        [onboardingChoices.EMPLOYER || onboardingChoices.SUBMIT]: {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
