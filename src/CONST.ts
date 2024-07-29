@@ -4262,7 +4262,7 @@ const CONST = {
                         'Here’s how to set up your bank account:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. *Click Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                         '3. Connect your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
@@ -4436,7 +4436,7 @@ const CONST = {
                         'Here’s how to set up your bank account:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. *Click Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
+                        '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                         '3. Connect your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
