@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import {getEffectiveDisplayName} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getEffectiveDisplayName} from '@libs/PersonalDetailsUtils'
 import * as Localize from './Localize';
 import Log from './Log';
 import * as ReportConnection from './ReportConnection';

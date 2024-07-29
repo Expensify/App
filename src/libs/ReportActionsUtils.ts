@@ -1585,7 +1585,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
     if (originalMessage?.description) {
-        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
+        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${Parser.htmlToText(originalMessage?.description)}`;
     }
 
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
