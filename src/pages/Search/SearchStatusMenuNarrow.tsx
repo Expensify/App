@@ -63,12 +63,12 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
     const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
 
     return (
-        <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5]}>
+        <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
                 ref={buttonRef}
-                style={[styles.tabSelectorButton, styles.pl0]}
+                style={[styles.tabSelectorButton, styles.ph5]}
                 wrapperStyle={styles.flex1}
                 onPress={openMenu}
             >
