@@ -26,7 +26,7 @@ import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -46,9 +46,9 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 Policy.updateGeneralSettings(onboardingPolicyID, work);
             }
 
-            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
         },
-        [onboardingPurposeSelected, onboardingPolicyID],
+        [onboardingPurposeSelected, onboardingPolicyID, route.params?.backTo],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
