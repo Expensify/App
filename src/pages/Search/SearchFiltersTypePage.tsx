@@ -21,7 +21,7 @@ function SearchFiltersTypePage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const activeItem = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.TYPE.EXPENSE;
+    const activeItem = searchAdvancedFiltersForm?.type;
 
     const filterTypeItems = useMemo(
         () => [

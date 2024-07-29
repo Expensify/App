@@ -6,6 +6,7 @@ import type {ListItem, ReportListItemType, TransactionListItemType} from '@compo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -352,12 +353,42 @@ function normalizeQuery(query: string) {
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
+/**
+ * Given object with chosen search filters builds correct query string from them
+ * Note: date filter value is built from 2 form fields so needs special handling, all other filters map 1-to-1
+ */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    // Object.entries(filterValues).map(([filterKey, filterValue]) => {
-    //     if (filterKey === 'dateFrom' || filterKey === 'dateTo') {
-    //     }
-    // });
-    return '';
+    const dateBefore = filterValues[INPUT_IDS.DATE_BEFORE];
+    const dateAfter = filterValues[INPUT_IDS.DATE_AFTER];
+
+    let dateFilter = '';
+    if (dateBefore) {
+        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<${dateBefore}`;
+    }
+    if (dateBefore && dateAfter) {
+        dateFilter += ' ';
+    }
+    if (dateAfter) {
+        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>${dateAfter}`;
+    }
+
+    // TODO add handling of multiple values picked
+    const filtersString = Object.entries(filterValues)
+        .map(([filterKey, filterValue]) => {
+            if (filterKey === INPUT_IDS.TYPE && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.STATUS && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+            }
+
+            return undefined;
+        })
+        .filter(Boolean)
+        .join(' ');
+
+    return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
 }
 
 function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFiltersKeys>>) {
