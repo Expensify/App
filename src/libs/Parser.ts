@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import {getEffectiveDisplayName} from './PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as Localize from './Localize';
 import Log from './Log';
+import {getEffectiveDisplayName} from './PersonalDetailsUtils';
 import * as ReportConnection from './ReportConnection';
 
 const accountIDToNameMap: Record<string, string> = {};
