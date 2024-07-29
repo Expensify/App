@@ -744,7 +744,6 @@ function createOption(
         phoneNumber: undefined,
         hasDraftComment: false,
         keyForList: undefined,
-        searchText: undefined,
         isDefaultRoom: false,
         isPinned: false,
         isWaitingOnBankAccount: false,
@@ -2015,22 +2014,6 @@ function getOptions(
                 continue;
             }
 
-            // Finally check to see if this option is a match for the provided search string if we have one
-            const {searchText, participantsList, isChatRoom} = reportOption;
-            const participantNames = getParticipantNames(participantsList);
-
-            if (searchValue) {
-                // Determine if the search is happening within a chat room and starts with the report ID
-                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID ?? '-1', searchValue);
-
-                // Check if the search string matches the search text or participant names considering the type of the room
-                const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
-
-                if (!isReportIdSearch && !isSearchMatch) {
-                    continue;
-                }
-            }
-
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -2055,19 +2038,11 @@ function getOptions(
         if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
             return;
         }
-        const {searchText, participantsList, isChatRoom} = personalDetailOption;
-        const participantNames = getParticipantNames(participantsList);
-        if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
-            return;
-        }
 
         personalDetailsOptions.push(personalDetailOption);
     });
 
-    let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, getCurrentUserSearchTerms(currentUserOption).join(' '))) {
-        currentUserOption = undefined;
-    }
+    const currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
 
     let userToInvite: ReportUtils.OptionData | null = null;
     if (
