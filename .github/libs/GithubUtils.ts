@@ -463,13 +463,6 @@ class GithubUtils {
     }
 
     /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests: number[]): string {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
-    }
-
-    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number): string {

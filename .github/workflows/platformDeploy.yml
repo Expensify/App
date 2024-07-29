@@ -379,7 +379,7 @@ jobs:
 
       - name: Upload web build to GitHub Release
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run:
+        run: |
           tar -czvf webBuild.tar.gz dist
           zip -r webBuild.zip dist
           gh release upload ${{ github.event.release.tag_name }} webBuild.tar.gz webBuild.zip
