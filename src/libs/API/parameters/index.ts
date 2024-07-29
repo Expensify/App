@@ -268,3 +268,4 @@ export type {default as CopyExistingPolicyConnectionParams} from './CopyExisting
 export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
+export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
