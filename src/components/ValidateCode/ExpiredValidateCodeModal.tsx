@@ -31,18 +31,22 @@ function ExpiredValidateCodeModal() {
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
                 <View style={[styles.mt2, styles.mb2]}>
-                    <Text style={styles.textAlignCenter}>
-                        {translate('validateCodeModal.expiredCodeDescription')}
-                        {translate('validateCodeModal.or')}{' '}
-                        <TextLink
-                            onPress={() => {
-                                Session.beginSignIn(credentials?.login ?? '');
-                                Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-                            }}
-                        >
-                            {translate('validateCodeModal.requestOneHere')}
-                        </TextLink>
-                    </Text>
+                    {credentials?.login ? (
+                        <Text style={styles.textAlignCenter}>
+                            {translate('validateCodeModal.expiredCodeDescription')}
+                            {translate('validateCodeModal.or')}{' '}
+                            <TextLink
+                                onPress={() => {
+                                    Session.beginSignIn(credentials?.login ?? '');
+                                    Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                                }}
+                            >
+                                {translate('validateCodeModal.requestOneHere')}
+                            </TextLink>
+                        </Text>
+                    ) : (
+                        <Text style={styles.textAlignCenter}>{translate('validateCodeModal.expiredCodeDescription')}.</Text>
+                    )}
                 </View>
             </View>
             <View style={styles.deeplinkWrapperFooter}>

@@ -43,6 +43,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -287,6 +288,12 @@ type OptimisticChatReport = Pick<
 > & {
     isOptimisticReport: true;
 };
+
+type OptimisticExportIntegrationAction = OriginalMessageExportedToIntegration &
+    Pick<
+        ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>,
+        'reportActionID' | 'actorAccountID' | 'avatar' | 'created' | 'lastModified' | 'message' | 'person' | 'shouldShow' | 'pendingAction' | 'errors' | 'automatic'
+    >;
 
 type OptimisticTaskReportAction = Pick<
     ReportAction,
@@ -5218,6 +5225,40 @@ function buildOptimisticTaskReport(
 }
 
 /**
+ * Builds an optimistic EXPORTED_TO_INTEGRATION report action
+ *
+ * @param integration - The connectionName of the integration
+ * @param markedManually - Whether the integration was marked as manually exported
+ */
+function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        shouldShow: true,
+        originalMessage: {
+            label,
+            lastModified: DateUtils.getDBTime(),
+            markedManually,
+            inProgress: true,
+        },
+    };
+}
+
+/**
  * A helper method to create transaction thread
  *
  * @param reportAction - the parent IOU report action from which to create the thread
@@ -7570,6 +7611,7 @@ export {
     isAdminOwnerApproverOrReportOwner,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
+    buildOptimisticExportIntegrationAction,
     getChatUsedForOnboarding,
     getFieldViolationTranslation,
     getFieldViolation,

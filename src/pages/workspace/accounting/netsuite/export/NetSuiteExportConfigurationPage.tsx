@@ -76,7 +76,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('common.date'),
+            description: translate('workspace.accounting.exportDate'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.exportDate ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`) : undefined,
