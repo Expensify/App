@@ -513,50 +513,6 @@ function uniqFast(items: string[]): string[] {
 }
 
 /**
- * Returns a string with all relevant search terms.
- *
- * This method must be incredibly performant. It was found to be a big performance bottleneck
- * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
- * Array.prototype.push.apply is faster than using the spread operator.
- */
-function getSearchText(
-    report: OnyxInputOrEntry<Report>,
-    reportName: string,
-    personalDetailList: Array<Partial<PersonalDetails>>,
-    isChatRoomOrPolicyExpenseChat: boolean,
-    isThread: boolean,
-): string {
-    const searchTerms: string[] = [];
-
-    for (const personalDetail of personalDetailList) {
-        if (personalDetail.login) {
-            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-            // More info https://github.com/Expensify/App/issues/8007
-            searchTerms.push(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false), personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''));
-        }
-    }
-
-    if (report) {
-        Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
-
-        if (isThread) {
-            const title = ReportUtils.getReportName(report);
-            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
-
-            Array.prototype.push.apply(searchTerms, title.split(/[,\s]/));
-            Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
-        } else if (isChatRoomOrPolicyExpenseChat) {
-            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
-
-            Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
-        }
-    }
-
-    return uniqFast(searchTerms).join(' ');
-}
-
-/**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
@@ -885,9 +841,6 @@ function createOption(
     }
 
     result.text = reportName;
-    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    result.searchText = getSearchText(report, reportName, personalDetailList, !!result.isChatRoom || !!result.isPolicyExpenseChat, !!result.isThread);
     result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
@@ -2642,7 +2595,6 @@ export {
     getSearchValueForPhoneOrEmail,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getSearchText,
     isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
