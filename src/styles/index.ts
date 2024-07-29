@@ -4270,11 +4270,6 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
-        searchNarrowFilterButton: {
-            height: variables.tabSelectorButtonHeight,
-            width: variables.tabSelectorButtonHeight,
-        },
-
         tabText: (isSelected: boolean) =>
             ({
                 marginLeft: 8,
