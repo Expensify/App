@@ -12,7 +12,6 @@ import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
-import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
