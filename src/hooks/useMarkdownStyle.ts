@@ -35,6 +35,7 @@ function useMarkdownStyle(doesInputContainOnlyEmojis?: boolean, excludeStyles: A
             },
             emoji: {
                 fontSize: doesInputContainOnlyEmojis ? variables.fontSizeEmojisOnlyComposer : variables.fontSizeEmojisWithinText,
+                lineHeight: doesInputContainOnlyEmojis ? variables.lineHeightEmojisOnlyComposer : variables.fontSizeEmojisWithinText,
             },
             blockquote: {
                 borderColor: theme.border,
