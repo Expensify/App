@@ -1,14 +1,18 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import ConnectionLayout from '@components/ConnectionLayout';
-import SelectionList from '@components/SelectionList';
+import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -28,6 +32,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const categoryId = params?.categoryId ?? '';
     const categoryName = decodeURIComponent(params?.categoryName ?? '');
     const policyID = policy?.id ?? '-1';
+    const {config} = policy?.connections?.xero ?? {};
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
@@ -45,40 +50,50 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         [translate, currentTrackingCategoryValue],
     );
 
+    const listHeaderComponent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}</Text>
+            </View>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, categoryName],
+    );
+
     const updateMapping = useCallback(
         (option: {value: string}) => {
             if (option.value !== categoryName) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
-                    ...(policy?.connections?.xero?.config?.mappings ?? {}),
-                    ...(categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {}),
-                });
+                Connections.updatePolicyXeroConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.MAPPINGS,
+                    categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, policyID, policy?.connections?.xero?.config?.mappings],
+        [categoryId, categoryName, policyID],
     );
 
     return (
-        <ConnectionLayout
-            displayName={XeroMapTrackingCategoryConfigurationPage.displayName}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+        <SelectionScreen
             policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            titleStyle={[styles.pb2, styles.ph5]}
-            contentContainerStyle={[styles.flex1]}
-            shouldUseScrollView={false}
+            displayName={XeroMapTrackingCategoryConfigurationPage.displayName}
+            sections={optionsList.length ? [{data: optionsList}] : []}
+            listItem={RadioListItem}
+            onSelectRow={updateMapping}
+            initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID))}
             headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
-            titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-        >
-            <SelectionList
-                sections={[{data: optionsList}]}
-                ListItem={RadioListItem}
-                onSelectRow={updateMapping}
-                initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
-                shouldDebounceRowSelect
-            />
-        </ConnectionLayout>
+            pendingAction={xeroSettingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearXeroErrorField(policyID, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
+            shouldDebounceRowSelect
+        />
     );
 }
 

@@ -2,15 +2,13 @@ import {useNavigationState} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
-import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import type {BottomTabNavigatorParamList, BottomTabScreensParamList, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
-import {isBottomTabName} from '@libs/NavigationUtils';
+import type {BottomTabNavigatorParamList, CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import ActiveBottomTabRouteContext from './ActiveBottomTabRouteContext';
+import ActiveCentralPaneRouteContext from './ActiveCentralPaneRouteContext';
 
 const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
@@ -21,22 +19,9 @@ const screenOptions: StackNavigationOptions = {
 };
 
 function BottomTabNavigator() {
-    const activeRoute = useNavigationState<RootStackParamList, NavigationPartialRoute<keyof BottomTabScreensParamList> | undefined>((state) => {
-        if (!state) {
-            return undefined;
-        }
-        let route: NavigationPartialRoute<keyof BottomTabScreensParamList> | undefined;
-        for (const selector of [getTopmostBottomTabRoute, getTopmostCentralPaneRoute]) {
-            const selectedRoute = selector(state);
-            if (isBottomTabName(selectedRoute?.name)) {
-                route = selectedRoute as NavigationPartialRoute<keyof BottomTabScreensParamList>;
-            }
-        }
-
-        return route;
-    });
+    const activeRoute = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
     return (
-        <ActiveBottomTabRouteContext.Provider value={activeRoute}>
+        <ActiveCentralPaneRouteContext.Provider value={activeRoute}>
             <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen
                     name={SCREENS.HOME}
@@ -51,7 +36,7 @@ function BottomTabNavigator() {
                     getComponent={loadInitialSettingsPage}
                 />
             </Tab.Navigator>
-        </ActiveBottomTabRouteContext.Provider>
+        </ActiveCentralPaneRouteContext.Provider>
     );
 }
 
