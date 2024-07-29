@@ -88,7 +88,6 @@ function ReportIDsContextProvider({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
@@ -126,7 +125,12 @@ function ReportIDsContextProvider({
         // requirement for web and desktop. Consider a case, where we have report with expenses and we click on
         // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
-        if (!shouldUseNarrowLayout && derivedCurrentReportID && derivedCurrentReportID !== '-1' && orderedReportIDs.indexOf(derivedCurrentReportID) === -1) {
+        if (
+            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            derivedCurrentReportID &&
+            derivedCurrentReportID !== '-1' &&
+            orderedReportIDs.indexOf(derivedCurrentReportID) === -1
+        ) {
             return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? '-1', policyMemberAccountIDs};
         }
 
