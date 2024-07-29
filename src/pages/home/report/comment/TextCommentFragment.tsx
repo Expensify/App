@@ -48,6 +48,8 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const {html = '', text = ''} = fragment ?? {};
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+    const doesTextContainEmojis = emojisRegex.test(text);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
@@ -57,7 +59,14 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${doesTextContainOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        const htmlContent = doesTextContainOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        let htmlContent = doesTextContainOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+
+        if (doesTextContainOnlyEmojis) {
+            htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>');
+        } else if (doesTextContainEmojis) {
+            htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji ismedium>');
+        }
+
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
         if (styleAsMuted) {
@@ -73,7 +82,6 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     }
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
-    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
 
     return (
         <Text style={[doesTextContainOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
