@@ -744,6 +744,9 @@ function clearAvatarErrors(reportID: string) {
 // Optimistically set nvp_introSelected.isInviteOnboardingComplete to true
 // Return the firstName, lastName, and onboardingMessage values
 
+/**
+ * Gets details for an invite onboarding if certain conditions are met
+ */
 function getInviteOnboardingDetails() {
     if (!introSelected) {
         return;
@@ -772,7 +775,7 @@ function getInviteOnboardingDetails() {
         return {
             firstName,
             lastName,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.EMPLOYER],
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT],
         };
     }
 }
