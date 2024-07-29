@@ -353,6 +353,39 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
+      - name: Verify staging deploy
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
+          if [[ '${{ github.ref_name }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version does not match local version. Something went wrong..."
+            exit 1
+          fi
+
+      - name: Verify production deploy
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
+          if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version does not match local version. Something went wrong..."
+            exit 1
+          fi
+
+      - name: Upload web build to GitHub artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: dist
+
+      - name: Upload web build to GitHub Release
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          tar -czvf webBuild.tar.gz dist
+          zip -r webBuild.zip dist
+          gh release upload ${{ github.event.release.tag_name }} webBuild.tar.gz webBuild.zip
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
