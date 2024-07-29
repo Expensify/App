@@ -33,7 +33,7 @@ type SearchPageHeaderProps = {
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
-    isCustomQueryMode?: boolean;
+    isCustomQuery?: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
 };
@@ -55,7 +55,7 @@ function SearchPageHeader({
     onSelectDeleteOption,
     isMobileSelectionModeActive,
     setIsMobileSelectionModeActive,
-    isCustomQueryMode = false,
+    isCustomQuery = false,
     setOfflineModalOpen,
     setDownloadErrorModalOpen,
     selectedReports,
@@ -68,10 +68,10 @@ function SearchPageHeader({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
     const {status, input} = queryJSON;
-
-    const headerTitle = isCustomQueryMode ? SearchUtils.getSearchHeaderTitle(input) : translate(headerContent[status]?.titleTx);
-    const headerSubtitle = isCustomQueryMode ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQueryMode ? Illustrations.Filters : headerContent[status]?.icon;
+    console.log('queryJSON', queryJSON)
+    const headerTitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(input) : translate(headerContent[status]?.titleTx);
+    const headerSubtitle = isCustomQuery ? translate('search.filtersHeader') : '';
+    const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
 
@@ -225,7 +225,7 @@ function SearchPageHeader({
             subtitle={headerSubtitle}
             icon={headerIcon}
             shouldShowBackButton={false}
-            showSubtitleAboveTitle={isCustomQueryMode}
+            showSubtitleAboveTitle={isCustomQuery}
             shouldUseBaseFontWithIcon
         >
             {headerButtonsOptions.length > 0 && (

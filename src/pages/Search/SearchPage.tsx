@@ -20,7 +20,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const {policyIDs, q} = route.params;
 
-    const isCustomQueryMode = SearchUtils.isCustomQuery(route.params);
+    const isCustomQuery = SearchUtils.isCustomQuery(route.params);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q, policyIDs), [q, policyIDs]);
 
@@ -46,7 +46,7 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {queryJSON && (
                     <Search
-                        isCustomQueryMode={isCustomQueryMode}
+                        isCustomQuery={isCustomQuery}
                         queryJSON={queryJSON}
                         policyIDs={policyIDs}
                     />

@@ -34,7 +34,7 @@ type SearchProps = {
     policyIDs?: string;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
-    isCustomQueryMode?: boolean;
+    isCustomQuery?: boolean;
 };
 
 const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
@@ -42,7 +42,7 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isCustomQueryMode = false}: SearchProps) {
+function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isCustomQuery = false}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -110,7 +110,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         return (
             <>
                 <SearchPageHeader
-                    isCustomQueryMode={isCustomQueryMode}
+                    isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -125,7 +125,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
         return (
             <>
                 <SearchPageHeader
-                    isCustomQueryMode={isCustomQueryMode}
+                    isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -189,7 +189,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
             hash={hash}
             data={sortedData}
             searchType={searchResults?.search?.type as SearchDataTypes}
-            isCustomQueryMode={isCustomQueryMode}
+            isCustomQuery={isCustomQuery}
             customListHeader={
                 !isLargeScreenWidth ? null : (
                     <SearchTableHeader

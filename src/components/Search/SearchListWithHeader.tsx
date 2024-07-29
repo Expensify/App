@@ -23,7 +23,7 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
     searchType: SearchDataTypes;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
-    isCustomQueryMode?: boolean;
+    isCustomQuery?: boolean;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -45,7 +45,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
 }
 
 function SearchListWithHeader(
-    {ListItem, onSelectRow, queryJSON, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isCustomQueryMode = false, ...props}: SearchListWithHeaderProps,
+    {ListItem, onSelectRow, queryJSON, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, isCustomQuery = false, ...props}: SearchListWithHeaderProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -194,7 +194,7 @@ function SearchListWithHeader(
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}
                 setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
-                isCustomQueryMode={isCustomQueryMode}
+                isCustomQuery={isCustomQuery}
                 selectedReports={selectedReports}
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
