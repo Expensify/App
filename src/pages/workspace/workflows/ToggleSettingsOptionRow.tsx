@@ -124,7 +124,18 @@ function ToggleSettingOptionRow({
             );
         }
         return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
-    }, [subtitle, shouldParseSubtitle, styles.mutedNormalTextLabel, styles.mt1, styles.mr5, styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch, processedSubtitle]);
+    }, [
+        subtitle,
+        shouldParseSubtitle,
+        styles.mutedNormalTextLabel,
+        styles.mt1,
+        styles.mr5,
+        styles.flexRow,
+        styles.renderHTML,
+        shouldPlaceSubtitleBelowSwitch,
+        subtitleStyle,
+        processedSubtitle,
+    ]);
 
     return (
         <OfflineWithFeedback
