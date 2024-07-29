@@ -621,7 +621,9 @@ function MoneyRequestView({
                         icon={Expensicons.Suitcase}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
-                        onPress={() => Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))}
+                        onPress={() => {
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                        }}
                     />
                 )}
                 {shouldShowBillable && (
