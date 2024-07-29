@@ -3851,6 +3851,8 @@ function markAsManuallyExported(reportID: string) {
     });
 }
 
+export type {Video};
+
 export {
     searchInServer,
     addComment,

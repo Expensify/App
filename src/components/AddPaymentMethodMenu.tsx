@@ -87,9 +87,18 @@ function AddPaymentMethodMenu({
                 return;
             }
 
+            let choice = introSelected.choice;
+            if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.PAYMENT_SELECTED.BBA) {
+                choice = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+            }
+
+            if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.PAYMENT_SELECTED.BBA) {
+                choice = CONST.ONBOARDING_CHOICES.SUBMIT;
+            }
+
             ReportUserActions.completeOnboarding(
-                introSelected?.choice,
-                CONST.ONBOARDING_MESSAGES[introSelected?.choice],
+                choice,
+                CONST.ONBOARDING_MESSAGES[choice],
                 {
                     firstName: personalDetail.firstName ?? '',
                     lastName: personalDetail.lastName ?? '',

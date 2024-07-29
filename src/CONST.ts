@@ -4,6 +4,7 @@ import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type {Video} from './libs/actions/Report';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
@@ -63,7 +64,7 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-const onboardingChoices = {
+const selectableOnboardingChoices = {
     PERSONAL_SPEND: 'newDotPersonalSpend',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
@@ -71,7 +72,39 @@ const onboardingChoices = {
     LOOKING_AROUND: 'newDotLookingAround',
 };
 
+const backendOnboardingChoices = {
+    ADMIN: 'newDotAdmin',
+    SUBMIT: 'newDotSubmit',
+};
+
+const onboardingChoices = {
+    ...selectableOnboardingChoices,
+    ...backendOnboardingChoices,
+};
+
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
+
+const onboardingInviteTypes = {
+    IOU: 'iou',
+    INVOICE: 'invoice',
+    CHAT: 'chat',
+};
+
+type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
+
+type OnboardingTaskType = {
+    type: string;
+    autoCompleted: boolean;
+    title: string;
+    description: string | ((params: Partial<{adminsRoomLink: string; workspaceLink: string}>) => string);
+};
+
+type OnboardingMessageType = {
+    message: string;
+    video?: Video;
+    tasks: OnboardingTaskType[];
+    type?: string;
+};
 
 const CONST = {
     RECENT_WAYPOINTS_NUMBER: 20,
@@ -4189,6 +4222,8 @@ const CONST = {
 
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
+    SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
+    ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
@@ -4231,7 +4266,7 @@ const CONST = {
     },
 
     ONBOARDING_MESSAGES: {
-        [onboardingChoices.EMPLOYER]: {
+        [(onboardingChoices.EMPLOYER || onboardingChoices.SUBMIT)]: {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
@@ -4302,7 +4337,7 @@ const CONST = {
                     type: 'meetGuide',
                     autoCompleted: false,
                     title: 'Meet your setup specialist',
-                    description: ({adminsRoomLink}: {adminsRoomLink: string}) =>
+                    description: ({adminsRoomLink}) =>
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
@@ -4311,7 +4346,7 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description: ({workspaceLink}: {workspaceLink: string}) =>
+                    description: ({workspaceLink}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
@@ -4328,7 +4363,7 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description: ({workspaceLink}: {workspaceLink: string}) =>
+                    description: ({workspaceLink}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
@@ -4345,7 +4380,7 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description: ({workspaceLink}: {workspaceLink: string}) =>
+                    description: ({workspaceLink}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
@@ -4448,12 +4483,61 @@ const CONST = {
                 },
             ],
         },
+        [onboardingChoices.ADMIN]: {
+            message: "Hey 👋\nAs an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    type: 'meetSetupSpecialist',
+                    autoCompleted: false,
+                    title: 'Meet your setup specialist',
+                    description:
+                        '*Meet your setup specialist* who can answer any questions as you get started with Expensify. Yes, a real human!' +
+                        '\n' +
+                        'Chat with them in your #admins room or schedule a call today.',
+                },
+                {
+                    type: 'reviewWorkspaceSettings',
+                    autoCompleted: false,
+                    title: 'Review your workspace settings',
+                    description:
+                        "Here's how to review and update your workspace settings:" +
+                        '\n' +
+                        '1. Click your profile picture.' +
+                        '2. Click *Workspaces* > [Your workspace].' +
+                        '\n' +
+                        "Make any changes there and we'll track them in the #admins room.",
+                },
+                {
+                    type: 'submitExpense',
+                    autoCompleted: false,
+                    title: 'Submit an expense',
+                    description:
+                        '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                        '\n' +
+                        'Here’s how to submit an expense:\n' +
+                        '\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Submit expense*.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Add your reimburser to the request.\n' +
+                        '\n' +
+                        'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
+                },
+            ],
+        },
         [onboardingChoices.LOOKING_AROUND]: {
             message:
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             tasks: [],
         },
-    },
+    } satisfies Record<OnboardingPurposeType, OnboardingMessageType>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
@@ -5433,6 +5517,6 @@ type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
 
 export default CONST;
