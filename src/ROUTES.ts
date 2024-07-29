@@ -54,6 +54,8 @@ const ROUTES = {
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TRACK_EXPENSE: 'track-expense',
+    SUBMIT_EXPENSE: 'submit-expense',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
