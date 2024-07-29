@@ -3212,6 +3212,7 @@ export default {
             exportAs: 'Export as',
             exportOutOfPocket: 'Export out-of-pocket expenses as',
             exportCompanyCard: 'Export company card expenses as',
+            exportDate: 'Export date',
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
@@ -3571,6 +3572,7 @@ export default {
     search: {
         selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
+        viewResults: 'View results',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
@@ -3588,9 +3590,10 @@ export default {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: 'Before',
-                after: 'After',
+                before: (date?: string) => `Before ${date ?? ''}`,
+                after: (date?: string) => `After ${date ?? ''}`,
             },
+            status: 'Status',
         },
     },
     genericErrorPage: {
