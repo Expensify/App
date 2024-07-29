@@ -17,6 +17,7 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWork from '@pages/OnboardingWork';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,6 +48,7 @@ function OnboardingModalNavigator() {
                 Navigation.goBack(ROUTES.HOME, true, true);
             } else {
                 Navigation.goBack();
+                Report.navigateToConciergeChat();
             }
         });
     }, [hasCompletedGuidedSetupFlow, isSmallScreenWidth]);
