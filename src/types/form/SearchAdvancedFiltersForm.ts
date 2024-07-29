@@ -7,7 +7,7 @@ const INPUT_IDS = {
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
     CATEGORY: 'category',
-    POLICY_ID: 'policyId',
+    POLICY_ID: 'policyID',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;

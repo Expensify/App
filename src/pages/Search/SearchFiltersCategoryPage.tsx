@@ -19,10 +19,10 @@ function SearchFiltersCategoryPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const activeItems = searchAdvancedFiltersForm?.category;
-    const policyId = searchAdvancedFiltersForm?.policyId ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
 
     const [allPolicyIdCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [singlePolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const singlePolicyCategories = allPolicyIdCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryList = useMemo(() => {
         let categories: string[] = [];
