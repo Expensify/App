@@ -47,9 +47,9 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
             case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
                 return translate(`workspace.expensifyCard.${noMailingAddress ? 'issuedCardNoMailingAddress' : 'addedAddress'}`, assignee);
             // TODO: remove two following cases - added only for testing purposes
-            case 'ADDRESSADDED':
+            case CONST.REPORT.ACTIONS.TYPE.ADDRESS_ADDED:
                 return translate('workspace.expensifyCard.addedAddress', assignee);
-            case 'NOMAILINGADDRESS':
+            case CONST.REPORT.ACTIONS.TYPE.NO_MAILING_ADDRESS:
                 return translate('workspace.expensifyCard.issuedCardNoMailingAddress', assignee);
             default:
                 return '';

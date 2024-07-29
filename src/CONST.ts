@@ -685,6 +685,9 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                // TODO: remove after BE integration - added for testing purposes
+                NO_MAILING_ADDRESS: 'NOMAILINGADDRESS',
+                ADDRESS_ADDED: 'ADDRESSADDED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
