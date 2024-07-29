@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
-    if (fieldName === 'date') {
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
@@ -104,6 +104,7 @@ function AdvancedSearchFilters() {
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4]}
                 onSubmit={onFormSubmit}
+                enabledWhenOffline
             />
         </View>
     );

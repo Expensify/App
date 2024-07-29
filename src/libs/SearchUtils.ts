@@ -354,10 +354,10 @@ function normalizeQuery(query: string) {
 }
 
 /**
- * Given object with chosen search filters builds correct query string from them
- * Note: date filter value is built from 2 form fields so needs special handling, all other filters map 1-to-1
+ * @private
+ * returns Date filter query string part, which needs special logic
  */
-function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
+function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const dateBefore = filterValues[INPUT_IDS.DATE_BEFORE];
     const dateAfter = filterValues[INPUT_IDS.DATE_AFTER];
 
@@ -372,6 +372,13 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
         dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>${dateAfter}`;
     }
 
+    return dateFilter;
+}
+
+/**
+ * Given object with chosen search filters builds correct query string from them
+ */
+function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // TODO add handling of multiple values picked
     const filtersString = Object.entries(filterValues)
         .map(([filterKey, filterValue]) => {
@@ -387,6 +394,8 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
         })
         .filter(Boolean)
         .join(' ');
+
+    const dateFilter = buildDateFilterQuery(filterValues);
 
     return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
 }
