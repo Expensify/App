@@ -8,9 +8,9 @@
 
 <p>{{ hub.description }}</p>
 
-{% if hub.articles %} 
-    {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %} 
-{% else %} 
+{% if hub.articles %}
+    {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %}
+{% else %}
     {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %}
 {% endif%}
 
