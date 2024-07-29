@@ -106,7 +106,7 @@ function AddPaymentMethodMenu({
                 paymentSelected,
             );
         },
-        [isInviteOnboardingComplete, introSelected?.choice, personalDetail.firstName, personalDetail.lastName],
+        [isInviteOnboardingComplete, introSelected?.inviteType, introSelected?.choice, personalDetail.firstName, personalDetail.lastName],
     );
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
