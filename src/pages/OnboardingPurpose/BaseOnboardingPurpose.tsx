@@ -39,7 +39,7 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
@@ -79,12 +79,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
         }
 
         if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK);
+            Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
             return;
         }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
-    }, [selectedPurpose]);
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+    }, [selectedPurpose, route]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
