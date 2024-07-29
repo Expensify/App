@@ -67,6 +67,9 @@ type ReportScreenOnyxProps = {
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 };
 
 type OnyxHOCProps = {
@@ -118,6 +121,7 @@ function ReportScreen({
     },
     markReadyForHydration,
     policies = {},
+    workspaceTooltip,
     isSidebarLoaded = false,
     currentReportID = '',
     navigation,
@@ -834,6 +838,7 @@ function ReportScreen({
                                         isComposerFullSize={!!isComposerFullSize}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
+                                        workspaceTooltip={workspaceTooltip}
                                     />
                                 ) : null}
                             </View>
@@ -870,6 +875,9 @@ export default withCurrentReportID(
             policies: {
                 key: ONYXKEYS.COLLECTION.POLICY,
                 allowStaleData: true,
+            },
+            workspaceTooltip: {
+                key: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
             },
         },
         true,

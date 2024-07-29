@@ -75,9 +75,6 @@ type ReportActionComposeOnyxProps = {
 
     /** Whether the composer input should be shown */
     shouldShowComposeInput: OnyxEntry<boolean>;
-
-    /** Whether to show educational tooltip in workspace chat for first-time user */
-    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 };
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
@@ -103,6 +100,9 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** Should the input be disabled  */
         disabled?: boolean;
+
+        /** Should show educational tooltip */
+        shouldShowEducationalTooltip?: boolean;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -114,7 +114,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails,
-    workspaceTooltip,
     disabled = false,
     isComposerFullSize = false,
     onSubmit,
@@ -125,6 +124,7 @@ function ReportActionCompose({
     isReportReadyForDisplay = true,
     isEmptyChat,
     lastReportAction,
+    shouldShowEducationalTooltip,
     onComposerFocus,
     onComposerBlur,
 }: ReportActionComposeProps) {
@@ -146,7 +146,7 @@ function ReportActionCompose({
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
-    const [shouldShowEducationalTooltip, setShouldShowEducationalTooltip] = useState(!!workspaceTooltip?.shouldShow);
+    const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(!shouldShowEducationalTooltip);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -259,7 +259,7 @@ function ReportActionCompose({
     );
 
     const onAddActionPressed = useCallback(() => {
-        setShouldShowEducationalTooltip(false);
+        setShouldHideEducationalTooltip(true);
         if (!willBlurTextInputOnTapOutside) {
             isKeyboardVisibleWhenShowingModalRef.current = !!composerRef.current?.isFocused();
         }
@@ -392,13 +392,9 @@ function ReportActionCompose({
     }, [styles]);
 
     useEffect(() => {
-        const unsubscribeBlur = navigation.addListener('blur', () => setShouldShowEducationalTooltip(false));
+        const unsubscribeBlur = navigation.addListener('blur', () => setShouldHideEducationalTooltip(true));
         return unsubscribeBlur;
     }, [navigation]);
-
-    useEffect(() => {
-        setShouldShowEducationalTooltip(!!workspaceTooltip?.shouldShow);
-    }, [workspaceTooltip?.shouldShow]);
 
     const renderWorkspaceChatTooltip = useCallback(
         () => (
@@ -441,7 +437,7 @@ function ReportActionCompose({
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
                     <EducationalTooltip
-                        shouldRender={shouldShowEducationalTooltip}
+                        shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
                         renderTooltipContent={renderWorkspaceChatTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -545,11 +541,11 @@ function ReportActionCompose({
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
                                     onModalHide={(isNavigating) => {
-                                    if (isNavigating) {
-                                        return;
-                                    }
-                                    focus();
-                                }}
+                                        if (isNavigating) {
+                                            return;
+                                        }
+                                        focus();
+                                    }}
                                     onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                     emojiPickerID={report?.reportID}
                                     shiftVertical={emojiShiftVertical}
@@ -588,9 +584,6 @@ export default withCurrentUserPersonalDetails(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-        workspaceTooltip: {
-            key: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
         },
     })(memo(ReportActionCompose)),
 );

@@ -43,6 +43,9 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
+
     /** Whether the chat is empty */
     isEmptyChat?: boolean;
 
@@ -71,6 +74,7 @@ function ReportFooter({
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
+    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
@@ -110,6 +114,7 @@ function ReportFooter({
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -210,6 +215,7 @@ function ReportFooter({
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
+                            shouldShowEducationalTooltip={shouldShowEducationalTooltip}
                         />
                     </SwipeableView>
                 </View>
