@@ -19,6 +19,7 @@ function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormPro
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
+    const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
 
     /**
      * Handle text input and clear formError upon text change
@@ -53,8 +54,8 @@ function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormPro
         }
 
         setFormError({});
-        Session.validateTwoFactorAuth(twoFactorAuthCode);
-    }, [twoFactorAuthCode, translate]);
+        Session.validateTwoFactorAuth(twoFactorAuthCode, shouldClearData);
+    }, [twoFactorAuthCode, shouldClearData, translate]);
 
     useImperativeHandle(ref, () => ({
         validateAndSubmitForm() {

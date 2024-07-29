@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 
 /**
  * Determine if the transitioning user is logging in as a new user.
@@ -26,12 +28,14 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
 }
 
 let loggedInDuringSession: boolean | undefined;
+let currentSession: OnyxEntry<OnyxTypes.Session>;
 
 // To tell if the user logged in during this session we will check the value of session.authToken once when the app's JS inits. When the user logs out
 // we can reset this flag so that it can be updated again.
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        currentSession = session;
         if (loggedInDuringSession) {
             return;
         }
@@ -53,4 +57,8 @@ function didUserLogInDuringSession() {
     return !!loggedInDuringSession;
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession};
+function getSession() {
+    return currentSession;
+}
+
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, getSession};

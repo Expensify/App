@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {Except, LiteralUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
     ConnectionName,
@@ -40,6 +41,8 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
+
+type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -449,6 +452,14 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+/**
+ * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ */
+function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
+    return getAccountIDsByLogins([reimburserEmail])[0];
+}
+
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -518,6 +529,24 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
         keyForList: id,
         isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
     }));
+}
+
+function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+    if (settings === undefined || errorFields === undefined) {
+        return false;
+    }
+
+    const keys = Object.keys(errorFields);
+    return settings.some((setting) => keys.includes(setting));
+}
+
+function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+    if (settings === undefined || pendingFields === undefined) {
+        return null;
+    }
+
+    const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
+    return pendingFields[key ?? '-1'];
 }
 
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
@@ -778,6 +807,17 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
+function hasNoPolicyOtherThanPersonalType() {
+    return (
+        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .length === 0
+    );
+}
+
+function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -856,11 +896,16 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
+    hasNoPolicyOtherThanPersonalType,
+    getCurrentTaxID,
+    areXeroSettingsInErrorFields,
+    xeroSettingsPendingAction,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, XeroSettings};

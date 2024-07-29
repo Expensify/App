@@ -16,6 +16,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
@@ -165,7 +166,9 @@ function ReportActionsList({
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const {isOffline} = useNetwork();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
@@ -174,7 +177,8 @@ function ReportActionsList({
     const userActiveSince = useRef<string | null>(null);
     const lastMessageTime = useRef<string | null>(null);
 
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(Visibility.isVisible());
+    const hasCalledReadNewestAction = useRef(false);
     const isFocused = useIsFocused();
 
     useEffect(() => {
@@ -264,6 +268,9 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
+        if (hasCalledReadNewestAction.current) {
+            return;
+        }
         if (ReportUtils.isUnread(report)) {
             // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -271,6 +278,7 @@ function ReportActionsList({
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
+                hasCalledReadNewestAction.current = true;
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -533,6 +541,10 @@ function ReportActionsList({
             return;
         }
 
+        if (hasCalledReadNewestAction.current) {
+            return;
+        }
+
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = sortedVisibleReportActions[0]?.created ?? '';
@@ -544,24 +556,27 @@ function ReportActionsList({
         // show marker based on report.lastReadTime
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
-        if (
-            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
-            !sortedVisibleReportActions.some(
-                (reportAction) =>
-                    newMessageTimeReference &&
-                    newMessageTimeReference < reportAction.created &&
-                    (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
-            )
-        ) {
+        const areSomeReportActionsUnread = sortedVisibleReportActions.some((reportAction) => {
+            /**
+             * The archived reports should not be marked as unread. So we are checking if the report is archived or not.
+             * If the report is archived, we will mark the report as read.
+             */
+            const isArchivedReport = ReportUtils.isArchivedRoom(report);
+            const isUnread = isArchivedReport || (newMessageTimeReference && newMessageTimeReference < reportAction.created);
+            return (
+                isUnread && (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID()
+            );
+        });
+        if (scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !areSomeReportActionsUnread) {
             return;
         }
-
         Report.readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
         lastReadTimeRef.current = newMessageTimeReference;
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
+        hasCalledReadNewestAction.current = true;
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
@@ -609,8 +624,8 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = useMemo(
-        () => [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report, reportNameValuePairs)],
-        [currentUnreadMarker, isSmallScreenWidth, report, reportNameValuePairs],
+        () => [shouldUseNarrowLayout ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report, reportNameValuePairs)],
+        [currentUnreadMarker, shouldUseNarrowLayout, report, reportNameValuePairs],
     );
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
