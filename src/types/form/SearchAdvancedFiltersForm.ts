@@ -3,6 +3,7 @@ import type Form from './Form';
 
 const INPUT_IDS = {
     TYPE: 'type',
+    STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
 } as const;
@@ -15,6 +16,7 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.TYPE]: string;
         [INPUT_IDS.DATE_AFTER]: string;
         [INPUT_IDS.DATE_BEFORE]: string;
+        [INPUT_IDS.STATUS]: string;
     }
 >;
 
