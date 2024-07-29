@@ -1724,7 +1724,6 @@ function getUserToInviteOption({
         isInSelectedOption ||
         (!isValidEmail && !isValidPhoneNumber) ||
         isInOptionToExclude ||
-        isChronosEmail ||
         excludeUnknownUsers
     ) {
         return null;
