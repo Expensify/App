@@ -30,6 +30,14 @@ Onyx.connect({
     },
 });
 
+let isTravelTestAccount = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+    callback: (value) => {
+        isTravelTestAccount = value?.testAccount ?? false;
+    },
+});
+
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
     const hasHashParams = url.indexOf('#') !== -1;
     const hasURLParams = url.indexOf('?') !== -1;
@@ -70,17 +78,18 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
-    return Promise.all([Environment.getTravelDotEnvironmentURL(), Environment.getSpotnanaEnvironmentTMCID()]).then(([environmentURL, tmcID]) => {
-        const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
-        const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
-        const tmcIDParam = `tmcId=${tmcID}`;
+function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): string {
+    const environmentURL = isTravelTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
+    const tmcID = isTravelTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
 
-        const paramsArray = [authCode, tmcIDParam, redirectURL];
-        const params = paramsArray.filter(Boolean).join('&');
-        const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
-        return `${travelDotDomain}auth/code?${params}`;
-    });
+    const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const tmcIDParam = `tmcId=${tmcID}`;
+
+    const paramsArray = [authCode, tmcIDParam, redirectURL];
+    const params = paramsArray.filter(Boolean).join('&');
+    const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
+    return `${travelDotDomain}auth/code?${params}`;
 }
 
 /**
