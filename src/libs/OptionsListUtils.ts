@@ -1715,7 +1715,6 @@ function getUserToInviteOption({
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
-    const isChronosEmail = searchValue === CONST.EMAIL.CHRONOS;
 
     if (
         !searchValue ||
