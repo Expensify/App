@@ -78,13 +78,13 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): string {
+function buildTravelDotURL(spotnanaToken: string, postLoginPath?: string): string {
     const environmentURL = isTravelTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
     const tmcID = isTravelTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
 
-    const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
+    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
