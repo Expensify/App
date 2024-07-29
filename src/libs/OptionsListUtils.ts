@@ -1699,7 +1699,6 @@ function canCreateOptimisticPersonalDetailOption({
  * - There's no matching recent report and personal detail option
  * - The searchValue is a valid email or phone number
  * - The searchValue isn't the current personal detail login
- * - We can use chronos or the search value is not the chronos email
  */
 function getUserToInviteOption({
     searchValue,
