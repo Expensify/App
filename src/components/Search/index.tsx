@@ -289,7 +289,6 @@ function Search({queryJSON, policyIDs}: SearchProps) {
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
         if (isAllSelected) {
-            console.log('teraz');
             clearSelectedTransactions();
             return;
         }
