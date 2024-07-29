@@ -1034,22 +1034,7 @@ function dismissTrackTrainingModal() {
 }
 
 function dismissWorkspaceTooltip() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
-        value: false,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
-            value: {shouldShow: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
+    Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
 }
 
 function requestRefund() {
