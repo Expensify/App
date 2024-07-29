@@ -1,13 +1,5 @@
-import React from 'react';
-import BaseProfilingToolMenu from './BaseProfilingToolMenu';
-
 function ProfilingToolMenu() {
-    return (
-        <BaseProfilingToolMenu
-            pathToBeUsed=""
-            displayPath=""
-        />
-    );
+    return null;
 }
 
 ProfilingToolMenu.displayName = 'ProfilingToolMenu';

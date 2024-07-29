@@ -18,9 +18,9 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -50,7 +50,7 @@ type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps
 function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
@@ -84,7 +84,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
             }),
         );
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
-    const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
+    const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || formattedAddress;
 
     const fetchPolicyData = useCallback(() => {
@@ -143,14 +143,16 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
             headerText={translate('workspace.common.profile')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_PROFILE}
-            shouldShowLoading={false}
+            // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
+            shouldShowLoading={policy === undefined}
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
+            shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
-                <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         isCentralPane
                         title=""
@@ -171,8 +173,8 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[
-                                policy?.errorFields?.avatarURL ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
-                                isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
+                                policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout ? styles.mb1 : styles.mb3,
+                                shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
                                 styles.alignItemsStart,
                                 styles.sectionMenuItemTopDescription,
                             ]}
@@ -198,7 +200,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                                 description={translate('workspace.editor.nameInputLabel')}
                                 shouldShowRightIcon={!readOnly}
                                 disabled={readOnly}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt3 : {}]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
                                 shouldGreyOutWhenDisabled={false}
                                 shouldUseDefaultCursorWhenDisabled

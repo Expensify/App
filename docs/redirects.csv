@@ -248,6 +248,7 @@ https://help.expensify.com/articles/expensify-classic/workspaces/tax-tracking,ht
 https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approval-Workflows,https://help.expensify.com/articles/expensify-classic/reports/Assign-report-approvers-to-specific-employees
 https://help.expensify.com/articles/expensify-classic/settings/Notification-Troubleshooting,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Notifications
 https://help.expensify.com/articles/new-expensify/expenses/Validate-a-Business-Bank-Account,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Validate-a-Business-Bank-Account
+https://help.expensify.com/articles/expensify-classic/workspaces/Currency,https://help.expensify.com/articles/expensify-classic/workspaces/Set-Currency
 https://help.expensify.com/articles/expensify-classic/workspaces/Expenses,https://help.expensify.com/articles/expensify-classic/workspaces/Expense-Settings
 https://help.expensify.com/articles/expensify-classic/workspaces/Reimbursement,https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings
 https://help.expensify.com/articles/expensify-classic/integrations/HR-integrations/ADP.html,https://help.expensify.com/articles/expensify-classic/connections/ADP
@@ -273,3 +274,12 @@ https://help.expensify.com/articles/expensify-classic/integrations/travel-integr
 https://help.expensify.com/articles/expensify-classic/integrations/HR-integrations/Workday.html,https://help.expensify.com/articles/expensify-classic/connections/Workday
 https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Xero.html,https://help.expensify.com/expensify-classic/hubs/connections/xero
 https://help.expensify.com/articles/expensify-classic/integrations/HR-integrations/Zenefits.html,https://help.expensify.com/articles/expensify-classic/connections/Zenefits
+https://help.expensify.com/articles/expensify-classic/settings/Close-or-reopen-account,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Close-or-reopen-account
+https://help.expensify.com/articles/new-expensify/connections/Set-Up-NetSuite-Connection,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite
+https://help.expensify.com/articles/new-expensify/connections/Set-Up-NetSuite-Connection.html,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite
+https://help.expensify.com/articles/new-expensify/connections/Set-up-QuickBooks-Online-connection,https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online
+https://help.expensify.com/articles/new-expensify/connections/Set-up-QuickBooks-Online-connection.html,https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online
+https://help.expensify.com/articles/new-expensify/connections/Set-Up-Sage-Intacct-connection,https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct
+https://help.expensify.com/articles/new-expensify/connections/Set-Up-Sage-Intacct-connection.html,https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct
+https://help.expensify.com/articles/new-expensify/connections/Set-up-Xero-connection,https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero
+https://help.expensify.com/articles/new-expensify/connections/Set-up-Xero-connection.html,https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero
