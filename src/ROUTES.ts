@@ -33,8 +33,6 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    ALL_SETTINGS: 'all-settings',
-
     SEARCH_CENTRAL_PANE: {
         route: 'search',
         getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
