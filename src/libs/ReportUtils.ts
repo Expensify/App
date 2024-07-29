@@ -4108,7 +4108,7 @@ function getIOUApprovedMessage(reportID: string) {
 }
 
 function getIOUForwardedMessage(reportID: string) {
-    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
+    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
 }
 
 /**
