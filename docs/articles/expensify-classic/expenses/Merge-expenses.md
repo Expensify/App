@@ -64,7 +64,9 @@ Yes, when a card expense is imported that matches the date and amount for a Smar
 
 When expenses merge automatically, Expensify uses the SmartScanned merchant name over the merchant data from the bank statement. If the SmartScan is stopped, Expensify can no longer guarantee that the data entry is accurate, so the expenses will not merge.
 
-{% include info.html %} Expenses created via the Expensify [Expense Importer API](https://integrations.expensify.com/Integration-Server/doc/#expense-creator) will not automatically merge with card feed transactions.{% include end-info.html %}
+{% include info.html %}
+Expenses created via the Expensify [Expense Importer API](https://integrations.expensify.com/Integration-Server/doc/#expense-creator) will not automatically merge with card feed transactions.
+{% include end-info.html %}
 
 **Why didn’t my expenses merge automatically?**
 
