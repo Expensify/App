@@ -36,11 +36,12 @@ function BaseOnboardingPersonalDetails({
     onboardingPurposeSelected,
     onboardingAdminsChatReportID,
     onboardingPolicyID,
+    route,
 }: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {accountID} = useSession();
@@ -78,7 +79,7 @@ function BaseOnboardingPersonalDetails({
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
-            if (!isSmallScreenWidth) {
+            if (!isSmallScreenWidth && !route.params?.backTo) {
                 if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
                     Report.navigateToSystemChat();
                 } else {
@@ -92,7 +93,7 @@ function BaseOnboardingPersonalDetails({
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, route.params?.backTo, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -143,7 +144,7 @@ function BaseOnboardingPersonalDetails({
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                     footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
@@ -155,7 +156,7 @@ function BaseOnboardingPersonalDetails({
                     shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>

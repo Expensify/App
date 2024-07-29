@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import type {Constructor} from 'type-fest';
+import type {TakeFirst} from '@src/types/utils/TupleOperations';
 import ArrayCache from './cache/ArrayCache';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
@@ -42,7 +43,7 @@ class Memoize {
  * @param opts - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends MemoizeFnPredicate, Key, MaxArgs extends number = Parameters<Fn>['length']>(fn: Fn, opts?: ClientOptions<Fn, MaxArgs, Key>) {
+function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number = Parameters<Fn>['length'], Key = TakeFirst<Parameters<Fn>, MaxArgs>>(fn: Fn, opts?: ClientOptions<Fn, MaxArgs, Key>) {
     const options = mergeOptions<Fn, MaxArgs, Key>(opts);
 
     const cache = ArrayCache<Key, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
