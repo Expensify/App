@@ -3196,6 +3196,7 @@ export default {
             exportAs: 'Exportar cómo',
             exportOutOfPocket: ' Exportar gastos por cuenta propia como',
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
+            exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
