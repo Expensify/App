@@ -88,14 +88,16 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         {userDimensions.map((userDimension) => (
                             <OfflineWithFeedback
                                 key={userDimension.dimension}
-                                pendingAction={config?.pendingFields?.[`dimension_${userDimension.dimension}`]}
+                                pendingAction={config?.pendingFields?.[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`]}
                             >
                                 <MenuItemWithTopDescription
                                     title={userDimension.dimension}
                                     description={translate('workspace.intacct.userDefinedDimension')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.dimension}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={
+                                        config?.errorFields?.[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                                    }
                                 />
                             </OfflineWithFeedback>
                         ))}

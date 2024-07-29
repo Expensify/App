@@ -35,10 +35,10 @@ function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): Tr
 }
 
 const checkForUserDimensionWithError = (config?: SageIntacctConnectionsConfig) =>
-    config?.mappings?.dimensions?.some((dimension) => !!config?.errorFields?.[`dimension_${dimension.dimension}`]);
+    config?.mappings?.dimensions?.some((dimension) => !!config?.errorFields?.[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`]);
 
 const checkForUserDimensionWithPendingAction = (config?: SageIntacctConnectionsConfig) =>
-    config?.mappings?.dimensions?.some((dimension) => !!config?.pendingFields?.[`dimension_${dimension.dimension}`]);
+    config?.mappings?.dimensions?.some((dimension) => !!config?.pendingFields?.[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`]);
 
 function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();

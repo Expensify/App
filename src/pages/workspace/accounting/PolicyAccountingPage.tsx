@@ -172,7 +172,7 @@ function accountingIntegrationData(
                     CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS,
                     ...Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS),
                     CONST.SAGE_INTACCT_CONFIG.TAX,
-                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `dimension_${dimension.dimension}`),
+                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [

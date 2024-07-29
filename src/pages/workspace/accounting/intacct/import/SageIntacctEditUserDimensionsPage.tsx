@@ -86,10 +86,10 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                 shouldValidateOnChange
             >
                 <OfflineWithFeedback
-                    pendingAction={settingsPendingAction([`dimension_${editedUserDimensionName}`], config?.pendingFields)}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, `dimension_${editedUserDimensionName}`)}
+                    pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
                     errorRowStyles={[styles.pb3]}
-                    onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
+                    onClose={() => clearSageIntacctErrorField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper
