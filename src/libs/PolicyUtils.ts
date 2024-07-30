@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {Except, LiteralUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -9,14 +9,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     CustomUnit,
+    InvoiceItem,
     NetSuiteAccount,
     NetSuiteConnection,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
+    NetSuiteTaxAccount,
+    NetSuiteVendor,
     PolicyFeatureName,
     Rate,
     Tenant,
@@ -39,6 +44,8 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
+
+type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -318,6 +325,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
@@ -333,6 +344,29 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
  */
 function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+}
+
+/**
+ * This gets a "corrected" value for autoReportingFrequency. The purpose of this function is to encapsulate some logic around the "immediate" frequency.
+ *
+ * - "immediate" is actually not immediate. For that you want "instant".
+ * - (immediate && harvesting.enabled) === daily
+ * - (immediate && !harvesting.enabled) === manual
+ *
+ * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
+ */
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+    if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
+        return policy?.autoReportingFrequency;
+    }
+
+    if (policy?.harvesting?.enabled) {
+        // This is actually not really "immediate". It's "daily". Surprise!
+        return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+    }
+
+    // "manual" is really just "immediate" (aka "daily") with harvesting disabled
+    return CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 }
 
 /**
@@ -421,12 +455,25 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+/**
+ * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
+ */
+function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
+    return getAccountIDsByLogins([reimburserEmail])[0];
+}
+
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+    if (!policy || !policy.employeeList) {
+        return [];
+    }
+    return Object.keys(policy.employeeList)
+        .map((email) => ({...policy.employeeList?.[email], email}))
+        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -487,61 +534,108 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+    if (settings === undefined || errorFields === undefined) {
+        return false;
+    }
+
+    const keys = Object.keys(errorFields);
+    return settings.some((setting) => keys.includes(setting));
+}
+
+function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+    if (settings === undefined || pendingFields === undefined) {
+        return null;
+    }
+
+    const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
+    return pendingFields[key ?? '-1'];
+}
+
+function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
+    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
+    return selectedVendor ?? vendors?.[0] ?? undefined;
+}
+
+function findSelectedBankAccountWithDefaultSelect(accounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
+    const selectedBankAccount = (accounts ?? []).find(({id}) => id === selectedBankAccountId);
+    return selectedBankAccount ?? accounts?.[0] ?? undefined;
+}
+
+function findSelectedInvoiceItemWithDefaultSelect(invoiceItems: InvoiceItem[] | undefined, selectedItemId: string | undefined) {
+    const selectedInvoiceItem = (invoiceItems ?? []).find(({id}) => id === selectedItemId);
+    return selectedInvoiceItem ?? invoiceItems?.[0] ?? undefined;
+}
+
+function findSelectedTaxAccountWithDefaultSelect(taxAccounts: NetSuiteTaxAccount[] | undefined, selectedAccountId: string | undefined) {
+    const selectedTaxAccount = (taxAccounts ?? []).find(({externalID}) => externalID === selectedAccountId);
+    return selectedTaxAccount ?? taxAccounts?.[0] ?? undefined;
+}
+
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
-    const vendors = policy?.connections?.netsuite.options.data.vendors ?? [];
+    const vendors = policy?.connections?.netsuite.options.data.vendors;
+
+    const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
 
     return (vendors ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedVendorId === id,
+        isSelected: selectedVendor?.id === id,
     }));
 }
 
 function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
 
     return (payableAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedBankAccountId === id,
+        isSelected: selectedPayableAccount?.id === id,
     }));
 }
 
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const receivableAccounts = policy?.connections?.netsuite.options.data.receivableList ?? [];
+    const receivableAccounts = policy?.connections?.netsuite.options.data.receivableList;
+
+    const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
 
     return (receivableAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedBankAccountId === id,
+        isSelected: selectedReceivableAccount?.id === id,
     }));
 }
 
 function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
-    const invoiceItems = policy?.connections?.netsuite.options.data.items ?? [];
+    const invoiceItems = policy?.connections?.netsuite.options.data.items;
+
+    const selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
 
     return (invoiceItems ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedItemId === id,
+        isSelected: selectedInvoiceItem?.id === id,
     }));
 }
 
 function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCountry?: string, selectedAccountId?: string): SelectorType[] {
-    const taxAccounts = policy?.connections?.netsuite.options.data.taxAccountsList ?? [];
+    const taxAccounts = policy?.connections?.netsuite.options.data.taxAccountsList;
+    const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
 
-    return (taxAccounts ?? [])
-        .filter(({country}) => country === subsidiaryCountry)
-        .map(({externalID, name}) => ({
-            value: externalID,
-            text: name,
-            keyForList: externalID,
-            isSelected: selectedAccountId === externalID,
-        }));
+    const selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
+
+    return accountOptions.map(({externalID, name}) => ({
+        value: externalID,
+        text: name,
+        keyForList: externalID,
+        isSelected: selectedTaxAccount?.externalID === externalID,
+    }));
 }
 
 function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
@@ -552,44 +646,62 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
 }
 
+function getFilteredReimbursableAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
+    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
+}
+
 function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
-    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
+
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedBankAccountId === id,
+        isSelected: selectedPayableAccount?.id === id,
     }));
+}
+
+function getFilteredCollectionAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
+    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
 }
 
 function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
-    const accountOptions = (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
+
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedBankAccountId === id,
+        isSelected: selectedPayableAccount?.id === id,
     }));
 }
 
+function getFilteredApprovalAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
+    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE);
+}
+
 function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
         name: Localize.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
-    const accountOptions = [defaultApprovalAccount].concat((payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE));
+    const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
+
+    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
 
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedBankAccountId === id,
+        isSelected: selectedPayableAccount?.id === id,
     }));
 }
 
@@ -642,6 +754,12 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
         return (connection as NetSuiteConnection)?.lastSyncDate;
     }
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+}
+
+function getCurrentSageIntacctEntityName(policy?: Policy): string | undefined {
+    const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    const entities = policy?.connections?.intacct?.data?.entities;
+    return entities?.find((entity) => entity.id === currentEntityID)?.name;
 }
 
 function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
@@ -718,6 +836,14 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
+}
+
+function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
+}
+
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
@@ -731,6 +857,17 @@ function isDeletedPolicyEmployee(policyEmployee: PolicyEmployee, isOffline: bool
     return !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
 }
 
+function hasNoPolicyOtherThanPersonalType() {
+    return (
+        Object.values(allPolicies ?? {}).filter((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .length === 0
+    );
+}
+
+function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
+    return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -738,6 +875,7 @@ export {
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,
+    getConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
@@ -759,6 +897,7 @@ export {
     hasAccountingConnections,
     hasCustomUnitsError,
     hasEmployeeListError,
+    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,
@@ -767,6 +906,7 @@ export {
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
     isInstantSubmitEnabled,
+    getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -784,11 +924,18 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    findSelectedVendorWithDefaultSelect,
+    findSelectedBankAccountWithDefaultSelect,
+    findSelectedInvoiceItemWithDefaultSelect,
+    findSelectedTaxAccountWithDefaultSelect,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
+    getFilteredCollectionAccountOptions,
     getNetSuiteCollectionAccountOptions,
+    getFilteredApprovalAccountOptions,
     getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
@@ -806,9 +953,16 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getReimburserAccountID,
+    isControlPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
+    getCurrentSageIntacctEntityName,
+    hasNoPolicyOtherThanPersonalType,
+    getCurrentTaxID,
+    areXeroSettingsInErrorFields,
+    xeroSettingsPendingAction,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, XeroSettings};

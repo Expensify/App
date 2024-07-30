@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -41,6 +41,9 @@ type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'anim
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
+
+    /** Callback method fired when the modal is shown */
+    onModalShow?: () => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
@@ -89,6 +92,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onModalShow,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -164,6 +168,13 @@ function PopoverMenu({
         );
     };
 
+    const renderHeaderText = () => {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
+            return;
+        }
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
+    };
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
@@ -204,6 +215,7 @@ function PopoverMenu({
             }}
             isVisible={isVisible}
             onModalHide={onModalHide}
+            onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}
@@ -215,7 +227,7 @@ function PopoverMenu({
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
+                    {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
@@ -227,7 +239,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
-                            titleStyle={item.titleStyle}
+                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
                             numberOfLinesDescription={item.numberOfLinesDescription}
@@ -265,7 +277,7 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        !lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        prevProps.menuItems.length === nextProps.menuItems.length &&
         prevProps.isVisible === nextProps.isVisible &&
         lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&

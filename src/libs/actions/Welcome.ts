@@ -96,7 +96,7 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
                     }, variables.explanationModalDelay),
             }),
     });

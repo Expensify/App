@@ -11,7 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
@@ -19,7 +19,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import type {SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -50,10 +50,6 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type BackToParams = {
-    backTo?: Routes;
-};
-
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
@@ -68,15 +64,30 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+
+    // Param types of the search central pane are also used for the search bottom tab screen.
     [SCREENS.SEARCH.CENTRAL_PANE]: {
-        query: string;
+        q: SearchQueryString;
+        isCustomQuery: boolean;
         policyIDs?: string;
-        offset?: number;
-        sortBy?: SearchColumnType;
-        sortOrder?: SortOrder;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+};
+
+type BackToParams = {
+    backTo?: Routes;
+};
+
+type BackToAndForwardToParms = {
+    backTo?: Routes;
+    forwardTo?: Routes;
+};
+
+type SearchNavigatorParamList = {
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: undefined;
+    [SCREENS.SEARCH.REPORT_RHP]: undefined;
 };
 
 type SettingsNavigatorParamList = {
@@ -201,6 +212,14 @@ type SettingsNavigatorParamList = {
         categoryName: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -251,6 +270,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAG_GL_CODE]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -430,7 +454,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {
@@ -588,6 +618,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
@@ -595,7 +629,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
@@ -624,8 +661,41 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CODE]: {
+        policyID: string;
+        taxID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+        policyID: string;
+        cardID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
+        policyID: string;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
+        policyID: string;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
+        policyID: string;
+        cardID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -655,6 +725,11 @@ type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: undefined;
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+    };
+    [SCREENS.REPORT_DETAILS.EXPORT]: {
+        reportID: string;
+        policyID: string;
+        connectionName: ConnectionName;
     };
 };
 
@@ -1010,11 +1085,11 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
 };
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type FullScreenNavigatorParamList = {
@@ -1033,10 +1108,17 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
+        policyID: string;
+        firstApproverEmail: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
@@ -1097,10 +1179,18 @@ type FullScreenNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
-    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
-    [SCREENS.ONBOARDING.PURPOSE]: undefined;
-    [SCREENS.ONBOARDING.WORK]: undefined;
+    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PURPOSE]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
@@ -1113,13 +1203,7 @@ type ExplanationModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: {
-        query: string;
-        policyID?: string;
-        offset?: number;
-        sortBy?: SearchColumnType;
-        sortOrder?: SortOrder;
-    };
+    [SCREENS.SEARCH.BOTTOM_TAB]: Omit<CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE], 'policyIDs'> & {policyID: string};
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
@@ -1157,6 +1241,8 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = CentralPaneScreensParamList &
     SharedScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TRACK_EXPENSE]: undefined;
+        [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.ATTACHMENTS]: {
             reportID: string;
             source: string;
@@ -1194,9 +1280,12 @@ type AuthScreensParamList = CentralPaneScreensParamList &
 
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
-        query: string;
         reportID: string;
     };
+};
+
+type SearchAdvancedFiltersParamList = {
+    [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
 };
 
 type RestrictedActionParamList = {
@@ -1227,6 +1316,7 @@ export type {
     CentralPaneScreensParamList,
     CentralPaneName,
     BackToParams,
+    BackToAndForwardToParms,
     BottomTabName,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
@@ -1259,6 +1349,7 @@ export type {
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
+    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     FeatureTrainingNavigatorParamList,
@@ -1274,5 +1365,6 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
 };

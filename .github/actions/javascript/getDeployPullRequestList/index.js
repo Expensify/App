@@ -11529,9 +11529,13 @@ async function run() {
                 run_id: lastSuccessfulDeploy.id,
                 filter: 'latest',
             })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')) {
+            console.log(`Deploy was not a success: ${lastSuccessfulDeploy.html_url}, looking at the next one`);
             lastSuccessfulDeploy = completedDeploys.shift();
         }
-        const priorTag = completedDeploys[0].head_branch;
+        if (!lastSuccessfulDeploy) {
+            throw new Error('Could not find a prior successful deploy');
+        }
+        const priorTag = lastSuccessfulDeploy.head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
         console.log('Found the pull request list: ', prList);
@@ -11631,7 +11635,21 @@ const CONST = {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
     },
+    ACTIONS: {
+        CREATED: 'created',
+        EDIT: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    OPENAI_ROLES: {
+        USER: 'user',
+        ASSISTANT: 'assistant',
+    },
+    PROPOSAL_KEYWORD: 'Proposal',
+    OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -11639,6 +11657,9 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    NO_ACTION: 'NO_ACTION',
+    OPENAI_POLL_RATE: 1500,
+    OPENAI_POLL_TIMEOUT: 90000,
 };
 exports["default"] = CONST;
 
@@ -12232,12 +12253,6 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs[0]?.id);
-    }
-    /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.

@@ -14,7 +14,7 @@ type Card = {
     bank: string;
 
     /** Available amount to spend */
-    availableSpend: number;
+    availableSpend?: number;
 
     /** Domain name */
     domainName: string;
@@ -38,6 +38,9 @@ type Card = {
     nameValuePairs?: {
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
+        /** Card spending limit */
+        limit?: number;
 
         /** User-defined nickname for the card */
         cardTitle?: string;

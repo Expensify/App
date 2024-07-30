@@ -48,8 +48,6 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
-    fontSizeOnlyEmojis: 30,
-    fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
@@ -87,8 +85,6 @@ export default {
     sidebarAvatarSize: 28,
     iconHeader: 48,
     iconSection: 68,
-    emojiSize: 20,
-    emojiLineHeight: 28,
     iouAmountTextSize: 40,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
@@ -114,6 +110,9 @@ export default {
     lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
     lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
+    lineHeightComment: 24,
+    lineHeightDisplayName: 25,
+    lineHeightMarkdownEnabledInput: 18,
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
@@ -213,6 +212,21 @@ export default {
     welcomeVideoDelay: 1000,
     explanationModalDelay: 2000,
 
+    // Emoji related variables
+    emojiSize: 20,
+    emojiSizeSmall: 12,
+    emojiLineHeight: 28,
+    fontSizeOnlyEmojis: 30,
+    fontSizeOnlyEmojisHeight: 35,
+    fontSizeEmojisWithinText: 19,
+    fontSizeEmojisOnlyComposer: 27,
+    fontSizeUsernameEmoji: 25,
+    lineHeightEmojisOnlyComposer: 32,
+    lineHeightEmojisWithTextComposer: 22,
+    emojiOnlyMarginTop: 5,
+    emojiOnlyComposerPaddingBottom: 0,
+    emojiOnlyComposerPaddingTop: 7,
+
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
@@ -227,6 +241,10 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardIconWidth: 40,
+    cardIconHeight: 25.29,
+    cardBorderRadius: 2.35,
+
     cardNameWidth: 156,
     holdMenuIconSize: 64,
     updateAnimationW: 390,
