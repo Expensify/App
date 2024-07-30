@@ -105,17 +105,22 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
     };
 
     return new Promise((_, reject) => {
+        const error = new Error('Failed to generate spotnana token.');
+
         asyncOpenURL(
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
                 .then((response) => {
                     if (!response?.spotnanaToken) {
-                        reject(new Error('Failed to generate spotnana token.'));
-                        return;
+                        reject(error);
+                        throw error;
                     }
                     return buildTravelDotURL(response.spotnanaToken, postLoginPath);
                 })
-                .catch(() => reject(new Error('Failed to generate spotnana token.'))),
+                .catch(() => {
+                    reject(error);
+                    throw error;
+                }),
             (travelDotURL) => travelDotURL ?? '',
         );
     });
