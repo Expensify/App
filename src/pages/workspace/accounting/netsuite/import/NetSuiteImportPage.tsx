@@ -108,9 +108,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => (
                 <OfflineWithFeedback
                     key={importField}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}
-                    errorRowStyles={[styles.ph5]}
-                    onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
+                    pendingAction={xeroSettingsPendingAction([importField], config?.syncOptions?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
