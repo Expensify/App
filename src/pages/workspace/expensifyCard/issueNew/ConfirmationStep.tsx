@@ -67,7 +67,7 @@ function ConfirmationStep() {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
-                <Text style={[styles.textLabelSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}

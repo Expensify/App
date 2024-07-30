@@ -663,6 +663,20 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
 }
 
 /**
+ * Get IOU report ID of report last action if the action is report action preview
+ */
+function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefined {
+    if (!report?.reportID) {
+        return;
+    }
+    const lastAction = visibleReportActionItems[report.reportID];
+    if (!ReportActionUtils.isReportPreviewAction(lastAction)) {
+        return;
+    }
+    return getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+}
+
+/**
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
@@ -1699,14 +1713,12 @@ function canCreateOptimisticPersonalDetailOption({
  * - There's no matching recent report and personal detail option
  * - The searchValue is a valid email or phone number
  * - The searchValue isn't the current personal detail login
- * - We can use chronos or the search value is not the chronos email
  */
 function getUserToInviteOption({
     searchValue,
     excludeUnknownUsers = false,
     optionsToExclude = [],
     selectedOptions = [],
-    betas,
     reportActions = {},
     showChatPreviewLine = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
@@ -1717,17 +1729,8 @@ function getUserToInviteOption({
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
-    const isChronosEmail = searchValue === CONST.EMAIL.CHRONOS;
 
-    if (
-        !searchValue ||
-        isCurrentUserLogin ||
-        isInSelectedOption ||
-        (!isValidEmail && !isValidPhoneNumber) ||
-        isInOptionToExclude ||
-        (isChronosEmail && !Permissions.canUseChronos(betas)) ||
-        excludeUnknownUsers
-    ) {
+    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude || excludeUnknownUsers) {
         return null;
     }
 
@@ -2634,6 +2637,7 @@ export {
     isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
+    getIOUReportIDOfLastAction,
     getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,

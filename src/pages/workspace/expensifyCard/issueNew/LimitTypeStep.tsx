@@ -106,13 +106,14 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 onSelectRow={({value}) => setTypeSelected(value)}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
+                initiallyFocusedOptionKey={typeSelected}
+                shouldUpdateFocusedIndex
             />
             <Button
                 success
                 large
                 pressOnEnter
-                // TODO: change the text to 'common.confirm' when editing and navigate to ConfirmationStep
-                text={translate('common.next')}
+                text={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onPress={submit}
                 style={styles.m5}
             />
