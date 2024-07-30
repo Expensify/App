@@ -127,8 +127,8 @@ function SearchPageHeader({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {setSelectedTransactionIDs} = useSearchContext();
-    const {status, input} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(input) : translate(headerContent[status]?.titleTx);
+    const {status, inputQuery} = queryJSON;
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(inputQuery) : translate(headerContent[status]?.titleTx);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 

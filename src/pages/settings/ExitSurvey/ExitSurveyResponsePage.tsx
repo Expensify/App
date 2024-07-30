@@ -44,7 +44,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     const {reason, backTo} = route.params;
     const {isOffline} = useNetwork({
@@ -134,7 +134,9 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                                 if (!el) {
                                     return;
                                 }
-                                updateMultilineInputRange(el);
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
                                 inputCallbackRef(el);
                             }}
                             containerStyles={[baseResponseInputContainerStyle]}
