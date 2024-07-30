@@ -390,6 +390,18 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
             }
 
+            if (filterKey === INPUT_IDS.MERCHANT && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.DESCRIPTION && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.REPORT_ID && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${filterValue as string}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)
