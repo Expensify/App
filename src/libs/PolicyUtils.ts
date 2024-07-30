@@ -376,6 +376,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
 function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
@@ -902,6 +906,7 @@ export {
     hasPolicyError,
     hasPolicyErrorFields,
     hasTaxRateError,
+    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
