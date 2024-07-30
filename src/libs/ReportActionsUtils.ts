@@ -189,7 +189,14 @@ function isActionOfType<T extends ReportActionName[]>(
 ): action is {
     [K in keyof T]: ReportAction<T[K]>;
 }[number] {
-    return actionNames.includes(action?.actionName as T[number]);
+    const actionName = action?.actionName as T[number];
+
+    // This is purely a performance optimization to limit the 'includes()' calls on Hermes
+    if (actionNames.length === 1) {
+        return actionNames[0] === actionName;
+    }
+
+    return actionNames.includes(actionName);
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
