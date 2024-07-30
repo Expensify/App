@@ -90,9 +90,10 @@ function SubscriptionDetails() {
                 <View style={styles.flexRow}>
                     <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.details.title')}</Text>
                     {privateTaxExempt && (
-                        <View style={styles.mtn1}>
-                            <Badge text={translate('subscription.details.taxExemptEnabled')} />
-                        </View>
+                        <Badge
+                            badgeStyles={styles.mtn1}
+                            text={translate('subscription.details.taxExemptEnabled')}
+                        />
                     )}
                 </View>
                 {!privateTaxExempt && <TaxExemptActions />}
