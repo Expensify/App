@@ -366,7 +366,7 @@ function MenuItem(
         shouldShowBasicTitle,
         label,
         shouldTruncateDescription = false,
-        limit = 100,
+        limit = 200,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
