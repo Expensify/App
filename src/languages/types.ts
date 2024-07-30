@@ -300,11 +300,6 @@ type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
-type PluralTranslationFlatObject = Pick<
-    TranslationFlatObject,
-    {[K in keyof TranslationFlatObject]: TranslationFlatObject[K] extends TranslationPluralPhaseValue ? K : never}[keyof TranslationFlatObject]
->;
-
 type TermsParams = {amount: string};
 
 type ElectronicFundsParams = {percentage: string; amount: string};
@@ -458,7 +453,6 @@ export type {
     TranslationBase,
     TranslationFlatObject,
     TranslationPaths,
-    PluralTranslationFlatObject,
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
