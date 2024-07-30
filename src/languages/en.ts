@@ -368,6 +368,7 @@ export default {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        reportID: 'Report ID',
     },
     location: {
         useCurrent: 'Use current location',
