@@ -92,20 +92,8 @@ const enEmojis: EmojisList = {
     '🤭': {
         keywords: ['quiet', 'whoops'],
     },
-    '🫡': {
-        keywords: ['face', 'salute', 'respect', 'military', 'honor'],
-    },
-    '🫣': {
-        keywords: ['face', 'peek', 'eye', 'curious', 'shy'],
-    },
-    '🫢': {
-        keywords: ['face', 'open eyes', 'hand over mouth', 'surprised', 'shock'],
-    },
     '🤫': {
         keywords: ['silence', 'quiet'],
-    },
-    '🫠': {
-        keywords: ['face', 'disappear', 'dissolve', 'liquid', 'melt', 'melting face'],
     },
     '🤔': {
         keywords: ['face'],
@@ -116,20 +104,11 @@ const enEmojis: EmojisList = {
     '🤨': {
         keywords: ['suspicious'],
     },
-    '🫥': {
-        keywords: ['face', 'invisible', 'hidden', 'dotted line', 'disappear'],
-    },
     '😐': {
         keywords: ['meh', 'deadpan', 'face', 'neutral'],
     },
-    '🫤': {
-        keywords: ['face', 'diagonal mouth', 'meh', 'neutral', 'uncertain'],
-    },
     '😑': {
         keywords: ['face', 'inexpressive', 'unexpressive'],
-    },
-    '🫨': {
-        keywords: ['shaking', 'face', 'shock', 'vibration', 'tremble', 'emotion'],
     },
     '😶': {
         keywords: ['mute', 'silence', 'face', 'mouth', 'quiet', 'silent'],
@@ -262,9 +241,6 @@ const enEmojis: EmojisList = {
     },
     '😰': {
         keywords: ['nervous', 'blue', 'cold', 'face', 'mouth', 'open', 'rushed', 'sweat'],
-    },
-    '🥹': {
-        keywords: ['face', 'tears', 'emotional', 'holding back', 'crying'],
     },
     '😥': {
         keywords: ['phew', 'sweat', 'nervous', 'disappointed', 'face', 'relieved', 'whew'],
@@ -428,15 +404,6 @@ const enEmojis: EmojisList = {
     '❤️': {
         keywords: ['love'],
     },
-    '🩷': {
-        keywords: ['pink', 'heart', 'love', 'affection', 'romance', 'valentine'],
-    },
-    '🩵': {
-        keywords: ['light blue', 'heart', 'love', 'affection', 'calm', 'tranquility'],
-    },
-    '🩶': {
-        keywords: ['grey', 'heart', 'love', 'affection', 'neutral', 'balance'],
-    },
     '🧡': {
         keywords: [],
     },
@@ -475,9 +442,6 @@ const enEmojis: EmojisList = {
     },
     '💦': {
         keywords: ['water', 'workout', 'comic', 'splashing', 'sweat'],
-    },
-    '🫧': {
-        keywords: ['bubbles', 'soap', 'water', 'float'],
     },
     '💨': {
         keywords: ['wind', 'blow', 'fast', 'comic', 'running'],
@@ -530,20 +494,11 @@ const enEmojis: EmojisList = {
     '🤏': {
         keywords: [],
     },
-    '🫳': {
-        keywords: ['hand', 'palm down', 'gesture'],
-    },
-    '🫴': {
-        keywords: ['hand', 'palm up', 'gesture'],
-    },
     '✌️': {
         keywords: ['victory', 'peace'],
     },
     '🤞': {
         keywords: ['luck', 'hopeful', 'cross', 'finger', 'hand'],
-    },
-    '🫰': {
-        keywords: ['hand', 'finger', 'thumb', 'crossed', 'gesture'],
     },
     '🤟': {
         keywords: [],
@@ -553,12 +508,6 @@ const enEmojis: EmojisList = {
     },
     '🤙': {
         keywords: ['call', 'hand', 'shaka'],
-    },
-    '🫱': {
-        keywords: ['hand', 'right', 'pointing', 'gesture'],
-    },
-    '🫲': {
-        keywords: ['hand', 'left', 'pointing', 'gesture'],
     },
     '👈': {
         keywords: ['backhand', 'body', 'finger', 'hand', 'index', 'point'],
@@ -596,20 +545,11 @@ const enEmojis: EmojisList = {
     '🤜': {
         keywords: ['fist', 'rightwards'],
     },
-    '🫷': {
-        keywords: ['leftwards', 'pushing', 'hand', 'gesture', 'stop', 'block'],
-    },
-    '🫸': {
-        keywords: ['rightwards', 'pushing', 'hand', 'gesture', 'stop', 'block'],
-    },
     '👏': {
         keywords: ['praise', 'applause', 'body', 'hand'],
     },
     '🙌': {
         keywords: ['hooray', 'body', 'celebration', 'gesture', 'hand', 'raised'],
-    },
-    '🫶': {
-        keywords: ['hand', 'heart', 'gesture', 'love'],
     },
     '👐': {
         keywords: ['body', 'hand', 'open'],
@@ -622,9 +562,6 @@ const enEmojis: EmojisList = {
     },
     '🙏': {
         keywords: ['please', 'hope', 'wish', 'ask', 'body', 'bow', 'folded', 'gesture', 'hand', 'thanks'],
-    },
-    '🫵': {
-        keywords: ['hand', 'pointing', 'viewer', 'gesture'],
     },
     '✍️': {
         keywords: [],
@@ -685,9 +622,6 @@ const enEmojis: EmojisList = {
     },
     '👄': {
         keywords: ['kiss', 'body', 'mouth'],
-    },
-    '🫦': {
-        keywords: ['biting', 'lip', 'nervous', 'flirt'],
     },
     '👶': {
         keywords: ['child', 'newborn'],
@@ -1049,9 +983,6 @@ const enEmojis: EmojisList = {
     '🤴': {
         keywords: ['crown', 'royal'],
     },
-    '🫅': {
-        keywords: ['person', 'crown', 'royalty', 'king', 'queen'],
-    },
     '👸': {
         keywords: ['crown', 'royal', 'fairy tale', 'fantasy'],
     },
@@ -1090,12 +1021,6 @@ const enEmojis: EmojisList = {
     },
     '🤰': {
         keywords: ['pregnant', 'woman'],
-    },
-    '🫄': {
-        keywords: ['pregnant', 'person', 'expecting', 'parent'],
-    },
-    '🫃': {
-        keywords: ['pregnant', 'man', 'expecting', 'parent'],
     },
     '🤱': {
         keywords: ['nursing'],
@@ -1183,9 +1108,6 @@ const enEmojis: EmojisList = {
     },
     '🧝‍♀️': {
         keywords: [],
-    },
-    '🧌': {
-        keywords: ['troll', 'mythical', 'creature', 'fantasy'],
     },
     '🧞': {
         keywords: [],
@@ -1661,25 +1583,6 @@ const enEmojis: EmojisList = {
     '🦄': {
         keywords: ['face'],
     },
-    '🫎': {
-        keywords: ['moose', 'animal', 'wildlife', 'antlers', 'forest', 'nature'],
-    },
-    '🫏': {
-        keywords: ['donkey', 'animal', 'mule', 'farm', 'stubborn', 'nature'],
-    },
-    '🪽': {
-        keywords: ['wing', 'bird', 'fly', 'angel', 'freedom', 'flight'],
-    },
-    '🐦‍⬛': {
-        keywords: ['black', 'bird', 'animal', 'crow', 'raven', 'flight'],
-    },
-    '🪿': {
-        keywords: ['goose', 'animal', 'bird', 'waterfowl', 'nature', 'pond'],
-    },
-    '🪼': {
-        keywords: ['jellyfish', 'animal', 'sea', 'ocean', 'tentacles', 'marine'],
-    },
-
     '🦓': {
         keywords: [],
     },
@@ -1917,9 +1820,6 @@ const enEmojis: EmojisList = {
     '🐚': {
         keywords: ['sea', 'beach', 'spiral'],
     },
-    '🪸': {
-        keywords: ['coral', 'reef', 'sea', 'ocean', 'marine'],
-    },
     '🐌': {
         keywords: ['slow'],
     },
@@ -1986,12 +1886,6 @@ const enEmojis: EmojisList = {
     '🥀': {
         keywords: ['flower', 'wilted'],
     },
-    '🪻': {
-        keywords: ['hyacinth', 'flower', 'plant', 'blossom', 'garden', 'nature'],
-    },
-    '🪷': {
-        keywords: ['lotus', 'flower', 'bloom', 'plant'],
-    },
     '🌺': {
         keywords: ['flower', 'plant'],
     },
@@ -2042,12 +1936,6 @@ const enEmojis: EmojisList = {
     },
     '🍃': {
         keywords: ['leaf', 'blow', 'flutter', 'plant', 'wind'],
-    },
-    '🪺': {
-        keywords: ['nest', 'eggs', 'bird', 'home'],
-    },
-    '🪹': {
-        keywords: ['nest', 'empty', 'bird', 'home'],
     },
     '🍇': {
         keywords: ['fruit', 'grape', 'plant'],
@@ -2147,9 +2035,6 @@ const enEmojis: EmojisList = {
     },
     '🥜': {
         keywords: ['nut', 'peanut', 'vegetable'],
-    },
-    '🫘': {
-        keywords: ['beans', 'food', 'legume'],
     },
     '🌰': {
         keywords: ['plant'],
@@ -2256,9 +2141,6 @@ const enEmojis: EmojisList = {
     '🥫': {
         keywords: [],
     },
-    '🫙': {
-        keywords: ['jar', 'container', 'storage'],
-    },
     '🍱': {
         keywords: ['box'],
     },
@@ -2282,12 +2164,6 @@ const enEmojis: EmojisList = {
     },
     '🍠': {
         keywords: ['potato', 'roasted', 'sweet'],
-    },
-    '🫚': {
-        keywords: ['ginger', 'root', 'spice', 'food', 'cooking', 'health'],
-    },
-    '🫛': {
-        keywords: ['pea', 'pod', 'vegetable', 'food', 'plant', 'garden'],
     },
     '🍢': {
         keywords: ['kebab', 'seafood', 'skewer', 'stick'],
@@ -2378,9 +2254,6 @@ const enEmojis: EmojisList = {
     },
     '🥛': {
         keywords: ['drink', 'glass', 'milk'],
-    },
-    '🫗': {
-        keywords: ['pouring', 'liquid', 'drink', 'water'],
     },
     '☕': {
         keywords: ['cafe', 'espresso', 'beverage', 'drink', 'hot', 'steaming', 'tea'],
@@ -2748,9 +2621,6 @@ const enEmojis: EmojisList = {
     '🦼': {
         keywords: [],
     },
-    '🩼': {
-        keywords: ['crutch', 'support', 'injury', 'aid'],
-    },
     '🛺': {
         keywords: [],
     },
@@ -2765,9 +2635,6 @@ const enEmojis: EmojisList = {
     },
     '🛼': {
         keywords: [],
-    },
-    '🛞': {
-        keywords: ['wheel', 'vehicle', 'transportation'],
     },
     '🚏': {
         keywords: ['bus', 'stop'],
@@ -2822,9 +2689,6 @@ const enEmojis: EmojisList = {
     },
     '🚢': {
         keywords: ['vehicle'],
-    },
-    '🛟': {
-        keywords: ['ring', 'buoy', 'lifesaver', 'safety'],
     },
     '✈️': {
         keywords: ['flight', 'vehicle'],
@@ -3141,17 +3005,11 @@ const enEmojis: EmojisList = {
     '🎎': {
         keywords: ['activity', 'celebration', 'doll', 'entertainment', 'festival', 'japanese'],
     },
-    '🪭': {
-        keywords: ['folding', 'hand', 'fan', 'cool', 'breeze', 'accessory'],
-    },
     '🎏': {
         keywords: ['activity', 'carp', 'celebration', 'entertainment', 'flag', 'streamer'],
     },
     '🎐': {
         keywords: ['activity', 'bell', 'celebration', 'chime', 'entertainment', 'wind'],
-    },
-    '🪩': {
-        keywords: ['mirror', 'ball', 'disco', 'party'],
     },
     '🎑': {
         keywords: ['activity', 'celebration', 'ceremony', 'entertainment', 'moon'],
@@ -3282,9 +3140,6 @@ const enEmojis: EmojisList = {
     '🪁': {
         keywords: [],
     },
-    '🛝': {
-        keywords: ['playground', 'slide', 'play', 'park'],
-    },
     '🎱': {
         keywords: ['pool', 'billiards', '8', '8 ball', 'ball', 'billiard', 'eight', 'game'],
     },
@@ -3296,9 +3151,6 @@ const enEmojis: EmojisList = {
     },
     '🧿': {
         keywords: [],
-    },
-    '🪬': {
-        keywords: ['hamsa', 'hand', 'protection', 'luck'],
     },
     '🎮': {
         keywords: ['play', 'controller', 'console', 'entertainment', 'game', 'video game'],
@@ -3570,17 +3422,11 @@ const enEmojis: EmojisList = {
     '🎹': {
         keywords: ['piano', 'activity', 'entertainment', 'instrument', 'keyboard', 'music'],
     },
-    '🪇': {
-        keywords: ['maracas', 'instrument', 'music', 'percussion', 'rhythm', 'shake'],
-    },
     '🎺': {
         keywords: ['activity', 'entertainment', 'instrument', 'music'],
     },
     '🎻': {
         keywords: ['activity', 'entertainment', 'instrument', 'music'],
-    },
-    '🪈': {
-        keywords: ['flute', 'instrument', 'music', 'wind', 'melody', 'play'],
     },
     '🪕': {
         keywords: [],
@@ -3611,9 +3457,6 @@ const enEmojis: EmojisList = {
     },
     '🔋': {
         keywords: ['power'],
-    },
-    '🪫': {
-        keywords: ['low', 'battery', 'power', 'charge'],
     },
     '🔌': {
         keywords: ['electric', 'electricity', 'plug'],
@@ -3773,9 +3616,6 @@ const enEmojis: EmojisList = {
     },
     '💳': {
         keywords: ['subscription', 'bank', 'card', 'credit', 'money'],
-    },
-    '🪪': {
-        keywords: ['identification', 'card', 'ID', 'document'],
     },
     '🧾': {
         keywords: [],
@@ -4023,9 +3863,6 @@ const enEmojis: EmojisList = {
     '🔭': {
         keywords: ['tool'],
     },
-    '🩻': {
-        keywords: ['x-ray', 'medical', 'scan', 'radiology'],
-    },
     '📡': {
         keywords: ['signal', 'antenna', 'communication', 'dish'],
     },
@@ -4082,9 +3919,6 @@ const enEmojis: EmojisList = {
     },
     '🪒': {
         keywords: [],
-    },
-    '🪮': {
-        keywords: ['hair', 'pick', 'comb', 'grooming', 'accessory', 'style'],
     },
     '🧴': {
         keywords: [],
@@ -4175,9 +4009,6 @@ const enEmojis: EmojisList = {
     },
     '🛅': {
         keywords: ['baggage', 'left luggage', 'locker', 'luggage'],
-    },
-    '🛜': {
-        keywords: ['wireless', 'network', 'signal', 'connection', 'internet', 'wifi'],
     },
     '⚠️': {
         keywords: ['wip'],
@@ -4295,9 +4126,6 @@ const enEmojis: EmojisList = {
     },
     '☸️': {
         keywords: ['buddhist', 'dharma', 'religion', 'wheel'],
-    },
-    '🪯': {
-        keywords: ['khanda', 'sikh', 'symbol', 'religion', 'faith', 'sikhism'],
     },
     '☯️': {
         keywords: [],
@@ -4451,9 +4279,6 @@ const enEmojis: EmojisList = {
     },
     '➗': {
         keywords: ['division', 'math'],
-    },
-    '🟰': {
-        keywords: ['equals', 'sign', 'math', 'symbol'],
     },
     '♾️': {
         keywords: [],
