@@ -3494,6 +3494,11 @@ export default {
                 description: `Añada códigos de libro mayor y nómina a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los códigos de libro mayor y nómina solo están disponibles en el plan Control, a partir de ',
             },
+            taxCodes: {
+                title: 'Código de impuesto',
+                description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
+            },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',

@@ -3438,6 +3438,11 @@ export default {
                 description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
             },
+            taxCodes: {
+                title: 'Tax codes',
+                description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
+            },
             pricing: {
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',
