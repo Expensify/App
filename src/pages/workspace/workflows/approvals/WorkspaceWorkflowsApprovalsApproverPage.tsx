@@ -24,6 +24,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -61,7 +62,7 @@ type SelectionListApprover = {
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
 function WorkspaceWorkflowsApprovalsApproverPage(props: WorkspaceWorkflowsApprovalsApproverPageProps) {
-    if (props.betas?.includes(CONST.BETAS.WORKFLOWS_ADVANCED_APPROVAL)) {
+    if (Permissions.canUseWorkflowsAdvancedApproval(props.betas) && props.route.params.approverIndex !== undefined) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <WorkspaceWorkflowsApprovalsApproverPageNew {...props} />;
     }
@@ -80,7 +81,6 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
     const approverIndex = route.params.approverIndex ?? 0;
 
     useEffect(() => {
@@ -105,6 +105,7 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
                         return null;
                     }
 
+                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                     const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
 
@@ -139,13 +140,14 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
                 shouldShow: true,
             },
         ];
-    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, policyMemberEmailsToAccountIDs, selectedApproverEmail, translate]);
+    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, selectedApproverEmail, translate]);
 
     const nextStep = useCallback(() => {
         if (!selectedApproverEmail) {
             return;
         }
 
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
         const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
         const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
         Workflow.setApprovalWorkflowApprover(
@@ -160,8 +162,12 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
         );
 
         const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
-    }, [approvalWorkflow?.approvers, approverIndex, personalDetails, policyMemberEmailsToAccountIDs, route.params.policyID, selectedApproverEmail]);
+        if (!approvalWorkflow?.isBeingEdited && firstApprover) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+        }
+    }, [approvalWorkflow?.approvers, approvalWorkflow?.isBeingEdited, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
 
     const nextButton = useMemo(
         () => (
