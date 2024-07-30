@@ -203,6 +203,9 @@ type MenuItemBaseProps = {
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
 
+    /** Should we truncate the description */
+    shouldTruncateDescription?: boolean;
+
     /** Whether this item is selected */
     isSelected?: boolean;
 
@@ -362,6 +365,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        shouldTruncateDescription,
         limit,
         isLabelHoverable = true,
         rightLabel,
@@ -459,8 +463,12 @@ function MenuItem(
             titleToWrap = html;
         }
 
+        if (shouldTruncateDescription) {
+            titleToWrap = Parser.truncateHTML(titleToWrap, limit ?? 100, {ellipsis: '...'});
+        }
+
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, limit, shouldTruncateDescription, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
@@ -669,7 +677,7 @@ function MenuItem(
                                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
-                                                                        <RenderHTML html={limit ? Parser.truncateHTML(processedTitle, limit, {ellipsis: '...'}) : processedTitle} />
+                                                                        <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
