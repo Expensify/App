@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
@@ -57,7 +57,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -66,6 +65,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
+                const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
                 return {
@@ -78,7 +78,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policyMemberEmailsToAccountIDs]);
+    }, [approvalWorkflow?.members, policy?.employeeList]);
 
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
@@ -87,6 +87,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             const availableMembers = approvalWorkflow.availableMembers
                 .map((member) => {
                     const isAdmin = policy?.employeeList?.[member.email].role === CONST.REPORT.ROLE.ADMIN;
+                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
                     return {
@@ -120,7 +121,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.employeeList, policyMemberEmailsToAccountIDs, selectedMembers, translate]);
+    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.employeeList, selectedMembers, translate]);
 
     const nextStep = useCallback(() => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
