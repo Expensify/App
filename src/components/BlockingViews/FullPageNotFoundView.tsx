@@ -20,8 +20,8 @@ type FullPageNotFoundViewProps = {
     /** The key in the translations file to use for the title */
     titleKey?: TranslationPaths;
 
-    /** The key in the translations file to use for the subtitle */
-    subtitleKey?: TranslationPaths;
+    /** The key in the translations file to use for the subtitle. Pass an empty key to not show the subtitle. */
+    subtitleKey?: TranslationPaths | '';
 
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink?: boolean;
@@ -71,7 +71,7 @@ function FullPageNotFoundView({
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={translate(titleKey)}
-                        subtitle={translate(subtitleKey)}
+                        subtitle={subtitleKey && translate(subtitleKey)}
                         linkKey={linkKey}
                         shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
