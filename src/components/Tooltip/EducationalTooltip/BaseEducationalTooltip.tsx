@@ -27,6 +27,7 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
         if (!hideTooltipRef.current) {
             return;
         }
+
         const intervalID = setInterval(hideTooltipRef.current, 5000);
         return () => {
             clearInterval(intervalID);
