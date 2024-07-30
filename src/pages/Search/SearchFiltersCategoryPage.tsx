@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import type {CategorySection} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,8 +26,8 @@ function SearchFiltersCategoryPage() {
     const [noResultsFound, setNoResultsFound] = useState(false);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const activeItems = searchAdvancedFiltersForm?.category;
-    const [newCategories, setNewCategories] = useState<string[]>(activeItems ?? []);
+    const currentCategories = searchAdvancedFiltersForm?.category;
+    const [newCategories, setNewCategories] = useState<string[]>(currentCategories ?? []);
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
 
     const [allPolicyIdCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -93,6 +94,20 @@ function SearchFiltersCategoryPage() {
         Navigation.goBack();
     }, [newCategories, updateCategory]);
 
+    const updateNewCategories = useCallback(
+        (item: Partial<OptionData>) => {
+            if (!item.text) {
+                return;
+            }
+            if (item.isSelected) {
+                setNewCategories(newCategories?.filter((category) => category !== item.text));
+            } else {
+                setNewCategories([...(newCategories ?? []), item.text]);
+            }
+        },
+        [newCategories],
+    );
+
     const footerContent = useMemo(
         () => (
             <Button
@@ -119,16 +134,7 @@ function SearchFiltersCategoryPage() {
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         textInputLabel={translate('common.search')}
-                        onSelectRow={(item) => {
-                            if (!item.text) {
-                                return;
-                            }
-                            if (item.isSelected) {
-                                setNewCategories(newCategories?.filter((category) => category !== item.text));
-                            } else {
-                                setNewCategories([...(newCategories ?? []), item.text]);
-                            }
-                        }}
+                        onSelectRow={updateNewCategories}
                         headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
                         footerContent={footerContent}
                         shouldStopPropagation
