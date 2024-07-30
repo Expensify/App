@@ -212,10 +212,10 @@ function IOURequestStepScan({
                     return false;
                 }
 
-                if (Str.isImage(file.name ?? '') && typeof result === 'object' && result.width * result.height > CONST.MAX_IMAGE_CANVAS_AREA) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentImageExceedDimensions', 'attachmentPicker.dimensionsExceeded');
-                    return false;
-                }
+                // if (Str.isImage(file.name ?? '') && typeof result === 'object' && result.width * result.height > CONST.MAX_IMAGE_CANVAS_AREA) {
+                //     setUploadReceiptError(true, 'attachmentPicker.attachmentImageExceedDimensions', 'attachmentPicker.dimensionsExceeded');
+                //     return false;
+                // }
 
                 if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
