@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -131,7 +130,6 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const animatedRef = useAnimatedRef();
@@ -390,11 +388,6 @@ function ReportActionCompose({
         const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [styles]);
-
-    useEffect(() => {
-        const unsubscribeBlur = navigation.addListener('blur', () => setShouldHideEducationalTooltip(true));
-        return unsubscribeBlur;
-    }, [navigation]);
 
     const renderWorkspaceChatTooltip = useCallback(
         () => (

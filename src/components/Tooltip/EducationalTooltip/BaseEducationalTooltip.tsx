@@ -11,6 +11,17 @@ import getBounds from './getBounds';
 function BaseEducationalTooltip({children, ...props}: TooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
+    useEffect(
+        () => () => {
+            if (!hideTooltipRef.current) {
+                return;
+            }
+
+            hideTooltipRef.current();
+        },
+        [],
+    );
+
     // Automatically hide tooltip after 5 seconds
     useEffect(() => {
         if (!hideTooltipRef.current) {
