@@ -203,8 +203,8 @@ type MenuItemBaseProps = {
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
 
-    /** Should we truncate the description */
-    shouldTruncateDescription?: boolean;
+    /** Should we truncate the title */
+    shouldTruncateTitle?: boolean;
 
     /** Whether this item is selected */
     isSelected?: boolean;
