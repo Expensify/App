@@ -45,10 +45,10 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AllFieldKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS;
 
 type QueryFilters = {
-    [K in AllFieldKeys]: QueryFilter | QueryFilter[];
+    [K in AdvancedFiltersKeys]?: QueryFilter | QueryFilter[];
 };
 
 type SearchQueryString = string;
@@ -62,7 +62,7 @@ type SearchQueryAST = {
 };
 
 type SearchQueryJSON = {
-    input: string;
+    inputQuery: SearchQueryString;
     hash: number;
 } & SearchQueryAST;
 
@@ -79,5 +79,5 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    AllFieldKeys,
+    AdvancedFiltersKeys,
 };

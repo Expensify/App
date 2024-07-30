@@ -25,6 +25,7 @@ import type {
     InviteToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
+    MarkAsExportedParams,
     MarkAsUnreadParams,
     OpenReportParams,
     OpenRoomMembersPageParams,
@@ -32,6 +33,7 @@ import type {
     RemoveEmojiReactionParams,
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
+    ReportExportParams,
     ResolveActionableMentionWhisperParams,
     ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
@@ -3835,18 +3837,94 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 }
 
 function exportToIntegration(reportID: string, connectionName: ConnectionName) {
-    API.write(WRITE_COMMANDS.REPORT_EXPORT, {
+    const action = ReportUtils.buildOptimisticExportIntegrationAction(connectionName);
+    const optimisticReportActionID = action.reportActionID;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: action,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const params = {
         reportIDList: reportID,
         connectionName,
         type: 'MANUAL',
-    });
+        optimisticReportActions: JSON.stringify({
+            [reportID]: optimisticReportActionID,
+        }),
+    } satisfies ReportExportParams;
+
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
-function markAsManuallyExported(reportID: string) {
-    API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, {
-        reportIDList: reportID,
+function markAsManuallyExported(reportID: string, connectionName: ConnectionName) {
+    const action = ReportUtils.buildOptimisticExportIntegrationAction(connectionName, true);
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+    const optimisticReportActionID = action.reportActionID;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: action,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const params = {
         markedManually: true,
-    });
+        data: JSON.stringify([
+            {
+                reportID,
+                label,
+                optimisticReportActionID,
+            },
+        ]),
+    } satisfies MarkAsExportedParams;
+
+    API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
 export {

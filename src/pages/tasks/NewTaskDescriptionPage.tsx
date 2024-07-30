@@ -37,7 +37,7 @@ type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & StackScreen
 function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDescriptionValue(values.taskDescription);
@@ -83,8 +83,10 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
                                 inputCallbackRef(el);
-                                updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
