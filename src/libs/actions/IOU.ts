@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {PartialDeep, ValueOf} from 'type-fest';
+import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -487,7 +487,7 @@ function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanR
 }
 
 /** Helper function to get optimistic fields violations onyx data */
-function getFieldsViolationsOnyxData(iouReport: OnyxTypes.Report): OnyxData {
+function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<OnyxData, 'optimisticData' | 'failureData'> {
     const missingFields: OnyxTypes.ReportFieldsViolations = {};
     const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
 
@@ -888,9 +888,9 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    const {optimisticData: fieldsViolationsOptimisticData, failureData: fieldsViolationsFailureData} = getFieldsViolationsOnyxData(iouReport);
-    optimisticData.push(...(fieldsViolationsOptimisticData ?? []));
-    failureData.push(...(fieldsViolationsFailureData ?? []));
+    const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+    optimisticData.push(...fieldViolationsOptimisticData);
+    failureData.push(...fieldViolationsFailureData);
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
@@ -1591,9 +1591,9 @@ function buildOnyxDataForTrackExpense(
     );
 
     if (iouReport) {
-        const {optimisticData: fieldsViolationsOptimisticData, failureData: fieldsViolationsFailureData} = getFieldsViolationsOnyxData(iouReport);
-        optimisticData.push(...(fieldsViolationsOptimisticData ?? []));
-        failureData.push(...(fieldsViolationsFailureData ?? []));
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
     }
 
     // We don't need to compute violations unless we're on a paid policy
