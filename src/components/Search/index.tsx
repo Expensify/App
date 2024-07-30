@@ -39,6 +39,7 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
+
 function Search({queryJSON, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();

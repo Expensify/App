@@ -363,7 +363,6 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
@@ -682,6 +681,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
+                CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
+                CARD_ISSUED: 'CARDISSUED',
+                CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
@@ -5250,6 +5252,9 @@ const CONST = {
             SHARED: 'shared',
             DRAFTS: 'drafts',
             FINISHED: 'finished',
+        },
+        TYPE: {
+            EXPENSE: 'expense',
         },
         TAB: {
             EXPENSE: {
