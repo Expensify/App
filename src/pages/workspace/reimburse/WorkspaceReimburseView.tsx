@@ -11,8 +11,8 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -38,7 +38,7 @@ type WorkspaceReimburseViewProps = WorkspaceReimburseViewOnyxProps & {
 function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimburseViewProps) {
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState<string>('');
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? '-1'}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = PolicyUtils.getCustomUnit(policy);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
@@ -76,7 +76,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
     }, [policy?.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
