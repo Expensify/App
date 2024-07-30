@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Header from '@components/Header';
@@ -15,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -22,6 +24,7 @@ import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -91,9 +94,7 @@ type SearchPageHeaderProps = {
     clearSelectedItems?: () => void;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
-    isMobileSelectionModeActive?: boolean;
-    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
-    isCustomQuery?: boolean;
+    isCustomQuery: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
 };
@@ -113,12 +114,10 @@ function SearchPageHeader({
     hash,
     clearSelectedItems,
     onSelectDeleteOption,
-    isMobileSelectionModeActive,
-    setIsMobileSelectionModeActive,
-    isCustomQuery = false,
     setOfflineModalOpen,
     setDownloadErrorModalOpen,
     selectedReports,
+    isCustomQuery,
 }: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -131,6 +130,7 @@ function SearchPageHeader({
     const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleTx);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
 
@@ -176,8 +176,8 @@ function SearchPageHeader({
                     }
 
                     clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
+                    if (selectionMode?.isEnabled) {
+                        turnOffMobileSelectionMode();
                     }
                     setSelectedTransactionIDs(selectedTransactionsKeys);
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
@@ -200,8 +200,8 @@ function SearchPageHeader({
                     }
 
                     clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
+                    if (selectionMode?.isEnabled) {
+                        turnOffMobileSelectionMode();
                     }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
@@ -253,9 +253,7 @@ function SearchPageHeader({
         translate,
         onSelectDeleteOption,
         clearSelectedItems,
-        isMobileSelectionModeActive,
         hash,
-        setIsMobileSelectionModeActive,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
@@ -266,10 +264,11 @@ function SearchPageHeader({
         selectedReports,
         styles.textWrap,
         setSelectedTransactionIDs,
+        selectionMode?.isEnabled,
     ]);
 
     if (isSmallScreenWidth) {
-        if (isMobileSelectionModeActive) {
+        if (selectionMode?.isEnabled) {
             return (
                 <SearchSelectedNarrow
                     options={headerButtonsOptions}
