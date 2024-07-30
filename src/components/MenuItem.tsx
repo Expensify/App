@@ -468,7 +468,7 @@ function MenuItem(
         }
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, limit, shouldTruncateDescription, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, limit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
