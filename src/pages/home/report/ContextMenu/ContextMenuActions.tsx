@@ -544,6 +544,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const {environment, isProduction} = useEnvironment();
 
             // If we are on production, don't show this option
