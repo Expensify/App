@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import * as Session from './Session';
+import {TravelSettings} from "@src/types/onyx";
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -27,6 +28,14 @@ Onyx.connect({
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? -1;
+    },
+});
+
+let travelSettings: OnyxEntry<OnyxTypes.TravelSettings> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+    callback: (value) => {
+        travelSettings = value;
     },
 });
 
@@ -70,17 +79,21 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
-    return Promise.all([Environment.getTravelDotEnvironmentURL(), Environment.getSpotnanaEnvironmentTMCID()]).then(([environmentURL, tmcID]) => {
-        const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
-        const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
-        const tmcIDParam = `tmcId=${tmcID}`;
+function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): string {
+    let environmentURL: string = CONST.TRAVEL_DOT_URL;
+    let tmcID: string = CONST.SPOTNANA_TMC_ID;
+    if (travelSettings?.testAccount) {
+        environmentURL = CONST.STAGING_TRAVEL_DOT_URL;
+        tmcID = CONST.STAGING_SPOTNANA_TMC_ID;
+    }
+    const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const tmcIDParam = `tmcId=${tmcID}`;
 
-        const paramsArray = [authCode, tmcIDParam, redirectURL];
-        const params = paramsArray.filter(Boolean).join('&');
-        const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
-        return `${travelDotDomain}auth/code?${params}`;
-    });
+    const paramsArray = [authCode, tmcIDParam, redirectURL];
+    const params = paramsArray.filter(Boolean).join('&');
+    const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
+    return `${travelDotDomain}auth/code?${params}`;
 }
 
 /**
