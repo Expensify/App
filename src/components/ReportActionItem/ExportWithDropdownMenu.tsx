@@ -85,7 +85,7 @@ function ExportWithDropdownMenu({
         if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
             ReportActions.exportToIntegration(reportID, connectionName);
         } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            ReportActions.markAsManuallyExported(reportID);
+            ReportActions.markAsManuallyExported(reportID, connectionName);
         }
     }, [connectionName, modalStatus, reportID]);
 
@@ -114,7 +114,7 @@ function ExportWithDropdownMenu({
                     if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                         ReportActions.exportToIntegration(reportID, connectionName);
                     } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                        ReportActions.markAsManuallyExported(reportID);
+                        ReportActions.markAsManuallyExported(reportID, connectionName);
                     }
                 }}
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}

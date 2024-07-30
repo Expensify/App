@@ -31,6 +31,8 @@ function ButtonWithDropdownMenu<IValueType>({
     onPress,
     options,
     onOptionSelected,
+    onOptionsMenuShow,
+    onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
 }: ButtonWithDropdownMenuProps<IValueType>) {
@@ -80,7 +82,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         }}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled || !!selectedItem.disabled}
+                        isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
@@ -139,7 +141,11 @@ function ButtonWithDropdownMenu<IValueType>({
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
-                    onClose={() => setIsMenuVisible(false)}
+                    onClose={() => {
+                        setIsMenuVisible(false);
+                        onOptionsMenuHide?.();
+                    }}
+                    onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
                     anchorRef={dropdownAnchor}
