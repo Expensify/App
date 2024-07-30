@@ -21,7 +21,7 @@ type PolicyAccountingPageProps = WithPolicyConnectionsProps &
 type AccountingIntegration = {
     title: string;
     icon: IconAsset;
-    setupConnectionButton: React.ReactNode;
+    setupConnectionFlow: React.ReactNode;
     onImportPagePress: () => void;
     subscribedImportSettings?: XeroSettings;
     onExportPagePress: () => void;

@@ -1,5 +1,5 @@
 import type {MutableRefObject, RefObject} from 'react';
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
@@ -75,7 +75,15 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, policy, activeIntegration.key)?.setupConnectionButton;
+        return accountingIntegrationData(
+            activeIntegration.name,
+            policyID,
+            translate,
+            activeIntegration.shouldDisconnectIntegrationBeforeConnecting,
+            activeIntegration.integrationToDisconnect,
+            policy,
+            activeIntegration.key,
+        )?.setupConnectionFlow;
     };
 
     return (
@@ -92,3 +100,4 @@ function useAccountingContext() {
 
 export default AccountingContext;
 export {AccountingContextProvider, useAccountingContext};
+export type {ActiveIntegrationState};

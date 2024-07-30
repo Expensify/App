@@ -27,7 +27,7 @@ function accountingIntegrationData(
             return {
                 title: translate('workspace.accounting.qbo'),
                 icon: Expensicons.QBOSquare,
-                setupConnectionButton: (
+                setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
@@ -44,7 +44,7 @@ function accountingIntegrationData(
             return {
                 title: translate('workspace.accounting.xero'),
                 icon: Expensicons.XeroSquare,
-                setupConnectionButton: (
+                setupConnectionFlow: (
                     <ConnectToXeroFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
@@ -75,7 +75,7 @@ function accountingIntegrationData(
             return {
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
-                setupConnectionButton: (
+                setupConnectionFlow: (
                     <ConnectToNetSuiteFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
@@ -92,7 +92,7 @@ function accountingIntegrationData(
             return {
                 title: translate('workspace.accounting.intacct'),
                 icon: Expensicons.IntacctSquare,
-                setupConnectionButton: (
+                setupConnectionFlow: (
                     <ConnectToSageIntacctFlow
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
