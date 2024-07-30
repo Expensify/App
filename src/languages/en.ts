@@ -1282,6 +1282,7 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
+        header: 'When the following members submit expenses:'
     },
     workflowsApprovalPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
