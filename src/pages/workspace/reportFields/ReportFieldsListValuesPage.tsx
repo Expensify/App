@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -19,7 +19,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -65,20 +65,6 @@ function ReportFieldsListValuesPage({
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
-
-    useEffect(() => {
-        const selectedKeys = Object.keys(selectedValues).filter((key) => selectedValues[key]);
-
-        if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [isSmallScreenWidth, selectedValues, selectionMode?.isEnabled]);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -287,7 +273,7 @@ function ReportFieldsListValuesPage({
         );
     };
 
-    const selectionHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
     return (
         <AccessOrNotFoundWrapper
@@ -302,7 +288,7 @@ function ReportFieldsListValuesPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate(selectionHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedValues({});

@@ -21,7 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,18 +61,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         }
         setSelectedMembers([]);
     }, [isFocused]);
-
-    useEffect(() => {
-        if (!isSmallScreenWidth) {
-            if (selectedMembers.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedMembers.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [isSmallScreenWidth, selectedMembers, selectionMode?.isEnabled]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];

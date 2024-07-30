@@ -25,7 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -76,18 +76,6 @@ function WorkspaceReportFieldsPage({
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const canSelectMultiple = !hasAccountingConnections && shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
-
-    useEffect(() => {
-        if (!shouldUseNarrowLayout) {
-            if (selectedReportFields.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedReportFields.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [shouldUseNarrowLayout, selectedReportFields, selectionMode?.isEnabled]);
 
     const fetchReportFields = useCallback(() => {
         ReportField.openPolicyReportFieldsPage(policyID);

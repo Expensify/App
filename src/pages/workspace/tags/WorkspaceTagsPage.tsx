@@ -25,7 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,19 +68,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
     useFocusEffect(fetchTags);
-
-    useEffect(() => {
-        const selectedKeys = Object.keys(selectedTags).filter((key) => selectedTags[key]);
-        if (!shouldUseNarrowLayout) {
-            if (selectedKeys.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [shouldUseNarrowLayout, selectedTags, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -317,6 +304,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -331,8 +320,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={!selectionMode?.isEnabled ? Illustrations.Tag : undefined}
-                    title={translate(selectionMode?.isEnabled ? 'common.selectMultiple' : 'workspace.common.tags')}
+                    icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {

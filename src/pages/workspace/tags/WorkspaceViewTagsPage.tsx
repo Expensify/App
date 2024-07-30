@@ -21,7 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,20 +63,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
-
-    useEffect(() => {
-        const selectedKeys = Object.keys(selectedTags).filter((key) => selectedTags[key]);
-
-        if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [isSmallScreenWidth, selectedTags, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -242,6 +228,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight));
     };
 
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -254,7 +242,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 testID={WorkspaceViewTagsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={selectionMode?.isEnabled ? translate('common.selectMultiple') : currentTagListName}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedTags({});
