@@ -12,6 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
@@ -28,7 +29,7 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROM
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; backTo?: string}) => PromotedAction;
+    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; reportID?: string}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -69,7 +70,7 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, backTo}) => ({
+    hold: ({isTextHold, reportAction, reportID}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
@@ -77,14 +78,15 @@ const PromotedActions = {
             if (!isTextHold) {
                 Navigation.goBack();
             }
+            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
             if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, backTo);
+                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, backTo);
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
         },
     }),
 } satisfies PromotedActionsType;
