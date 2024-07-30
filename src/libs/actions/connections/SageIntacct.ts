@@ -142,6 +142,18 @@ function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacc
     );
 }
 
+function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIntacctMappingType) {
+    if (mappings?.departments === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+    }
+    if (mappings?.classes === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+    }
+    if (mappings?.locations === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+    }
+}
+
 function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -769,4 +781,5 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
+    changeMappingsValueFromDefaultToTag,
 };
