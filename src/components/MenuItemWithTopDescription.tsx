@@ -12,7 +12,6 @@ function MenuItemWithTopDescription(props: MenuItemProps, ref: ForwardedRef<View
             ref={ref}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
-            shouldTruncateDescription
         />
     );
 }
