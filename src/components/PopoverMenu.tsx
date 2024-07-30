@@ -42,6 +42,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Callback method fired when the modal is shown */
+    onModalShow?: () => void;
+
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
@@ -89,6 +92,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onModalShow,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -211,6 +215,7 @@ function PopoverMenu({
             }}
             isVisible={isVisible}
             onModalHide={onModalHide}
+            onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}
@@ -273,7 +278,7 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        !lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        prevProps.menuItems.length === nextProps.menuItems.length &&
         prevProps.isVisible === nextProps.isVisible &&
         lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
