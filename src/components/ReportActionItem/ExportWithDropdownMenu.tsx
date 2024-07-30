@@ -25,14 +25,14 @@ type ExportWithDropdownMenuProps = {
 
     connectionName: ConnectionName;
 
-    paymentMethodDropdownAnchorAlignment?: AnchorAlignment;
+    dropdownAnchorAlignment?: AnchorAlignment;
 };
 
 function ExportWithDropdownMenu({
     policy,
     report,
     connectionName,
-    paymentMethodDropdownAnchorAlignment = {
+    dropdownAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
@@ -102,7 +102,7 @@ function ExportWithDropdownMenu({
                 success={!hasIntegrationAutoSync}
                 pressOnEnter
                 shouldAlwaysShowDropdownMenu
-                anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                anchorAlignment={dropdownAnchorAlignment}
                 onPress={(_, value) => {
                     if (isExported) {
                         setModalStatus(value);
