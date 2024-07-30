@@ -9,7 +9,7 @@ import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetS
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -68,16 +68,13 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             ))}
 
             <OfflineWithFeedback
-                errors={
-                    ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS) ??
-                    ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)
+                pendingAction={
+                    xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.syncOptions?.pendingFields) ??
+                    xeroSettingsPendingAction(
+                        [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
+                        config?.syncOptions?.mapping?.pendingFields,
+                    )
                 }
-                errorRowStyles={[styles.ph5]}
-                pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
-                onClose={() => {
-                    Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS);
-                    Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS);
-                }}
             >
                 <MenuItemWithTopDescription
                     description={translate(`workspace.netsuite.import.customersOrJobs.title`)}

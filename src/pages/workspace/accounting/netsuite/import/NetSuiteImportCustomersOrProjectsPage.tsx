@@ -10,6 +10,7 @@ import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImpor
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {areXeroSettingsInErrorFields, xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -110,16 +111,10 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
 
             {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
                 <OfflineWithFeedback
-                    errors={
-                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS) ??
-                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)
-                    }
-                    errorRowStyles={[styles.ph5]}
-                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
-                    onClose={() => {
-                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS);
-                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS);
-                    }}
+                    pendingAction={xeroSettingsPendingAction(
+                        [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
+                        config?.syncOptions?.mapping?.pendingFields,
+                    )}
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.common.displayedAs')}
@@ -128,7 +123,14 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                         onPress={() => {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT.getRoute(policyID));
                         }}
-                        brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={
+                            areXeroSettingsInErrorFields(
+                                [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
+                                config?.errorFields,
+                            )
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
                     />
                 </OfflineWithFeedback>
             )}
