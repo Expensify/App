@@ -32,8 +32,6 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '.
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     policyIDs?: string;
-    isMobileSelectionModeActive?: boolean;
-    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
@@ -42,13 +40,14 @@ const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
 
-function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
+function Search({queryJSON, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [offset, setOffset] = React.useState(0);
 
     const {status, sortBy, sortOrder, hash} = queryJSON;
@@ -179,7 +178,7 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
-    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeActive : true;
+    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     return (
         <SearchListWithHeader
@@ -223,8 +222,6 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
-            setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
-            isMobileSelectionModeActive={isMobileSelectionModeActive}
             listFooterContent={
                 shouldShowLoadingMoreItems ? (
                     <SearchRowSkeleton
