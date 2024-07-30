@@ -8,11 +8,12 @@ const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     ATTACHMENTS: 'Attachments',
+    TRACK_EXPENSE: 'TrackExpense',
+    SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
-    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
@@ -33,6 +34,7 @@ const SCREENS = {
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
+        ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
@@ -111,6 +113,7 @@ const SCREENS = {
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
+            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
         },
     },
     SAVE_THE_WORLD: {
@@ -396,7 +399,10 @@ const SCREENS = {
         ADDRESS: 'Workspace_Profile_Address',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
-        WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
+        WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
+        WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',
+        WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Workspace_Workflows_Approvals_Expenses_From',
+        WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         DESCRIPTION: 'Workspace_Profile_Description',
