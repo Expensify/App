@@ -13,6 +13,7 @@ import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersTypePage() {
     const styles = useThemeStyles();
@@ -20,15 +21,15 @@ function SearchFiltersTypePage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const activeItem = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.TYPE.EXPENSES;
+    const activeItem = searchAdvancedFiltersForm?.type;
 
     const filterTypeItems = useMemo(
         () => [
             {
                 text: translate('common.expenses'),
-                value: CONST.SEARCH.TYPE.EXPENSES,
-                keyForList: CONST.SEARCH.TYPE.EXPENSES,
-                isSelected: activeItem === CONST.SEARCH.TYPE.EXPENSES,
+                value: CONST.SEARCH.TYPE.EXPENSE,
+                keyForList: CONST.SEARCH.TYPE.EXPENSE,
+                isSelected: activeItem === CONST.SEARCH.TYPE.EXPENSE,
             },
         ],
         [translate, activeItem],
@@ -36,7 +37,7 @@ function SearchFiltersTypePage() {
 
     const updateType = (values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
         SearchActions.updateAdvancedFilters(values);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
