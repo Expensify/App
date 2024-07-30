@@ -13,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import * as Session from './Session';
-import {TravelSettings} from "@src/types/onyx";
 
 let isNetworkOffline = false;
 Onyx.connect({
