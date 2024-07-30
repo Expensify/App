@@ -36,15 +36,15 @@ const columnNamesToSortingProperty = {
 };
 
 // This map contains signs with spaces that match each operator
-const operatorToSignMap = {
-    eq: ': ',
-    lt: ' < ',
-    lte: ' <= ',
-    gt: ' > ',
-    gte: ' >= ',
-    neq: ' != ',
-    and: ' and ',
-    or: ' or ',
+const operatorToSignWithSpacesMap = {
+    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ': ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: ' < ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: ' <= ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: ' > ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: ' >= ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: ' != ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ' and ' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' or ' as const,
 };
 
 /**
@@ -481,7 +481,7 @@ function buildFilterValueString(filterName: string, queryFilters: QueryFilter[])
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
             filterValueString += `, ${queryFilter.value}`;
         } else {
-            filterValueString += `, ${Str.recapitalize(filterName)}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+            filterValueString += `, ${Str.recapitalize(filterName)}${operatorToSignWithSpacesMap[queryFilter.operator]}${queryFilter.value}`;
         }
     });
 
