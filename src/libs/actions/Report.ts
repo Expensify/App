@@ -741,7 +741,7 @@ function getInviteOnboardingDetails() {
         return;
     }
     const {choice, isInviteOnboardingComplete, inviteType} = introSelected;
-    if (isInviteOnboardingComplete || inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE) {
+    if (isInviteOnboardingComplete ?? inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU ?? inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE) {
         return;
     }
     const personalDetails = allPersonalDetails?.[currentUserAccountID];
@@ -750,7 +750,7 @@ function getInviteOnboardingDetails() {
 
     Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
 
-    if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice == CONST.ONBOARDING_CHOICES.SUBMIT) {
+    if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         return {
             firstName,
             lastName,
