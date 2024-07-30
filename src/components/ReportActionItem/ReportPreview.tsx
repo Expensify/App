@@ -122,7 +122,7 @@ function ReportPreview({
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
 
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID), [iouReportID]);
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
