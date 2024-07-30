@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -16,6 +17,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -65,6 +67,8 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
@@ -383,8 +387,14 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
+    const setReceiptAndNavigate = (file: FileObject, isPdfValidated?: boolean) => {
         if (!validateReceipt(file)) {
+            return;
+        }
+
+        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+        if (Str.isPDF(file.name ?? '') && !isPdfValidated) {
+            setPdfFile(file);
             return;
         }
 
@@ -458,6 +468,26 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
+            {pdfFile && (
+                <PDFThumbnail
+                    style={styles.invisiblePDF}
+                    previewSourceURL={pdfFile?.uri ?? ''}
+                    onLoadSuccess={() => {
+                        setPdfFile(null);
+                        if (pdfFile) {
+                            setReceiptAndNavigate(pdfFile, true);
+                        }
+                    }}
+                    onPassword={() => {
+                        setPdfFile(null);
+                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                    }}
+                    onLoadError={() => {
+                        setPdfFile(null);
+                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                    }}
+                />
+            )}
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <ImageSVG

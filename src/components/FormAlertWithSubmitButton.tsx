@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
@@ -79,10 +80,11 @@ function FormAlertWithSubmitButton({
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     return (
         <FormAlertWrapper
-            containerStyles={[styles.justifyContentEnd, containerStyles]}
+            containerStyles={[styles.justifyContentEnd, safePaddingBottomStyle, containerStyles]}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}

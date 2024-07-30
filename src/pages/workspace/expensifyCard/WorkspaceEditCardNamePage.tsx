@@ -16,6 +16,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
@@ -64,7 +65,10 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.card.issueNewCard.cardName')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.card.issueNewCard.cardName')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
+                />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
