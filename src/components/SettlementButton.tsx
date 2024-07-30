@@ -43,6 +43,12 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: (paymentType?: PaymentMethodType) => void;
 
+    /** Callback when the payment options popover is shown */
+    onPaymentOptionsShow?: () => void;
+
+    /** Callback when the payment options popover is closed */
+    onPaymentOptionsHide?: () => void;
+
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: EnablePaymentsRoute;
 
@@ -144,6 +150,8 @@ function SettlementButton({
     confirmApproval,
     policy,
     useKeyboardShortcuts = false,
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -277,6 +285,8 @@ function SettlementButton({
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
                     success
+                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu={isInvoiceReport}
                     customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}

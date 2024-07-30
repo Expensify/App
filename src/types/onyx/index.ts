@@ -1,5 +1,6 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type ApprovalWorkflow from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -214,4 +215,5 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
+    ApprovalWorkflow,
 };
