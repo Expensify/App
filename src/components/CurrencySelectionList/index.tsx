@@ -5,6 +5,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
@@ -44,11 +45,16 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const shouldDisplayRecentlyOptions = !isEmptyObject(policyRecentlyUsedCurrencyOptions) && !searchValue;
 
         if (shouldDisplayRecentlyOptions) {
+            const cutPolicyRecentlyUsedCurrencyOptions = policyRecentlyUsedCurrencyOptions.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
             return {
                 sections: isEmpty
                     ? []
                     : [
-                          {title: translate('common.recents'), data: policyRecentlyUsedCurrencyOptions, shouldShow: shouldDisplayRecentlyOptions},
+                          {
+                              title: translate('common.recents'),
+                              data: cutPolicyRecentlyUsedCurrencyOptions,
+                              shouldShow: shouldDisplayRecentlyOptions,
+                          },
                           {title: translate('common.all'), data: filteredCurrencies},
                       ],
                 headerMessage: isEmpty ? translate('common.noResultsFound') : '',
