@@ -34,11 +34,11 @@ function truncateArgs<T extends unknown[], MaxArgs extends number = T['length']>
     }
 
     if (maxArgs === 0) {
-        return [];
+        return [] as unknown as TakeFirst<T, MaxArgs>;
     }
 
     if (maxArgs === 1) {
-        return [args[0]];
+        return [args[0]] as unknown as TakeFirst<T, MaxArgs>;
     }
 
     if (maxArgs === 2) {
