@@ -58,9 +58,9 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                     )
                 }
-                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.IMPORT_LOCATIONS)}
-                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.QUICKBOOKS_CONFIG.IMPORT_LOCATIONS)}
-                pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.IMPORT_LOCATIONS], qboConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
+                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
+                pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
             />
             {shouldBeDisabled && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>

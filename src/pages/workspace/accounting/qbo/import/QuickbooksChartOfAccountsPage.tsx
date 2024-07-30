@@ -41,7 +41,6 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                     <Switch
                         accessibilityLabel={translate('workspace.accounting.accounts')}
                         isOn
-                        disabled
                         onToggle={() => {}}
                     />
                 </View>

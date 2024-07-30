@@ -50,9 +50,9 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                     />
                 }
-                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.IMPORT_CUSTOMERS], qboConfig?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.IMPORT_CUSTOMERS)}
-                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.IMPORT_CUSTOMERS)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
+                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
             />
         </ConnectionLayout>
     );

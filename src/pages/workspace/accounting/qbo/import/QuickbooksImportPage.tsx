@@ -39,19 +39,19 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.qbo.classes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncClasses ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_CLASSES],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES],
         },
         {
             description: translate('workspace.qbo.customers'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncCustomers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_CUSTOMERS],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS],
         },
         {
             description: translate('workspace.qbo.locations'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
             title: translate(`workspace.accounting.importTypes.${syncLocations ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_LOCATIONS],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
         },
     ];
 
@@ -60,7 +60,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
             title: translate(syncTax ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_TAX_RATES],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_TAX],
         });
     }
 

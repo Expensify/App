@@ -51,9 +51,9 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                     />
                 }
-                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.IMPORT_CLASSES], qboConfig?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.IMPORT_CLASSES)}
-                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.IMPORT_CLASSES)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
+                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
             />
         </ConnectionLayout>
     );

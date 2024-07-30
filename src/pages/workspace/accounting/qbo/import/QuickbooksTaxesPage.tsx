@@ -34,9 +34,9 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.accounting.taxes')}
                 isActive={!!qboConfig?.syncTax}
                 onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, !qboConfig?.syncTax)}
-                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.IMPORT_TAX_RATES], qboConfig?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.IMPORT_TAX_RATES)}
-                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.IMPORT_TAX_RATES)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_TAX], qboConfig?.pendingFields)}
+                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
+                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
             />
             {!qboConfig?.syncTax && isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
         </ConnectionLayout>

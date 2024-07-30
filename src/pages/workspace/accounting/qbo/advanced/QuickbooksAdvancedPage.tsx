@@ -1,17 +1,14 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -126,38 +123,32 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     ];
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
+        <ConnectionLayout
+            displayName={QuickbooksAdvancedPage.displayName}
+            headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={QuickbooksAdvancedPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.accounting.advanced')} />
-
-                <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                    {qboToggleSettingItems.map((item) => (
-                        <ToggleSettingOptionRow
-                            key={item.title}
-                            errors={item.errors}
-                            onCloseError={item.onCloseError}
-                            title={item.title}
-                            subtitle={item.subtitle}
-                            switchAccessibilityLabel={item.switchAccessibilityLabel}
-                            shouldPlaceSubtitleBelowSwitch
-                            wrapperStyle={item.wrapperStyle}
-                            isActive={item.isActive}
-                            onToggle={item.onToggle}
-                            pendingAction={item.pendingAction}
-                            subMenuItems={item.subMenuItems}
-                        />
-                    ))}
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            {qboToggleSettingItems.map((item) => (
+                <ToggleSettingOptionRow
+                    key={item.title}
+                    errors={item.errors}
+                    onCloseError={item.onCloseError}
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={item.wrapperStyle}
+                    isActive={item.isActive}
+                    onToggle={item.onToggle}
+                    pendingAction={item.pendingAction}
+                    subMenuItems={item.subMenuItems}
+                />
+            ))}
+        </ConnectionLayout>
     );
 }
 

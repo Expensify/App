@@ -106,10 +106,10 @@ function accountingIntegrationData(
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
-                    CONST.QUICKBOOKS_CONFIG.IMPORT_CLASSES,
-                    CONST.QUICKBOOKS_CONFIG.IMPORT_CUSTOMERS,
-                    CONST.QUICKBOOKS_CONFIG.IMPORT_LOCATIONS,
-                    CONST.QUICKBOOKS_CONFIG.IMPORT_TAX_RATES,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [CONST.QUICKBOOKS_CONFIG.EXPORTER],
@@ -331,7 +331,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
-        const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
+        let shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
+        shouldHideConfigurationOptions = false;
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
@@ -393,10 +394,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
                       },
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -414,10 +415,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
                       },
                   ]),
         ];
