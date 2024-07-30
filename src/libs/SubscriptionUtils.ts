@@ -396,7 +396,7 @@ function hasUserFreeTrialEnded(): boolean {
     }
 
     const currentDate = new Date();
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
     return isAfter(currentDate, lastDayFreeTrialDate);
 }
@@ -462,3 +462,5 @@ export {
     hasRetryBillingError,
     PAYMENT_STATUS,
 };
+
+export type {SubscriptionStatus};

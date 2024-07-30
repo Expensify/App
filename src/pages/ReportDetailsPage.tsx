@@ -97,6 +97,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     );
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [user] = useOnyx(ONYXKEYS.USER);
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -416,12 +417,23 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 action: () => unapproveExpenseReportOrShowModal(),
             });
         }
+
+        if (report?.reportID && !!user?.isDebugModeEnabled) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
+                translationKey: 'debug.debug',
+                icon: Expensicons.Bug,
+                action: () => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID)),
+                isAnonymousAction: true,
+                shouldShowRightIcon: true,
+            });
+        }
+
         return items;
     }, [
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -430,22 +442,24 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report,
         isSystemChat,
         isPolicyExpenseChat,
+        shouldShowMenuItem,
         isMoneyRequestReport,
         isInvoiceReport,
+        isTaskReport,
+        isCanceledTaskReport,
+        shouldShowCancelPaymentButton,
+        shouldShowLeaveButton,
         policy,
         connectedIntegration,
         isPolicyAdmin,
         isSingleTransactionView,
-        canModifyTask,
-        shouldShowMenuItem,
-        isTaskReport,
-        isCanceledTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        shouldShowCancelPaymentButton,
-        session,
-        leaveChat,
         canUnapproveRequest,
+        user?.isDebugModeEnabled,
+        activeChatMembers.length,
+        session,
+        canModifyTask,
+        isRootGroupChat,
+        leaveChat,
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
     ]);

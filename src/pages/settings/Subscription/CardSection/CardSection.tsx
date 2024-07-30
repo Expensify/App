@@ -10,6 +10,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSubscriptionDebugData from '@hooks/useSubscriptionDebugData';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
+    useSubscriptionDebugData();
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
@@ -79,7 +81,7 @@ function CardSection() {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (SubscriptionUtils.hasUserFreeTrialEnded()) {
+    } else if (SubscriptionUtils.hasUserFreeTrialEnded() && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
         BillingBanner = <TrialEndedBillingBanner />;
     } else if (billingStatus) {
         BillingBanner = (

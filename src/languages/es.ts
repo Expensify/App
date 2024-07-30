@@ -1014,6 +1014,7 @@ export default {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            debugMode: 'Modo depuración',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -4798,6 +4799,9 @@ export default {
                 part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
             },
         },
+        debug: {
+            title: 'Subscription depuración'
+        }
     },
     feedbackSurvey: {
         tooLimited: 'Hay que mejorar la funcionalidad',
@@ -4810,5 +4814,20 @@ export default {
     roomChangeLog: {
         updateRoomDescription: 'establece la descripción de la sala a:',
         clearRoomDescription: 'la descripción de la habitación ha sido borrada',
+    },
+    debug: {
+        debug: 'Depuración',
+        details: 'Detalles',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Previa',
+        nothingToPreview: 'Nada que previsualizar',
+        editJson: 'Edit JSON:',
+        preview: 'Previa:',
+        missingProperty: ({propertyName}) => `Falta ${propertyName}`,
+        createReportAction: 'Crear Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        hint: 'Los cambios de datos no se enviarán al backend',
     },
 } satisfies EnglishTranslation;
