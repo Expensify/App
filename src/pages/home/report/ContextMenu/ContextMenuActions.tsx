@@ -35,6 +35,7 @@ import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, Rep
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import useEnvironment from '@hooks/useEnvironment';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -542,7 +543,22 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type) => type === CONST.CONTEXT_MENU_TYPES.REPORT && (Environment.isDevelopment() || Environment.isStaging() || Environment.isInternalTestBuild()),
+        shouldShow: (type) => {
+            const {environment, isProduction} = useEnvironment();
+            
+            // If we are on production, don't show this option
+            if (isProduction) {
+                return false;
+            }
+
+            const isADHOC = environment === CONST.ENVIRONMENT.ADHOC;
+            const isStaging = environment === CONST.ENVIRONMENT.STAGING;
+            const isDevelopment = environment === CONST.ENVIRONMENT.DEV;
+
+            return (
+                type === CONST.CONTEXT_MENU_TYPES.REPORT && (isDevelopment || isStaging || isADHOC)
+            );
+        },
         onPress: (closePopover, {reportID}) => {
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             Clipboard.setString(JSON.stringify(report, null, 4));
