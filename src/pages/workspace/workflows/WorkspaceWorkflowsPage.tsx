@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, NEW_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, EMPTY_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -100,7 +100,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
     const createNewApprovalWorkflow = useCallback(() => {
         Workflow.setApprovalWorkflow({
-            ...NEW_APPROVAL_WORKFLOW,
+            ...EMPTY_APPROVAL_WORKFLOW,
             availableMembers: approvalWorkflows.at(0)?.members ?? [],
         });
 
