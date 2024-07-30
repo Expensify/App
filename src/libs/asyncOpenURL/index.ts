@@ -7,14 +7,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url) => {
     }
 
     promise.then((params) => {
-        if (typeof url === 'string') {
-            Linking.openURL(url);
-            return;
-        }
-        if (!params) {
-            return;
-        }
-        Linking.openURL(url(params));
+        Linking.openURL(typeof url === 'string' ? url : url(params));
     });
 };
 
