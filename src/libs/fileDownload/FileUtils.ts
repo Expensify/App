@@ -266,8 +266,8 @@ function verifyFileFormat({fileUri, formatSignature}: {fileUri: string; formatSi
                 .join('')
                 .toUpperCase();
 
-            const isHEIC = hexSignature.startsWith(formatSignature);
-            return isHEIC;
+            const isOfProvidedFormat = hexSignature.startsWith(formatSignature);
+            return isOfProvidedFormat;
         })
         .catch((error: Error) => {
             Log.hmmm('Failed to verify the file format: ', error);
