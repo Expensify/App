@@ -18,8 +18,8 @@ The right side of every report provides the total for all the expenses. Under th
 
 - Reimbursable expenses: Expenses paid to the employee, including:
     - Cash & personal card: Expenses paid for by the employee on behalf of the business.
-    - Per diem: Expenses for a daily or partial daily rate configured in your Workspace.
-    - Time: An hourly rate for your employees or jobs as set for your workspace. This expense type is usually used by contractors or small businesses billing the customer via [Expensify Invoicing](https://help.expensify.com/articles/expensify-classic/workspaces/Set-Up-Invoicing).
+    - Per diem: Expenses for a daily or partial daily rate [configured in your Workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
+    - Time: An hourly rate for your employees or jobs as [set for your workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates). This expense type is usually used by contractors or small businesses billing the customer via [Expensify Invoicing](https://help.expensify.com/articles/expensify-classic/workspaces/Set-Up-Invoicing).
     - Distance: Expenses related to business travel.
 - Non-reimbursable expenses: Expenses directly covered by the business, typically on company cards.
 - Billable expenses: Business or employee expenses that must be billed to a specific client or vendor. This option is for tracking expenses for invoicing to customers, clients, or other departments. Any kind of expense can be billable, in _addition_ to being either reimbursable or non-reimbursable.
