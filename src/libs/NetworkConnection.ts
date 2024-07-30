@@ -122,15 +122,12 @@ function subscribeToNetInfo(): () => void {
             reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
-                console.log(JSON.stringify(response));
                 if (!response.ok) {
                     return Promise.resolve(false);
                 }
                 return response
                     .json()
                     .then((json: ResponseJSON) => {
-                        console.log(json.jsonCode);
-                        console.log(`isServerUp ${isServerUp}`);
                         if (json.jsonCode !== 200 && isServerUp) {
                             Log.info('[NetworkConnection] Received non-200 response from reachability test. Setting isServerUp status to false.');
                             isServerUp = false;
@@ -142,7 +139,6 @@ function subscribeToNetInfo(): () => void {
                         return Promise.resolve(json.jsonCode === 200);
                     })
                     .catch(() => {
-                        console.log(`isServerUp ${isServerUp}`);
                         isServerUp = false;
                         wasServerDown = true;
                         return Promise.resolve(false);
