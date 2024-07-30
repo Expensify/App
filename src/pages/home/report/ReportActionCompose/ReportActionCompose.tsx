@@ -44,7 +44,6 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 
-// TODO: move this to composer?!
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
