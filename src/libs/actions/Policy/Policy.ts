@@ -482,7 +482,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approver: policy?.approver,
                 approvalMode: policy?.approvalMode,
                 pendingFields: {approvalMode: null},
-                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApprovalPage.genericErrorMessage')},
+                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
             },
         },
     ];
