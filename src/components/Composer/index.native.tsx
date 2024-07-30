@@ -38,10 +38,10 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
-    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
+    const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
+    const doesTextContainOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
+    const markdownStyle = useMarkdownStyle(doesTextContainOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -73,7 +73,10 @@ function Composer(
     }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
+    const composerStyle = useMemo(
+        () => StyleSheet.flatten([style, doesTextContainOnlyEmojis ? styles.onlyEmojisTextLineHeight : styles.emojisWithTextLineHeight]),
+        [style, doesTextContainOnlyEmojis, styles],
+    );
 
     return (
         <RNMarkdownTextInput
@@ -95,7 +98,7 @@ function Composer(
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
-                    shouldResetFocus.current = true; // detect the input is blurred when the page is hidden
+                    shouldResetFocusRef.current = true; // detect the input is blurred when the page is hidden
                 }
                 props?.onBlur?.(e);
             }}

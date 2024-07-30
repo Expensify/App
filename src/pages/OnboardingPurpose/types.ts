@@ -1,20 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 
-type OnboardingPurposeProps = Record<string, unknown>;
+type OnboardingPurposeProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PURPOSE>;
 
-type BaseOnboardingPurposeOnyxProps = {
-    /** Saved onboarding purpose selected by the user */
-    onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
+type BaseOnboardingPurposeProps = OnboardingPurposeProps & {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
+
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight: boolean;
 };
 
-type BaseOnboardingPurposeProps = OnboardingPurposeProps &
-    BaseOnboardingPurposeOnyxProps & {
-        /* Whether to use native styles tailored for native devices */
-        shouldUseNativeStyles: boolean;
-
-        /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
-        shouldEnableMaxHeight: boolean;
-    };
-
-export type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps, OnboardingPurposeProps};
+export type {BaseOnboardingPurposeProps, OnboardingPurposeProps};

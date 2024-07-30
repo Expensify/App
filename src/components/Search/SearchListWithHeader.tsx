@@ -12,12 +12,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {SearchDataTypes, SearchQuery, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
-import type {SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchStatus, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
-    query: SearchQuery;
+    status: SearchStatus;
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
@@ -26,7 +26,7 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
-    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}];
+    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
 function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
@@ -44,7 +44,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
 }
 
 function SearchListWithHeader(
-    {ListItem, onSelectRow, query, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, ...props}: SearchListWithHeaderProps,
+    {ListItem, onSelectRow, status, hash, data, searchType, isMobileSelectionModeActive, setIsMobileSelectionModeActive, ...props}: SearchListWithHeaderProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -107,7 +107,7 @@ function SearchListWithHeader(
                         const {[item.keyForList]: omittedTransaction, ...transactions} = prev;
                         return transactions;
                     }
-                    return {...prev, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, action: item.action}};
+                    return {...prev, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
                 });
 
                 return;
@@ -188,7 +188,7 @@ function SearchListWithHeader(
             <SearchPageHeader
                 selectedTransactions={selectedTransactions}
                 clearSelectedItems={clearSelectedItems}
-                query={query}
+                status={status}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 isMobileSelectionModeActive={isMobileSelectionModeActive}

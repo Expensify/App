@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 START_DIR=$(pwd)
 ROOT_DIR=$(dirname "$(dirname "$(dirname "${BASH_SOURCE[0]}")")")
 cd "$ROOT_DIR" || exit 1

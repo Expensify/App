@@ -42,6 +42,9 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Measures the parent container's position and dimensions. Also add a cursor coordinates */
     measureParentContainerAndReportCursor?: (props: MeasureParentContainerAndCursorCallback) => void;
+
+    /** Reset the emoji suggestions */
+    resetSuggestions?: () => void;
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps, MeasureParentContainerAndCursorCallback, MeasureParentContainerAndCursor};

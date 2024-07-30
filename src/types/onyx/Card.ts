@@ -14,7 +14,7 @@ type Card = {
     bank: string;
 
     /** Available amount to spend */
-    availableSpend: number;
+    availableSpend?: number;
 
     /** Domain name */
     domainName: string;
