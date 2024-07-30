@@ -150,7 +150,6 @@ function WorkspaceEditTaxPage({
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
                             }}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
                     {shouldShowDeleteMenuItem && (
