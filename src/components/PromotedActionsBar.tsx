@@ -7,7 +7,7 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -27,7 +27,7 @@ type PromotedAction = {
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    message: (params: {accountID?: number; login?: string}) => PromotedAction;
+    message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
     hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
 };
@@ -50,11 +50,16 @@ const PromotedActions = {
             ReportActions.joinRoom(report);
         }),
     }),
-    message: ({accountID, login}) => ({
+    message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: Expensicons.CommentBubbles,
         text: Localize.translateLocal('common.message'),
         onSelected: () => {
+            if (reportID) {
+                Navigation.dismissModal(reportID);
+                return;
+            }
+
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
                 ReportActions.navigateToAndOpenReport([login]);
@@ -80,8 +85,7 @@ const PromotedActions = {
                 return;
             }
 
-            const currentQuery = topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(currentQuery?.query ?? CONST.SEARCH.TAB.ALL, reportAction?.childReportID ?? ''));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(reportAction?.childReportID ?? ''));
         },
     }),
 } satisfies PromotedActionsType;
