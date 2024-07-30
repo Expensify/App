@@ -47,7 +47,7 @@ function SearchFiltersDatePage() {
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE_AFTER}
-                        label={translate('search.filters.date.after')}
+                        label={translate('search.filters.date.after', undefined)}
                         defaultValue={dateAfter}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
@@ -55,7 +55,7 @@ function SearchFiltersDatePage() {
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE_BEFORE}
-                        label={translate('search.filters.date.before')}
+                        label={translate('search.filters.date.before', undefined)}
                         defaultValue={dateBefore}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
