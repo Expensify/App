@@ -22,7 +22,7 @@ function mergeOptions<Fn extends IsomorphicFn, MaxArgs extends number, Key>(opti
     }
     return {...DEFAULT_OPTIONS, ...options};
 }
-function truncateArgs<T extends readonly unknown[], MaxArgs extends number = T['length']>(args: T, maxArgs?: MaxArgs): TakeFirst<T, MaxArgs> {
+function truncateArgs<T extends unknown[], MaxArgs extends number = T['length']>(args: T, maxArgs?: MaxArgs): TakeFirst<T, MaxArgs> {
     // Hot paths are declared explicitly to avoid the overhead of the slice method
 
     if (maxArgs === undefined) {
