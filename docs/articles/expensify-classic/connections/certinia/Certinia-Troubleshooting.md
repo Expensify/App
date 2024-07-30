@@ -18,7 +18,6 @@ In Certinia go to Permission Controls and click the one you need to edit. Make s
 To resolve the error "Object validation has failed. The credit terms for the selected account on this document are not correctly defined," follow these steps:
 
 1. Identify the account used for the report being exported. This could be the account on the project for PSA/SRP or the account linked to the resource for FFA.
-
 2. In Certinia, under this account:
    - Ensure that Base Date 1 is configured to invoice.
    - Set Days Offset to 1 or more.
