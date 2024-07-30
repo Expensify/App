@@ -26,7 +26,7 @@ function SearchFiltersDescriptionPage() {
     const description = searchAdvancedFiltersForm?.[INPUT_IDS.DESCRIPTION];
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+    const updateDescriptionFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
@@ -42,7 +42,7 @@ function SearchFiltersDescriptionPage() {
                 <FormProvider
                     style={[styles.flex1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateDateFilter}
+                    onSubmit={updateDescriptionFilter}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >

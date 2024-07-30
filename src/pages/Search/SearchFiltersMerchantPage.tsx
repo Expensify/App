@@ -26,7 +26,7 @@ function SearchFiltersMerchantPage() {
     const merchant = searchAdvancedFiltersForm?.[INPUT_IDS.MERCHANT];
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+    const updateMerchantFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
@@ -42,7 +42,7 @@ function SearchFiltersMerchantPage() {
                 <FormProvider
                     style={[styles.flex1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateDateFilter}
+                    onSubmit={updateMerchantFilter}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >

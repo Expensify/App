@@ -26,7 +26,7 @@ function SearchFiltersReportIDPage() {
     const reportID = searchAdvancedFiltersForm?.[INPUT_IDS.REPORT_ID];
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+    const updateReportIDFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
@@ -42,7 +42,7 @@ function SearchFiltersReportIDPage() {
                 <FormProvider
                     style={[styles.flex1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateDateFilter}
+                    onSubmit={updateReportIDFilter}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
