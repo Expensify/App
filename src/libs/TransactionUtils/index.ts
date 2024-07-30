@@ -3,23 +3,24 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {TransactionMergeParams} from '@libs/API/parameters';
+import {isCorporateCard, isExpensifyCard} from '@libs/CardUtils';
+import {getCurrencyDecimals} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import * as NumberUtils from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
+import {getCleanedTagName, getCustomUnitRate} from '@libs/PolicyUtils';
+// eslint-disable-next-line import/no-cycle
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportConnection from '@libs/ReportConnection';
+import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {IOURequestType} from './actions/IOU';
-import type {TransactionMergeParams} from './API/parameters';
-import {isCorporateCard, isExpensifyCard} from './CardUtils';
-import {getCurrencyDecimals} from './CurrencyUtils';
-import DateUtils from './DateUtils';
-import * as Localize from './Localize';
-import * as NumberUtils from './NumberUtils';
-import Permissions from './Permissions';
-import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
-// eslint-disable-next-line import/no-cycle
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportConnection from './ReportConnection';
+import getDistanceInMeters from './getDistanceInMeters';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -1004,6 +1005,7 @@ export {
     getTaxCode,
     getCurrency,
     getDistance,
+    getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,

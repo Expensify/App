@@ -112,19 +112,6 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
     }
 }
 
-// Get the distance in meters from the transaction
-function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: Unit): number {
-    if (transaction?.routes?.route0?.distance) {
-        return transaction.routes.route0.distance;
-    }
-
-    if (transaction?.comment?.customUnit?.quantity && unit) {
-        return convertToDistanceInMeters(transaction.comment.customUnit.quantity, unit);
-    }
-
-    return 0;
-}
-
 /**
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
@@ -301,7 +288,6 @@ export default {
     getRateForDisplay,
     getMileageRates,
     getDistanceForDisplay,
-    getDistanceInMeters,
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
