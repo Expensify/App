@@ -18,6 +18,7 @@ function acceptSpotnanaTerms() {
             },
         },
     ];
+    const error = new Error('Failed to generate spotnana token.');
 
     return new Promise((_, reject) => {
         asyncOpenURL(
@@ -25,12 +26,15 @@ function acceptSpotnanaTerms() {
             API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData})
                 .then((response) => {
                     if (!response?.spotnanaToken) {
-                        reject(new Error('Failed to generate spotnana token.'));
-                        return;
+                        reject(error);
+                        throw error;
                     }
                     return buildTravelDotURL(response.spotnanaToken);
                 })
-                .catch(() => reject(new Error('Failed to generate spotnana token.'))),
+                .catch(() => {
+                    reject(error);
+                    throw error;
+                }),
             (travelDotURL) => travelDotURL ?? '',
         );
     });
