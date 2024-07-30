@@ -5,6 +5,9 @@ type TravelSettings = {
 
     /** Whether the user has completed the travel terms and conditions checkbox */
     hasAcceptedTerms: boolean;
+
+    /** Whether the account should use the testing environment */
+    testAccount: boolean;
 };
 
 /** Model of workspace travel information to connect with Spotnana */
