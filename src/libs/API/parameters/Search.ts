@@ -1,12 +1,9 @@
-import type {SortOrder} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
 
 type SearchParams = {
     hash: number;
-    query: string;
-    policyIDs?: string;
-    sortBy?: string;
-    sortOrder?: SortOrder;
-    offset: number;
+    jsonQuery: SearchQueryString;
+    offset?: number;
 };
 
 export default SearchParams;

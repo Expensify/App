@@ -98,9 +98,9 @@ function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileS
 
         setCurrentSearchHash(hash);
 
-        SearchActions.search({hash, query: status, policyIDs, offset, sortBy, sortOrder});
+        SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [hash, isOffline, offset]);
+    }, [isOffline, offset, queryJSON]);
 
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
