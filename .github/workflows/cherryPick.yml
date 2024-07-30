@@ -122,6 +122,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
+      - name: Label PR with CPStaging
+        run: gh pr edit ${{ inputs.PULL_REQUEST_NUMBER }} --add-label 'CP Staging'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: "Announces a CP failure in the #announce Slack room"
         uses: 8398a7/action-slack@v3
         if: ${{ failure() }}
