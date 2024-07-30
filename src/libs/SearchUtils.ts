@@ -1,10 +1,12 @@
 import type {ValueOf} from 'type-fest';
-import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -316,7 +318,7 @@ function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     try {
         // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
-        result.input = query;
+        result.inputQuery = query;
 
         // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
         const policyIDPart = policyID ?? '';
@@ -351,7 +353,54 @@ function normalizeQuery(query: string) {
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys>>) {
+/**
+ * @private
+ * returns Date filter query string part, which needs special logic
+ */
+function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const dateBefore = filterValues[INPUT_IDS.DATE_BEFORE];
+    const dateAfter = filterValues[INPUT_IDS.DATE_AFTER];
+
+    let dateFilter = '';
+    if (dateBefore) {
+        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<${dateBefore}`;
+    }
+    if (dateBefore && dateAfter) {
+        dateFilter += ' ';
+    }
+    if (dateAfter) {
+        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>${dateAfter}`;
+    }
+
+    return dateFilter;
+}
+
+/**
+ * Given object with chosen search filters builds correct query string from them
+ */
+function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    // TODO add handling of multiple values picked
+    const filtersString = Object.entries(filterValues)
+        .map(([filterKey, filterValue]) => {
+            if (filterKey === INPUT_IDS.TYPE && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.STATUS && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+            }
+
+            return undefined;
+        })
+        .filter(Boolean)
+        .join(' ');
+
+    const dateFilter = buildDateFilterQuery(filterValues);
+
+    return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
+}
+
+function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFiltersKeys>>) {
     let queryAST;
 
     try {
@@ -427,4 +476,5 @@ export {
     isSearchResultsEmpty,
     getFilters,
     normalizeQuery,
+    buildQueryStringFromFilters,
 };

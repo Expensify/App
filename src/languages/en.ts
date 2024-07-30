@@ -36,6 +36,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -834,6 +835,8 @@ export default {
         headsUp: 'Heads up!',
         unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
+        reimbursable: 'reimbursable',
+        nonReimbursable: 'non-reimbursable',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -2707,6 +2710,11 @@ export default {
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
+            addMailingAddress: 'Add mailing address',
+            issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
+            issuedCardNoMailingAddress: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
+            addedAddress: (assignee: string) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -3211,6 +3219,7 @@ export default {
             exportAs: 'Export as',
             exportOutOfPocket: 'Export out-of-pocket expenses as',
             exportCompanyCard: 'Export company card expenses as',
+            exportDate: 'Export date',
             defaultVendor: 'Default vendor',
             autoSync: 'Auto-sync',
             reimbursedReports: 'Sync reimbursed reports',
@@ -3570,6 +3579,7 @@ export default {
     search: {
         selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
+        viewResults: 'View results',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
@@ -3587,9 +3597,10 @@ export default {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: 'Before',
-                after: 'After',
+                before: (date?: string) => `Before ${date ?? ''}`,
+                after: (date?: string) => `After ${date ?? ''}`,
             },
+            status: 'Status',
         },
     },
     genericErrorPage: {

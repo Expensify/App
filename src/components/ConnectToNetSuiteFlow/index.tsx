@@ -51,9 +51,7 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
 
     useEffect(() => {
         if (!isControlPolicy(policy)) {
-            Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias, ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID)),
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias));
             return;
         }
 
@@ -75,7 +73,6 @@ function ConnectToNetSuiteFlow({policyID, shouldDisconnectIntegrationBeforeConne
                 });
             });
         }
-
         setIsReuseConnectionsPopoverOpen(true);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps

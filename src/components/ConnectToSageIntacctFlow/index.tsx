@@ -57,9 +57,7 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
 
     useEffect(() => {
         if (!isControlPolicy(policy)) {
-            Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias, ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID)),
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
             return;
         }
 
@@ -67,12 +65,10 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
             setIsDisconnectModalOpen(true);
             return;
         }
-
         if (!hasPoliciesConnectedToSageIntacct) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
             return;
         }
-
         if (!isSmallScreenWidth) {
             threeDotsMenuContainerRef?.current?.measureInWindow((x, y, width, height) => {
                 setReuseConnectionPopoverPosition({
@@ -81,7 +77,6 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
                 });
             });
         }
-
         setIsReuseConnectionsPopoverOpen(true);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps

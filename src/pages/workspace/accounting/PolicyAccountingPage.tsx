@@ -23,7 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getSynchronizationErrorMessage, isAuthenticationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isAuthenticationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areXeroSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -220,6 +220,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const shouldShowSynchronizationError = !!synchronizationError;
+        const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
@@ -259,7 +260,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
+            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions
                 ? []
                 : [
                       {

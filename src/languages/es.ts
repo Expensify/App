@@ -35,6 +35,7 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -756,7 +757,7 @@ export default {
             `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
-            `${valueName === 'comerciante' || valueName === 'importe' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
+            `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
@@ -840,6 +841,8 @@ export default {
         headsUp: 'Atención!',
         unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
+        reimbursable: 'reembolsable',
+        nonReimbursable: 'no reembolsable',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -2759,6 +2762,11 @@ export default {
                 `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
+            addMailingAddress: 'Añadir dirección de postal',
+            issuedCard: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta llegará en 2-3 días laborables.`,
+            issuedCardNoMailingAddress: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se añada una dirección postal.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
+            addedAddress: (assignee: string) => `${assignee} ha añadido la dirección. Tarjeta Expensify llegará en 2-3 días hábiles.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -3196,6 +3204,7 @@ export default {
             exportAs: 'Exportar cómo',
             exportOutOfPocket: ' Exportar gastos por cuenta propia como',
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
+            exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
             autoSync: 'Autosincronización',
             reimbursedReports: 'Sincronizar informes reembolsados',
@@ -3627,6 +3636,7 @@ export default {
     search: {
         selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+        viewResults: 'Ver resultados',
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
@@ -3644,9 +3654,10 @@ export default {
         filtersHeader: 'Filtros',
         filters: {
             date: {
-                before: 'Antes de',
-                after: 'Después de',
+                before: (date?: string) => `Antes de ${date ?? ''}`,
+                after: (date?: string) => `Después de ${date ?? ''}`,
             },
+            status: 'Estado',
         },
     },
     genericErrorPage: {
