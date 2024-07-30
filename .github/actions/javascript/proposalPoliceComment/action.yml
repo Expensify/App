@@ -1,0 +1,15 @@
+name: 'ProposalPolice™ Comment Check Script'
+description: 'Verifies whether a proposal comment follows the template OR an updated proposal had substantial changes'
+inputs:
+  GITHUB_TOKEN:
+    description: 'Auth token for New Expensify Github'
+    required: true
+  PROPOSAL_POLICE_API_KEY:
+    description: 'OpenAI API key for accessing AI services'
+    required: true
+  PROPOSAL_POLICE_ASSISTANT_ID:
+    description: 'OpenAI Assistant ID for personalized AI assistant'
+    required: true
+runs:
+  using: 'node20'
+  main: './index.js'

@@ -41,7 +41,9 @@ function isValidAddress(value: FormValue): boolean {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(emojisRegex)) {
         return false;
     }
 
@@ -331,11 +333,12 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  * Checks that the provided name doesn't contain any emojis
  */
 function isValidCompanyName(name: string) {
-    return !name.match(CONST.REGEX.EMOJIS);
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+    return !name.match(emojisRegex);
 }
 
 function isValidReportName(name: string) {
-    return name.trim().length <= CONST.REPORT_NAME_LIMIT;
+    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
 }
 
 /**
