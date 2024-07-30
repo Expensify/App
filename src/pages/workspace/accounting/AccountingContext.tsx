@@ -1,14 +1,17 @@
 import type {MutableRefObject, RefObject} from 'react';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
+import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {accountingIntegrationData} from './utils';
+import {getAccountingIntegrationData} from './utils';
 
 type ActiveIntegration = {
     name: ConnectionName;
@@ -50,18 +53,22 @@ type AccountingContextProviderProps = ChildrenProps & {
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
     const integrationRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.integrationRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
-
     const {translate} = useLocalize();
     const policyID = policy.id;
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
+            const accountingIntegrationData = getAccountingIntegrationData(newActiveIntegration.name, policyID, translate);
+            if (accountingIntegrationData?.requiresControlPolicy && !isControlPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias));
+                return;
+            }
             setActiveIntegration({
                 ...newActiveIntegration,
                 key: Math.random(),
             });
         },
-        [setActiveIntegration],
+        [policy, policyID, translate],
     );
 
     const closeConfirmationModal = () => {
@@ -77,7 +84,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         });
     };
 
-    const accountingContext = React.useMemo(
+    const accountingContext = useMemo(
         () => ({
             activeIntegration,
             startIntegrationFlow,
@@ -91,15 +98,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return accountingIntegrationData(
-            activeIntegration.name,
-            policyID,
-            translate,
-            activeIntegration.shouldDisconnectIntegrationBeforeConnecting,
-            activeIntegration.integrationToDisconnect,
-            policy,
-            activeIntegration.key,
-        )?.setupConnectionFlow;
+        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key)?.setupConnectionFlow;
     };
 
     const shouldShowConfirmationModal = activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && activeIntegration?.integrationToDisconnect;

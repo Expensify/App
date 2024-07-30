@@ -13,7 +13,7 @@ import type {Policy} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import type {AccountingIntegration} from './types';
 
-function accountingIntegrationData(
+function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
@@ -79,6 +79,7 @@ function accountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
+                requiresControlPolicy: true,
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
@@ -94,6 +95,7 @@ function accountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+                requiresControlPolicy: true,
             };
         default:
             return undefined;
@@ -101,4 +103,4 @@ function accountingIntegrationData(
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {accountingIntegrationData};
+export {getAccountingIntegrationData};

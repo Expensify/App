@@ -1,16 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
 import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type ConnectToSageIntacctFlowProps = {
@@ -19,8 +16,6 @@ type ConnectToSageIntacctFlowProps = {
 
 function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     const {translate} = useLocalize();
-
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -49,11 +44,6 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     ];
 
     useEffect(() => {
-        if (!isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias));
-            return;
-        }
-
         if (!hasPoliciesConnectedToSageIntacct) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
             return;

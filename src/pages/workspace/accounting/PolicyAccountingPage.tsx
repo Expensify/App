@@ -44,7 +44,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
-import {accountingIntegrationData} from './utils';
+import {getAccountingIntegrationData} from './utils';
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
@@ -188,7 +188,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
-                const integrationData = accountingIntegrationData(integration, policyID, translate);
+                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
                 return {
                     ...iconProps,
@@ -221,7 +221,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, policy);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -342,7 +342,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
         return otherIntegrations.map((integration) => {
-            const integrationData = accountingIntegrationData(integration, policyID, translate);
+            const integrationData = getAccountingIntegrationData(integration, policyID, translate);
             const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
             return {
                 ...iconProps,
