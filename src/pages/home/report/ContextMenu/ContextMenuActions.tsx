@@ -9,7 +9,6 @@ import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
-import useEnvironment from '@hooks/useEnvironment';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -67,6 +66,7 @@ type ShouldShow = (
     isUnreadChat: boolean,
     isOffline: boolean,
     isMini: boolean,
+    isProduction: boolean,
 ) => boolean;
 
 type ContextMenuActionPayload = {
@@ -543,12 +543,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type) => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const {isProduction} = useEnvironment();
-
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction;
-        },
+        shouldShow: (type, isProduction) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {reportID}) => {
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             Clipboard.setString(JSON.stringify(report, null, 4));
