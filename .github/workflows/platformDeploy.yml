@@ -179,12 +179,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Archive desktop sourcemaps
-        uses: actions/upload-artifact@v3
-        with:
-          name: desktop-sourcemap-${{ github.ref_name }}
-          path: desktop/dist/www/merged-source-map.js.map
-
   iOS:
     name: Build and deploy iOS
     needs: validateActor
@@ -215,14 +209,13 @@ jobs:
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-          restore-keys: ${{ runner.os }}-pods-cache-
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
         run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
-        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
         if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 10
@@ -352,18 +345,45 @@ jobs:
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          S3_URL: s3://${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && '' || 'staging-' }}expensify-cash
-
-      - name: Archive web sourcemaps
-        uses: actions/upload-artifact@v3
-        with:
-          name: web-sourcemap-${{ github.ref_name }}
-          path: dist/merged-source-map.js.map
+          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}expensify-cash
 
       - name: Purge Cloudflare cache
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && '' || 'staging.' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+
+      - name: Verify staging deploy
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
+          if [[ '${{ github.ref_name }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version does not match local version. Something went wrong..."
+            exit 1
+          fi
+
+      - name: Verify production deploy
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
+          if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version does not match local version. Something went wrong..."
+            exit 1
+          fi
+
+      - name: Upload web build to GitHub artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: dist
+
+      - name: Upload web build to GitHub Release
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          tar -czvf webBuild.tar.gz dist
+          zip -r webBuild.zip dist
+          gh release upload ${{ github.event.release.tag_name }} webBuild.tar.gz webBuild.zip
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy

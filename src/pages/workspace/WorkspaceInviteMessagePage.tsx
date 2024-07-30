@@ -71,7 +71,7 @@ function WorkspaceInviteMessagePage({
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -92,6 +92,9 @@ function WorkspaceInviteMessagePage({
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
+            return;
+        }
+        if (isEmptyObject(policy)) {
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
@@ -204,8 +207,10 @@ function WorkspaceInviteMessagePage({
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(element);
+                                }
                                 inputCallbackRef(element);
-                                updateMultilineInputRange(element);
                             }}
                         />
                     </View>

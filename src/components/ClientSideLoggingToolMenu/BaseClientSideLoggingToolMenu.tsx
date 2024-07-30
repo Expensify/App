@@ -21,14 +21,9 @@ type BaseClientSideLoggingToolMenuOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
 };
 
-type File = {
-    path: string;
-    newFileName: string;
-    size: number;
-};
 type BaseClientSideLoggingToolProps = {
     /** Locally created file */
-    file?: File;
+    file?: {path: string; newFileName: string; size: number};
     /** Action to run when pressing Share button */
     onShareLogs?: () => void;
     /** Action to run when disabling the switch */
@@ -101,4 +96,3 @@ export default withOnyx<BaseClientSideLoggingToolProps, BaseClientSideLoggingToo
         key: ONYXKEYS.SHOULD_STORE_LOGS,
     },
 })(BaseClientSideLoggingToolMenu);
-export type {File};

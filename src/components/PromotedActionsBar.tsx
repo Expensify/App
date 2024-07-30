@@ -7,7 +7,7 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -85,8 +85,7 @@ const PromotedActions = {
                 return;
             }
 
-            const currentQuery = topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(currentQuery?.query ?? CONST.SEARCH.TAB.ALL, reportAction?.childReportID ?? ''));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(reportAction?.childReportID ?? ''));
         },
     }),
 } satisfies PromotedActionsType;

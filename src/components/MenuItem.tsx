@@ -2,7 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -304,6 +304,8 @@ type MenuItemBaseProps = {
 
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
+
+    shouldShowLoadingSpinnerIcon?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -376,6 +378,7 @@ function MenuItem(
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldUseDefaultCursorWhenDisabled = false,
+        shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
         shouldBlockSelection = false,
         shouldParseTitle = false,
@@ -538,7 +541,7 @@ function MenuItem(
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         !focused && (isHovered || pressed) && hoverAndPressStyle,
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !pressed && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -579,26 +582,33 @@ function MenuItem(
                                                     )}
                                                     {icon && !Array.isArray(icon) && (
                                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
-                                                            {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
-                                                                <Icon
-                                                                    contentFit={contentFit}
-                                                                    hovered={isHovered}
-                                                                    pressed={pressed}
-                                                                    src={icon}
-                                                                    width={iconWidth}
-                                                                    height={iconHeight}
-                                                                    fill={
-                                                                        displayInDefaultIconColor
-                                                                            ? undefined
-                                                                            : iconFill ??
-                                                                              StyleUtils.getIconFillColor(
-                                                                                  getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                  true,
-                                                                                  isPaneMenu,
-                                                                              )
-                                                                    }
-                                                                />
-                                                            )}
+                                                            {typeof icon !== 'string' &&
+                                                                iconType === CONST.ICON_TYPE_ICON &&
+                                                                (!shouldShowLoadingSpinnerIcon ? (
+                                                                    <Icon
+                                                                        contentFit={contentFit}
+                                                                        hovered={isHovered}
+                                                                        pressed={pressed}
+                                                                        src={icon}
+                                                                        width={iconWidth}
+                                                                        height={iconHeight}
+                                                                        fill={
+                                                                            displayInDefaultIconColor
+                                                                                ? undefined
+                                                                                : iconFill ??
+                                                                                  StyleUtils.getIconFillColor(
+                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                      true,
+                                                                                      isPaneMenu,
+                                                                                  )
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    <ActivityIndicator
+                                                                        size="small"
+                                                                        color={theme.textSupporting}
+                                                                    />
+                                                                ))}
                                                             {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
                                                                     imageStyles={[styles.alignSelfCenter]}
@@ -653,7 +663,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />

@@ -12,7 +12,6 @@ function ProfilingToolMenu() {
         <BaseProfilingToolMenu
             pathToBeUsed={RNFS.DocumentDirectoryPath}
             displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}`}
-            showShareButton
         />
     );
 }

@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import lodashMemoize from 'lodash/memoize';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -23,35 +23,36 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchColumnType, SortOrder} from './types';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from './types';
 
 type SearchProps = {
-    query: SearchQuery;
+    queryJSON: SearchQueryJSON;
     policyIDs?: string;
-    sortBy?: SearchColumnType;
-    sortOrder?: SortOrder;
     isMobileSelectionModeActive?: boolean;
     setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
-const sortableSearchTabs: SearchQuery[] = [CONST.SEARCH.TAB.ALL];
+const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
 const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
+
+function Search({queryJSON, policyIDs, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash} = useSearchContext();
+    const [offset, setOffset] = React.useState(0);
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
+    const {status, sortBy, sortOrder, hash} = queryJSON;
+
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     const getItemHeight = useCallback(
@@ -74,15 +75,14 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = lodashMemoize(
-        (item: TransactionListItemType | ReportListItemType) => getItemHeight(item),
-        (item) => {
+    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+        transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
             const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
             return `${hash}-${item.keyForList}-${screenSizeHash}`;
         },
-    );
+    });
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
     if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
@@ -97,9 +97,10 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         }
 
         setCurrentSearchHash(hash);
-        SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
+
+        SearchActions.search({hash, query: status, policyIDs, offset, sortBy, sortOrder});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [hash, isOffline]);
+    }, [hash, isOffline, offset]);
 
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
@@ -109,7 +110,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         return (
             <>
                 <SearchPageHeader
-                    query={query}
+                    status={status}
                     hash={hash}
                 />
                 <SearchRowSkeleton shouldAnimate />
@@ -123,7 +124,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
         return (
             <>
                 <SearchPageHeader
-                    query={query}
+                    status={status}
                     hash={hash}
                 />
                 <EmptySearchView />
@@ -144,15 +145,14 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID));
     };
 
     const fetchMoreResults = () => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
-        const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, sortBy, sortOrder});
+        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -168,13 +168,14 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        navigation.setParams({
-            sortBy: column,
-            sortOrder: order,
-        });
+        const currentSearchParams = SearchUtils.getCurrentSearchParams();
+        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q, policyIDs);
+
+        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, sortBy: column, sortOrder: order});
+        navigation.setParams({q: newQuery});
     };
 
-    const isSortingAllowed = sortableSearchTabs.includes(query);
+    const isSortingAllowed = sortableSearchTabs.includes(status);
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
@@ -182,7 +183,7 @@ function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActiv
 
     return (
         <SearchListWithHeader
-            query={query}
+            status={status}
             hash={hash}
             data={sortedData}
             searchType={searchResults?.search?.type as SearchDataTypes}
