@@ -6628,9 +6628,8 @@ function canApproveIOU(
         return false;
     }
 
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+    if (isOnSubmitAndClosePolicy) {
         return false;
     }
 
@@ -7224,7 +7223,15 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
 
 function detachReceipt(transactionID: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
+    const newTransaction = transaction
+        ? {
+              ...transaction,
+              filename: '',
+              receipt: {
+                  source: '',
+              },
+          }
+        : null;
 
     const optimisticData: OnyxUpdate[] = [
         {
