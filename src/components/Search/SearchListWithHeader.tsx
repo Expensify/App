@@ -18,7 +18,7 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
-    isCustomQuery?: boolean;
+    isCustomQuery: boolean;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -39,10 +39,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
           };
 }
 
-function SearchListWithHeader(
-    {ListItem, onSelectRow, queryJSON, hash, data, searchType, isCustomQuery = false, ...props}: SearchListWithHeaderProps,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function SearchListWithHeader({ListItem, onSelectRow, queryJSON, hash, data, searchType, isCustomQuery, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [selectedTransactions, setSelectedTransactions] = useState<SelectedTransactions>({});
