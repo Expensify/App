@@ -20,9 +20,8 @@ function accountingIntegrationData(
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
     policy?: Policy,
-    shouldStartIntegrationFlow?: boolean,
+    key?: number,
 ): AccountingIntegration | undefined {
-    const key = Math.random();
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
@@ -33,7 +32,6 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
-                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),
@@ -51,7 +49,6 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
-                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),
@@ -83,7 +80,6 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
-                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),
@@ -101,7 +97,6 @@ function accountingIntegrationData(
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
-                        shouldStartIntegrationFlow={shouldStartIntegrationFlow}
                         key={key}
                     />
                 ),

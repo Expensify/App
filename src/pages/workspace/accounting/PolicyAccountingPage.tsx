@@ -59,7 +59,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {startIntegrationFlow, ref: netSuiteIntegrationRef} = useAccountingContext();
+    const {startIntegrationFlow, integrationRefs: integrationsRef} = useAccountingContext();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -87,7 +87,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => startIntegrationFlow({name: connectedIntegration, shouldStartIntegrationFlow: true}),
+                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: true,
@@ -190,7 +190,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return accountingIntegrations.map((integration) => {
                 const integrationData = accountingIntegrationData(integration, policyID, translate);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-                const ref = integration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE ? netSuiteIntegrationRef : undefined;
                 return {
                     ...iconProps,
                     interactive: false,
@@ -199,12 +198,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() => startIntegrationFlow({name: integration, shouldStartIntegrationFlow: true})}
+                            onPress={() => startIntegrationFlow({name: integration})}
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small
                             isDisabled={isOffline}
-                            ref={ref}
+                            ref={(ref) => {
+                                if (!integrationsRef?.current) {
+                                    return;
+                                }
+                                // eslint-disable-next-line react-compiler/react-compiler
+                                integrationsRef.current[integration].current = ref;
+                            }}
                         />
                     ),
                 };
@@ -323,9 +328,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         threeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
-        netSuiteIntegrationRef,
         isOffline,
         startIntegrationFlow,
+        integrationsRef,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -338,7 +343,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         return otherIntegrations.map((integration) => {
             const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
             const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-            const ref = integration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE ? netSuiteIntegrationRef : undefined;
             return {
                 ...iconProps,
                 title: integrationData?.title,
@@ -349,14 +353,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 name: integration,
                                 integrationToDisconnect: connectedIntegration,
                                 shouldDisconnectIntegrationBeforeConnecting: true,
-                                shouldStartIntegrationFlow: true,
                             })
                         }
                         text={translate('workspace.accounting.setup')}
                         style={styles.justifyContentCenter}
                         small
                         isDisabled={isOffline}
-                        ref={ref}
+                        ref={(r) => {
+                            if (!integrationsRef?.current) {
+                                return;
+                            }
+                            integrationsRef.current[integration].current = r;
+                        }}
                     />
                 ),
                 interactive: false,
@@ -372,11 +380,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration,
         policyID,
         translate,
-        netSuiteIntegrationRef,
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,
         isOffline,
         startIntegrationFlow,
+        integrationsRef,
     ]);
 
     return (

@@ -1,7 +1,8 @@
-import type {RefObject} from 'react';
-import React, {useRef} from 'react';
+import type {MutableRefObject, RefObject} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -11,19 +12,31 @@ type ActiveIntegration = {
     name: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: ConnectionName;
-    shouldStartIntegrationFlow?: boolean;
 };
+
+type ActiveIntegrationState = ActiveIntegration & {key: number};
 
 type AccountingContextType = {
     activeIntegration?: ActiveIntegration;
     startIntegrationFlow: (activeIntegration: ActiveIntegration) => void;
-    ref: RefObject<View>;
+
+    /*
+     * This stores refs to integration buttons, so the PopoverMenu can be positioned correctly
+     */
+    integrationRefs: RefObject<Record<string, MutableRefObject<View | null>>>;
 };
+
+const integrationRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce((acc, key) => {
+    acc[key] = {current: null};
+    return acc;
+}, {} as Record<ConnectionName, MutableRefObject<View | null>>);
 
 const defaultAccountingContext = {
     activeIntegration: undefined,
     startIntegrationFlow: () => {},
-    ref: {current: null},
+    integrationRefs: {
+        current: integrationRefsInitialValue,
+    },
 };
 
 const AccountingContext = React.createContext<AccountingContextType>(defaultAccountingContext);
@@ -33,18 +46,28 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const ref = useRef<View>(null);
-    const [activeIntegration, startIntegrationFlow] = React.useState<ActiveIntegration>();
+    const integrationRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.integrationRefs.current);
+    const [activeIntegration, rawStartIntegrationFlow] = React.useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy.id;
+
+    const startIntegrationFlow = React.useCallback(
+        (newActiveIntegration: ActiveIntegration) => {
+            rawStartIntegrationFlow({
+                ...newActiveIntegration,
+                key: Math.random(),
+            });
+        },
+        [rawStartIntegrationFlow],
+    );
 
     const accountingContext = React.useMemo(
         () => ({
             activeIntegration,
             startIntegrationFlow,
-            ref,
+            integrationRefs,
         }),
-        [activeIntegration],
+        [activeIntegration, startIntegrationFlow],
     );
 
     const renderActiveIntegration = () => {
@@ -52,8 +75,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, policy, activeIntegration.shouldStartIntegrationFlow)
-            ?.setupConnectionButton;
+        return accountingIntegrationData(activeIntegration.name, policyID, translate, true, activeIntegration.integrationToDisconnect, policy, activeIntegration.key)?.setupConnectionButton;
     };
 
     return (
