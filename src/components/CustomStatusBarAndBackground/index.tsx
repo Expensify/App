@@ -95,20 +95,34 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
             statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
+            const callUpdateStatusBarAppearance = () => {
+                updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
+                setStatusBarStyle(newStatusBarStyle);
+            };
+
+            const callUpdateStatusBarBackgroundColor = () => {
                 statusBarAnimation.value = 0;
                 statusBarAnimation.value = withDelay(300, withTiming(1));
-            }
+            };
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
             // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
-            if ((!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) || newStatusBarStyle !== statusBarStyle) {
-                updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
-                setStatusBarStyle(newStatusBarStyle);
+            if (!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
+                callUpdateStatusBarAppearance();
+                callUpdateStatusBarBackgroundColor();
 
                 if (!prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
                     didForceUpdateStatusBarRef.current = true;
                 }
+                return;
+            }
+
+            if (newStatusBarStyle !== statusBarStyle) {
+                callUpdateStatusBarAppearance();
+            }
+
+            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
+                callUpdateStatusBarBackgroundColor();
             }
         },
         [prevIsRootStatusBarEnabled, isRootStatusBarEnabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],

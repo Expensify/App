@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -70,6 +70,21 @@ function AddPaymentMethodMenu({
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
 
+    const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
+
+    // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+
+        onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+    }, [isPersonalOnlyOption, isVisible, onItemSelected]);
+
+    if (isPersonalOnlyOption) {
+        return null;
+    }
+
     return (
         <PopoverMenu
             isVisible={isVisible}
@@ -99,13 +114,14 @@ function AddPaymentMethodMenu({
                           },
                       ]
                     : []),
-                ...[
-                    {
-                        text: translate('common.debitCard'),
-                        icon: Expensicons.CreditCard,
-                        onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
-                    },
-                ],
+                // Adding a debit card for P2P payments is temporarily disabled
+                // ...[
+                //     {
+                //         text: translate('common.debitCard'),
+                //         icon: Expensicons.CreditCard,
+                //         onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                //     },
+                // ],
             ]}
             withoutOverlay
         />
