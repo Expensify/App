@@ -3836,7 +3836,7 @@ function buildOptimisticAddCommentReportAction(
             created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
-                    translationKey: file ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
+                    translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
