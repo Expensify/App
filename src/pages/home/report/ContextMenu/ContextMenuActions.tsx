@@ -545,18 +545,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => {
             // eslint-disable-next-line react-hooks/rules-of-hooks
-            const {environment, isProduction} = useEnvironment();
+            const {isProduction} = useEnvironment();
 
-            // If we are on production, don't show this option
-            if (isProduction) {
-                return false;
-            }
-
-            const isADHOC = environment === CONST.ENVIRONMENT.ADHOC;
-            const isStaging = environment === CONST.ENVIRONMENT.STAGING;
-            const isDevelopment = environment === CONST.ENVIRONMENT.DEV;
-
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT && (isDevelopment || isStaging || isADHOC);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction;
         },
         onPress: (closePopover, {reportID}) => {
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
