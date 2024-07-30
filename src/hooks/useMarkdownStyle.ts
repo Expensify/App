@@ -1,16 +1,13 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useMemo} from 'react';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
 
-function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
+function useMarkdownStyle(doesInputContainOnlyEmojis?: boolean, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
-    const hasMessageOnlyEmojis = message != null && message.length > 0 && containsOnlyEmojis(message);
-    const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
     const nonStylingDefaultValues: Record<string, string | number> = useMemo(
@@ -37,7 +34,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 fontSize: variables.fontSizeLarge,
             },
             emoji: {
-                fontSize: emojiFontSize,
+                fontSize: doesInputContainOnlyEmojis ? variables.fontSizeEmojisOnlyComposer : variables.fontSizeEmojisWithinText,
             },
             blockquote: {
                 borderColor: theme.border,
@@ -52,13 +49,13 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 paddingRight: 1,
             },
             code: {
-                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+                ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
                 backgroundColor: 'transparent',
             },
             pre: {
-                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+                ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13,
                 color: theme.text,
                 backgroundColor: 'transparent',
@@ -89,7 +86,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
         }
 
         return styling;
-    }, [theme, emojiFontSize, excludeStyles, nonStylingDefaultValues]);
+    }, [theme, doesInputContainOnlyEmojis, excludeStyles, nonStylingDefaultValues]);
 
     return markdownStyle;
 }

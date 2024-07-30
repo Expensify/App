@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -97,6 +98,7 @@ function CreateReportFieldsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -117,7 +119,6 @@ function CreateReportFieldsPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
-                    disablePressOnEnter={false}
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>

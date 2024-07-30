@@ -19,7 +19,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -85,6 +84,12 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
+    /** Callback when the payment options popover is shown */
+    onPaymentOptionsShow?: () => void;
+
+    /** Callback when the payment options popover is closed */
+    onPaymentOptionsHide?: () => void;
+
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
@@ -107,6 +112,8 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
     userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
@@ -131,7 +138,6 @@ function ReportPreview({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
@@ -154,9 +160,10 @@ function ReportPreview({
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors =
-        hasMissingSmartscanFields ||
+        (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
+        (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
@@ -286,7 +293,7 @@ function ReportPreview({
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
-    const shouldShowRBR = !iouSettled && hasErrors;
+    const shouldShowRBR = hasErrors;
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
@@ -341,7 +348,8 @@ function ReportPreview({
      */
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
 
     return (
         <OfflineWithFeedback
@@ -425,7 +433,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
+                                {shouldShowSettlementButton && (
                                     <SettlementButton
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -433,6 +441,8 @@ function ReportPreview({
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
                                         onPress={confirmPayment}
+                                        onPaymentOptionsShow={onPaymentOptionsShow}
+                                        onPaymentOptionsHide={onPaymentOptionsHide}
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
@@ -451,7 +461,7 @@ function ReportPreview({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
-                                {shouldShowExportIntegrationButton && (
+                                {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
                                         report={iouReport}
@@ -477,7 +487,6 @@ function ReportPreview({
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={isSmallScreenWidth}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
