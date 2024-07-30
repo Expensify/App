@@ -22,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -33,7 +34,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -171,7 +171,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={isFirstTimeNewExpensifyUser && hasCompletedGuidedSetupFlow && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(optionItem)}
+                shouldRender={isFirstTimeNewExpensifyUser && hasCompletedGuidedSetupFlow && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)}
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
