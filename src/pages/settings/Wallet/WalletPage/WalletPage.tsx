@@ -373,7 +373,9 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                     title={translate('walletPage.bankAccounts')}
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
-                                    illustration={LottieAnimations.Coin}
+                                    illustration={Illustrations.BigVault}
+                                    illustrationStyle={{width: 262, height: 152}}
+                                    illustrationBackgroundColor="#411103"
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}
