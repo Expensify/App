@@ -1,10 +1,9 @@
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
-import type {AuthScreensParamList} from './libs/Navigation/types';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
-import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -34,19 +33,10 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    ALL_SETTINGS: 'all-settings',
-
     SEARCH_CENTRAL_PANE: {
-        route: '/search/:query',
-        getRoute: (searchQuery: SearchQuery, queryParams?: AuthScreensParamList['Search_Central_Pane']) => {
-            const {sortBy, sortOrder} = queryParams ?? {};
-
-            if (!sortBy && !sortOrder) {
-                return `search/${searchQuery}` as const;
-            }
-
-            return `search/${searchQuery}?sortBy=${sortBy}&sortOrder=${sortOrder}` as const;
-        },
+        route: 'search',
+        getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
+            `search?q=${query}&isCustomQuery=${isCustomQuery}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
     },
 
     SEARCH_ADVANCED_FILTERS: 'search/filters',
@@ -55,18 +45,19 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
 
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
+
     SEARCH_REPORT: {
-        route: 'search/:query/view/:reportID',
-        getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
+        route: 'search/view/:reportID',
+        getRoute: (reportID: string) => `search/view/${reportID}` as const,
     },
 
-    TRANSACTION_HOLD_REASON_RHP: {
-        route: 'search/:query/hold',
-        getRoute: (query: string) => `search/${query}/hold` as const,
-    },
+    TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TRACK_EXPENSE: 'track-expense',
+    SUBMIT_EXPENSE: 'submit-expense',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
@@ -123,6 +114,7 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
+    SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
@@ -619,21 +611,33 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows` as const,
     },
-    WORKSPACE_WORKFLOWS_PAYER: {
-        route: 'workspace/:policyID/settings/workflows/payer',
-        getRoute: (policyId: string) => `workspace/${policyId}/settings/workflows/payer` as const,
+    WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/new` as const,
     },
-    WORKSPACE_WORKFLOWS_APPROVER: {
-        route: 'settings/workspaces/:policyID/settings/workflows/approver',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/workflows/approver` as const,
+    WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
+        getRoute: (policyID: string, firstApproverEmail: string) => `settings/workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/expenses-from',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
+        route: 'settings/workspaces/:policyID/workflows/approvals/approver',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/approver` as const,
+    },
+    WORKSPACE_WORKFLOWS_PAYER: {
+        route: 'settings/workspaces/:policyID/workflows/payer',
+        getRoute: (policyId: string) => `settings/workspaces/${policyId}/workflows/payer` as const,
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
-        route: 'settings/workspaces/:policyID/settings/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/workflows/auto-reporting-frequency` as const,
+        route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
-        route: 'settings/workspaces/:policyID/settings/workflows/auto-reporting-frequency/monthly-offset',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/workflows/auto-reporting-frequency/monthly-offset` as const,
+        route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
     WORKSPACE_CARD: {
         route: 'settings/workspaces/:policyID/card',
@@ -936,10 +940,22 @@ const ROUTES = {
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',
-    ONBOARDING_ROOT: 'onboarding',
-    ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
-    ONBOARDING_WORK: 'onboarding/work',
-    ONBOARDING_PURPOSE: 'onboarding/purpose',
+    ONBOARDING_ROOT: {
+        route: 'onboarding',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+    },
+    ONBOARDING_PERSONAL_DETAILS: {
+        route: 'onboarding/personal-details',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+    },
+    ONBOARDING_WORK: {
+        route: 'onboarding/work',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work`, backTo),
+    },
+    ONBOARDING_PURPOSE: {
+        route: 'onboarding/purpose',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
 
