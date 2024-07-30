@@ -1196,6 +1196,7 @@ export default {
         expensifyWallet: 'Billetera Expensify',
         sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
         enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
+        walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añadir una cuenta bancaria te permite cobrar los gastos que envíes a un espacio de trabajo.',

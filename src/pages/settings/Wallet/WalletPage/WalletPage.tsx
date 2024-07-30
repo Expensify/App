@@ -392,7 +392,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 </Section>
                                 {hasWallet && (
                                     <Section
-                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
+                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'walletEnabledToSendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.sendAndReceiveMoney')}
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}

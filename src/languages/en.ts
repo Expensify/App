@@ -1187,6 +1187,7 @@ export default {
         expensifyWallet: 'Expensify Wallet',
         sendAndReceiveMoney: 'Send and receive money with friends.',
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
+        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
@@ -2741,7 +2742,6 @@ export default {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
-
         moreFeatures: {
             spendSection: {
                 title: 'Spend',
