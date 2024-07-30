@@ -17,8 +17,6 @@ function accountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    isConnectedToIntegration?: boolean,
-    integrationToDisconnect?: PolicyConnectionName,
     policy?: Policy,
     key?: number,
 ): AccountingIntegration | undefined {
@@ -30,8 +28,6 @@ function accountingIntegrationData(
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
                         key={key}
                     />
                 ),
@@ -47,8 +43,6 @@ function accountingIntegrationData(
                 setupConnectionFlow: (
                     <ConnectToXeroFlow
                         policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
                         key={key}
                     />
                 ),
@@ -78,8 +72,6 @@ function accountingIntegrationData(
                 setupConnectionFlow: (
                     <ConnectToNetSuiteFlow
                         policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
                         key={key}
                     />
                 ),
@@ -95,8 +87,6 @@ function accountingIntegrationData(
                 setupConnectionFlow: (
                     <ConnectToSageIntacctFlow
                         policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
                         key={key}
                     />
                 ),

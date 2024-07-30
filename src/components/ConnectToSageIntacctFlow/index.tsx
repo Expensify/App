@@ -1,11 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -14,20 +12,15 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type ConnectToSageIntacctFlowProps = {
     policyID: string;
-    shouldDisconnectIntegrationBeforeConnecting?: boolean;
-    integrationToDisconnect?: PolicyConnectionName;
 };
 
-function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToSageIntacctFlowProps) {
+function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     const {translate} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -61,10 +54,6 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
             return;
         }
 
-        if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
-            setIsDisconnectModalOpen(true);
-            return;
-        }
         if (!hasPoliciesConnectedToSageIntacct) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
             return;
@@ -82,52 +71,27 @@ function ConnectToSageIntacctFlow({policyID, shouldDisconnectIntegrationBeforeCo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return (
-        <>
-            {threeDotsMenuContainerRef && (
-                <PopoverMenu
-                    isVisible={isReuseConnectionsPopoverOpen}
-                    onClose={() => {
-                        setIsReuseConnectionsPopoverOpen(false);
-                    }}
-                    withoutOverlay
-                    menuItems={connectionOptions}
-                    onItemSelected={(item) => {
-                        if (!item?.onSelected) {
-                            return;
-                        }
-                        item.onSelected();
-                    }}
-                    anchorPosition={reuseConnectionPopoverPosition}
-                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                    anchorRef={threeDotsMenuContainerRef}
-                />
-            )}
-            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
-                <AccountingConnectionConfirmationModal
-                    onConfirm={() => {
-                        removePolicyConnection(policyID, integrationToDisconnect);
-                        setIsDisconnectModalOpen(false);
-                        if (!hasPoliciesConnectedToSageIntacct) {
-                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
-                            return;
-                        }
-                        if (!isSmallScreenWidth) {
-                            threeDotsMenuContainerRef?.current?.measureInWindow((x, y, width, height) => {
-                                setReuseConnectionPopoverPosition({
-                                    horizontal: x + width,
-                                    vertical: y + height,
-                                });
-                            });
-                        }
-                        setIsReuseConnectionsPopoverOpen(true);
-                    }}
-                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-                    onCancel={() => setIsDisconnectModalOpen(false)}
-                />
-            )}
-        </>
-    );
+    if (threeDotsMenuContainerRef) {
+        return (
+            <PopoverMenu
+                isVisible={isReuseConnectionsPopoverOpen}
+                onClose={() => {
+                    setIsReuseConnectionsPopoverOpen(false);
+                }}
+                withoutOverlay
+                menuItems={connectionOptions}
+                onItemSelected={(item) => {
+                    if (!item?.onSelected) {
+                        return;
+                    }
+                    item.onSelected();
+                }}
+                anchorPosition={reuseConnectionPopoverPosition}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorRef={threeDotsMenuContainerRef}
+            />
+        );
+    }
 }
 
 export default ConnectToSageIntacctFlow;

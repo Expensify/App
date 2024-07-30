@@ -221,7 +221,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -342,7 +342,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
         return otherIntegrations.map((integration) => {
-            const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
+            const integrationData = accountingIntegrationData(integration, policyID, translate);
             const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
             return {
                 ...iconProps,

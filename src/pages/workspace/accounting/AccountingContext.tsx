@@ -1,7 +1,9 @@
 import type {MutableRefObject, RefObject} from 'react';
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
+import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
+import {removePolicyConnection} from '@libs/actions/connections';
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
@@ -47,19 +49,33 @@ type AccountingContextProviderProps = ChildrenProps & {
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
     const integrationRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.integrationRefs.current);
-    const [activeIntegration, rawStartIntegrationFlow] = React.useState<ActiveIntegrationState>();
+    const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
+
     const {translate} = useLocalize();
     const policyID = policy.id;
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
-            rawStartIntegrationFlow({
+            setActiveIntegration({
                 ...newActiveIntegration,
                 key: Math.random(),
             });
         },
-        [rawStartIntegrationFlow],
+        [setActiveIntegration],
     );
+
+    const closeConfirmationModal = () => {
+        setActiveIntegration((prev) => {
+            if (prev) {
+                return {
+                    ...prev,
+                    shouldDisconnectIntegrationBeforeConnecting: false,
+                    integrationToDisconnect: undefined,
+                };
+            }
+            return undefined;
+        });
+    };
 
     const accountingContext = React.useMemo(
         () => ({
@@ -86,10 +102,27 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         )?.setupConnectionFlow;
     };
 
+    const shouldShowConfirmationModal = activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && activeIntegration?.integrationToDisconnect;
+
     return (
         <AccountingContext.Provider value={accountingContext}>
             {children}
-            {renderActiveIntegration()}
+            {!shouldShowConfirmationModal && renderActiveIntegration()}
+            {shouldShowConfirmationModal && activeIntegration?.integrationToDisconnect && (
+                <AccountingConnectionConfirmationModal
+                    onConfirm={() => {
+                        if (!activeIntegration?.integrationToDisconnect) {
+                            return;
+                        }
+                        removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);
+                        closeConfirmationModal();
+                    }}
+                    integrationToConnect={activeIntegration?.integrationToDisconnect}
+                    onCancel={() => {
+                        setActiveIntegration(undefined);
+                    }}
+                />
+            )}
         </AccountingContext.Provider>
     );
 }
