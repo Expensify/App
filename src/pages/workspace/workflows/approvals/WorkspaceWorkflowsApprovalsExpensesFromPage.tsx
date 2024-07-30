@@ -56,6 +56,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -64,17 +65,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
+                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+
                 return {
                     text: member.displayName,
                     alternateText: member.email,
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: member.avatar ? [{source: member.avatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName}] : [],
+                    icons: member.avatar ? [{source: member.avatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}] : [],
                 };
             }),
         );
-    }, [approvalWorkflow?.members]);
+    }, [approvalWorkflow?.members, policyMemberEmailsToAccountIDs]);
 
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
@@ -83,6 +86,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             const availableMembers = approvalWorkflow.availableMembers
                 .map((member) => {
                     const isAdmin = policy?.employeeList?.[member.email].role === CONST.REPORT.ROLE.ADMIN;
+                    const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
                     return {
                         text: member.displayName,
@@ -90,7 +94,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         keyForList: member.email,
                         isSelected: false,
                         login: member.email,
-                        icons: member.avatar ? [{source: member.avatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName}] : [],
+                        icons: member.avatar ? [{source: member.avatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}] : [],
                         rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
                 })
@@ -115,7 +119,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.employeeList, selectedMembers, translate]);
+    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.employeeList, policyMemberEmailsToAccountIDs, selectedMembers, translate]);
 
     const nextStep = useCallback(() => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
