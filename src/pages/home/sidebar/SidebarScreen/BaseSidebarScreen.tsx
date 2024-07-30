@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,7 +27,6 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
-    const didResetActiveWorkspaceIDRef = useRef(false);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -37,13 +36,12 @@ function BaseSidebarScreen() {
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined || !!didResetActiveWorkspaceIDRef.current) {
+        if (!!activeWorkspace || activeWorkspaceID === undefined) {
             return;
         }
 
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
-        didResetActiveWorkspaceIDRef.current = true;
     }, [activeWorkspace, activeWorkspaceID]);
 
     return (
