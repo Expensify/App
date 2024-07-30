@@ -732,30 +732,16 @@ function clearAvatarErrors(reportID: string) {
     });
 }
 
-// Add a helper function called getInviteOnboardingDetails to Report. That function will:
-// Read the value of nvp_introSelected
-// Check that it is set, if not return early
-// Check that isInviteOnboardingComplete is false, if not return early
-// Check that inviteType is not iou or invoice, if it is, return early
-// Get the first and last names from personal details
-// Get the correct onboarding message from ONBOARDING_MESSAGES (link)
-// When choice is newDotSubmit we want to call ONBOARDING_MESSAGES[newDotEmployer]
-// When choice is newDotAdmin we want to call ONBOARDING_MESSAGES[newDotAdmin] which will be added here.
-// Optimistically set nvp_introSelected.isInviteOnboardingComplete to true
-// Return the firstName, lastName, and onboardingMessage values
-
 /**
  * Gets details for an invite onboarding if certain conditions are met
+ * @returns firstName, lastName, and onboardingMessage values
  */
 function getInviteOnboardingDetails() {
     if (!introSelected) {
         return;
     }
     const {choice, isInviteOnboardingComplete, inviteType} = introSelected;
-    if (isInviteOnboardingComplete) {
-        return;
-    }
-    if (inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE) {
+    if (isInviteOnboardingComplete || inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE) {
         return;
     }
     const personalDetails = allPersonalDetails?.[currentUserAccountID];
@@ -764,18 +750,11 @@ function getInviteOnboardingDetails() {
 
     Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
 
-    if (choice === CONST.ONBOARDING_CHOICES.ADMIN) {
+    if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice == CONST.ONBOARDING_CHOICES.SUBMIT) {
         return {
             firstName,
             lastName,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.ADMIN],
-        };
-    }
-    if (choice === CONST.ONBOARDING_CHOICES.SUBMIT) {
-        return {
-            firstName,
-            lastName,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT],
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
         };
     }
 }
