@@ -10,7 +10,6 @@ import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, 
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
 import type {TransactionMergeParams} from './API/parameters';
-import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import {getCurrencyDecimals} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -490,18 +489,17 @@ function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFor
  * Determine whether a transaction is made with an Expensify card.
  */
 function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    if (!transaction?.cardID) {
+    if (!transaction?.managedCard) {
         return false;
     }
-    return isExpensifyCard(transaction.cardID);
+    return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const cardID = transaction?.cardID ?? -1;
-    return isCorporateCard(cardID);
+    return !!transaction?.managedCard;
 }
 
 /**
