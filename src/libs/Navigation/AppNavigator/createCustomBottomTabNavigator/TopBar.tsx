@@ -61,7 +61,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}
                     <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback
                             accessibilityLabel={translate('sidebarScreen.buttonFind')}
-                            style={[styles.flexRow, styles.mr2]}
+                            style={[styles.flexRow, styles.mr2, styles.touchableButtonImage]}
                             onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER))}
                         >
                             <Icon

@@ -90,8 +90,10 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                                 if (!el) {
                                     return;
                                 }
+                                if (!reportDescriptionInputRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
                                 reportDescriptionInputRef.current = el;
-                                updateMultilineInputRange(el);
                             }}
                             value={description}
                             onChangeText={handleReportDescriptionChange}

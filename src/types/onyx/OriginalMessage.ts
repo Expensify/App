@@ -121,6 +121,9 @@ type OriginalMessageAddComment = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo: number[];
+
+    /** List accountIDs are mentioned in message */
+    mentionedAccountIDs?: number[];
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -313,6 +316,12 @@ type OriginalMessageModifiedExpense = {
 
     /** Old expense tax rate */
     oldTaxRate?: string;
+
+    /** Edited expense reimbursable */
+    reimbursable?: string;
+
+    /** Old expense reimbursable */
+    oldReimbursable?: string;
 
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
@@ -576,6 +585,12 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {
