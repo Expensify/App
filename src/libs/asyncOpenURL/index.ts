@@ -6,9 +6,11 @@ const asyncOpenURL: AsyncOpenURL = (promise, url) => {
         return;
     }
 
-    promise.then((params) => {
-        Linking.openURL(typeof url === 'string' ? url : url(params));
-    });
+    promise
+        .then((params) => {
+            Linking.openURL(typeof url === 'string' ? url : url(params));
+        })
+        .catch(() => {});
 };
 
 export default asyncOpenURL;
