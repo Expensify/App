@@ -371,6 +371,16 @@ function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: Poli
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 
+function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
+    // A verified connection is one that has been successfully synced at least once
+    // We'll always err on the side of considering a connection as verified connected even if we can't find a lastSync property saying as such
+    // i.e. this is a property that is explicitly set to false, not just missing
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
+    }
+    return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
+}
+
 function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
     let stageInProgress;
     switch (connectionName) {
@@ -414,4 +424,5 @@ export {
     hasSynchronizationError,
     syncConnection,
     copyExistingPolicyConnection,
+    isConnectionUnverified,
 };
