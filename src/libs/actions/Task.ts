@@ -833,6 +833,13 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
 }
 
 /**
+ * Start out create task action quick action step
+ */
+function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number) {
+    clearOutTaskInfoAndNavigate(reportID, undefined, targetAccountID, true);
+}
+
+/**
  * Get the assignee data
  */
 function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee {
@@ -1149,6 +1156,7 @@ export {
     reopenTask,
     completeTask,
     clearOutTaskInfoAndNavigate,
+    startOutCreateTaskQuickAction,
     getAssignee,
     getShareDestination,
     deleteTask,
