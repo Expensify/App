@@ -1,38 +1,30 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {View} from 'react-native';
-import * as Illustrations from '@components/Icon/Illustrations';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {useOnyx} from 'react-native-onyx';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
+import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
 
 type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const policyID = route.params.policyID ?? '-1';
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? -1;
 
     return (
         <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <WorkspacePageWithSections
-                shouldUseScrollView
-                icon={Illustrations.HandCard}
-                headerText={translate('workspace.common.expensifyCard')}
-                route={route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
-                shouldShowOfflineIndicatorInWideScreen
-            >
-                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]} />
-            </WorkspacePageWithSections>
+            {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
+            {paymentBankAccountID ? <WorkspaceExpensifyCardListPage route={route} /> : <WorkspaceExpensifyCardPageEmptyState route={route} />}
         </AccessOrNotFoundWrapper>
     );
 }

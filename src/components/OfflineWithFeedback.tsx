@@ -1,6 +1,5 @@
-import {mapValues} from 'lodash';
 import React, {useCallback} from 'react';
-import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,11 +9,11 @@ import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import type {AllStyles} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
-import MessagesRow from './MessagesRow';
+import ErrorMessageRow from './ErrorMessageRow';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -60,7 +59,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     canDismissError?: boolean;
 };
 
-type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
+type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
 
 function OfflineWithFeedback({
     pendingAction,
@@ -83,12 +82,6 @@ function OfflineWithFeedback({
 
     const hasErrors = !isEmptyObject(errors ?? {});
 
-    // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorEntries = Object.entries(errors ?? {});
-    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
-    const errorMessages = mapValues(Object.fromEntries(filteredErrorEntries), (error) => error);
-
-    const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -107,9 +100,10 @@ function OfflineWithFeedback({
                     return child;
                 }
 
-                const childProps: {children: React.ReactNode | undefined; style: AllStyles} = child.props;
+                type ChildComponentProps = ChildrenProps & {style?: AllStyles};
+                const childProps = child.props as ChildComponentProps;
                 const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(childProps.style, styles.offlineFeedback.deleted, styles.userSelectNone),
+                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
 
                 if (childProps.children) {
@@ -138,13 +132,12 @@ function OfflineWithFeedback({
                     <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
-            {shouldShowErrorMessages && hasErrorMessages && (
-                <MessagesRow
-                    messages={errorMessages}
-                    type="error"
+            {shouldShowErrorMessages && (
+                <ErrorMessageRow
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
                     onClose={onClose}
-                    containerStyles={errorRowStyles}
-                    canDismiss={canDismissError}
+                    canDismissError={canDismissError}
                 />
             )}
         </View>

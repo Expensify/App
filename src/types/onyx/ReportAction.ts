@@ -1,5 +1,4 @@
 import type {Spread, ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -139,9 +138,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
     sequenceNumber?: number;
 
-    /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
-    previousReportActionID?: string;
-
     /** The name (or type) of the action */
     actionName: ReportActionName;
 
@@ -220,8 +216,11 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the report action is the first one */
     isFirstItem?: boolean;
 
-    /** Informations about attachments of report action */
-    attachmentInfo?: FileObject;
+    /** Whether the report action is only an attachment */
+    isAttachmentOnly?: boolean;
+
+    /** Whether the report action is an attachment with text */
+    isAttachmentWithText?: boolean;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -237,9 +236,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Error associated with the report action */
     error?: string;
-
-    /** Whether the report action is attachment */
-    isAttachment?: boolean;
 
     /** Recent receipt transaction IDs keyed by reportID */
     childRecentReceiptTransactionIDs?: Record<string, string>;

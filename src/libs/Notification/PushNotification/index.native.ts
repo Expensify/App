@@ -31,7 +31,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
 
     // On Android, some notification payloads are sent as a JSON string rather than an object
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as string;
     }
 
     const data = payload as PushNotificationData;

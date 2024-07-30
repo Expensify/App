@@ -135,7 +135,7 @@ function AmountForm(
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**

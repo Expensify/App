@@ -59,7 +59,7 @@ function BaseVideoPlayer({
         shareVideoPlayerElements,
         currentVideoPlayerRef,
         updateCurrentlyPlayingURL,
-        videoResumeTryNumber,
+        videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
@@ -83,10 +83,10 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
-        videoResumeTryNumber.current = 0;
+        videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
         } else if (isPlaying) {
@@ -94,7 +94,7 @@ function BaseVideoPlayer({
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
@@ -118,15 +118,16 @@ function BaseVideoPlayer({
     // fix for iOS mWeb: preventing iOS native player default behavior from pausing the video when exiting fullscreen
     const preventPausingWhenExitingFullscreen = useCallback(
         (isVideoPlaying: boolean) => {
-            if (videoResumeTryNumber.current === 0 || isVideoPlaying) {
+            if (videoResumeTryNumberRef.current === 0 || isVideoPlaying) {
                 return;
             }
-            if (videoResumeTryNumber.current === 1) {
+            if (videoResumeTryNumberRef.current === 1) {
                 playVideo();
             }
-            videoResumeTryNumber.current -= 1;
+            // eslint-disable-next-line react-compiler/react-compiler
+            videoResumeTryNumberRef.current -= 1;
         },
-        [playVideo, videoResumeTryNumber],
+        [playVideo, videoResumeTryNumberRef],
     );
 
     const handlePlaybackStatusUpdate = useCallback(
@@ -160,7 +161,7 @@ function BaseVideoPlayer({
             videoStateRef.current = status;
             onPlaybackStatusUpdate?.(status);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
         [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 
@@ -185,11 +186,11 @@ function BaseVideoPlayer({
                 if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
                     pauseVideo();
                     playVideo();
-                    videoResumeTryNumber.current = 3;
+                    videoResumeTryNumberRef.current = 3;
                 }
             }
         },
-        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumberRef, updateVolume, currentVideoPlayerRef],
     );
 
     const bindFunctions = useCallback(() => {
@@ -358,6 +359,11 @@ function BaseVideoPlayer({
                                                     playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
+                                                const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+                                                if (typeof source === 'number' || !source || source.uri !== sourceURL) {
+                                                    return;
+                                                }
+                                                videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}

@@ -4,21 +4,24 @@
 {% assign activeHub = page.url | remove: activePlatform | remove: "/hubs/" | remove: "/" | remove: ".html" %}
 {% assign hub = platform.hubs | where: "href", activeHub | first %}
 
-<h1 class="title">
-    {{ hub.title }}
-</h1>
+<h1 class="title">{{ hub.title }}</h1>
 
-<p>
-    {{ hub.description }}
-</p>
+<p>{{ hub.description }}</p>
+
+{% if hub.articles %}
+    {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %}
+{% else %}
+    {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %}
+{% endif%}
 
 <section>
     <div class="cards-group">
-        {% for section in hub.sections %}
-            {% include section-card.html platform=activePlatform hub=hub.href section=section.href title=section.title %}
-        {% endfor %}
-        {% for article in hub.articles %}
-            {% include article-card.html hub=hub.href href=article.href title=article.title platform=activePlatform %}
+        {% for item in sortedSectionsAndArticles %}
+            {% if item.articles %}
+                {% include section-card.html platform=activePlatform hub=hub.href section=item.href title=item.title %}
+            {% else %}
+                {% include article-card.html hub=hub.href href=item.href title=item.title platform=activePlatform %}
+            {% endif %}
         {% endfor %}
     </div>
 </section>

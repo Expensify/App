@@ -1,17 +1,16 @@
 import React, {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -30,7 +29,9 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     /**
      * Retuns a list of menu items data for All workspaces settings
@@ -46,13 +47,13 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
                     })();
                 },
-                focused: !isSmallScreenWidth,
+                focused: !shouldUseNarrowLayout,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
-            ...(shouldShowSubscriptionsMenu
+            ...(privateSubscription
                 ? [
                       {
-                          translationKey: 'allSettingsScreen.subscriptions',
+                          translationKey: 'allSettingsScreen.subscription',
                           icon: Expensicons.MoneyBag,
                           action: () => {
                               Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
@@ -89,7 +90,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies]);
+    }, [shouldUseNarrowLayout, policies, privateSubscription, waitForNavigate, translate, styles]);
 
     return (
         <ScreenWrapper

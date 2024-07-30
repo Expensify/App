@@ -157,7 +157,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
             resetBoundaries();
             setShouldResetBoundaries(false);
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this effect only needs to run when the boundaries reset is forced
         }, [shouldResetBoundaries]);
 
         useEffect(() => {
@@ -194,7 +194,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             if (!mapRef) {
                 return;
             }
-            if (directionCoordinates && directionCoordinates.length > 1) {
+            const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
+            if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
                 const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 const map = mapRef?.getMap();
                 map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME});

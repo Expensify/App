@@ -76,7 +76,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setRecentReports(inviteOptions.recentReports);
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers, options]);
 
     const sections = useMemo(() => {
@@ -197,7 +197,6 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 onSubmit={inviteUsers}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                disablePressOnEnter
             />
         ),
         [selectedOptions.length, inviteUsers, translate, styles],

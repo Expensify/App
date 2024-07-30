@@ -8,12 +8,10 @@ import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} f
 import createRandomPolicy from '../utils/collections/policies';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
-    name: 'owner@email.com',
-    permissions: 'read',
     value: 0,
 };
 
-const GRACE_PERIOD_DATE = new Date().getTime() + 1000;
+const GRACE_PERIOD_DATE = new Date().getTime() + 1000 * 3600;
 const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
 
 const AMOUNT_OWED = 100;
@@ -39,6 +37,9 @@ const FUND_LIST: FundList = {
         accountData: {
             cardYear: new Date().getFullYear(),
             cardMonth: new Date().getMonth() + 1,
+            additionalData: {
+                isBillingCard: true,
+            },
         },
     },
 };
@@ -179,6 +180,7 @@ describe('SubscriptionUtils', () => {
         afterEach(async () => {
             await Onyx.clear();
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: null,
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
@@ -244,40 +246,89 @@ describe('SubscriptionUtils', () => {
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
         });
 
-        it('should return false if the user is a workspace owner but is not past due billing', async () => {
+        it("should return false if the user is the workspace's owner but is not past due billing", async () => {
+            const accountID = 1;
             const policyID = '1001';
 
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(addDays(new Date(), 3)), // not past due
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
-        it("should return false if the user is a workspace owner but is past due billing but isn't owning any amount", async () => {
+        it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
+            const accountID = 1;
             const policyID = '1001';
 
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
-        it('should return true if the user is a workspace owner but is past due billing and is owning some amount', async () => {
+        it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
+            const accountID = 1;
             const policyID = '1001';
 
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
         });
+
+        it("should return false if the user is past due billing but is not the workspace's owner", async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: 2, // not the user
+                },
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+        });
     });
 
     describe('getSubscriptionStatus', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
+                [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: null,
+                [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: null,
+                [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: null,
+                [ONYXKEYS.FUND_LIST]: null,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: null,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: null,
+            });
+        });
+
         it('should return undefined by default', () => {
             expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
         });
@@ -297,6 +348,7 @@ describe('SubscriptionUtils', () => {
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE status', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
@@ -306,6 +358,7 @@ describe('SubscriptionUtils', () => {
 
         it('should return OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE status', async () => {
             await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
@@ -337,6 +390,7 @@ describe('SubscriptionUtils', () => {
 
         it('should return CARD_AUTHENTICATION_REQUIRED status', async () => {
             await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });

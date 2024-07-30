@@ -162,7 +162,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
     const parameters: AddPaymentCardParams = {
-        cardNumber: params.cardNumber,
+        cardNumber: CardUtils.getMCardNumberString(params.cardNumber),
         cardYear,
         cardMonth,
         cardCVV: params.securityCode,
@@ -255,12 +255,12 @@ function addSubscriptionPaymentCard(cardData: {
 
     if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBR, parameters, {optimisticData, successData, failureData}).then((response) => {
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 return;
             }
-            // TODO 3ds flow will be done as a part https://github.com/Expensify/App/issues/42432
-            // We will use this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
+
+            // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
             Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
         });
     } else {
@@ -270,7 +270,6 @@ function addSubscriptionPaymentCard(cardData: {
             successData,
             failureData,
         });
-        Navigation.goBack();
     }
 }
 
@@ -300,6 +299,14 @@ function clearPaymentCardFormErrorAndSubmit() {
  */
 function clearPaymentCard3dsVerification() {
     Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
+ * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
+ *
+ */
+function verifySetupIntent(accountID: number, isVerifying = true) {
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying});
 }
 
 /**
@@ -547,4 +554,5 @@ export {
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
     setPaymentCardForm,
+    verifySetupIntent,
 };

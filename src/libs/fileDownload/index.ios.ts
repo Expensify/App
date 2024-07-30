@@ -1,6 +1,7 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
+import RNFS from 'react-native-fs';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
@@ -26,6 +27,39 @@ function downloadFile(fileUrl: string, fileName: string) {
     }).fetch('GET', fileUrl);
 }
 
+const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
+    const fetchOptions: RequestInit = {
+        method: 'POST',
+        body: formData,
+    };
+
+    return fetch(url, fetchOptions)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to download file');
+            }
+            return response.text();
+        })
+        .then((fileData) => {
+            const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
+            const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
+
+            return RNFS.mkdir(expensifyDir).then(() => {
+                const localPath = `${expensifyDir}/${finalFileName}`;
+                return RNFS.writeFile(localPath, fileData, 'utf8').then(() => localPath);
+            });
+        })
+        .then(() => {
+            FileUtils.showSuccessAlert();
+        })
+        .catch(() => {
+            if (!onDownloadFailed) {
+                FileUtils.showGeneralErrorAlert();
+            }
+            onDownloadFailed?.();
+        });
+};
+
 /**
  * Download the image to photo lib in iOS
  */
@@ -44,7 +78,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
             .then((attachment) => {
-                documentPathUri = attachment.data;
+                documentPathUri = attachment.data as string | null;
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }
@@ -67,7 +101,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
 /**
  * Download the file based on type(image, video, other file types)for iOS
  */
-const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
+const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = FileUtils.getFileType(fileUrl);
@@ -82,6 +116,11 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
                 fileDownloadPromise = downloadVideo(fileUrl, attachmentName);
                 break;
             default:
+                if (requestType === CONST.NETWORK.METHOD.POST) {
+                    fileDownloadPromise = postDownloadFile(fileUrl, fileName, formData, onDownloadFailed);
+                    break;
+                }
+
                 fileDownloadPromise = downloadFile(fileUrl, attachmentName);
                 break;
         }

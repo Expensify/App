@@ -1,19 +1,25 @@
 import lodashHas from 'lodash/has';
+import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
+import type {TransactionMergeParams} from './API/parameters';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
+import {getCurrencyDecimals} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportConnection from './ReportConnection';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -32,13 +38,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allTransactionViolations = value),
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
 });
 
 let currentUserEmail = '';
@@ -194,6 +193,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 }
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
+    const allReports = ReportConnection.getAllReports();
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
@@ -388,6 +388,13 @@ function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
 }
 
 /**
+ * Return the reimbursable value. Defaults to true to match BE logic.
+ */
+function getReimbursable(transaction: Transaction): boolean {
+    return transaction?.reimbursable ?? true;
+}
+
+/**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
 function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS> | undefined {
@@ -521,7 +528,7 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
-function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
 }
 
@@ -567,16 +574,15 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: boolean): boolean {
-    return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
+function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
+    return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
 function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
-    // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
-    // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
-    // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
-    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    const reportTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter(
+        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID,
+    );
+    return reportTransactions;
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -714,9 +720,11 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
 /**
  * Calculates tax amount from the given expense amount and tax percentage
  */
-function calculateTaxAmount(percentage: string, amount: number) {
+function calculateTaxAmount(percentage: string, amount: number, currency: string) {
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
-    return Math.round(amount - amount / divisor) / 100;
+    const taxAmount = (amount - amount / divisor) / 100;
+    const decimals = getCurrencyDecimals(currency);
+    return parseFloat(taxAmount.toFixed(decimals));
 }
 
 /**
@@ -810,6 +818,168 @@ function getTransaction(transactionID: string): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
+type FieldsToCompare = Record<string, Array<keyof Transaction>>;
+type FieldsToChange = {
+    category?: Array<string | undefined>;
+    merchant?: Array<string | undefined>;
+    tag?: Array<string | undefined>;
+    description?: Array<Comment | undefined>;
+    taxCode?: Array<string | undefined>;
+    billable?: Array<boolean | undefined>;
+    reimbursable?: Array<boolean | undefined>;
+};
+
+/**
+ * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
+ *
+ * @returns An object with two properties: 'keep' and 'change'.
+ * 'keep' is an object where each key is a field name and the value is the value of that field in the transaction that should be kept.
+ * 'change' is an object where each key is a field name and the value is an array of different values of that field in the duplicate transactions.
+ *
+ * The function works as follows:
+ * 1. It fetches the transaction violations for the given transaction ID.
+ * 2. It finds the duplicate transactions.
+ * 3. It creates two empty objects, 'keep' and 'change'.
+ * 4. It defines the fields to compare in the transactions.
+ * 5. It iterates over the fields to compare. For each field:
+ *    - If the field is 'description', it checks if all comments are equal, exist, or are empty. If so, it keeps the first transaction's comment. Otherwise, it finds the different values and adds them to 'change'.
+ *    - For other fields, it checks if all fields are equal. If so, it keeps the first transaction's field value. Otherwise, it finds the different values and adds them to 'change'.
+ * 6. It returns the 'keep' and 'change' objects.
+ */
+
+function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const keep: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const change: Record<string, any[]> = {};
+
+    const fieldsToCompare: FieldsToCompare = {
+        merchant: ['modifiedMerchant', 'merchant'],
+        category: ['category'],
+        tag: ['tag'],
+        description: ['comment'],
+        taxCode: ['taxCode'],
+        billable: ['billable'],
+        reimbursable: ['reimbursable'],
+    };
+
+    // Helper function thats create an array of different values for a given key in the transactions
+    function getDifferentValues(items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
+        return [
+            ...new Set(
+                items
+                    .map((item) => {
+                        // Prioritize modifiedMerchant over merchant
+                        if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            return getMerchant(item);
+                        }
+                        return keys.map((key) => item?.[key]);
+                    })
+                    .flat(),
+            ),
+        ];
+    }
+
+    // Helper function to check if all comments are equal
+    function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
+        return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+    }
+
+    // Helper function to check if all comments exist
+    function doAllCommentsExist(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
+        return items.every((item) => !!item?.comment.comment === !!firstTransaction?.comment.comment);
+    }
+
+    // Helper function to check if all fields are equal for a given key
+    function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
+        const firstTransaction = transactions[0];
+        return items.every((item) => keyExtractor(item) === keyExtractor(firstTransaction));
+    }
+
+    // Helper function to process changes
+    function processChanges(fieldName: string, items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
+        const differentValues = getDifferentValues(items, keys);
+        if (differentValues.length > 0) {
+            change[fieldName] = differentValues;
+        }
+    }
+
+    for (const fieldName in fieldsToCompare) {
+        if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
+            const keys = fieldsToCompare[fieldName];
+            const firstTransaction = transactions[0];
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
+
+            if (fieldName === 'description') {
+                const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
+                const allCommentsExist = doAllCommentsExist(transactions, firstTransaction);
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
+
+                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
+                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
+                } else {
+                    processChanges(fieldName, transactions, keys);
+                }
+            } else if (fieldName === 'merchant') {
+                if (areAllFieldsEqual(transactions, getMerchant)) {
+                    keep[fieldName] = getMerchant(firstTransaction);
+                } else {
+                    processChanges(fieldName, transactions, keys);
+                }
+            } else if (areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'))) {
+                keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+            } else {
+                processChanges(fieldName, transactions, keys);
+            }
+        }
+    }
+
+    return {keep, change};
+}
+
+function getTransactionID(threadReportID: string): string {
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+
+    return IOUTransactionID;
+}
+
+function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>): Partial<Transaction> {
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? undefined;
+    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+
+    return {
+        ...originalTransaction,
+        ...restReviewDuplicateTransaction,
+        modifiedMerchant: reviewDuplicateTransaction?.merchant,
+        merchant: reviewDuplicateTransaction?.merchant,
+        comment: {comment: reviewDuplicateTransaction?.description},
+    };
+}
+
+function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
+    return {
+        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
+        reportID: originalTransaction?.reportID ?? '',
+        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
+        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
+        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionIDList: reviewDuplicates?.duplicates ?? [],
+        billable: reviewDuplicates?.billable ?? false,
+        reimbursable: reviewDuplicates?.reimbursable ?? false,
+        category: reviewDuplicates?.category ?? '',
+        tag: reviewDuplicates?.tag ?? '',
+        merchant: reviewDuplicates?.merchant ?? '',
+        comment: reviewDuplicates?.description ?? '',
+    };
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -847,7 +1017,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
-    didRceiptScanSucceed,
+    didReceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -878,6 +1048,11 @@ export {
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
+    compareDuplicateTransactionFields,
+    getTransactionID,
+    buildNewTransactionAfterReviewingDuplicates,
+    buildTransactionsMergeParams,
+    getReimbursable,
 };
 
 export type {TransactionChanges};

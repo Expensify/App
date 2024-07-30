@@ -9,6 +9,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -113,12 +114,13 @@ function ReportActionsView({
     const isFirstLinkedActionRender = useRef(true);
 
     const network = useNetwork();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
-    const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
+    const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -150,9 +152,10 @@ function ReportActionsView({
         }
         isFirstLinkedActionRender.current = true;
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
+        // eslint-disable-next-line react-compiler/react-compiler
         listOldID = newID;
         return newID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
@@ -198,7 +201,6 @@ function ReportActionsView({
                 report.reportID,
                 false,
                 false,
-                {},
                 false,
                 DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
             ) as OnyxTypes.ReportAction;
@@ -213,7 +215,8 @@ function ReportActionsView({
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
-        return [...actions, createdAction];
+        // moneyRequestActions.length === 1 indicates that we have one-transaction report and we don't want to display additonal IOU action
+        return moneyRequestActions.length === 1 ? ReportActionsUtils.getFilteredForOneTransactionView([...actions, createdAction]) : [...actions, createdAction];
     }, [allReportActions, report, transactionThreadReport]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
@@ -253,7 +256,7 @@ function ReportActionsView({
         return combinedReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
 
     const reportActionIDMap = useMemo(() => {
@@ -314,38 +317,26 @@ function ReportActionsView({
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
-        if (!reportActionID || indexOfLinkedAction > -1) {
-            return;
-        }
-
-        // This function is triggered when a user clicks on a link to navigate to a report.
-        // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
-        Report.openReport(reportID, reportActionID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, indexOfLinkedAction]);
-
-    useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
             openReportIfNecessary();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [session, report]);
 
     useEffect(() => {
-        const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
+        const prevShouldUseNarrowLayout = prevShouldUseNarrowLayoutRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didScreenSizeIncrease = prevIsSmallScreenWidth && !isSmallScreenWidth;
+        const didScreenSizeIncrease = prevShouldUseNarrowLayout && !shouldUseNarrowLayout;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             openReportIfNecessary();
         }
         // update ref with current state
-        prevIsSmallScreenWidthRef.current = isSmallScreenWidth;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
+        prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
