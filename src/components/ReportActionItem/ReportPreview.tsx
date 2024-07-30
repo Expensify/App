@@ -126,10 +126,10 @@ function ReportPreview({
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
-            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
-            hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
-            hasNonReimbursableTransactions: TransactionUtils.areSomeTransactionsNonReimbursable(allTransactions),
+            hasMissingSmartscanFields: TransactionUtils.hasAnyTransactionMissingFields(allTransactions),
+            areAllRequestsBeingSmartScanned: TransactionUtils.areAllTransactionsBeingSmartScanned(allTransactions, action),
+            hasOnlyTransactionsWithPendingRoutes: TransactionUtils.areAllTransactionsWithPendingRoutes(allTransactions),
+            hasNonReimbursableTransactions: TransactionUtils.isAnyTransactionNonReimbursable(allTransactions),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -139,7 +139,7 @@ function ReportPreview({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy, allTransactions);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
+    const hasOnlyHeldExpenses = TransactionUtils.areAllExpensesOnHold(allTransactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
@@ -154,7 +154,7 @@ function ReportPreview({
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy, allTransactions);
     const numberOfRequests = allTransactions.length;
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+    const transactionsWithReceipts = TransactionUtils.getTransactionsWithReceipts(allTransactions);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
@@ -162,8 +162,10 @@ function ReportPreview({
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
+        (canUseViolations &&
+            (TransactionUtils.isAnyTransactionViolated(allTransactions, transactionViolations) ||
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                TransactionUtils.hasAnyTransactionWarningViolation(allTransactions, transactionViolations))) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
