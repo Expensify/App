@@ -1,8 +1,8 @@
 ---
-title: Set up NetSuite connection
+title: Connect to NetSuite
 description: Integrate NetSuite with Expensify
+order: 1
 ---
-<div id="new-expensify" markdown="1">
 
 # Connect to NetSuite
 
