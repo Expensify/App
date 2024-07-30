@@ -6,11 +6,15 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -20,6 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.netsuite.options.config;
 
@@ -27,7 +32,8 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
-    const currentDestination = isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination;
+    const currentSettingName = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
+    const currentDestination = config?.[currentSettingName];
 
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DESTINATION).map((dateType) => ({
         value: dateType,
@@ -63,6 +69,10 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            pendingAction={xeroSettingsPendingAction([currentSettingName], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config, currentSettingName)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearNetSuiteErrorField(policyID, currentSettingName)}
         />
     );
 }

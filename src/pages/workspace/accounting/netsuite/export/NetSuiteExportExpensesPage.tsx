@@ -5,7 +5,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
@@ -15,7 +14,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type MenuItemWithoutType = Omit<MenuItem, 'type'>;
+type MenuItemWithoutType = Omit<MenuItem, 'type' | 'errors'>;
 
 function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -51,7 +50,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: exportDestinationError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
             pendingAction: exportDestinationPending,
-            errors: ErrorUtils.getLatestErrorField(config, configType),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, configType),
             helperText: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`) : undefined,
             shouldParseHelperText: true,
@@ -62,7 +60,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: config?.errorFields?.defaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: defaultVendor ? defaultVendor.name : undefined,
             pendingAction: config?.pendingFields?.defaultVendor,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR),
             shouldHide: isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL,
         },
@@ -72,7 +69,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: config?.errorFields?.payableAcct ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedPayableAccount ? selectedPayableAccount.name : undefined,
             pendingAction: config?.pendingFields?.payableAcct,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
             shouldHide: isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
@@ -82,7 +78,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: config?.errorFields?.reimbursablePayableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedReimbursablePayableAccount ? selectedReimbursablePayableAccount.name : undefined,
             pendingAction: config?.pendingFields?.reimbursablePayableAccount,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
             shouldHide: !isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
@@ -94,7 +89,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
                 : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
             pendingAction: config?.pendingFields?.journalPostingPreference,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
             shouldHide: exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
@@ -118,9 +112,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback
                         key={item.description}
                         pendingAction={item.pendingAction}
-                        errors={item.errors}
-                        onClose={item.onCloseError}
-                        errorRowStyles={[styles.ph5]}
                     >
                         <MenuItemWithTopDescription
                             title={item.title}
@@ -129,7 +120,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                             onPress={item?.onPress}
                             brickRoadIndicator={item?.brickRoadIndicator}
                             helperText={item?.helperText}
-                            errorText={item?.errorText}
                             shouldParseHelperText={item.shouldParseHelperText ?? false}
                         />
                     </OfflineWithFeedback>
