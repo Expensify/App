@@ -4,7 +4,6 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,9 +31,10 @@ function ButtonWithDropdownMenu<IValueType>({
     onPress,
     options,
     onOptionSelected,
+    onOptionsMenuShow,
+    onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
-    useKeyboardShortcuts = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,26 +67,6 @@ function ButtonWithDropdownMenu<IValueType>({
             });
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
-        (e) => {
-            onPress(e, selectedItem.value);
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: false,
-            isActive: useKeyboardShortcuts,
-        },
-    );
-
-    useEffect(() => {
-        if (!!caretButton.current || !buttonRef?.current || !(shouldAlwaysShowDropdownMenu || options.length > 1)) {
-            return;
-        }
-        caretButton.current = buttonRef.current;
-    }, [buttonRef, options.length, shouldAlwaysShowDropdownMenu]);
-
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -94,7 +74,9 @@ function ButtonWithDropdownMenu<IValueType>({
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
-                        ref={buttonRef}
+                        ref={(ref) => {
+                            caretButton.current = ref;
+                        }}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
                         isDisabled={isDisabled || !!selectedItem.disabled}
@@ -156,7 +138,11 @@ function ButtonWithDropdownMenu<IValueType>({
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
-                    onClose={() => setIsMenuVisible(false)}
+                    onClose={() => {
+                        setIsMenuVisible(false);
+                        onOptionsMenuHide?.();
+                    }}
+                    onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
                     anchorRef={caretButton}
