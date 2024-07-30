@@ -14,7 +14,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import compareUserInList from '@libs/compareUserInList';
+import localeCompare from '@libs/LocaleCompare';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -56,6 +56,33 @@ type SuggestionPersonalDetailsList = Record<
       })
     | null
 >;
+
+function getDisplayName(p: PersonalDetails) {
+    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(p.accountID);
+    if (!displayNameFromAccountID) {
+        return p.login?.length ? p.login : '';
+    }
+    return displayNameFromAccountID;
+}
+
+/**
+ * the comparison function used to determine which user will come first in the sorted list
+ * generally, smaller weight means will come first, and if the weight is the same, we'll sort based on displayName/login and accountID
+ */
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+    // first, we should sort by weight
+    if (first.weight !== second.weight) {
+        return first.weight - second.weight;
+    }
+
+    // next we sort by display name
+    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    if (displayNameLoginOrder !== 0) {
+        return displayNameLoginOrder;
+    }
+    // then fallback on accountID as the final sorting criteria.
+    return first.accountID - second.accountID;
+}
 
 function SuggestionMention(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
@@ -271,24 +298,10 @@ function SuggestionMention(
                 }
 
                 return true;
-            }) as Array<PersonalDetails & {weight: number}>; // at this point we are sure that the details are not null
+            }) as Array<PersonalDetails & {weight: number}>;
 
-            const sortedPersonalDetails = filteredPersonalDetails.sort((first, second) =>
-                compareUserInList(
-                    {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: ReportUtils.getDisplayNameForParticipant(first.accountID) || first.login || '',
-                        weight: first.weight,
-                        accountID: first.accountID,
-                    },
-                    {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: ReportUtils.getDisplayNameForParticipant(second.accountID) || second.login || '',
-                        weight: second.weight,
-                        accountID: second.accountID,
-                    },
-                ),
-            );
+            // at this point we are sure that the details are not null, since empty user details have been filtered in the previous step
+            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
@@ -460,3 +473,5 @@ function SuggestionMention(
 SuggestionMention.displayName = 'SuggestionMention';
 
 export default forwardRef(SuggestionMention);
+
+export {compareUserInList};
