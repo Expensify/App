@@ -32,7 +32,7 @@ function SelectableListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, isFocused && styles.sidebarLinkActive]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
