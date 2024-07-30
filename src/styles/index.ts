@@ -4734,6 +4734,13 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeNormal,
         },
 
+        walletIllustration: {
+            width: 262,
+            height: 152,
+            padding: 34,
+            boxSizing: 'content-box',
+        },
+
         walletCardLimit: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

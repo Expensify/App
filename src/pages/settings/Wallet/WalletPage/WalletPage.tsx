@@ -12,7 +12,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -374,8 +373,9 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     illustration={Illustrations.BigVault}
-                                    illustrationStyle={{width: 262, height: 152}}
+                                    illustrationStyle={styles.walletIllustration}
                                     illustrationBackgroundColor="#411103"
+                                    containerStyles={{paddingVertical: 60}}
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}
@@ -412,7 +412,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                                     style={[styles.mt4, styles.mb2, styles.alignSelfStart]}
                                                 >
-                                                    {/* <CurrentWalletBalance balanceStyles={[styles.walletBalance]} /> */}
                                                     <MenuItemWithTopDescription
                                                         description={translate('walletPage.balance')}
                                                         title={CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0)}
