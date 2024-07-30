@@ -32,6 +32,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -606,7 +607,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
-                    title={reportName}
+                    title={StringUtils.lineBreaksToSpaces(reportName)}
                     titleStyle={styles.newKansasLarge}
                     titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
