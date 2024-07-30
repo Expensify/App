@@ -13,9 +13,11 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     if (!isSafari || shouldSkipCustomSafariLogic) {
-        promise.then((params) => {
-            Linking.openURL(typeof url === 'string' ? url : url(params));
-        });
+        promise
+            .then((params) => {
+                Linking.openURL(typeof url === 'string' ? url : url(params));
+            })
+            .catch(() => {});
     } else {
         const windowRef = window.open();
         promise
