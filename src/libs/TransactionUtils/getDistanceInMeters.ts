@@ -2,7 +2,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
-
 // Get the distance in meters from the transaction.
 // This function is placed in a separate file to avoid circular dependencies.
 function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: Unit | undefined) {
