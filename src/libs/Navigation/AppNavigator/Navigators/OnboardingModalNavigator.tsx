@@ -41,7 +41,8 @@ function OnboardingModalNavigator() {
             return;
         }
         Navigation.isNavigationReady().then(() => {
-            // Need to go back to previous route and then redirect to Concierge,
+            // On small screens, pop all navigation states and go back to HOME.
+            // On large screens, need to go back to previous route and then redirect to Concierge,
             // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
             if (isSmallScreenWidth) {
                 Navigation.setShouldPopAllStateOnUP(true);
