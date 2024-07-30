@@ -159,6 +159,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
 
+    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -187,6 +189,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
+                        headerMessage={headerMessage}
                         onSelectRow={toggleMember}
                         showScrollIndicator
                         showLoadingPlaceholder={!didScreenTransitionEnd || approvalWorkflowMetadata.status === 'loading'}
