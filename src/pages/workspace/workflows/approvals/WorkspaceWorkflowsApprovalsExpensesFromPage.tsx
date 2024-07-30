@@ -6,6 +6,7 @@ import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -73,7 +74,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: member.avatar ? [{source: member.avatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}] : [],
+                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
                 };
             }),
         );
@@ -94,7 +95,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         keyForList: member.email,
                         isSelected: false,
                         login: member.email,
-                        icons: member.avatar ? [{source: member.avatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}] : [],
+                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
                         rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
                 })
