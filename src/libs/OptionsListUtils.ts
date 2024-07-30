@@ -1665,14 +1665,12 @@ function canCreateOptimisticPersonalDetailOption({
  * - There's no matching recent report and personal detail option
  * - The searchValue is a valid email or phone number
  * - The searchValue isn't the current personal detail login
- * - We can use chronos or the search value is not the chronos email
  */
 function getUserToInviteOption({
     searchValue,
     excludeUnknownUsers = false,
     optionsToExclude = [],
     selectedOptions = [],
-    betas,
     reportActions = {},
     showChatPreviewLine = false,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
@@ -1683,17 +1681,8 @@ function getUserToInviteOption({
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
-    const isChronosEmail = searchValue === CONST.EMAIL.CHRONOS;
 
-    if (
-        !searchValue ||
-        isCurrentUserLogin ||
-        isInSelectedOption ||
-        (!isValidEmail && !isValidPhoneNumber) ||
-        isInOptionToExclude ||
-        (isChronosEmail && !Permissions.canUseChronos(betas)) ||
-        excludeUnknownUsers
-    ) {
+    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude || excludeUnknownUsers) {
         return null;
     }
 
