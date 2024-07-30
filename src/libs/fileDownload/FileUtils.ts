@@ -245,13 +245,13 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
-function validateImageForCorruption(file: FileObject): Promise<void> {
+function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
     if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
     }
     return new Promise((resolve, reject) => {
         ImageSize.getSize(file.uri ?? '')
-            .then(() => resolve())
+            .then(({width, height}) => resolve({width, height}))
             .catch(() => reject(new Error('Error reading file: The file is corrupted')));
     });
 }

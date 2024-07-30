@@ -393,6 +393,8 @@ export default {
         protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
         attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
+        attachmentImageExceedDimensions: 'This image has dimensions that exceed the limit',
+        dimensionsExceeded: 'The image should have dimensions less than 4096x4096 pixels',
     },
     avatarCropModal: {
         title: 'Editar foto',

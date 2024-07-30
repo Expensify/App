@@ -196,7 +196,7 @@ function IOURequestStepScan({
 
     function validateReceipt(file: FileObject) {
         return FileUtils.validateImageForCorruption(file)
-            .then(() => {
+            .then((result) => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
@@ -209,6 +209,11 @@ function IOURequestStepScan({
 
                 if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+                    return false;
+                }
+
+                if (Str.isImage(file.name ?? '') && typeof result === 'object' && result.width * result.height > CONST.MAX_IMAGE_CANVAS_AREA) {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentImageExceedDimensions', 'attachmentPicker.dimensionsExceeded');
                     return false;
                 }
 
