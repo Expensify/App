@@ -27,13 +27,12 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
+    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
-
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 
     useEffect(() => {
         if (!!activeWorkspace || activeWorkspaceID === undefined) {
