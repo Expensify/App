@@ -5,7 +5,6 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -489,7 +488,6 @@ function buildFilterValueString(filterName: string, queryFilters: QueryFilter[])
 
 function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     const {inputQuery, type, status} = queryJSON;
-
     const filters = getFilters(inputQuery, Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS)) ?? {};
 
     let title = `type:${type} status:${status}`;
@@ -500,10 +498,6 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     });
 
     return title;
-}
-
-function isCustomQuery(routeParams: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) {
-    return routeParams.isCustomQuery !== 'false';
 }
 
 export {
@@ -519,7 +513,6 @@ export {
     getSections,
     getShouldShowMerchant,
     getSortedSections,
-    isCustomQuery,
     isReportListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,

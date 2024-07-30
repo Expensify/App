@@ -35,7 +35,7 @@ function SearchPageBottomTab() {
         return {
             queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
             policyIDs: searchParams.policyIDs,
-            isCustomQuery: SearchUtils.isCustomQuery(searchParams),
+            isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
 
