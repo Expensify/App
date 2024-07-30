@@ -9,6 +9,7 @@ import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
+import useEnvironment from '@hooks/useEnvironment';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -35,7 +36,6 @@ import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, Rep
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
-import useEnvironment from '@hooks/useEnvironment';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -545,7 +545,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => {
             const {environment, isProduction} = useEnvironment();
-            
+
             // If we are on production, don't show this option
             if (isProduction) {
                 return false;
@@ -555,9 +555,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isStaging = environment === CONST.ENVIRONMENT.STAGING;
             const isDevelopment = environment === CONST.ENVIRONMENT.DEV;
 
-            return (
-                type === CONST.CONTEXT_MENU_TYPES.REPORT && (isDevelopment || isStaging || isADHOC)
-            );
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT && (isDevelopment || isStaging || isADHOC);
         },
         onPress: (closePopover, {reportID}) => {
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
