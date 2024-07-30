@@ -5,7 +5,7 @@ description: Xero Troubleshooting
 
 # Overview of Xero Troubleshooting
 
-Synchronizing and exporting data between Expensify and NetSuite can streamline your financial processes, but occasionally, users may encounter errors that prevent a smooth integration. These errors often arise from discrepancies in settings, missing data, or configuration issues within NetSuite or Expensify.
+Synchronizing and exporting data between Expensify and Xero can streamline your financial processes, but occasionally, users may encounter errors that prevent a smooth integration. These errors often arise from discrepancies in settings, missing data, or configuration issues within Xero or Expensify.
 
 This troubleshooting guide aims to help you identify and resolve common sync and export errors, ensuring a seamless connection between your financial management systems. By following the step-by-step solutions provided for each specific error, you can quickly address issues and maintain accurate and efficient expense reporting and data management.
 
