@@ -9,7 +9,7 @@ import * as Connections from '@libs/actions/connections';
 import {getTrackingCategories} from '@libs/actions/connections/ConnectToXero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {areXeroSettingsInErrorFields, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -54,14 +54,14 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 isActive={isSwitchOn}
                 wrapperStyle={styles.mv3}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
+                    Connections.updatePolicyConnectionConfig(
                         policyID,
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
                         !xeroConfig?.importTrackingCategories,
                     )
                 }
-                pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES], xeroConfig?.pendingFields)}
+                pendingAction={settingsPendingAction([CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES], xeroConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
@@ -70,7 +70,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                     {menuItems.map((menuItem) => (
                         <OfflineWithFeedback
                             key={menuItem.id}
-                            pendingAction={xeroSettingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
+                            pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
                         >
                             <MenuItemWithTopDescription
                                 title={menuItem.title}
@@ -78,9 +78,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                                 shouldShowRightIcon
                                 onPress={menuItem.onPress}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
-                                brickRoadIndicator={
-                                    areXeroSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) ? 'error' : undefined
-                                }
+                                brickRoadIndicator={areSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) ? 'error' : undefined}
                             />
                         </OfflineWithFeedback>
                     ))}

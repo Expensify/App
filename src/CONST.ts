@@ -1079,7 +1079,7 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
         RECHECK_INTERVAL_MS: 60 * 1000,
-        MAX_REQUEST_RETRIES: 10,
+        MAX_REQUEST_RETRIES: 0,
         NETWORK_STATUS: {
             ONLINE: 'online',
             OFFLINE: 'offline',
@@ -1319,12 +1319,17 @@ const CONST = {
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICK_BOOKS_CONFIG: {
+    QUICKBOOKS_CONFIG: {
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        EXPORTER: 'exporter',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAX: 'syncTax',
+        IMPORT_CLASSES: 'importClasses',
+        IMPORT_CUSTOMERS: 'importCustomers',
+        IMPORT_LOCATIONS: 'importLocation',
+        IMPORT_TAX_RATES: 'importTaxRates',
         EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
         NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'nonReimbursableExpensesAccount',

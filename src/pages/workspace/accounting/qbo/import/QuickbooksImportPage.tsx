@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -14,40 +15,43 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+type QBOSectionType = {
+    description: string;
+    action: () => void;
+    title: string;
+    subscribedSettings: [string];
+};
+
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
-    const sections = [
+    const sections: QBOSectionType[] = [
         {
             description: translate('workspace.accounting.accounts'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
-            hasError: !!policy?.errors?.enableNewCategories,
             title: translate('workspace.accounting.importAsCategory'),
-            pendingAction: pendingFields?.enableNewCategories,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.qbo.classes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID)),
-            hasError: !!policy?.errors?.syncClasses,
             title: translate(`workspace.accounting.importTypes.${syncClasses ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            pendingAction: pendingFields?.syncClasses,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_CLASSES],
         },
         {
             description: translate('workspace.qbo.customers'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID)),
-            hasError: !!policy?.errors?.syncCustomers,
             title: translate(`workspace.accounting.importTypes.${syncCustomers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            pendingAction: pendingFields?.syncCustomers,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_CUSTOMERS],
         },
         {
             description: translate('workspace.qbo.locations'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
-            hasError: !!policy?.errors?.syncLocations,
             title: translate(`workspace.accounting.importTypes.${syncLocations ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
-            pendingAction: pendingFields?.syncLocations,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_LOCATIONS],
         },
     ];
 
@@ -55,9 +59,8 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         sections.push({
             description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
-            hasError: !!policy?.errors?.syncTax,
             title: translate(syncTax ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
-            pendingAction: pendingFields?.syncTax,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.IMPORT_TAX_RATES],
         });
     }
 
@@ -78,14 +81,14 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                     {sections.map((section) => (
                         <OfflineWithFeedback
                             key={section.description}
-                            pendingAction={section.pendingAction}
+                            pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}
                         >
                             <MenuItemWithTopDescription
                                 title={section.title}
                                 description={section.description}
                                 shouldShowRightIcon
                                 onPress={section.action}
-                                brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         </OfflineWithFeedback>
                     ))}
