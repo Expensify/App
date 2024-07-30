@@ -87,17 +87,16 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean; isMoneyRequest: boolean};
 
 function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps, isMoneyRequest}: PageNotFoundFallbackProps) {
-    return shouldShowFullScreenFallback ? (
-        <FullPageNotFoundView
-            shouldShow
-            onBackButtonPress={() => Navigation.dismissModal()}
-            shouldForceFullScreen
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...fullPageNotFoundViewProps}
-        />
-    ) : (
+    return (
         <NotFoundPage
-            onBackButtonPress={() => Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined)}
+            shouldForceFullScreen={shouldShowFullScreenFallback}
+            onBackButtonPress={() => {
+                if (shouldShowFullScreenFallback) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined);
+            }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
         />
