@@ -183,8 +183,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                 iconHeight={20}
                                 iconWidth={20}
                                 iconFill={theme.success}
-                                style={[styles.ph2, styles.ml11, styles.widthAuto]}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 onPress={createNewApprovalWorkflow}
                             />
                         )}
