@@ -1303,7 +1303,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        const message = getUpdateRoomDescriptionMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -1585,7 +1585,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
     if (originalMessage?.description) {
-        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${Parser.htmlToText(originalMessage?.description)}`;
+        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
     }
 
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
