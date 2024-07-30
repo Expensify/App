@@ -82,7 +82,7 @@ function openOldDotLink(url: string) {
 function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): string {
     let environmentURL: string = CONST.TRAVEL_DOT_URL;
     let tmcID: string = CONST.SPOTNANA_TMC_ID;
-    if (travelSettings?.testAccount) {
+    if (travelSettings.testAccount ?? false) {
         environmentURL = CONST.STAGING_TRAVEL_DOT_URL;
         tmcID = CONST.STAGING_SPOTNANA_TMC_ID;
     }
