@@ -24,7 +24,7 @@ function EmptyStateComponent({
     subtitle,
     headerStyles,
     headerContentStyles,
-    emptyStateContentStyles,
+    emptyStateForegroundStyles,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -86,8 +86,8 @@ function EmptyStateComponent({
                     shouldAnimate={false}
                 />
             </View>
-            <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
-                <View style={[styles.emptyStateContent, emptyStateContentStyles]}>
+            <View style={[styles.emptyStateForeground(isSmallScreenWidth), emptyStateForegroundStyles]}>
+                <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
