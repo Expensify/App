@@ -38,7 +38,7 @@ function SearchFiltersMerchantPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.date')} />
+                <HeaderWithBackButton title={translate('common.merchant')} />
                 <FormProvider
                     style={[styles.flex1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}

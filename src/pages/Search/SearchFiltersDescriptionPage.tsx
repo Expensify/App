@@ -38,7 +38,7 @@ function SearchFiltersDescriptionPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.date')} />
+                <HeaderWithBackButton title={translate('common.description')} />
                 <FormProvider
                     style={[styles.flex1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
@@ -65,6 +65,6 @@ function SearchFiltersDescriptionPage() {
     );
 }
 
-SearchFiltersDescriptionPage.displayName = 'SearchFiltersMerchantPage';
+SearchFiltersDescriptionPage.displayName = 'SearchFiltersDescriptionPage';
 
 export default SearchFiltersDescriptionPage;
