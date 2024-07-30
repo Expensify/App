@@ -980,6 +980,20 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     };
 }
 
+/**
+ * Check if any of the transactions is on hold
+ */
+function isAnyTransactionOnHold(transactions: Transaction[]): boolean {
+    return transactions.some((transaction) => isOnHold(transaction));
+}
+
+/**
+ * Check if any of the transactions is non-reimbursable
+ */
+function areSomeTransactionsNonReimbursable(transactions: Transaction[]): boolean {
+    return transactions.some((transaction) => transaction.reimbursable === false);
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1053,6 +1067,8 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
+    isAnyTransactionOnHold,
+    areSomeTransactionsNonReimbursable,
 };
 
 export type {TransactionChanges};

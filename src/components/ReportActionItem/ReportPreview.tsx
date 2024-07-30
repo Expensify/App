@@ -122,12 +122,14 @@ function ReportPreview({
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
 
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
             areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
-            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
+            hasNonReimbursableTransactions: TransactionUtils.areSomeTransactionsNonReimbursable(allTransactions),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -136,7 +138,7 @@ function ReportPreview({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy, allTransactions);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
@@ -150,8 +152,7 @@ function ReportPreview({
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy, allTransactions);
     const numberOfRequests = allTransactions.length;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -193,7 +194,7 @@ function ReportPreview({
         }
         setPaymentType(type);
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+        if (TransactionUtils.isAnyTransactionOnHold(allTransactions)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
             if (ReportUtils.isInvoiceReport(iouReport)) {
@@ -206,7 +207,7 @@ function ReportPreview({
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+        if (TransactionUtils.isAnyTransactionOnHold(allTransactions)) {
             setIsHoldMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(iouReport, true);
@@ -218,7 +219,7 @@ function ReportPreview({
             return '';
         }
 
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+        if (TransactionUtils.isAnyTransactionOnHold(allTransactions) && canAllowSettlement) {
             return nonHeldAmount;
         }
 

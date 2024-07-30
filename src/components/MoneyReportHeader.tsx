@@ -98,14 +98,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
+    const allTransactions = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy, allTransactions);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
-
     const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
-    const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((t) => t.transactionID);
+    const transactionIDs = allTransactions.map((t) => t.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
     // allTransactions in TransactionUtils might have stale data
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID, transactions);
@@ -131,8 +131,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation || shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
-    const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy, allTransactions);
+    const displayedAmount = TransactionUtils.isAnyTransactionOnHold(allTransactions) && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
@@ -141,7 +141,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         setPaymentType(type);
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
+        if (TransactionUtils.isAnyTransactionOnHold(allTransactions)) {
             setIsHoldMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
             IOU.payInvoice(type, chatReport, moneyRequestReport);
@@ -152,7 +152,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
+        if (TransactionUtils.isAnyTransactionOnHold(allTransactions)) {
             setIsHoldMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(moneyRequestReport, true);
