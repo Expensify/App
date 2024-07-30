@@ -2077,6 +2077,7 @@ export default {
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
+            topLevel: 'Top level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
             shareNote: {
                 header: 'Easily share your workspace with other members.',
