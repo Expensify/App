@@ -365,7 +365,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
-        shouldTruncateDescription = false,
+        shouldTruncateTitle = false,
         limit = 200,
         isLabelHoverable = true,
         rightLabel,
