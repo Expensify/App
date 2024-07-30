@@ -1,8 +1,8 @@
 ---
-title: Set up Sage Intacct connection
+title: Connect to Sage Intacct
 description: Integrate Sage Intacct with Expensify
+order: 1
 ---
-<div id="new-expensify" markdown="1">
 
 # Connect to Sage Intacct
 

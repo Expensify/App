@@ -79,15 +79,15 @@ function LimitStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                // TODO: change the submitButtonText to 'common.confirm' when editing and navigate to ConfirmationStep
-                submitButtonText={translate('common.next')}
+                submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                 shouldHideFixErrorsAlert
                 onSubmit={submit}
                 style={[styles.flex1]}
                 submitButtonStyles={[styles.mh5, styles.mt0]}
                 submitFlexEnabled={false}
-                enabledWhenOffline
+                disablePressOnEnter={false}
                 validate={validate}
+                enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={AmountForm}
