@@ -375,6 +375,13 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
     return dateFilter;
 }
 
+function sanitizeCategoryName(category: string) {
+    if (category.includes(' ')) {
+        return `"${category}"`;
+    }
+    return category;
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
@@ -388,6 +395,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
 
             if (filterKey === INPUT_IDS.STATUS && filterValue) {
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.CATEGORY && filterValues[filterKey]) {
+                const categories = filterValues[filterKey];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map((category) => sanitizeCategoryName(category)).join(',')}`;
             }
 
             return undefined;
