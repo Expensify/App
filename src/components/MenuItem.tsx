@@ -463,7 +463,7 @@ function MenuItem(
             titleToWrap = html;
         }
 
-        if (shouldTruncateDescription) {
+        if (shouldTruncateTitle) {
             titleToWrap = Parser.truncateHTML(titleToWrap, limit, {ellipsis: '...'});
         }
 
