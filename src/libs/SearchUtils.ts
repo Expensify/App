@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
@@ -36,15 +35,15 @@ const columnNamesToSortingProperty = {
 };
 
 // This map contains signs with spaces that match each operator
-const operatorToSignWithSpacesMap = {
-    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ': ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: ' < ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: ' <= ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: ' > ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: ' >= ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: ' != ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ' and ' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' or ' as const,
+const operatorToSignMap = {
+    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
 /**
@@ -443,11 +442,11 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
             return;
         }
 
-        if (typeof node?.left === 'object') {
+        if (typeof node?.left === 'object' && node.left) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object') {
+        if (typeof node?.right === 'object' && node.right) {
             traverse(node.right);
         }
 
@@ -479,9 +478,9 @@ function buildFilterValueString(filterName: string, queryFilters: QueryFilter[])
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `, ${queryFilter.value}`;
+            filterValueString += `,${queryFilter.value}`;
         } else {
-            filterValueString += `, ${Str.recapitalize(filterName)}${operatorToSignWithSpacesMap[queryFilter.operator]}${queryFilter.value}`;
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
         }
     });
 
@@ -493,7 +492,7 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
 
     const filters = getFilters(inputQuery, Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS)) ?? {};
 
-    let title = `Type: ${Str.recapitalize(type)}, Status: ${Str.recapitalize(status)}`;
+    let title = `type:${type} status:${status}`;
 
     Object.keys(filters).forEach((key) => {
         const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] as QueryFilter[];
@@ -508,6 +507,7 @@ function isCustomQuery(routeParams: AuthScreensParamList[typeof SCREENS.SEARCH.C
 }
 
 export {
+    buildQueryStringFromFilters,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
@@ -525,5 +525,4 @@ export {
     isTransactionListItemType,
     normalizeQuery,
     shouldShowYear,
-    buildQueryStringFromFilters,
 };
