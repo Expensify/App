@@ -4107,6 +4107,10 @@ function getIOUApprovedMessage(reportID: string) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
 }
 
+function getIOUForwardedMessage(reportID: string) {
+    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -4138,6 +4142,9 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     switch (type) {
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
             iouMessage = `approved ${amount}`;
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+            iouMessage = getIOUForwardedMessage(iouReportID);
             break;
         case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
             iouMessage = `unapproved ${amount}`;
@@ -7418,6 +7425,7 @@ export {
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
     getIOUApprovedMessage,
+    getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
