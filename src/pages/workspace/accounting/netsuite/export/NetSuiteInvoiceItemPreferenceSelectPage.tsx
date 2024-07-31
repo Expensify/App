@@ -72,7 +72,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                 pendingAction={config?.pendingFields?.[CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE]}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
-                onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+                onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >
