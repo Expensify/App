@@ -501,7 +501,7 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Poli
 
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
-    return getActiveAdminWorkspaces(policies).length > 0;
+    return getActiveAdminWorkspaces(policies).some((policy) => policy?.areInvoicesEnabled);
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
