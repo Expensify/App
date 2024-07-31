@@ -29,7 +29,7 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROM
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
+    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; reportID?: string}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -70,7 +70,7 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction}) => ({
+    hold: ({isTextHold, reportAction, reportID}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
@@ -78,14 +78,15 @@ const PromotedActions = {
             if (!isTextHold) {
                 Navigation.goBack();
             }
+            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
             if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? ''));
+                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(reportAction?.childReportID ?? ''));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
         },
     }),
 } satisfies PromotedActionsType;
@@ -131,4 +132,4 @@ PromotedActionsBar.displayName = 'PromotedActionsBar';
 export default PromotedActionsBar;
 
 export {PromotedActions};
-export type {PromotedActionsBarProps, PromotedAction};
+export type {PromotedAction, PromotedActionsBarProps};

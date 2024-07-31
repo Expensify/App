@@ -35,6 +35,7 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     policyIDs?: string;
+    isCustomQuery: boolean;
 };
 
 const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
@@ -71,7 +72,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, policyIDs}: SearchProps) {
+function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -226,7 +227,8 @@ function Search({queryJSON, policyIDs}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    status={status}
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
                     hash={hash}
                 />
                 <SearchRowSkeleton shouldAnimate />
@@ -240,7 +242,8 @@ function Search({queryJSON, policyIDs}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    status={status}
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
                     hash={hash}
                 />
                 <EmptySearchView />
@@ -319,7 +322,8 @@ function Search({queryJSON, policyIDs}: SearchProps) {
     return (
         <>
             <SearchPageHeader
-                status={status}
+                isCustomQuery={isCustomQuery}
+                queryJSON={queryJSON}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 data={data}

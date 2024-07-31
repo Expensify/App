@@ -26,7 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,19 +67,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
-
-    useEffect(() => {
-        const selectedKeys = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
-        if (!shouldUseNarrowLayout) {
-            if (selectedKeys.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [shouldUseNarrowLayout, selectedCategories, selectionMode?.isEnabled]);
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -303,6 +290,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         </View>
     );
 
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -318,8 +307,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    title={selectionMode?.isEnabled ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    icon={!selectionMode?.isEnabled ? Illustrations.FolderOpen : undefined}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
+                    icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedCategories({});

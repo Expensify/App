@@ -23,7 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -76,18 +76,6 @@ function WorkspaceTaxesPage({
             fetchTaxes();
         }, [fetchTaxes]),
     );
-
-    useEffect(() => {
-        if (!shouldUseNarrowLayout) {
-            if (selectedTaxesIDs.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedTaxesIDs.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [shouldUseNarrowLayout, selectedTaxesIDs, selectionMode?.isEnabled]);
 
     useEffect(() => {
         if (isFocused) {
@@ -280,6 +268,8 @@ function WorkspaceTaxesPage({
         </View>
     );
 
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -293,8 +283,8 @@ function WorkspaceTaxesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={!selectionMode?.isEnabled ? Illustrations.Coins : undefined}
-                    title={translate(selectionMode?.isEnabled ? 'common.selectMultiple' : 'workspace.common.taxes')}
+                    icon={!selectionModeHeader ? Illustrations.Coins : undefined}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {

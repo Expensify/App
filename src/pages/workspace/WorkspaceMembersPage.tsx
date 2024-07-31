@@ -26,7 +26,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -90,18 +90,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const policyID = route.params.policyID;
 
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
-
-    useEffect(() => {
-        if (!shouldUseNarrowLayout) {
-            if (selectedEmployees.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (isPolicyAdmin && selectedEmployees.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [isPolicyAdmin, shouldUseNarrowLayout, selectedEmployees.length, selectionMode?.isEnabled]);
 
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
@@ -544,12 +532,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         );
     };
 
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
     return (
         <WorkspacePageWithSections
-            headerText={selectionMode?.isEnabled ? translate('common.selectMultiple') : translate('workspace.common.members')}
+            headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-            icon={!selectionMode?.isEnabled ? Illustrations.ReceiptWrangler : undefined}
+            icon={!selectionModeHeader ? Illustrations.ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}

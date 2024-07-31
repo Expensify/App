@@ -28,7 +28,7 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {queryJSON, policyIDs} = useMemo(() => {
+    const {queryJSON, policyIDs, isCustomQuery} = useMemo(() => {
         if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
             return {queryJSON: undefined, policyIDs: undefined};
         }
@@ -39,6 +39,7 @@ function SearchPageBottomTab() {
         return {
             queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
             policyIDs: searchParams.policyIDs,
+            isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
 
@@ -62,7 +63,10 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchStatusMenu status={queryJSON.status} />
+                        <SearchStatusMenu
+                            isCustomQuery={isCustomQuery}
+                            queryJSON={queryJSON}
+                        />
                     </>
                 ) : (
                     <HeaderWithBackButton
@@ -77,6 +81,7 @@ function SearchPageBottomTab() {
                     <Search
                         queryJSON={queryJSON}
                         policyIDs={policyIDs}
+                        isCustomQuery={isCustomQuery}
                     />
                 )}
             </FullPageNotFoundView>
