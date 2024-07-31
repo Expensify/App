@@ -56,6 +56,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow
                     iconWidth={20}
                     iconFill={theme.icon}
                     interactive={false}
+                    onPress={openApprovalsEdit}
                 />
 
                 {approvalWorkflow.approvers.map((approver) => (
@@ -72,6 +73,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow
                             iconWidth={20}
                             iconFill={theme.icon}
                             interactive={false}
+                            onPress={openApprovalsEdit}
                         />
                     </View>
                 ))}

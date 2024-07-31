@@ -61,11 +61,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const workflows = useMemo(
         () => convertPolicyEmployeesToApprovalWorkflows({employees: policy?.employeeList ?? {}, defaultApprover: policyApproverEmail ?? '', personalDetails: personalDetails ?? {}}),
         [personalDetails, policy?.employeeList, policyApproverEmail],
     );
-
     const displayNameForAuthorizedPayer = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
         [policy?.achAccount?.reimburser],
@@ -171,7 +171,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             </>
                         ) : (
                             <MenuItemWithTopDescription
-                                title="FIND ON MAIN"
+                                title={policyApproverName ?? ''}
                                 titleStyle={styles.textNormalThemeText}
                                 descriptionTextStyle={styles.textLabelSupportingNormal}
                                 description={translate('workflowsPage.approver')}
@@ -280,6 +280,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         workflows,
         theme.success,
         theme.spinner,
+        policyApproverName,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
