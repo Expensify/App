@@ -6,7 +6,14 @@ order: 1
 
 # Connect to Sage Intacct
 
+Enjoy automated syncing and reduce manual entries with the Expensify and Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).
+
+{% include info.html %}
+The Sage Intacct integration is only available on the Control plan.
+{% include info.html %}
+
 ## Overview
+
 Expensify’s integration with Sage Intacct allows you to connect using either role-based permissions or user-based permissions and exporting either expense reports or vendor bills.
 
 Checklist of items to complete:
