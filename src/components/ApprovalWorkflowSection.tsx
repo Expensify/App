@@ -12,7 +12,12 @@ import MenuItem from './MenuItem';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
-function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow: ApprovalWorkflow; policyId?: string}) {
+type ApprovalWorkflowSectionProps = {
+    approvalWorkflow: ApprovalWorkflow;
+    policyId?: string;
+};
+
+function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
@@ -63,7 +68,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow
                     <View key={approver.email}>
                         <View style={{height: 16, width: 1, backgroundColor: theme.border, marginLeft: 19}} />
                         <MenuItem
-                            title={`${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase() }`}
+                            title={`${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}`}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
