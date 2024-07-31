@@ -68,6 +68,11 @@ function AdvancedSearchFilters() {
                 description: 'common.date' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
+                description: 'common.currency' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+            },
         ],
         [searchAdvancedFilters, translate],
     );

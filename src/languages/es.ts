@@ -3667,6 +3667,7 @@ export default {
                 after: (date?: string) => `Después de ${date ?? ''}`,
             },
             status: 'Estado',
+            currency: 'Divisa',
         },
     },
     genericErrorPage: {

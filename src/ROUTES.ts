@@ -47,6 +47,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
 
+    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,
