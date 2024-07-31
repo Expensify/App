@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,11 +35,11 @@ function WorkspaceEditTaxPage({
 }: WorkspaceEditTaxPageBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
+    const currentTaxID = PolicyUtils.getCurrentTaxID(policy, taxID);
+    const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, taxID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const canEditTaxCode = !PolicyUtils.isControlPolicy(policy);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections;
 
@@ -49,6 +49,13 @@ function WorkspaceEditTaxPage({
         }
         setPolicyTaxesEnabled(policyID, [taxID], !!currentTaxRate.isDisabled);
     };
+
+    useEffect(() => {
+        if (currentTaxID === taxID || !currentTaxID) {
+            return;
+        }
+        Navigation.setParams({taxID: currentTaxID});
+    }, [taxID, currentTaxID]);
 
     const deleteTaxRate = () => {
         if (!policyID) {
@@ -62,6 +69,7 @@ function WorkspaceEditTaxPage({
     if (!currentTaxRate) {
         return <NotFoundPage />;
     }
+    const taxCodeToShow = PolicyUtils.isControlPolicy(policy) ? taxID : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -131,12 +139,17 @@ function WorkspaceEditTaxPage({
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={taxID}
+                            title={taxCodeToShow}
                             description={translate('workspace.taxes.taxCode')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            disabled={canEditTaxCode}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID))}
+                            onPress={() => {
+                                if (!PolicyUtils.isControlPolicy(policy)) {
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
+                            }}
                         />
                     </OfflineWithFeedback>
                     {shouldShowDeleteMenuItem && (

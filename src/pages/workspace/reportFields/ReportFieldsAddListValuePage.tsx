@@ -13,17 +13,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
-type ReportFieldsAddListValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
+type ReportFieldsAddListValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
 function ReportFieldsAddListValuePage({
+    policy,
     route: {
         params: {policyID, reportFieldID},
     },
@@ -57,6 +61,7 @@ function ReportFieldsAddListValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -93,4 +98,4 @@ function ReportFieldsAddListValuePage({
 
 ReportFieldsAddListValuePage.displayName = 'ReportFieldsAddListValuePage';
 
-export default ReportFieldsAddListValuePage;
+export default withPolicyAndFullscreenLoading(ReportFieldsAddListValuePage);

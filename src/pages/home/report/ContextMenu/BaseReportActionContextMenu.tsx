@@ -5,7 +5,7 @@ import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -13,8 +13,8 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
@@ -121,10 +121,10 @@ function BaseReportActionContextMenu({
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
-    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, isSmallScreenWidth);
+    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
     const threedotRef = useRef<View>(null);
 
@@ -134,6 +134,10 @@ function BaseReportActionContextMenu({
         }
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
+
+    const sourceID = ReportUtils.getSourceIDFromReportAction(reportAction);
+
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
@@ -287,6 +291,8 @@ function BaseReportActionContextMenu({
                                 shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
                                 onFocus={() => setFocusedIndex(index)}
                                 onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
+                                disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
                             />
                         );
                     })}
