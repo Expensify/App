@@ -5,19 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    OnyxInputOrEntry,
-    Policy,
-    RecentWaypoint,
-    ReportAction,
-    ReviewDuplicates,
-    TaxRate,
-    TaxRates,
-    Transaction,
-    TransactionViolation,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';

@@ -1422,6 +1422,15 @@ function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxColle
 }
 
 /**
+ * Checks if the current user is the admin of the policy.
+ */
+function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): boolean {
+    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.role;
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
  */
 function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
@@ -1433,15 +1442,6 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
     }
 
     return transactions.every((transaction) => TransactionUtils.isFetchingWaypointsFromServer(transaction));
-}
-
-/**
- * Checks if the current user is the admin of the policy.
- */
-function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): boolean {
-    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.role;
-
-    return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
