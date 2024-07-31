@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, NativeModules} from 'react-native';
+import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -13,6 +13,7 @@ import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAu
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
+import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -167,6 +168,11 @@ function Expensify({
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
         return unsubscribeNetInfo;
+    }, []);
+
+    // Log the platform and config to debug .env issues
+    useEffect(() => {
+        Log.info('App launched', false, {Platform, CONFIG});
     }, []);
 
     useEffect(() => {
