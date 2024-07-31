@@ -134,14 +134,14 @@ function BaseVideoPlayer({
         debouncedHideControl();
     }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
 
-    const showControl = useCallback(() => {
+    const toggleControl = useCallback(() => {
         if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
-            debouncedHideControl();
+            hideControl();
             return;
         }
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.value = 1;
-    }, [controlStatusState, controlsOpacity, debouncedHideControl]);
+    }, [controlStatusState, controlsOpacity, hideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
@@ -360,8 +360,9 @@ function BaseVideoPlayer({
                                     }
                                     if (!canUseTouchScreen) {
                                         togglePlayCurrentVideo();
+                                        return;
                                     }
-                                    showControl();
+                                    toggleControl();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
                             >
