@@ -186,7 +186,6 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
     const sortedVisibleReportActions = useMemo(
@@ -347,12 +346,6 @@ function ReportActionsList({
                 readActionSkipped.current = true;
             }
         }
-
-        if (!!unreadMarkerReportActionID || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
-            return;
-        }
-
-        lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
 
