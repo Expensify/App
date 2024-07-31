@@ -12,12 +12,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
-    // account,
-    // credentials,
     route: {
         params: {accountID, validateCode, exitTo},
     },
-    // session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
