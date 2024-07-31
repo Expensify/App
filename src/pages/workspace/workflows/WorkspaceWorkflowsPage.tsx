@@ -26,7 +26,7 @@ import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, EMPTY_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -34,6 +34,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,10 +60,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const policyApproverEmail = policy?.approver;
     const canUseAdvancedApproval = Permissions.canUseWorkflowsAdvancedApproval(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
-    const workflows = useMemo(
+    const approvalWorkflows = useMemo(
         () => convertPolicyEmployeesToApprovalWorkflows({employees: policy?.employeeList ?? {}, defaultApprover: policyApproverEmail ?? '', personalDetails: personalDetails ?? {}}),
         [personalDetails, policy?.employeeList, policyApproverEmail],
     );
@@ -94,6 +94,15 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             fetchData();
         }, [fetchData]),
     );
+
+    const createNewApprovalWorkflow = useCallback(() => {
+        Workflow.setApprovalWorkflow({
+            ...EMPTY_APPROVAL_WORKFLOW,
+            availableMembers: approvalWorkflows.at(0)?.members ?? [],
+        });
+
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
+    }, [approvalWorkflows, route.params.policyID]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
@@ -150,13 +159,12 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 },
                 subMenuItems: canUseAdvancedApproval ? (
                     <>
-                        {workflows.map((w) => (
+                        {approvalWorkflows.map((w) => (
                             <ApprovalWorkflowSection
                                 approvalWorkflow={w}
                                 policyId={policy?.id}
                             />
                         ))}
-                        {/* TODO: Functionality for this button will be added in a future PR (https://github.com/Expensify/App/issues/45954) */}
                         <MenuItem
                             title={translate('workflowsPage.addApprovalButton')}
                             titleStyle={styles.textStrong}
@@ -165,6 +173,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             iconWidth={20}
                             iconFill={theme.success}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                            onPress={createNewApprovalWorkflow}
                         />
                     </>
                 ) : (
@@ -273,10 +282,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         preferredLocale,
         onPressAutoReportingFrequency,
         canUseAdvancedApproval,
-        workflows,
+        approvalWorkflows,
         theme.success,
         theme.spinner,
         policyApproverName,
+        createNewApprovalWorkflow,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,

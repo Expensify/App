@@ -43,20 +43,20 @@ function ButtonWithDropdownMenu<IValueType>({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const caretButton = useRef<View | null>(null);
+    const dropdownAnchor = useRef<View | null>(null);
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
     useEffect(() => {
-        if (!caretButton.current) {
+        if (!dropdownAnchor.current) {
             return;
         }
         if (!isMenuVisible) {
             return;
         }
-        if ('measureInWindow' in caretButton.current) {
-            caretButton.current.measureInWindow((x, y, w, h) => {
+        if ('measureInWindow' in dropdownAnchor.current) {
+            dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
                     horizontal: x + w,
                     vertical:
@@ -75,7 +75,10 @@ function ButtonWithDropdownMenu<IValueType>({
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={(ref) => {
-                            caretButton.current = ref;
+                            if (isSplitButton) {
+                                return;
+                            }
+                            dropdownAnchor.current = ref;
                         }}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
@@ -94,7 +97,7 @@ function ButtonWithDropdownMenu<IValueType>({
 
                     {isSplitButton && (
                         <Button
-                            ref={caretButton}
+                            ref={dropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
                             style={[styles.pl0]}
@@ -145,7 +148,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={caretButton}
+                    anchorRef={dropdownAnchor}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
