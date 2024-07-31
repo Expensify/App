@@ -22,7 +22,7 @@ You can run `npm run react-compiler-healthcheck` and examine the output. This co
 npm run react-compiler-healthcheck &> output.txt
 ```
 
-## How to fix a particular problems?
+## How to fix a particular problem?
 
 Below are the most common failures and approaches to fix them:
 
