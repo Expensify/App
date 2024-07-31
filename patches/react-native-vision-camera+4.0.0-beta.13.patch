@@ -963,7 +963,7 @@ index f2b284c..e348e5c 100644
 +  }
  }
 diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
-index b9d3f67..415cf6a 100644
+index b9d3f67..cb70963 100644
 --- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
 +++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
 @@ -7,12 +7,14 @@ import com.facebook.jni.HybridData
@@ -981,15 +981,6 @@ index b9d3f67..415cf6a 100644
  @Suppress("KotlinJniMissingFunction") // we use fbjni.
  class VisionCameraProxy(private val reactContext: ReactApplicationContext) {
    companion object {
-@@ -28,7 +30,7 @@ class VisionCameraProxy(private val reactContext: ReactApplicationContext) {
-     get() = reactContext
- 
-   init {
--    val jsCallInvokerHolder = context.catalystInstance.jsCallInvokerHolder as CallInvokerHolderImpl
-+    val jsCallInvokerHolder = context.catalystInstance.jSCallInvokerHolder as CallInvokerHolderImpl
-     val jsRuntimeHolder =
-       context.javaScriptContextHolder?.get() ?: throw Error("JSI Runtime is null! VisionCamera does not yet support bridgeless mode..")
-     mScheduler = VisionCameraScheduler()
 diff --git a/node_modules/react-native-vision-camera/ios/.swift-version b/node_modules/react-native-vision-camera/ios/.swift-version
 new file mode 100644
 index 0000000..ef425ca

@@ -11,50 +11,10 @@ index bf149f9..2d3441b 100644
              val map = mapView.getMapboxMap()
  
              it.setDuration(0)
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCameraManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCameraManager.kt
-index 0972886..9b3585e 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCameraManager.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCameraManager.kt
-@@ -32,7 +32,7 @@ class RNMBXCameraManager(private val mContext: ReactApplicationContext, val view
- 
-     @ReactProp(name = "stop")
-     override fun setStop(camera: RNMBXCamera, map: Dynamic) {
--        if (!map.isNull) {
-+        if (!map.isNull()) {
-             val stop = fromReadableMap(mContext, map.asMap(), null)
-             camera.setStop(stop)
-         }
-@@ -40,7 +40,7 @@ class RNMBXCameraManager(private val mContext: ReactApplicationContext, val view
- 
-     @ReactProp(name = "defaultStop")
-     override fun setDefaultStop(camera: RNMBXCamera, map: Dynamic) {
--        if (!map.isNull) {
-+        if (!map.isNull()) {
-             val stop = fromReadableMap(mContext, map.asMap(), null)
-             camera.setDefaultStop(stop)
-         }
-@@ -99,7 +99,7 @@ class RNMBXCameraManager(private val mContext: ReactApplicationContext, val view
- 
-     @ReactProp(name = "maxBounds")
-     override fun setMaxBounds(camera: RNMBXCamera, value: Dynamic) {
--        if (!value.isNull) {
-+        if (!value.isNull()) {
-             val collection = FeatureCollection.fromJson(value.asString())
-             camera.setMaxBounds(toLatLngBounds(collection))
-         } else {
 diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt
-index 67c8656..c6a1758 100644
+index 67c8656..248011f 100644
 --- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt
 +++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt
-@@ -159,7 +159,7 @@ class RNMBXImagesManager(private val mContext: ReactApplicationContext) :
-     }
- 
-     fun toNativeImage(dynamic: Dynamic): NativeImage? {
--        when (dynamic.type) {
-+        when (dynamic.getType()) {
-             ReadableType.String -> {
-                 val resourceName = dynamic.asString();
-                 val drawable =
 @@ -210,7 +210,7 @@ class RNMBXImagesManager(private val mContext: ReactApplicationContext) :
  
      // region RNMBXImage children
@@ -82,88 +42,6 @@ index 67c8656..c6a1758 100644
          if (parent == null) {
              Logger.e("RNMBXImages", "removeAllViews parent is null")
              return
-@@ -249,7 +249,7 @@ class RNMBXImagesManager(private val mContext: ReactApplicationContext) :
-         const val REACT_CLASS = "RNMBXImages"
- 
-         fun convertStretch(stretch: Dynamic) : List<ImageStretches>? {
--            if (stretch.type != ReadableType.Array) {
-+            if (stretch.getType() != ReadableType.Array) {
-                 Logger.e("RNMBXImages", "stretch should be an array, got $stretch")
-                 return null
-             }
-@@ -270,7 +270,7 @@ class RNMBXImagesManager(private val mContext: ReactApplicationContext) :
-         }
- 
-         fun convertContent(content: Dynamic) : ImageContent? {
--            if (content.type != ReadableType.Array) {
-+            if (content.getType() != ReadableType.Array) {
-                 Logger.e("RNMBXImages", "content should be an array, got $content")
-                 return null
-             }
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXCustomLocationProviderManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXCustomLocationProviderManager.kt
-index 5ff144b..9d1d516 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXCustomLocationProviderManager.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXCustomLocationProviderManager.kt
-@@ -20,7 +20,7 @@ class RNMBXCustomLocationProviderManager : ViewGroupManager<RNMBXCustomLocationP
- 
-     @ReactProp(name = "coordinate")
-     override fun setCoordinate(view: RNMBXCustomLocationProvider, value: Dynamic?) {
--        if (value?.type == ReadableType.Array) {
-+        if (value?.getType() == ReadableType.Array) {
-             val array = value.asArray()
-             if (array.size() == 2 && array.getType(0) == ReadableType.Number && array.getType(1) == ReadableType.Number) {
-                 view.coordinate = Pair(array.getDouble(0), array.getDouble(1))
-@@ -34,7 +34,7 @@ class RNMBXCustomLocationProviderManager : ViewGroupManager<RNMBXCustomLocationP
- 
-     @ReactProp(name = "heading")
-     override fun setHeading(view: RNMBXCustomLocationProvider, value: Dynamic?) {
--        if (value?.type == ReadableType.Number) {
-+        if (value?.getType() == ReadableType.Number) {
-             view.heading = value.asDouble()
-         } else {
-             Logger.e(LOG_TAG, "heading is expected to be a number")
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXNativeUserLocationManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXNativeUserLocationManager.kt
-index 26fba5c..156a9ba 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXNativeUserLocationManager.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/location/RNMBXNativeUserLocationManager.kt
-@@ -26,7 +26,7 @@ class RNMBXNativeUserLocationManager : ViewGroupManager<RNMBXNativeUserLocation>
- 
-     @ReactProp(name = "androidRenderMode")
-     override fun setAndroidRenderMode(userLocation: RNMBXNativeUserLocation, mode: Dynamic) {
--        if (!mode.isNull) {
-+        if (!mode.isNull()) {
-             Logger.e("RNMBXNativeUserLocationManager", "androidRenderMode is deprecated, use puckBearing instead")
-         }
-         when (mode.asString()) {
-@@ -49,8 +49,8 @@ class RNMBXNativeUserLocationManager : ViewGroupManager<RNMBXNativeUserLocation>
- 
-     @ReactProp(name = "puckBearingEnabled")
-     override fun setPuckBearingEnabled(view: RNMBXNativeUserLocation, value: Dynamic) {
--        if (!value.isNull) {
--            if (value.type == ReadableType.Boolean) {
-+        if (!value.isNull()) {
-+            if (value.getType() == ReadableType.Boolean) {
-                 view.puckBearingEnabled = value.asBoolean()
-             } else {
-                 Logger.e("RNMBXNativeUserLocationManager", "unexpected value for puckBearingEnabled: $value")
-@@ -85,7 +85,7 @@ class RNMBXNativeUserLocationManager : ViewGroupManager<RNMBXNativeUserLocation>
- 
-     @ReactProp(name = "pulsing")
-     override fun setPulsing(view: RNMBXNativeUserLocation, value: Dynamic) {
--        if (!value.isNull) {
-+        if (!value.isNull()) {
-             view.pulsing = value.asMap()
-         }
-     }
-@@ -106,7 +106,7 @@ fun _convertToDoubleValueOrExpression(value: Dynamic?, name: String): Value? {
-     if (value == null) {
-         return null
-     }
--    return when (value.type) {
-+    return when (value.getType()) {
-         ReadableType.Array ->
-             Expression.fromRaw(Gson().toJson(value.asArray().toJsonArray()))
-         ReadableType.Number ->
 diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/NativeMapViewModule.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/NativeMapViewModule.kt
 index ef529ef..4115802 100644
 --- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/NativeMapViewModule.kt
@@ -211,34 +89,6 @@ index 98febe7..8601286 100644
          mapView!!.removeFeatureAt(index)
      }
  
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleImportManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleImportManager.kt
-index 833997f..b793592 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleImportManager.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleImportManager.kt
-@@ -48,8 +48,8 @@ class RNMBXStyleImportManager(context: ReactApplicationContext) :
- 
-     @ReactProp(name = "config")
-     override fun setConfig(view: RNMBXStyleImport, value: Dynamic) {
--        if (value.type != ReadableType.Map) {
--            Logger.e(REACT_CLASS, "config expected Map but received: ${value.type}")
-+        if (value.getType() != ReadableType.Map) {
-+            Logger.e(REACT_CLASS, "config expected Map but received: ${value.getType()}")
-         } else {
-             view.config = value.asMap().toValueHashMap()
-         }
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt
-index e886cc7..cd5df5d 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt
-@@ -214,7 +214,7 @@ class RNMBXStyleValue(config: ReadableMap) {
-         }
-         if (!isAddImage) {
-             val dynamic = mPayload!!.getDynamic("value")
--            if (dynamic.type == ReadableType.Array) {
-+            if (dynamic.getType() == ReadableType.Array) {
-                 val array = dynamic.asArray()
-                 if (array.size() > 0 && mPayload.getString("type") == "array") {
-                     val map = array.getMap(0)
 diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXImageSource.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXImageSource.kt
 index be22072..602ca6d 100644
 --- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXImageSource.kt
@@ -336,56 +186,3 @@ index 07bac4d..f45cc25 100644
  // see https://github.com/rnmapbox/maps/pull/3074
  open class ViewTagResolver(val context: ReactApplicationContext) {
      private val createdViews: HashSet<Int> = hashSetOf<Int>()
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt
-index a496604..9f9f391 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt
-@@ -46,7 +46,7 @@ fun ReadableArray.toValue(): Value {
- }
- 
- fun Dynamic.toValue(): Value {
--    return when (type) {
-+    return when (getType()) {
-         ReadableType.Null -> Value.nullValue()
-         ReadableType.Boolean -> Value.valueOf(asBoolean())
-         ReadableType.Number -> Value.valueOf(asDouble())
-@@ -57,7 +57,7 @@ fun Dynamic.toValue(): Value {
- }
- 
- fun Dynamic.asBooleanOrNull(): Boolean? {
--    return if (isNull) {
-+    return if (isNull()) {
-         null
-     } else {
-         asBoolean()
-@@ -65,7 +65,7 @@ fun Dynamic.asBooleanOrNull(): Boolean? {
- }
- 
- fun Dynamic.asDoubleOrNull(): Double? {
--    return if (isNull) {
-+    return if (isNull()) {
-         null
-     } else {
-         asDouble()
-@@ -73,7 +73,7 @@ fun Dynamic.asDoubleOrNull(): Double? {
- }
- 
- fun Dynamic.asStringOrNull(): String? {
--    return if (isNull) {
-+    return if (isNull()) {
-         null
-     } else {
-         asString()
-diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt
-index 2882e0d..9f3464d 100644
---- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt
-+++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt
-@@ -21,7 +21,7 @@ import com.rnmapbox.rnmbx.utils.ConvertUtils
- import com.rnmapbox.rnmbx.utils.Logger
- 
- fun ReadableMap.forEach(action: (String, Any) -> Unit) {
--    val iterator = this.entryIterator
-+    val iterator = this.getEntryIterator()
-     while (iterator.hasNext()) {
-         val next = iterator.next()
-         action(next.key, next.value)

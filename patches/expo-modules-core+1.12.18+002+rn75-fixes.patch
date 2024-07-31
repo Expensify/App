@@ -1,16 +1,3 @@
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/FabricComponentsRegistry.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/FabricComponentsRegistry.kt
-index 11aa072..c872541 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/FabricComponentsRegistry.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/FabricComponentsRegistry.kt
-@@ -16,7 +16,7 @@ class FabricComponentsRegistry(viewManagerList: List<ViewManager<*, *>>) {
-   private val mHybridData: HybridData
- 
-   init {
--    componentNames = viewManagerList.map { it.name }
-+    componentNames = viewManagerList.map { it.getName() }
-     mHybridData = initHybrid()
-     registerComponentsRegistry(componentNames.toTypedArray())
-   }
 diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java b/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java
 index c873ec0..98628e6 100644
 --- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/adapters/react/ModuleRegistryReadyNotifier.java
@@ -25,10 +12,10 @@ index c873ec0..98628e6 100644
  
    @Override
 diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt
-index 7f1b5e6..c942080 100644
+index 7f1b5e6..bc127ff 100644
 --- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt
 +++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/AppContext.kt
-@@ -170,14 +170,14 @@ class AppContext(
+@@ -170,7 +170,7 @@ class AppContext(
              this,
              jsRuntimePointer,
              jniDeallocator,
@@ -37,14 +24,6 @@ index 7f1b5e6..c942080 100644
            )
          } else {
            jsiInterop.installJSI(
-             this,
-             jsRuntimePointer,
-             jniDeallocator,
--            reactContext.catalystInstance.jsCallInvokerHolder as CallInvokerHolderImpl
-+            reactContext.catalystInstance.jSCallInvokerHolder as CallInvokerHolderImpl
-           )
-         }
- 
 diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/defaultmodules/CoreModule.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/defaultmodules/CoreModule.kt
 index 71725db..62da68a 100644
 --- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/defaultmodules/CoreModule.kt
@@ -67,195 +46,18 @@ index 71725db..62da68a 100644
            UiThreadUtil.runOnUiThread {
              reactInstanceManager.recreateReactContextInBackground()
            }
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/functions/AnyFunction.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/functions/AnyFunction.kt
-index c0b135c..bec3139 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/functions/AnyFunction.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/functions/AnyFunction.kt
-@@ -79,7 +79,7 @@ abstract class AnyFunction(
-       val desiredType = desiredArgsTypes[index]
-       argIterator.next().recycle {
-         exceptionDecorator({ cause ->
--          ArgumentCastException(desiredType.kType, index, type.toString(), cause)
-+          ArgumentCastException(desiredType.kType, index, getType().toString(), cause)
-         }) {
-           finalArgs[index] = desiredType.convert(this)
-         }
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/records/RecordTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/records/RecordTypeConverter.kt
-index f90c337..67d0fb4 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/records/RecordTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/records/RecordTypeConverter.kt
-@@ -82,7 +82,7 @@ class RecordTypeConverter<T : Record>(
-         jsMap.getDynamic(jsKey).recycle {
-           val javaField = property.javaField!!
- 
--          val casted = exceptionDecorator({ cause -> FieldCastException(property.name, property.returnType, type, cause) }) {
-+          val casted = exceptionDecorator({ cause -> FieldCastException(property.name, property.returnType, getType(), cause) }) {
-             descriptor.typeConverter.convert(this)
-           }
- 
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/AnyTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/AnyTypeConverter.kt
-index 1b44411..b730b7c 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/AnyTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/AnyTypeConverter.kt
-@@ -13,13 +13,13 @@ import expo.modules.kotlin.jni.ExpectedType
-  */
- class AnyTypeConverter(isOptional: Boolean) : DynamicAwareTypeConverters<Any>(isOptional) {
-   override fun convertFromDynamic(value: Dynamic): Any {
--    return when (value.type) {
-+    return when (value.getType()) {
-       ReadableType.Boolean -> value.asBoolean()
-       ReadableType.Number -> value.asDouble()
-       ReadableType.String -> value.asString()
-       ReadableType.Map -> value.asMap().toHashMap()
-       ReadableType.Array -> value.asArray().toArrayList()
--      else -> error("Unknown dynamic type: ${value.type}")
-+      else -> error("Unknown dynamic type: ${value.getType()}")
-     }
-   }
- 
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ArrayTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ArrayTypeConverter.kt
-index f8c12f2..eb23701 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ArrayTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ArrayTypeConverter.kt
-@@ -26,7 +26,7 @@ class ArrayTypeConverter(
-         .getDynamic(i)
-         .recycle {
-           exceptionDecorator({ cause ->
--            CollectionElementCastException(arrayType, arrayType.arguments.first().type!!, type, cause)
-+            CollectionElementCastException(arrayType, arrayType.arguments.first().type!!, getType(), cause)
-           }) {
-             arrayElementConverter.convert(this)
-           }
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ColorTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ColorTypeConverter.kt
-index 1b6cf64..548c7fe 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ColorTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ColorTypeConverter.kt
-@@ -173,14 +173,14 @@ class ColorTypeConverter(
-   isOptional: Boolean
- ) : DynamicAwareTypeConverters<Color>(isOptional) {
-   override fun convertFromDynamic(value: Dynamic): Color {
--    return when (value.type) {
-+    return when (value.getType()) {
-       ReadableType.Number -> colorFromInt(value.asDouble().toInt())
-       ReadableType.String -> colorFromString(value.asString())
-       ReadableType.Array -> {
-         val colorsArray = value.asArray().toArrayList().map { it as Double }.toDoubleArray()
-         colorFromDoubleArray(colorsArray)
-       }
--      else -> throw UnexpectedException("Unknown argument type: ${value.type}")
-+      else -> throw UnexpectedException("Unknown argument type: ${value.getType()}")
-     }
-   }
- 
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/DateTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/DateTypeConverter.kt
-index e46369d..2897c56 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/DateTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/DateTypeConverter.kt
-@@ -16,10 +16,10 @@ import java.time.format.DateTimeFormatter
- @RequiresApi(Build.VERSION_CODES.O)
- class DateTypeConverter(isOptional: Boolean) : DynamicAwareTypeConverters<LocalDate>(isOptional) {
-   override fun convertFromDynamic(value: Dynamic): LocalDate {
--    return when (value.type) {
-+    return when (value.getType()) {
-       ReadableType.String -> LocalDate.parse(value.asString(), DateTimeFormatter.ISO_DATE_TIME)
-       ReadableType.Number -> convertFromLong(value.asDouble().toLong())
--      else -> throw UnexpectedException("Unknown argument type: ${value.type}")
-+      else -> throw UnexpectedException("Unknown argument type: ${value.getType()}")
-     }
-   }
- 
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/EnumTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/EnumTypeConverter.kt
-index 3cac83f..e66d291 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/EnumTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/EnumTypeConverter.kt
-@@ -47,7 +47,7 @@ class EnumTypeConverter(
-       )
-     }
- 
--    throw IncompatibleArgTypeException(value.type.toKType(), enumClass.createType())
-+    throw IncompatibleArgTypeException(value.getType().toKType(), enumClass.createType())
-   }
- 
-   override fun convertFromAny(value: Any): Enum<*> {
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ListTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ListTypeConverter.kt
-index af1177a..386fd73 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ListTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/ListTypeConverter.kt
-@@ -49,7 +49,7 @@ class ListTypeConverter(
-           CollectionElementCastException(
-             listType,
-             listType.arguments.first().type!!,
--            type,
-+            getType(),
-             cause
-           )
-         }) {
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/MapTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/MapTypeConverter.kt
-index 3410dd5..2a76a66 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/MapTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/MapTypeConverter.kt
-@@ -52,10 +52,10 @@ class MapTypeConverter(
-   private fun convertFromReadableMap(jsMap: ReadableMap): Map<*, *> {
-     val result = mutableMapOf<String, Any?>()
- 
--    jsMap.entryIterator.forEach { (key, value) ->
-+    jsMap.getEntryIterator().forEach { (key, value) ->
-       DynamicFromObject(value).recycle {
-         exceptionDecorator({ cause ->
--          CollectionElementCastException(mapType, mapType.arguments[1].type!!, type, cause)
-+          CollectionElementCastException(mapType, mapType.arguments[1].type!!, getType(), cause)
-         }) {
-           result[key] = valueConverter.convert(this)
-         }
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/PairTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/PairTypeConverter.kt
-index 80714b1..45d54c1 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/PairTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/PairTypeConverter.kt
-@@ -50,7 +50,7 @@ class PairTypeConverter(
-   private fun convertElement(array: ReadableArray, index: Int): Any? {
-     return array.getDynamic(index).recycle {
-       exceptionDecorator({ cause ->
--        CollectionElementCastException(pairType, pairType.arguments[index].type!!, type, cause)
-+        CollectionElementCastException(pairType, pairType.arguments[index].type!!, getType(), cause)
-       }) {
-         converters[index].convert(this)
-       }
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/SetTypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/SetTypeConverter.kt
-index 81ed46a..4432e6b 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/SetTypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/SetTypeConverter.kt
-@@ -49,7 +49,7 @@ class SetTypeConverter(
-           CollectionElementCastException(
-             setType,
-             setType.arguments.first().type!!,
--            type,
-+            getType(),
-             cause
-           )
-         }) {
-diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/TypeConverter.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/TypeConverter.kt
-index 4d4a6bf..63927ea 100644
---- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/TypeConverter.kt
-+++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/TypeConverter.kt
-@@ -40,7 +40,7 @@ abstract class NullAwareTypeConverter<Type : Any>(
-   private val isOptional: Boolean
- ) : TypeConverter<Type>() {
-   override fun convert(value: Any?, context: AppContext?): Type? {
--    if (value == null || value is Dynamic && value.isNull) {
-+    if (value == null || value is Dynamic && value.isNull()) {
-       if (isOptional) {
-         return null
-       }
 diff --git a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/FilteredReadableMap.kt b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/FilteredReadableMap.kt
-index 0ff2a51..1ed4835 100644
+index 0ff2a51..a6ff1f8 100644
 --- a/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/FilteredReadableMap.kt
 +++ b/node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/views/FilteredReadableMap.kt
-@@ -42,7 +42,7 @@ class FilteredReadableMap(
+@@ -41,8 +41,8 @@ class FilteredReadableMap(
+   private val backingMap: ReadableMap,
    private val filteredKeys: List<String>
  ) : ReadableMap by backingMap {
-   override fun getEntryIterator(): Iterator<Map.Entry<String, Any>> =
+-  override fun getEntryIterator(): Iterator<Map.Entry<String, Any>> =
 -    FilteredIterator(backingMap.entryIterator) {
-+    FilteredIterator(backingMap.getEntryIterator()) {
++  override val entryIterator: Iterator<Map.Entry<String, Any>>
++    get() = FilteredIterator(backingMap.entryIterator) {
        !filteredKeys.contains(it.key)
      }
  
