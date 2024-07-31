@@ -253,6 +253,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={WorkspaceNewRoomPage.displayName}
+            focusTrapSettings={{active: false}}
         >
             {({insets}) =>
                 workspaceOptions.length === 0 ? (

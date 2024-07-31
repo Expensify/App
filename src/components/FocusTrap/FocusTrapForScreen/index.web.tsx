@@ -16,6 +16,9 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isActive = useMemo(() => {
+        if (typeof focusTrapSettings?.active !== 'undefined') {
+            return focusTrapSettings.active;
+        }
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
         if (BOTTOM_TAB_SCREENS.find((screen) => screen === route.name)) {
             return false;
@@ -31,7 +34,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             return false;
         }
         return true;
-    }, [isFocused, isSmallScreenWidth, route.name]);
+    }, [isFocused, isSmallScreenWidth, route.name, focusTrapSettings?.active]);
 
     return (
         <FocusTrap

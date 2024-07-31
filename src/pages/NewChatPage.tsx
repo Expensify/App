@@ -319,6 +319,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
+            focusTrapSettings={{active: false}}
         >
             <KeyboardAvoidingView
                 style={styles.flex1}
