@@ -31,12 +31,11 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const policyID = route?.params?.policyID ?? '-1';
 
     const handleAddBankAccount = () => {
-        // TODO: call to API - UpdateCardSettlementAccount
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = (value: number) => {
-        Card.updateSettlementAccount(policyID, value);
+        Card.configureExpensifyCardsForPolicy(policyID, value);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
@@ -45,7 +44,6 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        // const eligibleBankAccounts = Object.values(bankAccountsList).filter((bankAccount) => bankAccount.accountData.allowDebit || bankAccount.accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
         const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {

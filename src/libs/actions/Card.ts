@@ -381,6 +381,15 @@ function startIssueNewCardFlow(policyID: string) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
+function configureExpensifyCardsForPolicy(policyID: string, bankAccountID: number) {
+    const parameters = {
+        policyID,
+        bankAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -393,5 +402,6 @@ export {
     updateExpensifyCardLimit,
     updateSettlementAccount,
     startIssueNewCardFlow,
+    configureExpensifyCardsForPolicy,
 };
 export type {ReplacementReason};
