@@ -110,8 +110,8 @@ function IOURequestStepDistanceRate({
         <StepScreenWrapper
             headerTitle={translate('common.rate')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo}
-            testID="rate"
+            shouldShowWrapper
+            testID={IOURequestStepDistanceRate.displayName}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
 
