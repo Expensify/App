@@ -140,8 +140,6 @@ function BaseReportActionContextMenu({
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
-    // HOLD START
-
     const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
     const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
@@ -177,8 +175,6 @@ function BaseReportActionContextMenu({
     const isMoneyRequestOrReport = isMoneyRequestReport || isInvoiceReport || isSingleTransactionView;
 
     const areHoldRequirementsMet = isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
-
-    // HOLD END
 
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
