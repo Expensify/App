@@ -588,8 +588,10 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     const successReport: NullishDeep<OnyxTypes.Report> = {pendingFields: {...(assigneeAccountID && {managerID: null})}};
 
     const additionalReport: NullishDeep<OnyxTypes.Report> = {};
-    report.reportID === currentReportID && (additionalReport.lastReadTime = DateUtils.getDBTimeWithSkew());
-
+    if (report.reportID === currentReportID) {
+        additionalReport.lastReadTime = DateUtils.getDBTimeWithSkew();
+    }
+    
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
