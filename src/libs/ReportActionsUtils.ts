@@ -1169,7 +1169,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
-        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
@@ -1283,6 +1282,15 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         })
         .join('');
 
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
+function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
+    const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
         html: `<muted-text>${html}</muted-text>`,
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
@@ -1608,6 +1616,7 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
+    getUpdateRoomDescriptionFragment,
     getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
