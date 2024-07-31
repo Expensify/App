@@ -151,10 +151,13 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 subMenuItems: (
                     <>
                         {/* TODO: Functionality for this button will be added in a future PR (https://github.com/Expensify/App/issues/45954) */}
-                        {canUseAdvancedApproval && (
+                        {canUseAdvancedApproval ? (
                             <>
                                 {workflows.map((w) => (
-                                    <ApprovalWorkflowSection approvalWorkflow={w} />
+                                    <ApprovalWorkflowSection
+                                        approvalWorkflow={w}
+                                        policyId={policy?.id}
+                                    />
                                 ))}
                                 <MenuItem
                                     title={translate('workflowsPage.addApprovalButton')}
@@ -166,6 +169,17 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                                 />
                             </>
+                        ) : (
+                            <MenuItemWithTopDescription
+                                title="FIND ON MAIN"
+                                titleStyle={styles.textNormalThemeText}
+                                descriptionTextStyle={styles.textLabelSupportingNormal}
+                                description={translate('workflowsPage.approver')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
                         )}
                     </>
                 ),

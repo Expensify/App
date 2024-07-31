@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -10,16 +12,20 @@ import MenuItem from './MenuItem';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
-function ApprovalWorkflowSection({approvalWorkflow}: {approvalWorkflow: ApprovalWorkflow}) {
+function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow: ApprovalWorkflow; policyId?: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const openApprovalsEdit = useCallback(
+        () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyId ?? '', approvalWorkflow.approvers[0].email)),
+        [approvalWorkflow.approvers, policyId],
+    );
 
     return (
         <PressableWithFeedback
             accessibilityRole="button"
             style={[styles.border, styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
-            onPress={() => {}}
+            onPress={openApprovalsEdit}
             accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
         >
             <View style={[styles.flex1]}>
