@@ -49,11 +49,16 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function search({queryJSON}: {queryJSON: SearchQueryJSON; offset?: number}) {
+function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
-    // Todo Don't know how to correctly pass offset - passing on top level triggers endless fetch loop
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery: JSON.stringify(queryJSON)}, {optimisticData, finallyData});
+    const queryWithOffset = {
+        ...queryJSON,
+        offset,
+    };
+    const jsonQuery = JSON.stringify(queryWithOffset);
+
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
