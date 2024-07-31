@@ -32,7 +32,7 @@ const triggerReconnectionCallbacks = throttle(
         let delay = 0;
 
         if (wasServerDown && isServerUp) {
-            delay = Math.floor(Math.random() * 21000); // Random delay between 0 and 20 seconds
+            delay = Math.floor(Math.random() * 61000); // Random delay between 0 and 20 seconds
             wasServerDown = false;
         }
         setTimeout(() => {
