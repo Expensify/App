@@ -39,7 +39,7 @@ const DEPLOY_PRODUCTION__RELEASE_PR_LIST__STEP_MOCK = createMockStep(
     null,
     {PR_LIST: '["1.2.1", "1.2.2"]'},
 );
-const DEPLOY_PRODUCTION__GENERATE_RELEASE_BODY__STEP_MOCK = createMockStep('Generate Release Body', 'Generating release body', 'DEPLOY_PRODUCTION', ['PR_LIST'], null, {
+const DEPLOY_PRODUCTION__GENERATE_RELEASE_BODY__STEP_MOCK = createMockStep('Generate Release Body', 'Generating release body', 'DEPLOY_PRODUCTION', ['PR_LIST', 'GITHUB_TOKEN'], null, {
     RELEASE_BODY: 'Release body',
 });
 const DEPLOY_PRODUCTION__CREATE_RELEASE__STEP_MOCK = createMockStep(
