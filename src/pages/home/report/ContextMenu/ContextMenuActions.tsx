@@ -264,7 +264,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unholdExpense',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, holdReportAction) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(holdReportAction).canHoldRequest,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, holdReportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(holdReportAction).canHoldRequest,
         onPress: (closePopover, {holdReportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(holdReportAction));
@@ -280,7 +281,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, holdReportAction) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(holdReportAction).canHoldRequest,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, holdReportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(holdReportAction).canHoldRequest,
         onPress: (closePopover, {holdReportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(holdReportAction));
