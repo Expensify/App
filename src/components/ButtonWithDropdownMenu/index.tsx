@@ -150,7 +150,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={nullCheckRef(caretButton)}
+                    anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
