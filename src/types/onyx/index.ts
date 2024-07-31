@@ -1,11 +1,13 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type ApprovalWorkflow from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type {CapturedLogs, Log} from './Console';
@@ -22,12 +24,14 @@ import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -40,7 +44,7 @@ import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetai
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
@@ -67,6 +71,8 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
+import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
+import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
@@ -118,6 +124,7 @@ export type {
     IntroSelected,
     IOU,
     IssueNewCard,
+    LastExportMethod,
     Locale,
     Login,
     LoginList,
@@ -138,6 +145,7 @@ export type {
     PolicyCategory,
     PolicyEmployee,
     PolicyEmployeeList,
+    PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
     PolicyTag,
@@ -160,6 +168,9 @@ export type {
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
+    ReportViolationName,
+    ReportViolations,
+    ReportFieldsViolations,
     Request,
     Response,
     ScreenShareRequest,
@@ -204,4 +215,7 @@ export type {
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
+    CancellationDetails,
+    ApprovalWorkflow,
+    MobileSelectionMode,
 };

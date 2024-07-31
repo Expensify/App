@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -76,12 +77,14 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         <>
             <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{displayTexts.title}</Text>
             <Text style={styles.flex1}>{displayTexts.text}</Text>
-            <Button
-                success
-                large
-                onPress={confirm}
-                text={displayTexts.buttonText}
-            />
+            <View style={styles.pb5}>
+                <Button
+                    success
+                    large
+                    onPress={confirm}
+                    text={displayTexts.buttonText}
+                />
+            </View>
         </>
     );
 }

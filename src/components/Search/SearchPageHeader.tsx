@@ -1,103 +1,228 @@
 import React, {useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {SelectedTransactions} from './types';
+import {useSearchContext} from './SearchContext';
+import type {SearchQueryJSON, SearchStatus, SelectedTransactions} from './types';
 
-type SearchHeaderProps = {
-    query: SearchQuery;
-    selectedItems?: SelectedTransactions;
+type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
+    subtitleStyles?: StyleProp<TextStyle>;
+};
+
+function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: HeaderWrapperProps) {
+    const styles = useThemeStyles();
+
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
+    const middleContent = useMemo(() => {
+        return (
+            <Header
+                title={
+                    <Text
+                        style={[styles.mutedTextLabel, styles.pre]}
+                        numberOfLines={1}
+                    >
+                        {title}
+                    </Text>
+                }
+                subtitle={
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.textLarge, subtitleStyles]}
+                    >
+                        {subtitle}
+                    </Text>
+                }
+            />
+        );
+    }, [styles.mutedTextLabel, styles.pre, styles.textLarge, subtitle, subtitleStyles, title]);
+
+    return (
+        <View
+            dataSet={{dragArea: false}}
+            style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
+        >
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
+                    />
+                )}
+
+                {middleContent}
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>{children}</View>
+            </View>
+        </View>
+    );
+}
+
+type SearchPageHeaderProps = {
+    queryJSON: SearchQueryJSON;
+    selectedTransactions?: SelectedTransactions;
+    selectedReports?: Array<SearchReport['reportID']>;
     clearSelectedItems?: () => void;
     hash: number;
-    isMobileSelectionModeActive?: boolean;
-    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
+    onSelectDeleteOption?: (itemsToDelete: string[]) => void;
+    isCustomQuery: boolean;
+    setOfflineModalOpen?: () => void;
+    setDownloadErrorModalOpen?: () => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchHeaderProps) {
+const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: TranslationPaths}} = {
+    all: {icon: Illustrations.MoneyReceipts, titleTx: 'common.expenses'},
+    shared: {icon: Illustrations.SendMoney, titleTx: 'common.shared'},
+    drafts: {icon: Illustrations.Pencil, titleTx: 'common.drafts'},
+    finished: {icon: Illustrations.CheckmarkCircle, titleTx: 'common.finished'},
+};
+
+function SearchPageHeader({
+    queryJSON,
+    selectedTransactions = {},
+    hash,
+    clearSelectedItems,
+    onSelectDeleteOption,
+    setOfflineModalOpen,
+    setDownloadErrorModalOpen,
+    selectedReports,
+    isCustomQuery,
+}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
-        all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
-        shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
-        drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
-        finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
-    };
+    const {setSelectedTransactionIDs} = useSearchContext();
+    const {status} = queryJSON;
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleTx);
+    const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
+    const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const selectedItemsKeys = Object.keys(selectedItems ?? []);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
+
+    const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 
     const headerButtonsOptions = useMemo(() => {
+        if (selectedTransactionsKeys.length === 0) {
+            return [];
+        }
+
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
 
-        if (selectedItemsKeys.length === 0) {
-            return options;
-        }
+        options.push({
+            icon: Expensicons.Download,
+            text: translate('common.download'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setOfflineModalOpen?.();
+                    return;
+                }
 
-        const itemsToDelete = selectedItemsKeys.filter((id) => selectedItems[id].canDelete);
+                const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
+                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
+                    setDownloadErrorModalOpen?.();
+                });
+            },
+        });
 
-        if (itemsToDelete.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate('search.bulkActions.delete'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {
-                    clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
-                    }
-                    SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
-                },
-            });
-        }
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
-        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-
-        if (itemsToHold.length > 0) {
+        if (shouldShowHoldOption) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+                shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
                     }
-                    SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
+
+                    clearSelectedItems?.();
+                    if (selectionMode?.isEnabled) {
+                        turnOffMobileSelectionMode();
+                    }
+                    setSelectedTransactionIDs(selectedTransactionsKeys);
+                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
         }
 
-        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
-        if (itemsToUnhold.length > 0) {
+        if (shouldShowUnholdOption) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+                shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    clearSelectedItems?.();
-                    if (isMobileSelectionModeActive) {
-                        setIsMobileSelectionModeActive?.(false);
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
                     }
-                    SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+
+                    clearSelectedItems?.();
+                    if (selectionMode?.isEnabled) {
+                        turnOffMobileSelectionMode();
+                    }
+                    SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                },
+            });
+        }
+
+        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
+
+        if (shouldShowDeleteOption) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate('search.bulkActions.delete'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalOpen?.();
+                        return;
+                    }
+
+                    onSelectDeleteOption?.(selectedTransactionsKeys);
                 },
             });
         }
@@ -109,7 +234,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
-                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal},
+                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal, ...styles.textWrap},
             };
 
             options.push({
@@ -121,14 +246,33 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
         }
 
         return options;
-    }, [clearSelectedItems, hash, selectedItems, selectedItemsKeys, styles, theme, translate, isMobileSelectionModeActive, setIsMobileSelectionModeActive]);
+    }, [
+        status,
+        selectedTransactionsKeys,
+        selectedTransactions,
+        translate,
+        onSelectDeleteOption,
+        clearSelectedItems,
+        hash,
+        theme.icon,
+        styles.colorMuted,
+        styles.fontWeightNormal,
+        isOffline,
+        setOfflineModalOpen,
+        setDownloadErrorModalOpen,
+        activeWorkspaceID,
+        selectedReports,
+        styles.textWrap,
+        setSelectedTransactionIDs,
+        selectionMode?.isEnabled,
+    ]);
 
     if (isSmallScreenWidth) {
-        if (isMobileSelectionModeActive) {
+        if (selectionMode?.isEnabled) {
             return (
                 <SearchSelectedNarrow
                     options={headerButtonsOptions}
-                    itemsLength={selectedItemsKeys.length}
+                    itemsLength={selectedTransactionsKeys.length}
                 />
             );
         }
@@ -136,10 +280,11 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
     }
 
     return (
-        <HeaderWithBackButton
-            title={headerContent[query]?.title}
-            icon={headerContent[query]?.icon}
-            shouldShowBackButton={false}
+        <HeaderWrapper
+            title={headerTitle}
+            subtitle={headerSubtitle}
+            icon={headerIcon}
+            subtitleStyles={subtitleStyles}
         >
             {headerButtonsOptions.length > 0 && (
                 <ButtonWithDropdownMenu
@@ -147,13 +292,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems, 
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
-                    isDisabled={isOffline}
+                    style={styles.ml2}
                 />
             )}
-        </HeaderWithBackButton>
+        </HeaderWrapper>
     );
 }
 

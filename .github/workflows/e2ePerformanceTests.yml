@@ -156,7 +156,7 @@ jobs:
         run: mkdir zip
 
       - name: Download baseline APK
-        uses: actions/download-artifact@348754975ef0295bfa2c111cba996120cfdf8a5d
+        uses: actions/download-artifact@v4
         id: downloadBaselineAPK
         with:
           name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
@@ -170,7 +170,7 @@ jobs:
         run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk"
 
       - name: Download delta APK
-        uses: actions/download-artifact@348754975ef0295bfa2c111cba996120cfdf8a5d
+        uses: actions/download-artifact@v4
         id: downloadDeltaAPK
         with:
           name: delta-apk-${{ needs.buildDelta.outputs.DELTA_REF }}
@@ -184,7 +184,7 @@ jobs:
 
       - name: Copy e2e code into zip folder
         run: cp tests/e2e/dist/index.js zip/testRunner.ts
-      
+
       - name: Copy profiler binaries into zip folder
         run: cp -r node_modules/@perf-profiler/android/cpp-profiler/bin zip/bin
 
@@ -278,7 +278,7 @@ jobs:
           status: custom
           custom_payload: |
             {
-              channel: '#newdot-performance',
+              channel: '#newdot-quality',
               attachments: [{
                 color: 'danger',
                 text: `🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow.`,

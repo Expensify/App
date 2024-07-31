@@ -39,6 +39,10 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
+beforeEach(() => {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+});
+
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
@@ -363,7 +367,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
                 expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
                 expect((displayNameTexts[1]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();

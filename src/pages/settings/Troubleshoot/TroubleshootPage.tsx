@@ -20,9 +20,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
@@ -40,19 +41,19 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
+    shouldMaskOnyxState: boolean;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrationStyle = getLightbulbIllustrationStyle();
-    const [shouldMaskOnyxState, setShouldMaskOnyxState] = useState(true);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -108,12 +109,12 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                         subtitle={translate('initialSettingsPage.troubleshoot.description')}
@@ -182,5 +183,9 @@ TroubleshootPage.displayName = 'TroubleshootPage';
 export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldStoreLogs: {
         key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+    shouldMaskOnyxState: {
+        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
+        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
     },
 })(TroubleshootPage);

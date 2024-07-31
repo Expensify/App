@@ -67,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
+        sectionListStyle,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
@@ -79,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>(
         customListHeaderHeight = 0,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
+        isAlternateTextMultilineSupported = false,
         textInputRef,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
@@ -93,8 +95,8 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        shouldUpdateFocusedIndex = false,
         onLongPressRow,
-        isMobileSelectionModeActive,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -287,8 +289,9 @@ function BaseSelectionList<TItem extends ListItem>(
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
      * @param item - the list item
+     * @param indexToFocus - the list item index to focus
      */
-    const selectRow = (item: TItem) => {
+    const selectRow = (item: TItem, indexToFocus?: number) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -306,6 +309,10 @@ function BaseSelectionList<TItem extends ListItem>(
             if (shouldShowTextInput) {
                 clearInputAfterSelect();
             }
+        }
+
+        if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+            setFocusedIndex(indexToFocus);
         }
 
         if (shouldDebounceRowSelect) {
@@ -450,8 +457,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
-                    isMobileSelectionModeActive={isMobileSelectionModeActive}
-                    onSelectRow={() => selectRow(item)}
+                    onSelectRow={() => selectRow(item, index)}
                     onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -460,6 +466,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     rightHandSideComponent={rightHandSideComponent}
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
+                    isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                     onFocus={() => {
                         if (isDisabled) {
                             return;
@@ -729,7 +736,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
-                                style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
                                 ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 ListEmptyComponent={listEmptyContent}

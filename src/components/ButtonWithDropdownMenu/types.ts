@@ -14,6 +14,8 @@ type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK
 
 type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
+type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -27,6 +29,7 @@ type DropdownOption<TValueType> = {
     interactive?: boolean;
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
+    shouldCloseModalOnSelect?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -41,6 +44,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption<TValueType>) => void;
+
+    /** Callback when the options popover is shown */
+    onOptionsMenuShow?: () => void;
+
+    /** Callback when the options popover is shown */
+    onOptionsMenuHide?: () => void;
 
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
@@ -83,4 +92,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     isSplitButton?: boolean;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};
+export type {
+    PaymentType,
+    WorkspaceMemberBulkActionType,
+    WorkspaceDistanceRatesBulkActionType,
+    DropdownOption,
+    ButtonWithDropdownMenuProps,
+    WorkspaceTaxRatesBulkActionType,
+    ReportExportType,
+};

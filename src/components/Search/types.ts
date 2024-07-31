@@ -9,6 +9,12 @@ type SelectedTransactionInfo = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be put on hold */
+    canHold: boolean;
+
+    /** If the transaction can be removed from hold */
+    canUnhold: boolean;
+
     /** The action that can be performed for the transaction */
     action: string;
 };
@@ -18,12 +24,13 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
+type SearchStatus = ValueOf<typeof CONST.SEARCH.STATUS>;
 
 type SearchContext = {
     currentSearchHash: number;
     selectedTransactionIDs: string[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIds: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
 };
 
 type ASTNode = {
@@ -37,10 +44,39 @@ type QueryFilter = {
     value: string | number;
 };
 
-type AllFieldKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS;
 
 type QueryFilters = {
-    [K in AllFieldKeys]: QueryFilter | QueryFilter[];
+    [K in AdvancedFiltersKeys]?: QueryFilter | QueryFilter[];
 };
 
-export type {SelectedTransactionInfo, SelectedTransactions, SearchColumnType, SortOrder, SearchContext, ASTNode, QueryFilter, QueryFilters, AllFieldKeys};
+type SearchQueryString = string;
+
+type SearchQueryAST = {
+    type: string;
+    status: SearchStatus;
+    sortBy: SearchColumnType;
+    sortOrder: SortOrder;
+    filters: ASTNode;
+};
+
+type SearchQueryJSON = {
+    inputQuery: SearchQueryString;
+    hash: number;
+} & SearchQueryAST;
+
+export type {
+    SelectedTransactionInfo,
+    SelectedTransactions,
+    SearchColumnType,
+    SearchStatus,
+    SearchQueryAST,
+    SearchQueryJSON,
+    SearchQueryString,
+    SortOrder,
+    SearchContext,
+    ASTNode,
+    QueryFilter,
+    QueryFilters,
+    AdvancedFiltersKeys,
+};
