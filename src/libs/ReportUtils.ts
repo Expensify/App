@@ -855,7 +855,7 @@ function isReportOpen(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
 
     // console.log('getAllReports: ', ReportConnection.getAllReports(), 'length: ', Object.keys(ReportConnection.getAllReports()).length);
     // console.log('isReportOpen report: ', report);
-    
+
     return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
