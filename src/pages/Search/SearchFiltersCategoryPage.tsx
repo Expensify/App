@@ -30,13 +30,13 @@ function SearchFiltersCategoryPage() {
     const [newCategories, setNewCategories] = useState<string[]>(currentCategories ?? []);
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
 
-    const [allPolicyIdCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const singlePolicyCategories = allPolicyIdCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const [allPolicyIDCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryNames = useMemo(() => {
         let categories: string[] = [];
         if (!singlePolicyCategories) {
-            categories = Object.values(allPolicyIdCategories ?? {})
+            categories = Object.values(allPolicyIDCategories ?? {})
                 .map((policyCategories) => Object.values(policyCategories ?? {}).map((category) => category.name))
                 .flat();
         } else {
@@ -44,7 +44,7 @@ function SearchFiltersCategoryPage() {
         }
 
         return [...new Set(categories)];
-    }, [allPolicyIdCategories, singlePolicyCategories]);
+    }, [allPolicyIDCategories, singlePolicyCategories]);
 
     const sections = useMemo(() => {
         const newSections: CategorySection[] = [];

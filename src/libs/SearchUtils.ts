@@ -375,11 +375,11 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
     return dateFilter;
 }
 
-function sanitizeCategoryName(category: string) {
-    if (category.includes(' ')) {
-        return `"${category}"`;
+function sanitizeString(str: string) {
+    if (str.includes(' ')) {
+        return `"${str}"`;
     }
-    return category;
+    return str;
 }
 
 /**
@@ -398,8 +398,8 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             }
 
             if (filterKey === INPUT_IDS.CATEGORY && filterValues[filterKey]) {
-                const categories = filterValues[filterKey];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map((category) => sanitizeCategoryName(category)).join(',')}`;
+                const categories = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
             }
 
             return undefined;

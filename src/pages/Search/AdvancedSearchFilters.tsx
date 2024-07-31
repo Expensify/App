@@ -37,8 +37,8 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
-        const categories = filters[fieldName];
-        return categories.map((category) => Str.recapitalize(category)).join(', ');
+        const categories = filters[fieldName] ?? [];
+        return categories.join(', ');
     }
 
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
