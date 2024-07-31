@@ -9,7 +9,7 @@ import type {UserMetadata} from '@src/types/onyx';
 /**
  * Fullstory React-Native lib adapter
  * Proxy function calls to React-Native lib
- * */   
+ * */
 const FS = {
     /**
      * Initializes FullStory
