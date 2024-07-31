@@ -44,7 +44,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
