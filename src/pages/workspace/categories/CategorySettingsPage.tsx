@@ -41,7 +41,6 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
-    const shouldDisablePayrollCode = !isControlPolicy(policy);
 
     const policyCategory =
         policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
@@ -131,7 +130,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={policyCategory.name}
-                            description={translate(`workspace.categories.categoryName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
                         />
@@ -162,7 +161,6 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                                 Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
                             }}
                             shouldShowRightIcon
-                            disabled={shouldDisablePayrollCode}
                         />
                     </OfflineWithFeedback>
                     {!isThereAnyAccountingConnection && (
