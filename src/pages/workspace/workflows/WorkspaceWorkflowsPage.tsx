@@ -3,7 +3,8 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -25,6 +26,7 @@ import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -58,6 +60,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const canUseAdvancedApproval = Permissions.canUseWorkflowsAdvancedApproval(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const workflows = convertPolicyEmployeesToApprovalWorkflows({employees: policy?.employeeList ?? {}, defaultApprover: policyApproverEmail ?? '', personalDetails: personalDetails ?? {}});
 
     const displayNameForAuthorizedPayer = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
@@ -143,28 +148,22 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 },
                 subMenuItems: (
                     <>
-                        <MenuItemWithTopDescription
-                            title={policyApproverName ?? ''}
-                            titleStyle={styles.textNormalThemeText}
-                            descriptionTextStyle={styles.textLabelSupportingNormal}
-                            description={translate('workflowsPage.approver')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
-                            shouldShowRightIcon
-                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                            brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
                         {/* TODO: Functionality for this button will be added in a future PR (https://github.com/Expensify/App/issues/45954) */}
                         {canUseAdvancedApproval && (
-                            <MenuItem
-                                title={translate('workflowsPage.addApprovalButton')}
-                                titleStyle={styles.textStrong}
-                                icon={Expensicons.Plus}
-                                iconHeight={20}
-                                iconWidth={20}
-                                iconFill={theme.success}
-                                style={[styles.ph2, styles.ml11, styles.widthAuto]}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
-                            />
+                            <>
+                                {workflows.map((w) => (
+                                    <ApprovalWorkflowSection approvalWorkflow={w} />
+                                ))}
+                                <MenuItem
+                                    title={translate('workflowsPage.addApprovalButton')}
+                                    titleStyle={styles.textStrong}
+                                    icon={Expensicons.Plus}
+                                    iconHeight={20}
+                                    iconWidth={20}
+                                    iconFill={theme.success}
+                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                />
+                            </>
                         )}
                     </>
                 ),
