@@ -3210,6 +3210,7 @@ export default {
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
