@@ -5,6 +5,7 @@ describe('compareUserInList', () => {
         const first = {login: 'John Doe', weight: 1, accountID: 1};
         const second = {login: 'Jane Doe', weight: 2, accountID: 2};
         expect(compareUserInList(first, second)).toBe(-1);
+        expect(compareUserInList(second, first)).toBe(1);
     });
 
     it('Should compare the displayName if the weight is the same', () => {
@@ -14,11 +15,16 @@ describe('compareUserInList', () => {
         expect(compareUserInList(first, second)).toBe(-1);
         expect(compareUserInList(first, third)).toBe(-1);
         expect(compareUserInList(second, third)).toBe(-1);
+
+        expect(compareUserInList(second, first)).toBe(1);
+        expect(compareUserInList(third, first)).toBe(1);
+        expect(compareUserInList(third, second)).toBe(1);
     });
 
     it('Should compare the accountID if both the weight and displayName are the same', () => {
         const first = {login: 'águero', weight: 2, accountID: 6};
         const second = {login: 'aguero', weight: 2, accountID: 7};
         expect(compareUserInList(first, second)).toBe(-1);
+        expect(compareUserInList(second, first)).toBe(1);
     });
 });

@@ -57,30 +57,27 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
-function getDisplayName(p: PersonalDetails) {
-    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(p.accountID);
+function getDisplayName(details: PersonalDetails) {
+    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(details.accountID);
     if (!displayNameFromAccountID) {
-        return p.login?.length ? p.login : '';
+        return details.login?.length ? details.login : '';
     }
     return displayNameFromAccountID;
 }
 
 /**
- * the comparison function used to determine which user will come first in the sorted list
- * generally, smaller weight means will come first, and if the weight is the same, we'll sort based on displayName/login and accountID
+ * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
  */
 function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
-    // first, we should sort by weight
     if (first.weight !== second.weight) {
         return first.weight - second.weight;
     }
 
-    // next we sort by display name
     const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
     if (displayNameLoginOrder !== 0) {
         return displayNameLoginOrder;
     }
-    // then fallback on accountID as the final sorting criteria.
+
     return first.accountID - second.accountID;
 }
 
@@ -300,7 +297,7 @@ function SuggestionMention(
                 return true;
             }) as Array<PersonalDetails & {weight: number}>;
 
-            // at this point we are sure that the details are not null, since empty user details have been filtered in the previous step
+            // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
             const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
