@@ -41,7 +41,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         width: 0,
         height: 0,
     });
-    const onModalHide = useRef(() => {});
+    const onModalHide = useRef<OnModalHideValue>(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>();
     const emojiSearchInput = useRef<BaseTextInputRef | null>();
@@ -112,13 +112,10 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      * Hide the emoji picker menu.
      */
     const hideEmojiPicker = (isNavigating?: boolean) => {
-        if (isNavigating) {
-            onModalHide.current = () => {};
-        }
         const currOnModalHide = onModalHide.current;
         onModalHide.current = () => {
             if (currOnModalHide) {
-                currOnModalHide();
+                currOnModalHide(!!isNavigating);
             }
             // eslint-disable-next-line react-compiler/react-compiler
             emojiPopoverAnchorRef.current = null;
