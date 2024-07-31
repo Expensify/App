@@ -46,21 +46,21 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
             return;
         }
-
-        if (!isSmallScreenWidth) {
-            threeDotsMenuContainerRef?.current?.measureInWindow((x, y, width, height) => {
-                setReuseConnectionPopoverPosition({
-                    horizontal: x + width,
-                    vertical: y + height,
-                });
-            });
-        }
         setIsReuseConnectionsPopoverOpen(true);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (threeDotsMenuContainerRef) {
+        if (!isSmallScreenWidth) {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                setReuseConnectionPopoverPosition({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        }
+
         return (
             <PopoverMenu
                 isVisible={isReuseConnectionsPopoverOpen}
