@@ -40,7 +40,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             }
             Navigation.dismissModal();
         },
-        [categoryName, payrollCode, route.params.categoryName, route.params.policyID],
+        [categoryName, payrollCode, route.params.policyID],
     );
 
     return (
