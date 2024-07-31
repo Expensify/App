@@ -9,7 +9,7 @@ import type {UserMetadata} from '@src/types/onyx';
 /**
  * Fullstory React-Native lib adapter
  * Proxy function calls to React-Native lib
- * */
+ * */   
 const FS = {
     /**
      * Initializes FullStory
@@ -63,9 +63,7 @@ const FS = {
                 // define FullStory user identity
                 const localMetadata = metadata;
                 localMetadata.environment = envName;
-                FullStory.identify(String(localMetadata.accountID), {
-                    properties: localMetadata,
-                });
+                FullStory.identify(String(localMetadata.accountID), localMetadata);
             });
         }
     },
