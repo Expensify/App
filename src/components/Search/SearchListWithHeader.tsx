@@ -11,13 +11,14 @@ import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchStatus, SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
-    status: SearchStatus;
+    queryJSON: SearchQueryJSON;
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
+    isCustomQuery: boolean;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -38,7 +39,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
           };
 }
 
-function SearchListWithHeader({ListItem, onSelectRow, status, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
+function SearchListWithHeader({ListItem, onSelectRow, queryJSON, hash, data, searchType, isCustomQuery, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [selectedTransactions, setSelectedTransactions] = useState<SelectedTransactions>({});
@@ -148,10 +149,11 @@ function SearchListWithHeader({ListItem, onSelectRow, status, hash, data, search
             <SearchPageHeader
                 selectedTransactions={selectedTransactions}
                 clearSelectedItems={clearSelectedItems}
-                status={status}
+                queryJSON={queryJSON}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
                 selectedReports={selectedReports}
+                isCustomQuery={isCustomQuery}
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />

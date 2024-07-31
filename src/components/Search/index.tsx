@@ -32,6 +32,7 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '.
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     policyIDs?: string;
+    isCustomQuery: boolean;
 };
 
 const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
@@ -40,7 +41,7 @@ const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
 
-function Search({queryJSON, policyIDs}: SearchProps) {
+function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -109,7 +110,8 @@ function Search({queryJSON, policyIDs}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    status={status}
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
                     hash={hash}
                 />
                 <SearchRowSkeleton shouldAnimate />
@@ -123,7 +125,8 @@ function Search({queryJSON, policyIDs}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    status={status}
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
                     hash={hash}
                 />
                 <EmptySearchView />
@@ -182,10 +185,11 @@ function Search({queryJSON, policyIDs}: SearchProps) {
 
     return (
         <SearchListWithHeader
-            status={status}
+            queryJSON={queryJSON}
             hash={hash}
             data={sortedData}
             searchType={searchResults?.search?.type as SearchDataTypes}
+            isCustomQuery={isCustomQuery}
             customListHeader={
                 !isLargeScreenWidth ? null : (
                     <SearchTableHeader
