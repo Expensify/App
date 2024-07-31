@@ -13,7 +13,6 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -136,33 +135,6 @@ function BaseReportActionContextMenu({
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
-    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
-    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
-
-    const {reportActions: reportActionsPaginated} = usePaginatedReportActions(childReport?.reportID ?? '-1');
-
-    const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', reportActionsPaginated ?? [], isOffline),
-        [childReport?.reportID, reportActionsPaginated, isOffline],
-    );
-
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-
-    const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(childReport), [childReport]);
-    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(childReport), [childReport]);
-
-    const requestParentReportAction = useMemo(() => {
-        if (isMoneyRequestReport || isInvoiceReport) {
-            if (!reportActionsPaginated || !transactionThreadReport?.parentReportActionID) {
-                return undefined;
-            }
-            return reportActionsPaginated.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-        }
-        return parentReportAction;
-    }, [parentReportAction, reportActionsPaginated, transactionThreadReport?.parentReportActionID, isMoneyRequestReport, isInvoiceReport]);
-
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-
     const sourceID = ReportUtils.getSourceIDFromReportAction(reportAction);
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
@@ -173,7 +145,7 @@ function BaseReportActionContextMenu({
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
-            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini, moneyRequestAction),
+            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini),
     );
 
     if (isMini) {
@@ -280,7 +252,6 @@ function BaseReportActionContextMenu({
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
-                            moneyRequestAction,
                         };
 
                         if ('renderContent' in contextAction) {
