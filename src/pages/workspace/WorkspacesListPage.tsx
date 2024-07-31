@@ -171,7 +171,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
 
             if (!(isAdmin || isOwner)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.ChatBubbles,
+                    icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
                 });
