@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-native/scripts/bundle.js b/node_modules/react-native/scripts/bundle.js
+index 53acb05..75446dc 100644
+--- a/node_modules/react-native/scripts/bundle.js
++++ b/node_modules/react-native/scripts/bundle.js
+@@ -25,11 +25,6 @@ program.version(
+ program
+   .name(bc.name)
+   .description(bc.description ?? '')
+-  .option(
+-    '--config-cmd <string>',
+-    'Command to generate a JSON project config',
+-    'npx react-native config',
+-  )
+   .option('--load-config <string>', 'JSON project config')
+   .action(async function handleAction() {
+     let config = null;
+diff --git a/node_modules/react-native/scripts/react-native-xcode.sh b/node_modules/react-native/scripts/react-native-xcode.sh
+index 345603c..618c8e8 100755
+--- a/node_modules/react-native/scripts/react-native-xcode.sh
++++ b/node_modules/react-native/scripts/react-native-xcode.sh
+@@ -140,16 +140,11 @@ fi
+ # Allow opting out of using npx react-native config
+ if [[ -n "$CONFIG_JSON" ]]; then
+   EXTRA_ARGS+=("--load-config" "$CONFIG_JSON")
+-elif [[ -n "$CONFIG_CMD" ]]; then
+-  EXTRA_ARGS+=("--config-cmd" "$CONFIG_APP")
+-else
+-  EXTRA_ARGS+=("--config-cmd" "$NODE_BINARY $NODE_ARGS $REACT_NATIVE_DIR/cli.js config")
+ fi
+ 
+ # shellcheck disable=SC2086
+ "$NODE_BINARY" $NODE_ARGS "$CLI_PATH" $BUNDLE_COMMAND \
+   $CONFIG_ARG \
+-  --config-cmd "$CONFIG" \
+   --entry-file "$ENTRY_FILE" \
+   --platform "$BUNDLE_PLATFORM" \
+   --dev $DEV \
