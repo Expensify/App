@@ -36,6 +36,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
@@ -436,8 +437,8 @@ function ReportActionCompose({
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
                         wrapperStyle={styles.reportActionComposeTooltipWrapper}
-                        shiftHorizontal={10}
-                        shiftVertical={-10}
+                        shiftHorizontal={variables.composerTooltipShiftHorizontal}
+                        shiftVertical={variables.composerTooltipShiftVertical}
                     >
                         <View
                             ref={containerRef}
