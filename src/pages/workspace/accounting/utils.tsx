@@ -1,12 +1,12 @@
 import React from 'react';
-import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToIntegrationWithReconnectFeatureFlow from '@components/ConnectToIntegrationWithReconnectFeatureFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
-import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Navigation from '@navigation/Navigation';
 import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
+import {getAdminPoliciesConnectedToNetSuite, getAdminPoliciesConnectedToSageIntacct} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
@@ -70,9 +70,11 @@ function getAccountingIntegrationData(
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionFlow: (
-                    <ConnectToNetSuiteFlow
-                        policyID={policyID}
+                    <ConnectToIntegrationWithReconnectFeatureFlow
                         key={key}
+                        hasPoliciesConnectedToIntegration={!!getAdminPoliciesConnectedToNetSuite().length}
+                        integrationNewConnectionRoute={ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID)}
+                        integrationExistingConnectionsRoute={ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.getRoute(policyID)}
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
@@ -86,9 +88,11 @@ function getAccountingIntegrationData(
                 title: translate('workspace.accounting.intacct'),
                 icon: Expensicons.IntacctSquare,
                 setupConnectionFlow: (
-                    <ConnectToSageIntacctFlow
-                        policyID={policyID}
+                    <ConnectToIntegrationWithReconnectFeatureFlow
                         key={key}
+                        hasPoliciesConnectedToIntegration={!!getAdminPoliciesConnectedToSageIntacct().length}
+                        integrationNewConnectionRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID)}
+                        integrationExistingConnectionsRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID)}
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),

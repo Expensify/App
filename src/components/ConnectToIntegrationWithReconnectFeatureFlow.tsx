@@ -1,33 +1,39 @@
 import React, {useEffect, useState} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
-import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
-import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {ConnectToNetSuiteFlowProps} from './types';
+import type {Route} from '@src/ROUTES';
+import type {AnchorPosition} from '@src/styles';
+import * as Expensicons from './Icon/Expensicons';
+import PopoverMenu from './PopoverMenu';
 
-function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
+type ConnectToIntegrationWithReconnectFeatureFlowProps = {
+    hasPoliciesConnectedToIntegration: boolean;
+    integrationNewConnectionRoute: Route;
+    integrationExistingConnectionsRoute: Route;
+};
+
+function ConnectToIntegrationWithReconnectFeatureFlow({
+    hasPoliciesConnectedToIntegration,
+    integrationNewConnectionRoute,
+    integrationExistingConnectionsRoute,
+}: ConnectToIntegrationWithReconnectFeatureFlowProps) {
     const {translate} = useLocalize();
 
-    const hasPoliciesConnectedToNetSuite = !!getAdminPoliciesConnectedToNetSuite()?.length;
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const {integrationRefs} = useAccountingContext();
-
-    const threeDotsMenuContainerRef = integrationRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    const {activeIntegration, integrationRefs} = useAccountingContext();
+    const threeDotsMenuContainerRef = integrationRefs?.current?.[activeIntegration?.name ?? '-1'];
 
     const connectionOptions = [
         {
             icon: Expensicons.LinkCopy,
             text: translate('workspace.common.createNewConnection'),
             onSelected: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
+                Navigation.navigate(integrationNewConnectionRoute);
                 setIsReuseConnectionsPopoverOpen(false);
             },
         },
@@ -35,15 +41,15 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
             icon: Expensicons.Copy,
             text: translate('workspace.common.reuseExistingConnection'),
             onSelected: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.getRoute(policyID));
+                Navigation.navigate(integrationExistingConnectionsRoute);
                 setIsReuseConnectionsPopoverOpen(false);
             },
         },
     ];
 
     useEffect(() => {
-        if (!hasPoliciesConnectedToNetSuite) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID));
+        if (!hasPoliciesConnectedToIntegration) {
+            Navigation.navigate(integrationNewConnectionRoute);
             return;
         }
         setIsReuseConnectionsPopoverOpen(true);
@@ -83,4 +89,4 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     }
 }
 
-export default ConnectToNetSuiteFlow;
+export default ConnectToIntegrationWithReconnectFeatureFlow;
