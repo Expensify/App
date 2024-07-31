@@ -423,6 +423,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
+        return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
+    }
 
     return !!policy?.[featureName];
 }

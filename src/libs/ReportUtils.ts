@@ -12,7 +12,7 @@ import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -481,6 +481,7 @@ type OutstandingChildRequest = {
 type ParsingDetails = {
     shouldEscapeText?: boolean;
     reportID?: string;
+    policyID?: string;
 };
 
 let currentUserEmail: string | undefined;
@@ -1674,7 +1675,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
 
         const linkedReport = isThreadFirstChat(reportAction, reportID) ? getReportOrDraftReport(report?.parentReportID) : report;
         if (isActionOwner) {
-            if (!isEmptyObject(linkedReport) && isMoneyRequestReport(linkedReport)) {
+            if (!isEmptyObject(linkedReport) && (isMoneyRequestReport(linkedReport) || isInvoiceReport(linkedReport))) {
                 return canDeleteTransaction(linkedReport);
             }
             return true;
@@ -3761,6 +3762,13 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
         isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+    }
+
+    if (parsingDetails?.policyID) {
+        const policyType = getPolicy(parsingDetails?.policyID)?.type;
+        if (policyType) {
+            isGroupPolicyReport = isGroupPolicy(policyType);
+        }
     }
 
     const textWithMention = completeShortMention(text);
@@ -7321,6 +7329,36 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(ReportConnection.getAllReports() ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
+/**
+ * A function to get the report last message. This is usually used to restore the report message preview in LHN after report actions change.
+ * @param reportID
+ * @param actionsToMerge
+ * @returns containing the calculated message preview data of the report
+ */
+function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
+    let result: Partial<Report> = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = getLastVisibleMessage(reportID, actionsToMerge);
+
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        result = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
+    return result;
+}
+
 function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
     const html = message?.html ?? '';
@@ -7331,10 +7369,10 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 
 function getIntegrationIcon(connectionName?: ConnectionName) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return XeroSquare;
+        return XeroCircle;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return QBOSquare;
+        return QBOCircle;
     }
     return undefined;
 }
@@ -7644,6 +7682,7 @@ export {
     canBeExported,
     isExported,
     hasOnlyNonReimbursableTransactions,
+    getReportLastMessage,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getReport,
