@@ -638,6 +638,8 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(report.reportID)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -647,8 +649,13 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            const message = ReportActionsUtils.getUpdateRoomDescriptionMessage(action);
-            children = <ReportActionItemBasicMessage message={message} />;
+            children = (
+                <ReportActionItemMessage
+                    action={action}
+                    reportID={report.reportID}
+                    displayAsGroup={false}
+                />
+            );
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {

@@ -32,7 +32,7 @@ import type {
     EnterMagicCodeParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
-    ForwardedParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
@@ -159,6 +159,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         select: 'Select',
+        selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
         rotate: 'Rotate',
@@ -745,6 +746,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
+        forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
@@ -3437,6 +3439,11 @@ export default {
                 description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
             },
+            taxCodes: {
+                title: 'Tax codes',
+                description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
+            },
             pricing: {
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',
@@ -3580,7 +3587,6 @@ export default {
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
     search: {
-        selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
         searchResults: {
@@ -3719,7 +3725,6 @@ export default {
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
-                forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
