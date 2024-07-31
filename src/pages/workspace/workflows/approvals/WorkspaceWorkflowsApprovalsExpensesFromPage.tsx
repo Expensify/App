@@ -67,6 +67,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                const isAdmin = policy?.employeeList?.[member.email].role === CONST.REPORT.ROLE.ADMIN;
 
                 return {
                     text: member.displayName,
@@ -75,10 +76,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     isSelected: true,
                     login: member.email,
                     icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                    rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList]);
+    }, [approvalWorkflow?.members, policy?.employeeList, translate]);
 
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
