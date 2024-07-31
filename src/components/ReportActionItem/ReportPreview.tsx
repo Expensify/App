@@ -126,10 +126,10 @@ function ReportPreview({
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: TransactionUtils.hasAnyTransactionMissingSmartscanFields(allTransactions),
-            areAllRequestsBeingSmartScanned: TransactionUtils.areAllTransactionsBeingSmartScanned(allTransactions, action),
-            hasOnlyTransactionsWithPendingRoutes: TransactionUtils.areAllTransactionsWithPendingRoutes(allTransactions),
-            hasNonReimbursableTransactions: TransactionUtils.isAnyTransactionNonReimbursable(allTransactions),
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
+            hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -138,8 +138,8 @@ function ReportPreview({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy, allTransactions);
-    const hasOnlyHeldExpenses = TransactionUtils.areAllExpensesOnHold(allTransactions);
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
@@ -152,9 +152,9 @@ function ReportPreview({
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy, allTransactions);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
-    const transactionsWithReceipts = TransactionUtils.getTransactionsWithReceipts(allTransactions);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
@@ -162,10 +162,8 @@ function ReportPreview({
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
-        (canUseViolations &&
-            (TransactionUtils.isAnyTransactionViolated(allTransactions, transactionViolations) ||
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                TransactionUtils.hasAnyTransactionWarningViolation(allTransactions, transactionViolations))) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
@@ -196,7 +194,7 @@ function ReportPreview({
         }
         setPaymentType(type);
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (TransactionUtils.isAnyTransactionOnHold(allTransactions)) {
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
             if (ReportUtils.isInvoiceReport(iouReport)) {
@@ -209,7 +207,7 @@ function ReportPreview({
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (TransactionUtils.isAnyTransactionOnHold(allTransactions)) {
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(iouReport, true);
@@ -221,7 +219,7 @@ function ReportPreview({
             return '';
         }
 
-        if (TransactionUtils.isAnyTransactionOnHold(allTransactions) && canAllowSettlement) {
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
             return nonHeldAmount;
         }
 

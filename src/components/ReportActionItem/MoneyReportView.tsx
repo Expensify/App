@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import * as reportActions from '@src/libs/actions/Report';
@@ -48,8 +47,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isSettled = ReportUtils.isSettled(report.reportID);
-    const allReportTransactions = TransactionUtils.getAllReportTransactions(report.reportID);
-    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy, allReportTransactions);
+    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 

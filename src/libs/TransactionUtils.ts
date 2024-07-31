@@ -712,13 +712,6 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 }
 
 /**
- * Checks to see if any transaction contains a violation
- */
-function isAnyTransactionViolated(transactions: Transaction[], transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations));
-}
-
-/**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
@@ -999,73 +992,6 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     };
 }
 
-/**
- * Check if any of the transactions is on hold
- */
-function isAnyTransactionOnHold(transactions: Transaction[]): boolean {
-    return transactions.some((transaction) => isOnHold(transaction));
-}
-
-/**
- * Check if any of the transactions is non-reimbursable
- */
-function isAnyTransactionNonReimbursable(transactions: Transaction[]): boolean {
-    return transactions.some((transaction) => transaction.reimbursable === false);
-}
-
-/**
- * Checks to see if any of transactions contain a violation of type `warning`
- */
-function hasAnyTransactionWarningViolation(transactions: Transaction[], transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction.transactionID, transactionViolations));
-}
-
-/**
- * Filters only transactions with a receipt
- */
-function getTransactionsWithReceipts(transactions: Transaction[]): Transaction[] {
-    return transactions.filter((transaction) => hasReceipt(transaction));
-}
-
-/**
- * Check if all expenses in the Report are on hold
- */
-function areAllExpensesOnHold(transactions: Transaction[]) {
-    return transactions.length > 0 && !transactions.some((transaction) => !isOnHold(transaction));
-}
-
-/**
- * Checks whether all the transactions are of the Distance Request type with pending routes
- */
-function areAllTransactionsWithPendingRoutes(transactions: Transaction[]) {
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    return transactions.every((transaction) => isFetchingWaypointsFromServer(transaction));
-}
-
-/**
- * Check if any of the transactions has required missing fields
- */
-function hasAnyTransactionMissingSmartscanFields(transactions: Transaction[]): boolean {
-    return transactions.some(hasMissingSmartscanFields);
-}
-
-/**
- * Check if all transactions are being smart scanned
- */
-function areAllTransactionsBeingSmartScanned(transactions: Transaction[], reportPreviewAction: OnyxEntry<ReportAction>) {
-    const transactionsWithReceipts = getTransactionsWithReceipts(transactions);
-
-    // If we have more requests than requests with receipts, we have some manual requests
-    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
-        return false;
-    }
-
-    return transactionsWithReceipts.every((transaction) => isReceiptBeingScanned(transaction));
-}
-
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1139,15 +1065,6 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
-    isAnyTransactionOnHold,
-    isAnyTransactionNonReimbursable,
-    isAnyTransactionViolated,
-    hasAnyTransactionWarningViolation,
-    getTransactionsWithReceipts,
-    areAllExpensesOnHold,
-    areAllTransactionsWithPendingRoutes,
-    hasAnyTransactionMissingSmartscanFields,
-    areAllTransactionsBeingSmartScanned,
 };
 
 export type {TransactionChanges};
