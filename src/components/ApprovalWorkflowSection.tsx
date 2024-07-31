@@ -9,7 +9,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 type ApprovalWorkflowSectionProps = {
@@ -25,9 +25,14 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
         () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyId ?? '', approvalWorkflow.approvers[0].email)),
         [approvalWorkflow.approvers, policyId],
     );
+    const approverTitle = useCallback(
+        (index: number) =>
+            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
+        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
+    );
 
     return (
-        <PressableWithFeedback
+        <PressableWithoutFeedback
             accessibilityRole="button"
             style={[styles.border, styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={openApprovalsEdit}
@@ -68,7 +73,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                     <View key={approver.email}>
                         <View style={{height: 16, width: 1, backgroundColor: theme.border, marginLeft: 19}} />
                         <MenuItem
-                            title={`${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}`}
+                            title={approverTitle(index)}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
@@ -88,7 +93,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                 fill={theme.icon}
                 additionalStyles={[styles.alignSelfCenter]}
             />
-        </PressableWithFeedback>
+        </PressableWithoutFeedback>
     );
 }
 
