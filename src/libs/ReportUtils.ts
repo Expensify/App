@@ -1416,20 +1416,6 @@ function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): bool
 }
 
 /**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
- */
-function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-
-    // Early return false in case not having any transaction
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    return transactions.every((transaction) => TransactionUtils.isFetchingWaypointsFromServer(transaction));
-}
-
-/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
@@ -2929,22 +2915,6 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
 function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
     return transactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
-}
-
-/**
- * For report previews, we display a "Receipt scan in progress" indicator
- * instead of the report total only when we have no report total ready to show. This is the case when
- * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
- * or as soon as one receipt request is done scanning, we have at least one
- * "ready" expense, and we remove this indicator to show the partial report total.
- */
-function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewAction: OnyxEntry<ReportAction>): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    // If we have more requests than requests with receipts, we have some manual requests
-    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
-        return false;
-    }
-    return transactionsWithReceipts.every((transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -7350,7 +7320,6 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
 export {
     addDomainToShortMention,
     completeShortMention,
-    areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     buildOptimisticUnapprovedReportAction,
@@ -7502,7 +7471,6 @@ export {
     hasMissingSmartscanFields,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
-    hasOnlyTransactionsWithPendingRoutes,
     hasReportNameError,
     hasSmartscanError,
     hasUpdatedTotal,

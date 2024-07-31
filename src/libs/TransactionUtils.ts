@@ -1048,7 +1048,7 @@ function areAllTransactionsWithPendingRoutes(transactions: Transaction[]) {
 /**
  * Check if any of the transactions has required missing fields
  */
-function hasAnyTransactionMissingFields(transactions: Transaction[]): boolean {
+function hasAnyTransactionMissingSmartscanFields(transactions: Transaction[]): boolean {
     return transactions.some(hasMissingSmartscanFields);
 }
 
@@ -1146,7 +1146,7 @@ export {
     getTransactionsWithReceipts,
     areAllExpensesOnHold,
     areAllTransactionsWithPendingRoutes,
-    hasAnyTransactionMissingFields,
+    hasAnyTransactionMissingSmartscanFields,
     areAllTransactionsBeingSmartScanned,
 };
 

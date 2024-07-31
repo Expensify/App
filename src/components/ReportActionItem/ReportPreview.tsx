@@ -122,12 +122,11 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
-
-    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID), [iouReportID]);
+    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID, transactions), [iouReportID, transactions]);
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: TransactionUtils.hasAnyTransactionMissingFields(allTransactions),
+            hasMissingSmartscanFields: TransactionUtils.hasAnyTransactionMissingSmartscanFields(allTransactions),
             areAllRequestsBeingSmartScanned: TransactionUtils.areAllTransactionsBeingSmartScanned(allTransactions, action),
             hasOnlyTransactionsWithPendingRoutes: TransactionUtils.areAllTransactionsWithPendingRoutes(allTransactions),
             hasNonReimbursableTransactions: TransactionUtils.isAnyTransactionNonReimbursable(allTransactions),
