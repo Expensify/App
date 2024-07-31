@@ -38,7 +38,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             if (newPayrollCode !== payrollCode) {
                 Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newPayrollCode);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName));
+            Navigation.dismissModal();
         },
         [categoryName, payrollCode, route.params.categoryName, route.params.policyID],
     );

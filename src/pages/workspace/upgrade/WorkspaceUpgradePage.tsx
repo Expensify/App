@@ -40,10 +40,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const confirmUpgrade = () => {
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
-                Policy.enablePolicyReportFields(policyID, true);
-                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), CONST.NAVIGATION.TYPE.UP);
+                Policy.enablePolicyReportFields(policyID, true, true);
+                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
-                return route.params.backTo ? Navigation.navigate(route.params.backTo, CONST.NAVIGATION.TYPE.UP) : Navigation.goBack();
+                return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
     };
 

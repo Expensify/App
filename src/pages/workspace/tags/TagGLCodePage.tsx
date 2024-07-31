@@ -45,7 +45,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
             }
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [glCode, route.params.policyID, tagName, orderWeight],
     );
