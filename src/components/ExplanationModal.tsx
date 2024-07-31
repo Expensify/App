@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
+import {NativeModules} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
@@ -10,8 +12,10 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 function ExplanationModal() {
     const {translate} = useLocalize();
 
-    const onConfirm = useCallback(() => {
-        Welcome.completeHybridAppOnboarding();
+    const onClose = useCallback(() => {
+        // We propagate value change to OldDot NVP storage
+        Log.info('[HybridApp] Propagating `completedHybridAppOnboarding` value to OldDot');
+        NativeModules.HybridAppModule.completeOnboarding();
 
         // We need to check if standard NewDot onboarding is completed.
         Welcome.isOnboardingFlowCompleted({
@@ -32,7 +36,7 @@ function ExplanationModal() {
             secondaryDescription={translate('onboarding.explanationModal.secondaryDescription')}
             confirmText={translate('footer.getStarted')}
             videoURL={CONST.WELCOME_VIDEO_URL}
-            onConfirm={onConfirm}
+            onClose={onClose}
         />
     );
 }

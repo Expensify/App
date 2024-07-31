@@ -13,7 +13,8 @@ import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
-    completeOnboarding: (status: boolean) => void;
+    completeOnboarding: () => void;
+    getOnboardingStatus: () => Promise<boolean>;
     exitApp: () => void;
 };
 
