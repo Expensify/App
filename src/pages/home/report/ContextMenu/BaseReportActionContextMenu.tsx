@@ -5,7 +5,7 @@ import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -14,6 +14,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -135,13 +136,49 @@ function BaseReportActionContextMenu({
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
+    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
+    const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
+
+    const {reportActions: reportActionsPaginated} = usePaginatedReportActions(childReport?.reportID ?? '-1');
+
+    const transactionThreadReportID = useMemo(
+        () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', reportActionsPaginated ?? [], isOffline),
+        [childReport?.reportID, reportActionsPaginated, isOffline],
+    );
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+
+    const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(childReport), [childReport]);
+    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(childReport), [childReport]);
+
+    const requestParentReportAction = useMemo(() => {
+        if (isMoneyRequestReport || isInvoiceReport) {
+            if (!reportActionsPaginated || !transactionThreadReport?.parentReportActionID) {
+                return undefined;
+            }
+            return reportActionsPaginated.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+        }
+        return parentReportAction;
+    }, [parentReportAction, reportActionsPaginated, transactionThreadReport?.parentReportActionID, isMoneyRequestReport, isInvoiceReport]);
+
+    const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
+    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+
+    let holdReportAction: ReportAction | undefined;
+    if (isSingleTransactionView) {
+        holdReportAction = parentReportAction;
+    } else if (isMoneyRequestReport || isInvoiceReport) {
+        holdReportAction = requestParentReportAction;
+    }
+
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
-            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini),
+            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini, holdReportAction),
     );
 
     if (isMini) {
@@ -248,6 +285,7 @@ function BaseReportActionContextMenu({
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
+                            holdReportAction,
                         };
 
                         if ('renderContent' in contextAction) {
