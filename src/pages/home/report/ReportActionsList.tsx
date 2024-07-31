@@ -183,7 +183,7 @@ function ReportActionsList({
 
     useEffect(() => {
         /**
-         * This allows to mark the report as unread, when
+         * This allows to mark the report as read, when
          * report is opened and new report actions are received.
          */
         hasCalledReadNewestAction.current = false;
