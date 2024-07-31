@@ -374,8 +374,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     illustration={Illustrations.BigVault}
                                     illustrationStyle={styles.walletIllustration}
+                                    illustrationContainerStyle={{height: 220}}
                                     illustrationBackgroundColor="#411103"
-                                    containerStyles={{paddingVertical: 60}}
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}
@@ -410,7 +410,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                     errors={walletTerms?.errors}
                                                     onClose={PaymentMethods.clearWalletTermsError}
                                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                                    style={[styles.mt4, styles.mb2, styles.alignSelfStart]}
+                                                    style={[styles.mt4, styles.mb2]}
                                                 >
                                                     <MenuItemWithTopDescription
                                                         description={translate('walletPage.balance')}

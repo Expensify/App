@@ -4716,8 +4716,6 @@ const styles = (theme: ThemeColors) =>
         walletIllustration: {
             width: 262,
             height: 152,
-            padding: 34,
-            boxSizing: 'content-box',
         },
 
         walletCardLimit: {
