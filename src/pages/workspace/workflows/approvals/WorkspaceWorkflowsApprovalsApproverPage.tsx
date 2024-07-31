@@ -214,7 +214,6 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
                     />
                     <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
                     <SelectionList
-                        canSelectMultiple
                         sections={sections}
                         ListItem={InviteMemberListItem}
                         textInputLabel={translate('selectionList.findMember')}
