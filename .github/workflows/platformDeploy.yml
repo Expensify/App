@@ -180,7 +180,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Archive desktop sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: desktop-sourcemap-${{ github.ref_name }}
           path: desktop/dist/www/merged-source-map.js.map
@@ -354,7 +354,7 @@ jobs:
           S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}expensify-cash
 
       - name: Archive web sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: web-sourcemap-${{ github.ref_name }}
           path: dist/merged-source-map.js.map
