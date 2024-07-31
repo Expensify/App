@@ -45,7 +45,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                 ReportActions.exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                ReportActions.markAsManuallyExported(reportID);
+                ReportActions.markAsManuallyExported(reportID, connectionName);
             }
             setModalStatus(null);
             Navigation.dismissModal();
