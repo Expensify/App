@@ -1,3 +1,4 @@
+import isObject from 'lodash/isObject';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -7,6 +8,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -34,6 +36,36 @@ function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPoli
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {optimisticData});
 }
 
+function createPendingFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
+    pendingValue: OnyxCommon.PendingAction,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: pendingValue};
+    }
+
+    return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
+        acc[setting] = pendingValue;
+        return acc;
+    }, {});
+}
+
+function createErrorFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
+    errorValue: OnyxCommon.Errors | null,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: errorValue};
+    }
+
+    return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
+        acc[setting] = errorValue;
+        return acc;
+    }, {});
+}
+
 function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     policyID: string,
     settingName: TSettingName,
@@ -50,12 +82,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         options: {
                             config: {
                                 [settingName]: settingValue ?? null,
-                                pendingFields: {
-                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                                pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                                errorFields: createErrorFields(settingName, settingValue, null),
                             },
                         },
                     },
@@ -74,12 +102,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         options: {
                             config: {
                                 [settingName]: oldSettingValue ?? null,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                },
+                                pendingFields: createPendingFields(settingName, settingValue, null),
+                                errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                             },
                         },
                     },
@@ -98,12 +122,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                         options: {
                             config: {
                                 [settingName]: settingValue ?? null,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                                pendingFields: createPendingFields(settingName, settingValue, null),
+                                errorFields: createErrorFields(settingName, settingValue, null),
                             },
                         },
                     },
@@ -131,9 +151,9 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                             config: {
                                 syncOptions: {
                                     [settingName]: settingValue ?? null,
-                                    pendingFields: {
-                                        [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                    },
+                                },
+                                pendingFields: {
+                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 errorFields: {
                                     [settingName]: null,
@@ -157,9 +177,9 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                             config: {
                                 syncOptions: {
                                     [settingName]: oldSettingValue ?? null,
-                                    pendingFields: {
-                                        [settingName]: null,
-                                    },
+                                },
+                                pendingFields: {
+                                    [settingName]: null,
                                 },
                                 errorFields: {
                                     [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -183,9 +203,9 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                             config: {
                                 syncOptions: {
                                     [settingName]: settingValue ?? null,
-                                    pendingFields: {
-                                        [settingName]: null,
-                                    },
+                                },
+                                pendingFields: {
+                                    [settingName]: null,
                                 },
                                 errorFields: {
                                     [settingName]: null,

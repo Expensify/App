@@ -87,11 +87,11 @@ function NetSuiteImportCustomFieldView({
                 <OfflineWithFeedback
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, importCustomField)}
                     errorRowStyles={[styles.ph5]}
-                    pendingAction={config?.syncOptions?.pendingFields?.[importCustomField]}
+                    pendingAction={config?.pendingFields?.[importCustomField]}
                     onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
                 >
                     {fieldList.map((fieldName) => {
-                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
+                        const isEditable = !config?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}
@@ -113,7 +113,7 @@ function NetSuiteImportCustomFieldView({
                     <MenuItem
                         icon={Expensicons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                        disabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => setIsRemoveModalOpen(true)}
                     />
                 </OfflineWithFeedback>

@@ -204,7 +204,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         submitButtonStyles={[styles.ph5, styles.mb0]}
                         shouldUseScrollView={!selectionListForm}
                         enabledWhenOffline
-                        isSubmitDisabled={!!config?.syncOptions?.pendingFields?.customSegments}
+                        isSubmitDisabled={!!config?.pendingFields?.customSegments}
                         submitFlexEnabled={submitFlexAllowed}
                     >
                         {renderSubStepContent}

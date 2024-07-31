@@ -69,7 +69,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
 
             <OfflineWithFeedback
                 pendingAction={
-                    xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.syncOptions?.pendingFields) ??
+                    xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.pendingFields) ??
                     xeroSettingsPendingAction(
                         [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
                         config?.syncOptions?.mapping?.pendingFields,
@@ -99,7 +99,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     onToggle={(isEnabled: boolean) => {
                         updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
                     }}
-                    pendingAction={config?.syncOptions?.pendingFields?.syncTax}
+                    pendingAction={config?.pendingFields?.syncTax}
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
                     onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
                 />
@@ -108,7 +108,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => (
                 <OfflineWithFeedback
                     key={importField}
-                    pendingAction={xeroSettingsPendingAction([importField], config?.syncOptions?.pendingFields)}
+                    pendingAction={xeroSettingsPendingAction([importField], config?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}

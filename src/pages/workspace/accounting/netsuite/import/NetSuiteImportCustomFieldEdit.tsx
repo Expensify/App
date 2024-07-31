@@ -115,7 +115,7 @@ function NetSuiteImportCustomFieldEdit({
                     submitButtonText={translate('common.save')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
-                    isSubmitDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                    isSubmitDisabled={!!config?.pendingFields?.[importCustomField]}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -129,7 +129,7 @@ function NetSuiteImportCustomFieldEdit({
                     />
                 </FormProvider>
             ),
-        [config?.syncOptions?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
+        [config?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
     );
 
     const renderSelection = useMemo(

@@ -126,7 +126,7 @@ function NetSuiteImportCustomFieldPage({
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, importCustomField)}
                 errorRowStyles={[styles.ph5]}
-                pendingAction={config?.syncOptions?.pendingFields?.[importCustomField]}
+                pendingAction={config?.pendingFields?.[importCustomField]}
                 onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
             >
                 {data.map((record, index) => (
@@ -145,7 +145,7 @@ function NetSuiteImportCustomFieldPage({
                 <Button
                     success
                     large
-                    isDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                    isDisabled={!!config?.pendingFields?.[importCustomField]}
                     onPress={() => {
                         if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS) {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(policyID));

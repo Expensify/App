@@ -104,7 +104,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 onToggle={(isEnabled: boolean) => {
                     updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
                 }}
-                pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                pendingAction={config?.pendingFields?.crossSubsidiaryCustomers}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
                 onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
             />
