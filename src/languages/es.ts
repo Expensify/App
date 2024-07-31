@@ -1298,6 +1298,7 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
+        header: 'Cuando los siguientes miembros presenten gastos:',
     },
     workflowsApprovalPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
