@@ -166,7 +166,7 @@ function ReportActionsList({
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
-    const userActiveSince = useRef<string | null>(DateUtils.getDBTime());
+    const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -317,21 +317,15 @@ function ReportActionsList({
     }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
 
     useEffect(() => {
-        // If the reportID changes, we reset the userActiveSince to null, we need to do it because
-        // the parent component is sending the previous reportID even when the user isn't active
-        // on the report
-        if (userActiveSince.current && prevReportID && prevReportID !== report.reportID) {
-            userActiveSince.current = null;
-        } else {
-            userActiveSince.current = DateUtils.getDBTime();
-        }
+        userActiveSince.current = DateUtils.getDBTime();
         prevReportID = report.reportID;
     }, [report.reportID]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID) {
+        if (report.reportID !== prevReportID) {
             return;
         }
+
         if (ReportUtils.isUnread(report)) {
             // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -479,7 +473,7 @@ function ReportActionsList({
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID) {
+        if (report.reportID !== prevReportID) {
             return;
         }
 
