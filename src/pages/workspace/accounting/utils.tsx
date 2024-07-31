@@ -79,7 +79,7 @@ function getAccountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
-                requiresControlPolicy: true,
+                workspaceUpgradeIntegrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
@@ -95,7 +95,7 @@ function getAccountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
-                requiresControlPolicy: true,
+                workspaceUpgradeIntegrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
             };
         default:
             return undefined;

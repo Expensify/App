@@ -59,12 +59,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
             const accountingIntegrationData = getAccountingIntegrationData(newActiveIntegration.name, policyID, translate);
-            if (accountingIntegrationData?.requiresControlPolicy && !isControlPolicy(policy)) {
-                const alias =
-                    newActiveIntegration.name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE
-                        ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias
-                        : CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias;
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, alias));
+            if (accountingIntegrationData?.workspaceUpgradeIntegrationAlias && !isControlPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, accountingIntegrationData?.workspaceUpgradeIntegrationAlias));
                 return;
             }
             setActiveIntegration({

@@ -30,8 +30,8 @@ type AccountingIntegration = {
     subscribedAdvancedSettings?: XeroSettings;
     onCardReconciliationPagePress: () => void;
 
-    /** Whether the integration requires a control policy. If so, and the user doesn't have one, they will be redirected to the upgrade page */
-    requiresControlPolicy?: boolean;
+    /** Integration alias for workspace upgrade navigation. If passed, and the user doesn't have control policy, they will be redirected to the upgrade page */
+    workspaceUpgradeIntegrationAlias?: string;
 };
 
 export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};
