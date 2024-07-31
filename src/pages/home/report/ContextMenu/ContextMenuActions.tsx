@@ -66,7 +66,7 @@ type ShouldShow = (
     isUnreadChat: boolean,
     isOffline: boolean,
     isMini: boolean,
-    holdReportAction: OnyxEntry<ReportAction> | undefined,
+    moneyRequestAction: ReportAction | undefined,
 ) => boolean;
 
 type ContextMenuActionPayload = {
@@ -84,7 +84,7 @@ type ContextMenuActionPayload = {
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: MutableRefObject<View | null>;
-    holdReportAction: OnyxEntry<ReportAction> | undefined;
+    moneyRequestAction: ReportAction | undefined;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -265,16 +265,16 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unholdExpense',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, holdReportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(holdReportAction).canHoldRequest,
-        onPress: (closePopover, {holdReportAction}) => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, moneyRequestAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
+        onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(holdReportAction));
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(holdReportAction);
+            ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
     },
@@ -282,16 +282,16 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, holdReportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(holdReportAction).canHoldRequest,
-        onPress: (closePopover, {holdReportAction}) => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini, moneyRequestAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
+        onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(holdReportAction));
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(holdReportAction);
+            ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
     },

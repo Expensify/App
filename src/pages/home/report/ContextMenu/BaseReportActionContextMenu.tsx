@@ -161,17 +161,8 @@ function BaseReportActionContextMenu({
         return parentReportAction;
     }, [parentReportAction, reportActionsPaginated, transactionThreadReport?.parentReportActionID, isMoneyRequestReport, isInvoiceReport]);
 
-    const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
-    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
-    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
-    let holdReportAction: ReportAction | undefined;
-    if (isSingleTransactionView) {
-        holdReportAction = parentReportAction;
-    } else if (isMoneyRequestReport || isInvoiceReport) {
-        holdReportAction = requestParentReportAction;
-    }
-    
     const sourceID = ReportUtils.getSourceIDFromReportAction(reportAction);
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
@@ -182,7 +173,7 @@ function BaseReportActionContextMenu({
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
-            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini, holdReportAction),
+            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini, moneyRequestAction),
     );
 
     if (isMini) {
@@ -289,7 +280,7 @@ function BaseReportActionContextMenu({
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
-                            holdReportAction,
+                            moneyRequestAction,
                         };
 
                         if ('renderContent' in contextAction) {
