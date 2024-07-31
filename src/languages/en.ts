@@ -4216,6 +4216,8 @@ export default {
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
+            taxExempt: 'Request tax exempt status',
+            taxExemptEnabled: 'Tax exempt',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
             headsUp:
