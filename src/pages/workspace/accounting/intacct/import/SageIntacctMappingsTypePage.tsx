@@ -28,8 +28,7 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
     const selectionOptions = useMemo<SelectorType[]>(() => {
         const mappingOptions: SelectorType[] = [];
         if (
-            mappingName !== CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS &&
-            mappingName !== CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS &&
+            !([CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS] as string[]).includes(mappingName) &&
             exportConfig?.reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
         ) {
             mappingOptions.push({
