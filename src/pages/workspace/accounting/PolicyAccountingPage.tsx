@@ -276,7 +276,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     : {
                           description: translate('workspace.intacct.entity'),
                           iconRight: Expensicons.ArrowRight,
-                          title: getCurrentSageIntacctEntityName(policy) ?? translate('workspace.common.topLevel'),
+                          title: getCurrentSageIntacctEntityName(policy, translate),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: true,
