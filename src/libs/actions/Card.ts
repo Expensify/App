@@ -381,6 +381,24 @@ function startIssueNewCardFlow(policyID: string) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
+function issueExpensifyCard(policyID: string, feedCountry: string, {assigneeEmail, limit, limitType, cardTitle, cardType}: IssueNewCardData) {
+    const parameters = {
+        policyID,
+        assigneeEmail,
+        limit,
+        limitType,
+        cardTitle,
+    };
+
+    if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
+        API.write(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD, {...parameters, feedCountry});
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -393,5 +411,6 @@ export {
     updateExpensifyCardLimit,
     updateSettlementAccount,
     startIssueNewCardFlow,
+    issueExpensifyCard,
 };
 export type {ReplacementReason};

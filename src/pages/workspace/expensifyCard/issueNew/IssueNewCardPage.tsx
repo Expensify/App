@@ -34,7 +34,7 @@ function IssueNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
             return <CardNameStep />;
         case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
-            return <ConfirmationStep />;
+            return <ConfirmationStep policy={policy} />;
         default:
             return <AssigneeStep policy={policy} />;
     }

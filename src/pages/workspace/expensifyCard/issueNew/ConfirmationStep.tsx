@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -18,19 +19,34 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
-function ConfirmationStep() {
+type ConfirmationStepProps = {
+    // The policy that the card will be issued under
+    policy: OnyxEntry<OnyxTypes.Policy>;
+};
+
+const defaultData = {
+    assigneeEmail: '',
+    cardTitle: '',
+    cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL,
+    limit: 0,
+    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+};
+
+function ConfirmationStep({policy}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
-    const data = issueNewCard?.data;
+    const data = issueNewCard?.data ?? defaultData;
+    const policyID = policy?.id ?? '-1';
 
     const submit = () => {
-        // TODO: the logic will be created when CreateExpensifyCard is ready
+        Card.issueExpensifyCard(policyID, 'USA', data);
         Navigation.goBack();
         Card.clearIssueNewCardFlow();
     };
