@@ -11,7 +11,7 @@ Once connected to Intacct you’re able to automate report exports, customize yo
 
 {% include info.html %}
 The Sage Intacct integration is only available on the Control plan.
-{% include info.html %}
+{% include end-info.html %}
 
 # How to connect to Sage Intacct
 We support setting up Sage Intacct with both User-based permissions and Role-based permissions for Expense Reports and Vendor Bills.

@@ -10,7 +10,7 @@ Enjoy automated syncing and reduce manual entries with the Expensify and Sage In
 
 {% include info.html %}
 The Sage Intacct integration is only available on the Control plan.
-{% include info.html %}
+{% include end-info.html %}
 
 ## Overview
 
