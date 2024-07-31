@@ -779,9 +779,7 @@ export default {
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
-            receiptFailureMessage: 'El recibo no se subió. ',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
+            receiptFailureMessage: 'El recibo no se subió',
             saveFileMessage: 'Guarda el archivo ',
             loseFileMessage: 'o descarta este error y piérdelo.',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
@@ -1691,58 +1689,33 @@ export default {
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Por favor, configúrala en USD e inténtalo nuevamente.',
         error: {
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido. El sitio web debe estar en minúsculas.',
             zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             phoneNumber: 'Por favor, introduce un teléfono válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             companyName: 'Por favor, introduce un nombre comercial legal válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             addressCity: 'Por favor, introduce una ciudad válida',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             addressStreet: 'Por favor, introduce una calle de dirección válida que no sea un apartado postal',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             addressState: 'Por favor, selecciona un estado',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             incorporationState: 'Por favor, selecciona una estado válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             industryCode: 'Por favor, introduce un código de clasificación de industria válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             routingNumber: 'Por favor, introduce un número de ruta válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             accountNumber: 'Por favor, introduce un número de cuenta válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             routingAndAccountNumberCannotBeSame: 'Los números de ruta y de cuenta no pueden ser iguales',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             companyType: 'Por favor, selecciona un tipo de compañía válido',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             tooManyAttempts:
                 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción ha sido desactivada temporalmente durante 24 horas. Por favor, inténtalo de nuevo más tarde.',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             address: 'Por favor, introduce una dirección válida',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             dob: 'Por favor, selecciona una fecha de nacimiento válida',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             age: 'Debe ser mayor de 18 años',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             ssnLast4: 'Por favor, introduce los últimos 4 dígitos del número de seguridad social',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             firstName: 'Por favor, introduce el nombre',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             lastName: 'Por favor, introduce los apellidos',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito',
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
         },
