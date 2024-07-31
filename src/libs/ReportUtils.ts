@@ -42,6 +42,7 @@ import type {
     TransactionViolation,
     UserWallet,
 } from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -1528,6 +1529,14 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 function isOneTransactionReport(reportID: string): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
     return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
+}
+
+function isFutureTravelExpenseReport(reportID: string): boolean {
+    if (!isOneTransactionReport(reportID)) {
+        return false;
+    }
+
+    return TransactionUtils.isFutureTravelExpense(TransactionUtils.getAllReportTransactions(reportID)[0]);
 }
 
 /**
@@ -7682,6 +7691,7 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
+    isFutureTravelExpenseReport,
 };
 
 export type {

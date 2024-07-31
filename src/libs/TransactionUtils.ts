@@ -508,6 +508,7 @@ function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction status is set to Pending.
  */
 function isPending(transaction: OnyxEntry<Transaction>): boolean {
+    return true;
     if (!transaction?.status) {
         return false;
     }
@@ -743,6 +744,10 @@ function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): b
 
 function hasReservationList(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
+function isFutureTravelExpense(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList?.some((reservation) => reservation.paymentType === 'PAY_AT_HOTEL' || reservation.paymentType === 'PAY_AT_VENDOR');
 }
 
 /**
@@ -1053,6 +1058,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
+    isFutureTravelExpense,
 };
 
 export type {TransactionChanges};

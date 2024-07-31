@@ -229,6 +229,8 @@ type Reservation = {
 
     /** In car reservations, this represents the details of the car */
     carInfo?: CarInfo;
+
+    paymentType?: string;
 };
 
 /** Model of trip reservation time details */
