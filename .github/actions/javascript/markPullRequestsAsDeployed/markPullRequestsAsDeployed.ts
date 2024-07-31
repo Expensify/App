@@ -2,6 +2,7 @@
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import type {RequestError} from '@octokit/types';
+import memoize from 'lodash/memoize';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -41,6 +42,8 @@ async function commentPR(PR: number, message: string) {
 }
 
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+
+const getCommit = memoize(GithubUtils.octokit.git.getCommit);
 
 async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
@@ -115,7 +118,7 @@ async function run() {
             let deployer = pr.merged_by?.login;
             if (isCP) {
                 for (const tag of recentTags) {
-                    const {data: commit} = await GithubUtils.octokit.git.getCommit({
+                    const {data: commit} = await getCommit({
                         owner: CONST.GITHUB_OWNER,
                         repo: CONST.APP_REPO,
                         commit_sha: tag.commit.sha,
