@@ -583,7 +583,14 @@ function ReportScreen({
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (
+            !shouldUseNarrowLayout ||
+            !isFocused ||
+            prevIsFocused ||
+            !ReportUtils.isChatThread(report) ||
+            report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
+            isSingleTransactionView
+        ) {
             return;
         }
         Report.openReport(report.reportID);
@@ -591,7 +598,7 @@ function ReportScreen({
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report.notificationPreference, isFocused]);
+    }, [prevIsFocused, report.notificationPreference, isFocused, isSingleTransactionView]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.

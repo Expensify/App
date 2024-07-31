@@ -51,9 +51,14 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             if (!policy) {
                 return {};
             }
+            const newTaxCode = values.taxCode.trim();
+            if (newTaxCode === currentTaxCode) {
+                return {};
+            }
+
             return validateTaxCode(policy, values);
         },
-        [policy],
+        [currentTaxCode, policy],
     );
 
     return (

@@ -7,10 +7,6 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
-}
-
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
@@ -60,7 +56,6 @@ function canUseLinkPreviews(): boolean {
 }
 
 export default {
-    canUseChronos,
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseViolations,
