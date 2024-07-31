@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
@@ -41,6 +42,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                 onPress={() => navigateToAvatarPage(icons[0])}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={icons[0].name ?? ''}
+                disabled={icons[0].source === Expensicons.FallbackAvatar}
             >
                 <Avatar
                     source={icons[0].source}
@@ -77,6 +79,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={icon.name ?? ''}
+                            disabled={icon.source === Expensicons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}

@@ -1,11 +1,13 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type ApprovalWorkflow from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type {CapturedLogs, Log} from './Console';
@@ -68,6 +70,8 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
+import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
+import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
@@ -163,6 +167,9 @@ export type {
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
+    ReportViolationName,
+    ReportViolations,
+    ReportFieldsViolations,
     Request,
     Response,
     ScreenShareRequest,
@@ -207,4 +214,6 @@ export type {
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
+    CancellationDetails,
+    ApprovalWorkflow,
 };

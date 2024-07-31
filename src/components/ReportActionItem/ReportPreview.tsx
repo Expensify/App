@@ -84,6 +84,12 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
+    /** Callback when the payment options popover is shown */
+    onPaymentOptionsShow?: () => void;
+
+    /** Callback when the payment options popover is closed */
+    onPaymentOptionsHide?: () => void;
+
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
@@ -106,6 +112,8 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
     userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
@@ -153,9 +161,10 @@ function ReportPreview({
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors =
-        hasMissingSmartscanFields ||
+        (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
+        (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
@@ -294,7 +303,7 @@ function ReportPreview({
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
-    const shouldShowRBR = !iouSettled && hasErrors;
+    const shouldShowRBR = hasErrors;
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
@@ -434,7 +443,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
+                                {shouldShowSettlementButton && (
                                     <SettlementButton
                                         formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -442,6 +451,8 @@ function ReportPreview({
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
                                         onPress={confirmPayment}
+                                        onPaymentOptionsShow={onPaymentOptionsShow}
+                                        onPaymentOptionsHide={onPaymentOptionsHide}
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
@@ -460,7 +471,7 @@ function ReportPreview({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
-                                {shouldShowExportIntegrationButton && (
+                                {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
                                         report={iouReport}

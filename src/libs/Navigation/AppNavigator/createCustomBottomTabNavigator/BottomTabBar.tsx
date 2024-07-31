@@ -58,7 +58,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
         Welcome.isOnboardingFlowCompleted({
             onNotCompleted: () => {
-                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT, linkingConfig.config);
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
                 navigationRef.resetRoot(adaptedState);
             },
         });
@@ -104,7 +104,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
                             return;
                         }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL)));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL})));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
