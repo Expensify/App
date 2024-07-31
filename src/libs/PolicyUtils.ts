@@ -293,7 +293,7 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\{1,2}:/g, CONST.COLON);
+    return tag?.replace(/\\:/g, CONST.COLON);
 }
 
 /**
