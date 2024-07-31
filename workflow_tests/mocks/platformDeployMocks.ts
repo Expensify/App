@@ -110,7 +110,7 @@ const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Ch
 const PLATFORM_DEPLOY__IOS__CONFIGURE_MAPBOX_SDK__STEP_MOCK = createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK = createMockStep('Setup Node', 'Setting up Node', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = createMockStep('Setup Ruby', 'Setting up Ruby', 'IOS', ['ruby-version', 'bundler-cache']);
-const PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key', 'restore-keys'], [], {
+const PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key'], [], {
     'cache-hit': false,
 });
 const PLATFORM_DEPLOY__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = createMockStep('Compare Podfile.lock and Manifest.lock', 'Compare Podfile.lock and Manifest.lock', 'IOS', [], [], {
