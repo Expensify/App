@@ -8,10 +8,10 @@ import ROUTES from '@src/ROUTES';
 
 type Props = {
     policyName: string;
-    onConfirmUpgrade: () => void;
+    policyID: string;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade}: Props) {
+function UpgradeConfirmation({policyName, policyID}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -31,7 +31,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade}: Props) {
                 </>
             }
             shouldShowButton
-            onButtonPress={onConfirmUpgrade}
+            onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
             buttonText={translate('workspace.upgrade.completed.gotIt')}
         />
     );

@@ -1583,6 +1583,9 @@ export type {
     NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
+    NetSuiteVendor,
+    InvoiceItem,
+    NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
@@ -1594,4 +1597,5 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
+    ACHAccount,
 };
