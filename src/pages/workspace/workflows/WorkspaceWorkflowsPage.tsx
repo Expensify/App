@@ -148,40 +148,36 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 onToggle: (isEnabled: boolean) => {
                     Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
-                subMenuItems: (
+                subMenuItems: canUseAdvancedApproval ? (
                     <>
-                        {/* TODO: Functionality for this button will be added in a future PR (https://github.com/Expensify/App/issues/45954) */}
-                        {canUseAdvancedApproval ? (
-                            <>
-                                {workflows.map((w) => (
-                                    <ApprovalWorkflowSection
-                                        approvalWorkflow={w}
-                                        policyId={policy?.id}
-                                    />
-                                ))}
-                                <MenuItem
-                                    title={translate('workflowsPage.addApprovalButton')}
-                                    titleStyle={styles.textStrong}
-                                    icon={Expensicons.Plus}
-                                    iconHeight={20}
-                                    iconWidth={20}
-                                    iconFill={theme.success}
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                />
-                            </>
-                        ) : (
-                            <MenuItemWithTopDescription
-                                title={policyApproverName ?? ''}
-                                titleStyle={styles.textNormalThemeText}
-                                descriptionTextStyle={styles.textLabelSupportingNormal}
-                                description={translate('workflowsPage.approver')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        {workflows.map((w) => (
+                            <ApprovalWorkflowSection
+                                approvalWorkflow={w}
+                                policyId={policy?.id}
                             />
-                        )}
+                        ))}
+                        {/* TODO: Functionality for this button will be added in a future PR (https://github.com/Expensify/App/issues/45954) */}
+                        <MenuItem
+                            title={translate('workflowsPage.addApprovalButton')}
+                            titleStyle={styles.textStrong}
+                            icon={Expensicons.Plus}
+                            iconHeight={20}
+                            iconWidth={20}
+                            iconFill={theme.success}
+                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                        />
                     </>
+                ) : (
+                    <MenuItemWithTopDescription
+                        title={policyApproverName ?? ''}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        description={translate('workflowsPage.approver')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
                 ),
                 isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,

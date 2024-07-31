@@ -50,7 +50,7 @@ type LocaleContextProps = {
     toLocaleDigit: (digit: string) => string;
 
     /** Formats a number into its localized ordinal representation */
-    toLocaleOrdinal: (number: number, returnWords: boolean) => string;
+    toLocaleOrdinal: (number: number, returnWords?: boolean) => string;
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
