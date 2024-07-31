@@ -2758,6 +2758,10 @@ export default {
                 title: 'Spend',
                 subtitle: 'Enable optional functionality that helps you scale your team.',
             },
+            earnSection: {
+                title: 'Earn',
+                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+            },
             organizeSection: {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
@@ -2790,6 +2794,10 @@ export default {
             workflows: {
                 title: 'Workflows',
                 subtitle: 'Configure how spend is approved and paid.',
+            },
+            invoices: {
+                title: 'Invoices',
+                subtitle: 'Send and receive invoices.',
             },
             categories: {
                 title: 'Categories',

@@ -2810,6 +2810,10 @@ export default {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
             },
+            earnSection: {
+                title: 'Gane',
+                subtitle: 'Habilite funciones opcionales para agilizar sus ingresos y cobrar con mayor rapidez.',
+            },
             organizeSection: {
                 title: 'Organizar',
                 subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
@@ -2842,6 +2846,10 @@ export default {
             workflows: {
                 title: 'Flujos de trabajo',
                 subtitle: 'Configura cómo se aprueba y paga los gastos.',
+            },
+            invoices: {
+                title: 'Invoices',
+                subtitle: 'Send and receive invoices.',
             },
             categories: {
                 title: 'Categorías',
