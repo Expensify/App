@@ -8,8 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
@@ -31,6 +31,18 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
+};
+
+// This map contains signs with spaces that match each operator
+const operatorToSignMap = {
+    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
 /**
@@ -429,11 +441,11 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
             return;
         }
 
-        if (typeof node?.left === 'object') {
+        if (typeof node?.left === 'object' && node.left) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object') {
+        if (typeof node?.right === 'object' && node.right) {
             traverse(node.right);
         }
 
@@ -460,21 +472,50 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
     return filters;
 }
 
+function buildFilterValueString(filterName: string, queryFilters: QueryFilter[]) {
+    let filterValueString = '';
+    queryFilters.forEach((queryFilter, index) => {
+        // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
+        if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
+            filterValueString += `,${queryFilter.value}`;
+        } else {
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+        }
+    });
+
+    return filterValueString;
+}
+
+function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
+    const {inputQuery, type, status} = queryJSON;
+    const filters = getFilters(inputQuery, Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS)) ?? {};
+
+    let title = `type:${type} status:${status}`;
+
+    Object.keys(filters).forEach((key) => {
+        const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] as QueryFilter[];
+        title += buildFilterValueString(key, queryFilter);
+    });
+
+    return title;
+}
+
 export {
+    buildQueryStringFromFilters,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
+    getFilters,
     getListItem,
     getQueryHash,
-    getSections,
-    getSortedSections,
-    getShouldShowMerchant,
+    getSearchHeaderTitle,
     getSearchType,
-    shouldShowYear,
+    getSections,
+    getShouldShowMerchant,
+    getSortedSections,
     isReportListItemType,
-    isTransactionListItemType,
     isSearchResultsEmpty,
-    getFilters,
+    isTransactionListItemType,
     normalizeQuery,
-    buildQueryStringFromFilters,
+    shouldShowYear,
 };

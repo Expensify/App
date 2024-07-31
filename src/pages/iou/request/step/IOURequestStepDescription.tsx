@@ -178,8 +178,10 @@ function IOURequestStepDescription({
                             if (!el) {
                                 return;
                             }
+                            if (!inputRef.current) {
+                                updateMultilineInputRange(el);
+                            }
                             inputRef.current = el;
-                            updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

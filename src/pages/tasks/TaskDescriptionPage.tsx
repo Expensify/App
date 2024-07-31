@@ -117,8 +117,10 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
                                 inputRef.current = element;
-                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
