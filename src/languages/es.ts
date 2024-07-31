@@ -1248,7 +1248,7 @@ export default {
         workflowTitle: 'Gasto',
         workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
         delaySubmissionTitle: 'Retrasar envíos',
-        delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
+        delaySubmissionDescription: 'Retrasa la presentación de gastos en base a un calendario personalizado, o mantén esta opción desactivada para seguir viendo los gastos en tiempo real.',
         submissionFrequency: 'Frecuencia de envíos',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Requerir aprobaciones',
@@ -1256,11 +1256,12 @@ export default {
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        makeOrTrackPaymentsTitle: 'Pagos',
-        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o realiza un seguimiento de los pagos realizados en otro lugar.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
+        frequencyDescription: 'Elige la frecuencia de presentación automática de gastos, o preséntalos manualmente',
         frequencies: {
             weekly: 'Semanal',
             monthly: 'Mensual',
@@ -1299,6 +1300,8 @@ export default {
         title: 'Pagador autorizado',
         genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
         admins: 'Administradores',
+        payer: 'Pagador',
+        paymentAccount: 'Cuenta de pago',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
