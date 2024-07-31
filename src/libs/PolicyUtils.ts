@@ -376,6 +376,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
 function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
@@ -418,6 +422,9 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
+        return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
     }
 
     return !!policy?.[featureName];
@@ -911,6 +918,7 @@ export {
     hasPolicyError,
     hasPolicyErrorFields,
     hasTaxRateError,
+    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
