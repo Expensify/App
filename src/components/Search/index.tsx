@@ -27,21 +27,19 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from './types';
+import type {SearchColumnType, SearchQueryJSON, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
-    policyIDs?: string;
     isCustomQuery: boolean;
 };
 
-const sortableSearchTabs: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
 const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
 
-function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
+function Search({queryJSON, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -51,7 +49,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [offset, setOffset] = React.useState(0);
 
-    const {status, sortBy, sortOrder, hash} = queryJSON;
+    const {sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
@@ -170,14 +168,9 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        const currentSearchParams = SearchUtils.getCurrentSearchParams();
-        const currentQueryJSON = SearchUtils.buildSearchQueryJSON(currentSearchParams.q, policyIDs);
-
-        const newQuery = SearchUtils.buildSearchQueryString({...currentQueryJSON, sortBy: column, sortOrder: order});
+        const newQuery = SearchUtils.buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         navigation.setParams({q: newQuery});
     };
-
-    const isSortingAllowed = sortableSearchTabs.includes(status);
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
@@ -197,7 +190,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                         metadata={searchResults?.search}
                         onSortPress={onSortPress}
                         sortOrder={sortOrder}
-                        isSortingAllowed={isSortingAllowed}
                         sortBy={sortBy}
                         shouldShowYear={shouldShowYear}
                     />
