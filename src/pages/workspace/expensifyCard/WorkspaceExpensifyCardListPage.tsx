@@ -24,6 +24,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
@@ -160,14 +162,16 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
             >
                 {!shouldUseNarrowLayout && getHeaderButtons()}
             </HeaderWithBackButton>
-
             {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-
-            <FlatList
-                data={sortedCards}
-                renderItem={renderItem}
-                ListHeaderComponent={WorkspaceCardListHeader}
-            />
+            {!isEmptyObject(cardsList) ? (
+                <EmptyCardView />
+            ) : (
+                <FlatList
+                    data={sortedCards}
+                    renderItem={renderItem}
+                    ListHeaderComponent={WorkspaceCardListHeader}
+                />
+            )}
         </ScreenWrapper>
     );
 }

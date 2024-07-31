@@ -132,7 +132,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 description={translate('workspace.card.issueNewCard.limitType')}
                                 title={translationForLimitType ? translate(translationForLimitType) : ''}
                                 shouldShowRightIcon
-                                onPress={() => {}} // TODO: navigate to Edit limit type page https://github.com/Expensify/App/issues/44328
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.card.issueNewCard.cardName')}

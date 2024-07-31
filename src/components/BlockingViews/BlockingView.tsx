@@ -101,10 +101,12 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                <AutoEmailLink
-                    style={[styles.textAlignCenter, subtitleStyle]}
-                    text={subtitle}
-                />
+                {subtitle && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle]}
+                        text={subtitle}
+                    />
+                )}
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}
