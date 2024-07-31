@@ -88,25 +88,11 @@ async function run() {
         return;
     }
 
-    // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
     const {data: recentTags} = await GithubUtils.octokit.repos.listTags({
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
         per_page: 100,
     });
-    const currentTag = recentTags.find((tag) => tag.name === version);
-    if (!currentTag) {
-        const err = `Could not find tag matching ${version}`;
-        console.error(err);
-        core.setFailed(err);
-        return;
-    }
-    const {data: commit} = await GithubUtils.octokit.git.getCommit({
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        commit_sha: currentTag.commit.sha,
-    });
-    const isCP = /[\S\s]*\(cherry picked from commit .*\)/.test(commit.message);
 
     for (const prNumber of prList) {
         /*
@@ -120,7 +106,27 @@ async function run() {
                 repo: CONST.APP_REPO,
                 pull_number: prNumber,
             });
-            const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
+
+            // Check for the CP Staging label on the issue to see if it was cherry-picked
+            const isCP = pr.labels.some(({name: labelName}) => labelName === 'CP Staging');
+
+            // Determine the deployer. For most PRs it will be whoever merged the PR.
+            // For CPs it will be whoever created the tag for the PR (i.e: whoever triggered the CP)
+            let deployer = pr.merged_by?.login;
+            if (isCP) {
+                for (const tag of recentTags) {
+                    const {data: commit} = await GithubUtils.octokit.git.getCommit({
+                        owner: CONST.GITHUB_OWNER,
+                        repo: CONST.APP_REPO,
+                        commit_sha: tag.commit.sha,
+                    });
+                    const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
+                    if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
+                        deployer = commit.committer.name;
+                        break;
+                    }
+                }
+            }
 
             const title = pr.title;
             const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';

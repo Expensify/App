@@ -122,7 +122,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - name: Label PR with CPStaging
+      - name: Label PR with CP Staging
         run: gh pr edit ${{ inputs.PULL_REQUEST_NUMBER }} --add-label 'CP Staging'
         env:
           GITHUB_TOKEN: ${{ github.token }}
