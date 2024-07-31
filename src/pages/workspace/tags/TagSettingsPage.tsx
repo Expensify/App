@@ -72,13 +72,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
     const navigateToEditGlCode = () => {
         if (!PolicyUtils.isControlPolicy(policy)) {
-            Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                    route.params.policyID,
-                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', route.params.orderWeight, route.params.tagName),
-                ),
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias));
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
@@ -136,7 +130,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
-                            description={translate(`workspace.tags.tagName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditTag}
                             shouldShowRightIcon
                         />
