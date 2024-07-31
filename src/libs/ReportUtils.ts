@@ -481,6 +481,7 @@ type OutstandingChildRequest = {
 type ParsingDetails = {
     shouldEscapeText?: boolean;
     reportID?: string;
+    policyID?: string;
 };
 
 let currentUserEmail: string | undefined;
@@ -3761,6 +3762,13 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
         isGroupPolicyReport = isReportInGroupPolicy(currentReport);
+    }
+
+    if (parsingDetails?.policyID) {
+        const policyType = getPolicy(parsingDetails?.policyID)?.type;
+        if (policyType) {
+            isGroupPolicyReport = isGroupPolicy(policyType);
+        }
     }
 
     const textWithMention = completeShortMention(text);
