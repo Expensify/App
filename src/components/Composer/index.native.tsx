@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {TextInput} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -19,8 +19,7 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
-        shouldClear = false,
-        onClear = () => {},
+        onClear: onClearProp = () => {},
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -38,7 +37,7 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
+    const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -64,13 +63,12 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        if (!shouldClear) {
-            return;
-        }
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
+    const onClear = useCallback(
+        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            onClearProp(nativeEvent.text);
+        },
+        [onClearProp],
+    );
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
@@ -95,10 +93,11 @@ function Composer(
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
-                    shouldResetFocus.current = true; // detect the input is blurred when the page is hidden
+                    shouldResetFocusRef.current = true; // detect the input is blurred when the page is hidden
                 }
                 props?.onBlur?.(e);
             }}
+            onClear={onClear}
         />
     );
 }

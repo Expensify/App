@@ -23,6 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -60,7 +61,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const network = useNetwork();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -274,10 +276,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     };
 
     useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
-
-    useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
         if (!network.isOffline) {
             updateShouldShowLoadingSpinner();
@@ -341,9 +339,9 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
+    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
-    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
+    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
 
     return (
         <>
@@ -358,10 +356,10 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.MoneyIntoWallet}
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                     />
                     <ScrollView style={styles.pt3}>
-                        <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <OfflineWithFeedback
                                 style={styles.flex1}
                                 contentContainerStyle={styles.flex1}
@@ -430,8 +428,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                                 disabled={network.isOffline}
                                                                 wrapperStyle={[
                                                                     styles.transferBalance,
-                                                                    isSmallScreenWidth ? styles.mhn5 : styles.mhn8,
-                                                                    isSmallScreenWidth ? styles.ph5 : styles.ph8,
+                                                                    shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
+                                                                    shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                                 ]}
                                                             />
                                                         );
@@ -492,8 +490,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             shouldShowEmptyListMessage={false}
                                             shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
-                                            style={[styles.mt5, [isSmallScreenWidth ? styles.mhn5 : styles.mhn8]]}
-                                            listItemStyle={isSmallScreenWidth ? styles.ph5 : styles.ph8}
+                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                             actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                             activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                             buttonRef={addPaymentMethodAnchorRef}
@@ -516,8 +514,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         buttonRef={addPaymentMethodAnchorRef}
                                         onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         shouldEnableScroll={false}
-                                        style={[styles.mt5, [isSmallScreenWidth ? styles.mhn5 : styles.mhn8]]}
-                                        listItemStyle={isSmallScreenWidth ? styles.ph5 : styles.ph8}
+                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     />
                                 </Section>
                             </OfflineWithFeedback>
@@ -533,7 +531,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                         anchorRef={paymentMethodButtonRef as RefObject<View>}
                     >
                         {!showConfirmDeleteModal && (
-                            <View style={[styles.mv5, !isSmallScreenWidth ? styles.sidebarPopover : {}]}>
+                            <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title}
@@ -555,14 +553,14 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             makeDefaultPaymentMethod();
                                             setShouldShowDefaultDeleteMenu(false);
                                         }}
-                                        wrapperStyle={[styles.pv3, styles.ph5, !isSmallScreenWidth ? styles.sidebarPopover : {}]}
+                                        wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                     />
                                 )}
                                 <MenuItem
                                     title={translate('common.delete')}
                                     icon={Expensicons.Trashcan}
                                     onPress={() => setShowConfirmDeleteModal(true)}
-                                    wrapperStyle={[styles.pv3, styles.ph5, !isSmallScreenWidth ? styles.sidebarPopover : {}]}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                 />
                             </View>
                         )}

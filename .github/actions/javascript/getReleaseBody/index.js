@@ -11459,9 +11459,25 @@ const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
 const PRList = ActionUtils.getJSONInput('PR_LIST', { required: true });
 console.log('Got PR list: ', String(PRList));
-const releaseBody = GithubUtils_1.default.getReleaseBody(PRList);
-console.log(`Generated release body: ${releaseBody}`);
-core.setOutput('RELEASE_BODY', releaseBody);
+/**
+ * Generate the well-formatted body of a production release.
+ */
+function getReleaseBody(pullRequests) {
+    return pullRequests.map((pr) => `- ${pr.title} by ${pr.user?.login ?? 'unknown'} in ${pr.html_url}`).join('\r\n');
+}
+async function run() {
+    const allPRs = await GithubUtils_1.default.fetchAllPullRequests(PRList);
+    if (!allPRs) {
+        core.setFailed(`something went wrong getting PRList ${JSON.stringify(PRList)}`);
+        return;
+    }
+    const releaseBody = getReleaseBody(allPRs);
+    console.log(`Generated release body: ${releaseBody}`);
+    core.setOutput('RELEASE_BODY', releaseBody);
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
 
 
 /***/ }),
@@ -11547,7 +11563,21 @@ const CONST = {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
     },
+    ACTIONS: {
+        CREATED: 'created',
+        EDIT: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    OPENAI_ROLES: {
+        USER: 'user',
+        ASSISTANT: 'assistant',
+    },
+    PROPOSAL_KEYWORD: 'Proposal',
+    OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -11555,6 +11585,9 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    NO_ACTION: 'NO_ACTION',
+    OPENAI_POLL_RATE: 1500,
+    OPENAI_POLL_TIMEOUT: 90000,
 };
 exports["default"] = CONST;
 
@@ -11930,12 +11963,6 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs[0]?.id);
-    }
-    /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
     }
     /**
      * Generate the URL of an New Expensify pull request given the PR number.

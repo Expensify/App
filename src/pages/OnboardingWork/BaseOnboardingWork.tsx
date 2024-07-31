@@ -5,15 +5,14 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -27,13 +26,11 @@ import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
-
-    useDisableModalDismissOnEscape();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -49,9 +46,9 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 Policy.updateGeneralSettings(onboardingPolicyID, work);
             }
 
-            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
         },
-        [onboardingPurposeSelected, onboardingPolicyID],
+        [onboardingPurposeSelected, onboardingPolicyID, route.params?.backTo],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -72,20 +69,22 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const WorkFooterInstance = <OfflineIndicator />;
 
     return (
-        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
-            <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <KeyboardAvoidingView
-                style={[styles.flex1, styles.dFlex]}
-                behavior="padding"
-            >
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            shouldEnableKeyboardAvoidingView
+            testID="BaseOnboardingWork"
+        >
+            <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
+                <HeaderWithBackButton
+                    shouldShowBackButton
+                    progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
+                    onBackButtonPress={Navigation.goBack}
+                />
                 <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
-                    footerContent={isSmallScreenWidth && WorkFooterInstance}
+                    footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
@@ -95,7 +94,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     shouldValidateOnChange
                     shouldTrimValues={false}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
                     </View>
                     <View style={styles.mb4}>
@@ -113,8 +112,8 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                         />
                     </View>
                 </FormProvider>
-            </KeyboardAvoidingView>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 }
 
