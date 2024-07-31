@@ -145,6 +145,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(contactMethod);
         inputValidateCodeRef.current?.clear();
+        isInitialCodeSent.current = false;
     };
 
     /**
@@ -212,7 +213,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {hasMagicCodeBeenSent && (
+                    {hasMagicCodeBeenSent && !isInitialCodeSent.current && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
