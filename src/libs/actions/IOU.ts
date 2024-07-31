@@ -6853,6 +6853,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        v2: PolicyUtils.isControlOnAdvancedApprovalMode(PolicyUtils.getPolicy(expenseReport?.policyID)),
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
