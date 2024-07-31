@@ -31,7 +31,7 @@ import type {
     EnterMagicCodeParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
-    ForwardedParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
@@ -142,6 +142,7 @@ export default {
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
+        selectMultiple: 'Seleccionar varios',
         next: 'Siguiente',
         create: 'Crear',
         previous: 'Anterior',
@@ -741,6 +742,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
+        forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
@@ -1014,6 +1016,7 @@ export default {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            testCrash: 'Prueba de fallo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -3495,6 +3498,11 @@ export default {
                 description: `Añada códigos de libro mayor y nómina a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los códigos de libro mayor y nómina solo están disponibles en el plan Control, a partir de ',
             },
+            taxCodes: {
+                title: 'Código de impuesto',
+                description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
+            },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',
@@ -3639,7 +3647,6 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
         searchResults: {
@@ -3779,7 +3786,6 @@ export default {
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
-                forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
