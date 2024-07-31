@@ -60,8 +60,8 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
-                    interactive={false}
                     onPress={openApprovalsEdit}
+                    shouldRemoveBackground
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
@@ -77,8 +77,8 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                             iconHeight={20}
                             iconWidth={20}
                             iconFill={theme.icon}
-                            interactive={false}
                             onPress={openApprovalsEdit}
+                            shouldRemoveBackground
                         />
                     </View>
                 ))}
