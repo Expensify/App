@@ -1353,6 +1353,7 @@ const CONST = {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORT: 'export',
         EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
         BILL_DATE: 'billDate',
         BILL_STATUS: 'billStatus',
         NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',

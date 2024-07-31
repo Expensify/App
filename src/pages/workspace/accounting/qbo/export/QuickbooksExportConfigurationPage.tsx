@@ -1,15 +1,14 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -18,7 +17,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
+// type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
 function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -34,22 +33,18 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         errorFields,
         pendingFields,
     } = policy?.connections?.quickbooksOnline?.config ?? {};
-    const menuItems: MenuItem[] = [
+    const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
-            pendingAction: pendingFields?.export,
-            errorText: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
+            subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.qbo.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDate ? translate(`workspace.qbo.exportDate.values.${exportDate}.label`) : undefined,
-            pendingAction: pendingFields?.exportDate,
-            errorText: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
+            subscribedSettings: [CONST.XERO_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
@@ -58,14 +53,13 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             title: reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             pendingAction: pendingFields?.reimbursableExpensesExportDestination || pendingFields?.reimbursableExpensesAccount,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.receivableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: receivableAccount?.name,
-            pendingAction: pendingFields?.receivableAccount,
-            errorText: errorFields?.receivableAccount ? translate('common.genericErrorMessage') : undefined,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
@@ -99,7 +93,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                     {menuItems.map((menuItem) => (
                         <OfflineWithFeedback
                             key={menuItem.description}
-                            pendingAction={menuItem.pendingAction}
+                            pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                         >
                             <MenuItemWithTopDescription
                                 title={menuItem.title}
@@ -107,7 +101,9 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                                 description={menuItem.description}
                                 shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                                 onPress={menuItem?.onPress}
-                                brickRoadIndicator={menuItem?.brickRoadIndicator}
+                                brickRoadIndicator={
+                                    PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                                }
                                 errorText={menuItem?.errorText}
                             />
                         </OfflineWithFeedback>

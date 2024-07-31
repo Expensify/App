@@ -1,19 +1,18 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, Section} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
@@ -33,18 +32,16 @@ function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLo
         </View>
     );
 }
-
 type CardListItem = ListItem & {
     value: QBOReimbursableExportAccountType;
     isShown: boolean;
     accounts: Account[];
 };
-type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
-
 function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {reimbursableExpensesExportDestination, reimbursableExpensesAccount, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const {reimbursableExpensesExportDestination, reimbursableExpensesAccount, syncTax, syncLocations} = qboConfig ?? {};
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const isLocationsEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!syncTax;
@@ -80,7 +77,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         [reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled, bankAccounts, accountPayable, journalEntryAccounts],
     );
 
-    const sections: CardsSection[] = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
+    const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
     const selectExportEntity = useCallback(
         (row: CardListItem) => {
@@ -104,34 +101,33 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.accounting.exportAs')} />
-                <View style={styles.flex1}>
-                    <SelectionList
-                        containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        sections={sections}
-                        ListItem={RadioListItem}
-                        onSelectRow={selectExportEntity}
-                        shouldDebounceRowSelect
-                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                        footerContent={
-                            <Footer
-                                isTaxEnabled={isTaxesEnabled}
-                                isLocationsEnabled={isLocationsEnabled}
-                            />
-                        }
-                    />
-                </View>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            displayName={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
+            sections={sections}
+            listItem={RadioListItem}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID))}
+            onSelectRow={selectExportEntity}
+            shouldDebounceRowSelect
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            title="workspace.accounting.exportAs"
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            pendingAction={PolicyUtils.settingsPendingAction(
+                [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
+                qboConfig?.pendingFields,
+            )}
+            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
+            footerContent={
+                <Footer
+                    isTaxEnabled={isTaxesEnabled}
+                    isLocationsEnabled={isLocationsEnabled}
+                />
+            }
+        />
     );
 }
 
