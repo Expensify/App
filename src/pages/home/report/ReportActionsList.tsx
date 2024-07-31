@@ -179,6 +179,15 @@ function ReportActionsList({
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
     const isFocused = useIsFocused();
+    const hasCalledReadNewestAction = useRef(false);
+
+    useEffect(() => {
+        /**
+         * This allows to mark the report as unread, when
+         * report is opened and new report actions are received.
+         */
+        hasCalledReadNewestAction.current = false;
+    }, [reportActions]);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -267,6 +276,9 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
+        if (hasCalledReadNewestAction.current) {
+            return;
+        }
         if (ReportUtils.isUnread(report)) {
             // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -274,6 +286,7 @@ function ReportActionsList({
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
+                hasCalledReadNewestAction.current = true;
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -523,7 +536,9 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-
+        if (hasCalledReadNewestAction.current) {
+            return;
+        }
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = sortedVisibleReportActions[0]?.created ?? '';
@@ -557,6 +572,7 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
+        hasCalledReadNewestAction.current = true;
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
