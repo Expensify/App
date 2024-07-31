@@ -164,11 +164,11 @@ function MoneyRequestView({
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? TransactionUtils.getTaxName(policy, updatedTransaction) : TransactionUtils.getTaxName(policy, transaction);
 
-    // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
 
-    // Used for non-restricted fields such as: description, category, tag, billable, etc.
+    // Flags for allowing or disallowing editing an expense
+    // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
     const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction) && canUserPerformWriteAction;
     const canEditTaxFields = canEdit && !isDistanceRequest;
