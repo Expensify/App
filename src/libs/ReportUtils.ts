@@ -7318,6 +7318,36 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(ReportConnection.getAllReports() ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
+/**
+ * A function to get the report last message. This is usually used to restore the report message preview in LHN after report actions change.
+ * @param reportID
+ * @param actionsToMerge
+ * @returns containing the calculated message preview data of the report
+ */
+function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
+    let result: Partial<Report> = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = getLastVisibleMessage(reportID, actionsToMerge);
+
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        result = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
+    return result;
+}
+
 function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
     const html = message?.html ?? '';
@@ -7640,6 +7670,7 @@ export {
     canBeExported,
     isExported,
     hasOnlyNonReimbursableTransactions,
+    getReportLastMessage,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getReport,
