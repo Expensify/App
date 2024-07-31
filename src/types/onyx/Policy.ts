@@ -1597,4 +1597,5 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
+    ACHAccount,
 };

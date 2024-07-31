@@ -97,7 +97,6 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
-        isMobileSelectionModeActive,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -447,10 +446,9 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
-                    isMobileSelectionModeActive={isMobileSelectionModeActive}
                     onSelectRow={() => {
                         if (shouldSingleExecuteRowSelect) {
-                            singleExecution(() => selectRow(item))();
+                            singleExecution(() => selectRow(item, index))();
                         } else {
                             selectRow(item);
                         }
