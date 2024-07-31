@@ -36,7 +36,8 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const taskDescriptionLength = ReportUtils.getCommentLength(values.description);
+            const parsedDescription = ReportUtils.getParsedComment(values?.description);
+            const taskDescriptionLength = ReportUtils.getCommentLength(parsedDescription);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
                 ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
@@ -116,8 +117,10 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
                                 inputRef.current = element;
-                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

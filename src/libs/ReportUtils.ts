@@ -43,6 +43,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -287,6 +288,12 @@ type OptimisticChatReport = Pick<
 > & {
     isOptimisticReport: true;
 };
+
+type OptimisticExportIntegrationAction = OriginalMessageExportedToIntegration &
+    Pick<
+        ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>,
+        'reportActionID' | 'actorAccountID' | 'avatar' | 'created' | 'lastModified' | 'message' | 'person' | 'shouldShow' | 'pendingAction' | 'errors' | 'automatic'
+    >;
 
 type OptimisticTaskReportAction = Pick<
     ReportAction,
@@ -1601,13 +1608,6 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-/**
- * Checks whether the supplied report supports adding more transactions to it.
- * Return true if:
- * - report is a non-settled IOU
- * - report is a draft
- * - report is a processing expense report and its policy has Instant reporting frequency
- */
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
@@ -1622,11 +1622,36 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
+    return true;
+}
+
+/**
+ * Checks whether the supplied report supports adding more transactions to it.
+ * Return true if:
+ * - report is a non-settled IOU
+ * - report is a draft
+ * - report is a processing expense report and its policy has Instant reporting frequency
+ */
+function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
+    if (!isMoneyRequestReport(moneyRequestReport)) {
+        return false;
+    }
+
     if (isReportInGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
         return false;
     }
 
-    return true;
+    return canAddOrDeleteTransactions(moneyRequestReport);
+}
+
+/**
+ * Checks whether the supplied report supports deleting more transactions from it.
+ * Return true if:
+ * - report is a non-settled IOU
+ * - report is a non-approved IOU
+ */
+function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport);
 }
 
 /**
@@ -1650,7 +1675,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         const linkedReport = isThreadFirstChat(reportAction, reportID) ? getReportOrDraftReport(report?.parentReportID) : report;
         if (isActionOwner) {
             if (!isEmptyObject(linkedReport) && isMoneyRequestReport(linkedReport)) {
-                return canAddOrDeleteTransactions(linkedReport);
+                return canDeleteTransaction(linkedReport);
             }
             return true;
         }
@@ -1879,6 +1904,13 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
     return allPersonalDetails?.[accountID] ?? defaultDetails;
 }
 
+/**
+ * Returns the personal details or a default object if the personal details are not available.
+ */
+function getPersonalDetailsOrDefault(personalDetails: Partial<PersonalDetails> | undefined | null): Partial<PersonalDetails> {
+    return personalDetails ?? {isOptimisticPersonalDetail: true};
+}
+
 const hiddenTranslation = Localize.translateLocal('common.hidden');
 
 const phoneNumberCache: Record<string, string> = {};
@@ -1891,7 +1923,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         return '';
     }
 
-    const personalDetails = getPersonalDetailsForAccountID(accountID);
+    const personalDetails = getPersonalDetailsOrDefault(allPersonalDetails?.[accountID]);
     if (!personalDetails) {
         return '';
     }
@@ -3426,7 +3458,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
-        const reportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const reportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID ?? '').replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -3738,6 +3770,33 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         : lodashEscape(text);
 }
 
+function getUploadingAttachmentHtml(file?: FileObject): string {
+    if (!file || typeof file.uri !== 'string') {
+        return '';
+    }
+
+    const dataAttributes = [
+        `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}"`,
+        `${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="${file.uri}"`,
+        `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${file.name}"`,
+        'width' in file && `${CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE}="${file.width}"`,
+        'height' in file && `${CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE}="${file.height}"`,
+    ]
+        .filter((x) => !!x)
+        .join(' ');
+
+    // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
+    if (file.type?.startsWith('image')) {
+        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} />`;
+    }
+    if (file.type?.startsWith('video')) {
+        return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
+    }
+
+    // For all other types, we present a generic download link
+    return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
+}
+
 function getReportDescriptionText(report: Report): string {
     if (!report.description) {
         return '';
@@ -3763,24 +3822,14 @@ function buildOptimisticAddCommentReportAction(
     reportID?: string,
 ): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
+    const attachmentHtml = getUploadingAttachmentHtml(file);
+
+    const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
+    const textForNewComment = Parser.htmlToText(htmlForNewComment);
+
     const isAttachmentOnly = file && !text;
-    const isTextOnly = text && !file;
-
-    let htmlForNewComment;
-    let textForNewComment;
-    if (isAttachmentOnly) {
-        htmlForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
-        textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
-    } else if (isTextOnly) {
-        htmlForNewComment = commentText;
-        textForNewComment = Parser.htmlToText(htmlForNewComment);
-    } else {
-        htmlForNewComment = `${commentText}<uploading-attachment>${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}</uploading-attachment>`;
-        textForNewComment = `${Parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
-    }
-
     const isAttachmentWithText = !!text && file !== undefined;
-    const accountID = actorAccountID ?? currentUserAccountID;
+    const accountID = actorAccountID ?? currentUserAccountID ?? -1;
 
     // Remove HTML from text when applying optimistic offline comment
     return {
@@ -3792,12 +3841,12 @@ function buildOptimisticAddCommentReportAction(
             person: [
                 {
                     style: 'strong',
-                    text: allPersonalDetails?.[accountID ?? -1]?.displayName ?? currentUserEmail,
+                    text: allPersonalDetails?.[accountID]?.displayName ?? currentUserEmail,
                     type: 'TEXT',
                 },
             ],
             automatic: false,
-            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar,
+            avatar: allPersonalDetails?.[accountID]?.avatar,
             created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
@@ -4075,6 +4124,10 @@ function getIOUApprovedMessage(reportID: string) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
 }
 
+function getIOUForwardedMessage(reportID: string) {
+    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -4106,6 +4159,9 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     switch (type) {
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
             iouMessage = `approved ${amount}`;
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+            iouMessage = getIOUForwardedMessage(iouReportID);
             break;
         case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
             iouMessage = `unapproved ${amount}`;
@@ -4963,7 +5019,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: `assigned to ${getDisplayNameForParticipant(assigneeAccountID)}`,
-                html: `assigned to <mention-user accountID=${assigneeAccountID}></mention-user>`,
+                html: `assigned to <mention-user accountID="${assigneeAccountID}"/>`,
             },
         ],
         person: [
@@ -5181,6 +5237,40 @@ function buildOptimisticTaskReport(
         notificationPreference,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         hasParentAccess: true,
+    };
+}
+
+/**
+ * Builds an optimistic EXPORTED_TO_INTEGRATION report action
+ *
+ * @param integration - The connectionName of the integration
+ * @param markedManually - Whether the integration was marked as manually exported
+ */
+function buildOptimisticExportIntegrationAction(integration: ConnectionName, markedManually = false): OptimisticExportIntegrationAction {
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        shouldShow: true,
+        originalMessage: {
+            label,
+            lastModified: DateUtils.getDBTime(),
+            markedManually,
+            inProgress: true,
+        },
     };
 }
 
@@ -5424,7 +5514,7 @@ function shouldDisplayTransactionThreadViolations(
         return false;
     }
     const {IOUReportID} = ReportActionsUtils.getOriginalMessage(parentReportAction) ?? {};
-    if (isSettled(IOUReportID)) {
+    if (isSettled(IOUReportID) || isReportApproved(IOUReportID?.toString())) {
         return false;
     }
     return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
@@ -5902,7 +5992,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     // User can submit expenses in any IOU report, unless paid, but the user can only submit expenses in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        const canAddTransactions = canAddOrDeleteTransactions(report);
+        const canAddTransactions = canAddTransaction(report);
         return isReportInGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
@@ -6946,7 +7036,7 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
  * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>): boolean {
-    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
+    return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport);
 }
 
 function getTripTransactions(tripRoomReportID: string | undefined, reportFieldToCompare: 'parentReportID' | 'reportID' = 'parentReportID'): Transaction[] {
@@ -7295,7 +7385,8 @@ export {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAccessReport,
-    canAddOrDeleteTransactions,
+    canAddTransaction,
+    canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
@@ -7351,6 +7442,7 @@ export {
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
     getIOUApprovedMessage,
+    getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
@@ -7536,6 +7628,7 @@ export {
     isAdminOwnerApproverOrReportOwner,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
+    buildOptimisticExportIntegrationAction,
     getChatUsedForOnboarding,
     getFieldViolationTranslation,
     getFieldViolation,

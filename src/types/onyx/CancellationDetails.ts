@@ -14,13 +14,13 @@ type CancellationDetails = {
     cancellationType: CancellationType;
 
     /** Additional note */
-    note?: string;
+    note: string;
 
     /** Cancellation request date */
-    requestDate?: string;
+    requestDate: string;
 
     /** Canceled subscription object */
-    subscription?: PrivateSubscription;
+    subscription: PrivateSubscription;
 
     /** Cancellation errors */
     errors?: OnyxCommon.Errors;
