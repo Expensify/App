@@ -41,7 +41,6 @@ import {
     getXeroTenants,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import type {XeroSettings} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -74,11 +73,11 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
-    subscribedImportSettings?: XeroSettings;
+    subscribedImportSettings?: string[];
     onExportPagePress: () => void;
-    subscribedExportSettings?: XeroSettings;
+    subscribedExportSettings?: string[];
     onAdvancedPagePress: () => void;
-    subscribedAdvancedSettings?: XeroSettings;
+    subscribedAdvancedSettings?: string[];
     onCardReconciliationPagePress: () => void;
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
