@@ -108,8 +108,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009001304
-        versionName "9.0.13-4"
+        versionCode 1009001406
+        versionName "9.0.14-6"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"

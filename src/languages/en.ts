@@ -32,10 +32,11 @@ import type {
     EnterMagicCodeParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
-    ForwardedParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -158,6 +159,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         select: 'Select',
+        selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
         rotate: 'Rotate',
@@ -744,6 +746,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
+        forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
@@ -834,6 +837,8 @@ export default {
         headsUp: 'Heads up!',
         unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
+        reimbursable: 'reimbursable',
+        nonReimbursable: 'non-reimbursable',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1004,6 +1009,7 @@ export default {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            testCrash: 'Test crash',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1239,7 +1245,7 @@ export default {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         delaySubmissionTitle: 'Delay submissions',
-        delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
+        delaySubmissionDescription: 'Delay expense submissions based on a custom schedule, or keep this option disabled to maintain realtime spend visibility.',
         submissionFrequency: 'Submission frequency',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
@@ -1247,11 +1253,12 @@ export default {
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        makeOrTrackPaymentsTitle: 'Payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or track payments made elsewhere.',
+        makeOrTrackPaymentsTitle: 'Make or track payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
+        frequencyDescription: 'Choose how often you’d like expenses to submit automatically, or make it manual',
         frequencies: {
             weekly: 'Weekly',
             monthly: 'Monthly',
@@ -1290,6 +1297,8 @@ export default {
         title: 'Authorized payer',
         genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
         admins: 'Admins',
+        payer: 'Payer',
+        paymentAccount: 'Payment account',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -2708,6 +2717,11 @@ export default {
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
+            addMailingAddress: 'Add mailing address',
+            issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
+            issuedCardNoMailingAddress: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
+            addedAddress: (assignee: string) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -3427,6 +3441,11 @@ export default {
                 description: `Add GL & Payroll codes to your categories for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'GL & Payroll codes are only available on the Control plan, starting at ',
             },
+            taxCodes: {
+                title: 'Tax codes',
+                description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
+                onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
+            },
             pricing: {
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',
@@ -3570,7 +3589,6 @@ export default {
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
     search: {
-        selectMultiple: 'Select multiple',
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
         searchResults: {
@@ -3709,7 +3727,6 @@ export default {
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
-                forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
