@@ -71,6 +71,19 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         [policy, policyID, translate],
     );
 
+    const closeConfirmationModal = () => {
+        setActiveIntegration((prev) => {
+            if (prev) {
+                return {
+                    ...prev,
+                    shouldDisconnectIntegrationBeforeConnecting: false,
+                    integrationToDisconnect: undefined,
+                };
+            }
+            return undefined;
+        });
+    };
+
     const accountingContext = useMemo(
         () => ({
             activeIntegration,
@@ -101,7 +114,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                             return;
                         }
                         removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);
-                        setActiveIntegration(undefined);
+                        closeConfirmationModal();
                     }}
                     integrationToConnect={activeIntegration?.integrationToDisconnect}
                     onCancel={() => {
