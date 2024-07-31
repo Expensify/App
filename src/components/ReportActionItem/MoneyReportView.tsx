@@ -47,9 +47,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const isSettled = ReportUtils.isSettled(report.reportID);
-    const allReportTransactions = TransactionUtils.getAllReportTransactions(report.reportID, transactions);
+    const allReportTransactions = TransactionUtils.getAllReportTransactions(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy, allReportTransactions);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
