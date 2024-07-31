@@ -1,4 +1,4 @@
-import type {Integer, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as Localize from './Localize';
@@ -98,7 +98,7 @@ function toLocaleOrdinal(locale: Locale, number: number, returnWords = false): s
 
     const suffix = Localize.translate(locale, suffixKey);
 
-    return `${number}${suffix}`;
+    return returnWords ? suffix : `${number}${suffix}`;
 }
 
 export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};

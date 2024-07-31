@@ -15,7 +15,7 @@ import Text from './Text';
 function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow: ApprovalWorkflow; policyId?: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, toLocaleOrdinal} = useLocalize();
     const openApprovalsEdit = useCallback(
         () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyId ?? '', approvalWorkflow.approvers[0].email)),
         [approvalWorkflow.approvers, policyId],
@@ -59,11 +59,11 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: {approvalWorkflow
                     onPress={openApprovalsEdit}
                 />
 
-                {approvalWorkflow.approvers.map((approver) => (
+                {approvalWorkflow.approvers.map((approver, index) => (
                     <View key={approver.email}>
                         <View style={{height: 16, width: 1, backgroundColor: theme.border, marginLeft: 19}} />
                         <MenuItem
-                            title={translate('workflowsPage.approver')}
+                            title={`${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase() }`}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
