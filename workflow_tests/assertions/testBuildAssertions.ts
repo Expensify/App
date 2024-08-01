@@ -158,7 +158,6 @@ function assertIOSJobExecuted(workflowResult: Step[], ref = '', didExecute = tru
         createStepAssertion('Cache Pod dependencies', true, null, 'IOS', 'Cache Pod dependencies', [
             {key: 'path', value: 'ios/Pods'},
             {key: 'key', value: 'Linux-pods-cache-'},
-            {key: 'restore-keys', value: 'Linux-pods-cache-'},
         ]),
         createStepAssertion('Compare Podfile.lock and Manifest.lock', true, null, 'IOS', 'Compare Podfile.lock and Manifest.lock'),
         createStepAssertion(

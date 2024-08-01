@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -225,13 +226,25 @@ function getStreetLines(street = '') {
 }
 
 /**
+ * Get the current address from addresses array
+ *
+ * @param privatePersonalDetails - details object
+ * @returns - current address object
+ */
+function getCurrentAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Address | undefined {
+    const {addresses} = privatePersonalDetails ?? {};
+    const currentAddress = addresses?.find((address) => address.current);
+    return currentAddress ?? addresses?.[addresses.length - 1];
+}
+
+/**
  * Formats an address object into an easily readable string
  *
  * @param privatePersonalDetails - details object
  * @returns - formatted address
  */
 function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): string {
-    const {address} = privatePersonalDetails ?? {};
+    const address = getCurrentAddress(privatePersonalDetails);
     const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
@@ -318,6 +331,7 @@ export {
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
+    getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,
     getStreetLines,
