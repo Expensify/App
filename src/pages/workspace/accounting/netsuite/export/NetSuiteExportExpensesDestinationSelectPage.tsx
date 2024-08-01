@@ -12,6 +12,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
+import {exportExpensesDestinationSettingName} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -32,7 +33,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
-    const currentSettingName = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
+    const currentSettingName = exportExpensesDestinationSettingName(isReimbursable);
     const currentDestination = config?.[currentSettingName];
 
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DESTINATION).map((dateType) => ({

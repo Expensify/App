@@ -90,6 +90,7 @@ function accountingIntegrationData(
     integrationToDisconnect?: PolicyConnectionName,
     policy?: Policy,
 ): AccountingIntegration | undefined {
+    const netsuiteConfig = policy?.connections?.netsuite?.options.config;
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
@@ -152,27 +153,28 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [CONST.NETSUITE_CONFIG.EXPORTER, CONST.NETSUITE_CONFIG.EXPORT_DATE, CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.NETSUITE_CONFIG.AUTO_SYNC,
-                    ...(!shouldHideReimbursedReportsSection(policy?.connections?.netsuite?.options.config)
+                    ...(!shouldHideReimbursedReportsSection(netsuiteConfig)
                         ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT]
                         : []),
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE,
                     CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES,
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES,
-                    ...(!shouldHideReportsExportTo(policy?.connections?.netsuite?.options.config) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO] : []),
-                    ...(!shouldHideExportVendorBillsTo(policy?.connections?.netsuite?.options.config) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO] : []),
-                    ...(!shouldHideExportJournalsTo(policy?.connections?.netsuite?.options.config) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO] : []),
+                    ...(!shouldHideReportsExportTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO] : []),
+                    ...(!shouldHideExportVendorBillsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO] : []),
+                    ...(!shouldHideExportJournalsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO] : []),
                     CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT,
                     CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED,
-                    ...(!shouldHideCustomFormIDOptions(policy?.connections?.netsuite?.options.config)
+                    ...(!shouldHideCustomFormIDOptions(netsuiteConfig)
                         ? [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE]
                         : []),
                 ],
-                pendingFields: {...policy?.connections?.netsuite?.options.config?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields},
-                errorFields: {...policy?.connections?.netsuite?.options.config?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields},
+                pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields},
+                errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields},
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {

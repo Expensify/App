@@ -19,6 +19,12 @@ import {
     settingsPendingAction,
 } from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import {
+    shouldHideJournalPostingPreference,
+    shouldHideNonReimbursableJournalPostingAccount,
+    shouldHideReimbursableDefaultVendor,
+    shouldHideReimbursableJournalPostingAccount,
+} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -92,7 +98,13 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
             description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION],
+            subscribedSettings: [
+                CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                ...(!shouldHideReimbursableDefaultVendor(true, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                ...(!shouldHideNonReimbursableJournalPostingAccount(true, config) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                ...(!shouldHideReimbursableJournalPostingAccount(true, config) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                ...(!shouldHideJournalPostingPreference(true, config) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+            ],
         },
         {
             type: 'menuitem',
@@ -101,7 +113,13 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 : undefined,
             description: translate('workspace.accounting.exportCompanyCard'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION],
+            subscribedSettings: [
+                CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                ...(!shouldHideNonReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                ...(!shouldHideReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                ...(!shouldHideJournalPostingPreference(false, config) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+            ],
         },
         {
             type: 'divider',
