@@ -30,9 +30,8 @@ function GetPhysicalCardAddress({
 }: GetPhysicalCardAddressProps) {
     const {translate} = useLocalize();
 
-    // Check if country is valid
     const {addressLine1, addressLine2} = draftValues ?? {};
-    const [currentCountry, setCurrentCountry] = useState(draftValues?.country);
+    const [country, setCountry] = useState(draftValues?.country);
     const [state, setState] = useState(draftValues?.state);
     const [city, setCity] = useState(draftValues?.city);
     const [zipPostCode, setZipPostCode] = useState(draftValues?.zipPostCode);
@@ -42,7 +41,7 @@ function GetPhysicalCardAddress({
             return;
         }
         setState(draftValues.state);
-        setCurrentCountry(draftValues.country);
+        setCountry(draftValues.country);
         setCity(draftValues.city);
         setZipPostCode(draftValues.zipPostCode);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -63,7 +62,7 @@ function GetPhysicalCardAddress({
             return;
         }
         if (addressPartKey === 'country') {
-            setCurrentCountry(addressPart as Country | '');
+            setCountry(addressPart as Country | '');
             setState('');
             setCity('');
             setZipPostCode('');
@@ -91,7 +90,7 @@ function GetPhysicalCardAddress({
                 onAddressChanged={handleAddressChange}
                 submitButtonText={submitButtonText}
                 city={city}
-                country={currentCountry}
+                country={country}
                 shouldSaveDraft
                 state={state}
                 street1={addressLine1}
@@ -99,7 +98,7 @@ function GetPhysicalCardAddress({
                 zip={zipPostCode}
             />
         ),
-        [addressLine1, addressLine2, city, currentCountry, handleAddressChange, state, zipPostCode],
+        [addressLine1, addressLine2, city, country, handleAddressChange, state, zipPostCode],
     );
 
     return (
