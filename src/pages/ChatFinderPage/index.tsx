@@ -120,21 +120,21 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         if (recentReports?.length > 0) {
             newSections.push({
-                data: recentReports.map((report) => ({...report, isBold: report.isUnread})),
+                data: recentReports.map((report) => ({...report, isBold: false})),
                 shouldShow: true,
             });
         }
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
-                data: localPersonalDetails,
+                data: localPersonalDetails.map((personalDetail) => ({...personalDetail, isBold: false})),
                 shouldShow: true,
             });
         }
 
         if (!isEmpty(userToInvite)) {
             newSections.push({
-                data: [userToInvite],
+                data: [{...userToInvite, isBold: false}],
                 shouldShow: true,
             });
         }
