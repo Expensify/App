@@ -816,7 +816,6 @@ export default {
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
         confirmApprovalAllHoldAmount: () => ({
-            zero: `Ningún gasto está bloqueado. ¿Quieres aprobar todo el informe?`,
             one: `Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?`,
             other: () => `Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?`,
         }),

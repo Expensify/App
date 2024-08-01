@@ -823,7 +823,6 @@ export default {
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
         confirmApprovalAllHoldAmount: () => ({
-            zero: `This expense is on hold. Do you want to approve anyway?`,
             one: `This expense is on hold. Do you want to approve anyway?`,
             other: () => `These expenses are on hold. Do you want to approve anyway?`,
         }),
