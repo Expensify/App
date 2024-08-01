@@ -9,6 +9,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -30,7 +31,7 @@ import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SearchQueryJSON, SearchStatus, SelectedTransactions} from './types';
+import type {SearchQueryJSON, SearchStatus} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
     subtitleStyles?: StyleProp<TextStyle>;
@@ -89,14 +90,12 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
 
 type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
-    selectedTransactions?: SelectedTransactions;
-    selectedReports?: Array<SearchReport['reportID']>;
-    clearSelectedItems?: () => void;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isCustomQuery: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
+    data?: TransactionListItemType[] | ReportListItemType[];
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -108,31 +107,34 @@ const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: Translat
     finished: {icon: Illustrations.CheckmarkCircle, titleTx: 'common.finished'},
 };
 
-function SearchPageHeader({
-    queryJSON,
-    selectedTransactions = {},
-    hash,
-    clearSelectedItems,
-    onSelectDeleteOption,
-    setOfflineModalOpen,
-    setDownloadErrorModalOpen,
-    selectedReports,
-    isCustomQuery,
-}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {setSelectedTransactionIDs} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    const selectedReports: Array<SearchReport['reportID']> = useMemo(
+        () =>
+            (data ?? [])
+                .filter(
+                    (item) =>
+                        !SearchUtils.isTransactionListItemType(item) &&
+                        item.reportID &&
+                        item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
+                )
+                .map((item) => item.reportID),
+        [data, selectedTransactions],
+    );
     const {status} = queryJSON;
     const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleTx);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
-
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? []);
 
     const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 
@@ -175,11 +177,9 @@ function SearchPageHeader({
                         return;
                     }
 
-                    clearSelectedItems?.();
                     if (selectionMode?.isEnabled) {
                         turnOffMobileSelectionMode();
                     }
-                    setSelectedTransactionIDs(selectedTransactionsKeys);
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -199,7 +199,7 @@ function SearchPageHeader({
                         return;
                     }
 
-                    clearSelectedItems?.();
+                    clearSelectedTransactions();
                     if (selectionMode?.isEnabled) {
                         turnOffMobileSelectionMode();
                     }
@@ -252,7 +252,7 @@ function SearchPageHeader({
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedItems,
+        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -263,7 +263,6 @@ function SearchPageHeader({
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        setSelectedTransactionIDs,
         selectionMode?.isEnabled,
     ]);
 
