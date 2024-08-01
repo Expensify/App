@@ -9,7 +9,7 @@ import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetS
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {canUseTaxNetSuite, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -69,8 +69,8 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
 
             <OfflineWithFeedback
                 pendingAction={
-                    xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.pendingFields) ??
-                    xeroSettingsPendingAction(
+                    settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.pendingFields) ??
+                    settingsPendingAction(
                         [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
                         config?.syncOptions?.mapping?.pendingFields,
                     )
@@ -108,7 +108,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => (
                 <OfflineWithFeedback
                     key={importField}
-                    pendingAction={xeroSettingsPendingAction([importField], config?.pendingFields)}
+                    pendingAction={settingsPendingAction([importField], config?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}

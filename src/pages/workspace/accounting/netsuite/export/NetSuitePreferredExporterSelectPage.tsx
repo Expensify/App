@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getAdminEmployees, isExpensifyTeam, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -97,7 +97,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            pendingAction={xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.EXPORTER], config?.pendingFields)}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORTER], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER)}

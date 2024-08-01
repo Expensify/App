@@ -9,12 +9,12 @@ import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
-    areXeroSettingsInErrorFields,
+    areSettingsInErrorFields,
     findSelectedBankAccountWithDefaultSelect,
     getFilteredApprovalAccountOptions,
     getFilteredCollectionAccountOptions,
     getFilteredReimbursableAccountOptions,
-    xeroSettingsPendingAction,
+    settingsPendingAction,
 } from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -64,7 +64,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => Policy.clearNetSuiteAutoSyncErrorField(policyID),
             onToggle: (isEnabled) => Connections.updateNetSuiteAutoSync(policyID, isEnabled),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC),
         },
         {
@@ -80,7 +80,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
             onToggle: (isEnabled) => Connections.updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
             shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
@@ -115,7 +115,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             shouldParseSubtitle: true,
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
             onToggle: (isEnabled) => Connections.updateNetSuiteSyncPeople(policyID, isEnabled),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
         },
         {
@@ -125,7 +125,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
             onToggle: (isEnabled) => Connections.updateNetSuiteAutoCreateEntities(policyID, isEnabled),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
         },
         {
@@ -139,7 +139,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.enableCategories'),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
             onToggle: (isEnabled) => Connections.updateNetSuiteEnableNewCategories(policyID, isEnabled),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
         },
         {
@@ -194,7 +194,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
             onToggle: (isEnabled) => Connections.updateNetSuiteCustomFormIDOptionsEnabled(policyID, isEnabled),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
         },
         {
@@ -253,14 +253,14 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <OfflineWithFeedback
                                     key={item.description}
-                                    pendingAction={xeroSettingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                                    pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={item.title}
                                         description={item.description}
                                         shouldShowRightIcon
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={areXeroSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     />
                                 </OfflineWithFeedback>
                             );

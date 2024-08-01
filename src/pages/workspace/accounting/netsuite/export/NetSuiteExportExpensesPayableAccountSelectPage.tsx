@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuitePayableAccountOptions, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuitePayableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -83,7 +83,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
                     ? config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY
                     : config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY
             }
-            pendingAction={xeroSettingsPendingAction([currentSettingName], config?.pendingFields)}
+            pendingAction={settingsPendingAction([currentSettingName], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, currentSettingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, currentSettingName)}

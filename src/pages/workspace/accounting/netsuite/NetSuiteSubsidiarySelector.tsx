@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSubsidiary} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -93,7 +93,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack()}
             title="workspace.netsuite.subsidiary"
             listEmptyContent={listEmptyContent}
-            pendingAction={xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.SUBSIDIARY], netsuiteConfig?.pendingFields)}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SUBSIDIARY], netsuiteConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}

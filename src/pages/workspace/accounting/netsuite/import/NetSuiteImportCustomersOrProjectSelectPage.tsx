@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomersJobsMapping} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -79,7 +79,7 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
                 ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)
             }
             errorRowStyles={[styles.ph5, styles.pv3]}
-            pendingAction={xeroSettingsPendingAction(
+            pendingAction={settingsPendingAction(
                 [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
                 netsuiteConfig?.syncOptions?.mapping?.pendingFields,
             )}

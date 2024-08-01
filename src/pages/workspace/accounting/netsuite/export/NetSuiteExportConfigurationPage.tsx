@@ -10,13 +10,13 @@ import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
-    areXeroSettingsInErrorFields,
+    areSettingsInErrorFields,
     canUseProvincialTaxNetSuite,
     canUseTaxNetSuite,
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
-    xeroSettingsPendingAction,
+    settingsPendingAction,
 } from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -148,7 +148,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.netsuite.foreignCurrencyAmount'),
             onToggle: () => Connections.updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
             shouldHide:
                 config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT &&
@@ -161,7 +161,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.netsuite.exportToNextOpenPeriod'),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
             onToggle: () => Connections.updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false),
-            pendingAction: xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD], config?.pendingFields),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
         },
     ];
@@ -205,14 +205,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <OfflineWithFeedback
                                     key={item.description}
-                                    pendingAction={xeroSettingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                                    pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={item.title}
                                         description={item.description}
                                         shouldShowRightIcon
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={areXeroSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     />
                                 </OfflineWithFeedback>
                             );

@@ -12,7 +12,7 @@ import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCom
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -108,7 +108,7 @@ function NetSuiteImportMappingPage({
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
             title={titleKey}
             listFooterContent={listFooterContent}
-            pendingAction={xeroSettingsPendingAction([importField], netsuiteConfig?.syncOptions?.mapping?.pendingFields)}
+            pendingAction={settingsPendingAction([importField], netsuiteConfig?.syncOptions?.mapping?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
             errorRowStyles={[styles.ph5]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}

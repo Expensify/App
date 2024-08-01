@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseTaxNetSuite, getNetSuiteTaxAccountOptions, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, getNetSuiteTaxAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -75,7 +75,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country)}
-            pendingAction={xeroSettingsPendingAction([CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT], config?.pendingFields)}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT)}
