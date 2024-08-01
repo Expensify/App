@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import type {FocusComposerWithDelay, Selection} from '@libs/focusComposerWithDelay/types';
+import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Parser from '@libs/Parser';
