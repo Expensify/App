@@ -1,0 +1,92 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/utils/ScreenDummyLayoutHelper.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/utils/ScreenDummyLayoutHelper.kt
+index aabf433..9a55cc3 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/utils/ScreenDummyLayoutHelper.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/utils/ScreenDummyLayoutHelper.kt
+@@ -50,16 +50,23 @@ internal class ScreenDummyLayoutHelper(
+         }
+ 
+         weakInstance = WeakReference(this)
+-        ensureDummyLayoutWithHeader(reactContext)
++        maybeInitDummyLayoutWithHeader(reactContext)
+     }
+ 
+     /**
+      * Initializes dummy view hierarchy with CoordinatorLayout, AppBarLayout and dummy View.
+      * We utilize this to compute header height (app bar layout height) from C++ layer when its needed.
++     *
++     * @return boolean whether the layout was initialised or not
+      */
+-    private fun ensureDummyLayoutWithHeader(reactContext: ReactApplicationContext) {
++    private fun maybeInitDummyLayoutWithHeader(reactContext: ReactApplicationContext): Boolean {
+         if (::coordinatorLayout.isInitialized) {
+-            return
++            return true
++        }
++
++        if (reactContext.currentActivity == null) {
++            Log.w(TAG, "[RNScreens] Attempt to use context detached from activity")
++            return false
+         }
+ 
+         // We need to use activity here, as react context does not have theme attributes required by
+@@ -108,6 +115,8 @@ internal class ScreenDummyLayoutHelper(
+             addView(appBarLayout)
+             addView(dummyContentView)
+         }
++
++        return true
+     }
+ 
+     /**
+@@ -121,12 +130,20 @@ internal class ScreenDummyLayoutHelper(
+         fontSize: Int,
+         isTitleEmpty: Boolean,
+     ): Float {
+-        if (!::coordinatorLayout.isInitialized) {
+-            Log.e(
+-                TAG,
+-                "[RNScreens] Attempt to access dummy view hierarchy before it is initialized",
+-            )
+-            return 0.0f
++        if (!isDummyLayoutInitialised) {
++            // On Fabric & "bridgefull" context is not yet attached to activity at the moment
++            // of package creation, thus we need to initialize the view hierarchy lazily.
++
++            val reactContext = requireReactContext { "[RNScreens] Context was null-ed before dummy layout was initialized" }
++            if (!maybeInitDummyLayoutWithHeader(reactContext)) {
++                throw IllegalStateException("[RNScreens] Failed to lazy-init dummy layout")
++            }
++
++//            Log.e(
++//                TAG,
++//                "[RNScreens] Attempt to access dummy view hierarchy before it is initialized",
++//            )
++//            return 0.0f
+         }
+ 
+         if (cache.hasKey(CacheKey(fontSize, isTitleEmpty))) {
+@@ -168,9 +185,13 @@ internal class ScreenDummyLayoutHelper(
+         return headerHeight
+     }
+ 
+-    private fun requireReactContext(): ReactApplicationContext =
++    private fun requireReactContext(lazyMessage: (() -> Any)? = null): ReactApplicationContext =
+         requireNotNull(reactContextRef.get()) {
+-            "[RNScreens] Attempt to require missing react context"
++            if (lazyMessage != null) {
++                lazyMessage()
++            } else {
++                "[RNScreens] Attempt to require missing react context"
++            }
+         }
+ 
+     private fun requireActivity(): Activity =
+@@ -195,6 +216,8 @@ internal class ScreenDummyLayoutHelper(
+         @JvmStatic
+         fun getInstance(): ScreenDummyLayoutHelper? = weakInstance.get()
+     }
++
++    private val isDummyLayoutInitialised = ::coordinatorLayout.isInitialized
+ }
+ 
+ private data class CacheKey(
