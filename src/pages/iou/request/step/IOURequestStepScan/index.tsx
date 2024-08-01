@@ -279,7 +279,6 @@ function IOURequestStepScan({
                 const receipt: Receipt = file;
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
-
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.startSplitBill({
                         participants,
