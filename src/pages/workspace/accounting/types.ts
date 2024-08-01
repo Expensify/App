@@ -1,9 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
-import type {XeroSettings} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
@@ -23,12 +23,14 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionFlow: React.ReactNode;
     onImportPagePress: () => void;
-    subscribedImportSettings?: XeroSettings;
+    subscribedImportSettings?: string[];
     onExportPagePress: () => void;
-    subscribedExportSettings?: XeroSettings;
+    subscribedExportSettings?: string[];
     onAdvancedPagePress: () => void;
-    subscribedAdvancedSettings?: XeroSettings;
+    subscribedAdvancedSettings?: string[];
     onCardReconciliationPagePress: () => void;
+    pendingFields?: PendingFields<string>;
+    errorFields?: ErrorFields;
 
     /** Integration alias for workspace upgrade navigation. If passed, and the user doesn't have control policy, they will be redirected to the upgrade page */
     workspaceUpgradeIntegrationAlias?: string;

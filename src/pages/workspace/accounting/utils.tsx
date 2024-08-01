@@ -92,10 +92,36 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS,
+                    ...Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS),
+                    CONST.SAGE_INTACCT_CONFIG.TAX,
+                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
+                ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.EXPORTER,
+                    CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    policy?.connections?.intacct?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+                        : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED,
+                    CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES,
+                    CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                ],
                 workspaceUpgradeIntegrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
+                pendingFields: policy?.connections?.intacct?.config?.pendingFields,
+                errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
         default:
             return undefined;
