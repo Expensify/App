@@ -36,6 +36,7 @@ const SCREENS = {
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_CATEGORY_RHP: 'Search_Advanced_Filters_Category_RHP',
+        ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },

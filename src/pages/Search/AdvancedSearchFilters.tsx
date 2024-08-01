@@ -40,6 +40,10 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         const categories = filters[fieldName] ?? [];
         return categories.join(', ');
     }
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters[fieldName]) {
+        const cards = filters[fieldName] ?? [];
+        return cards.join(', ');
+    }
 
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
     // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
@@ -77,6 +81,11 @@ function AdvancedSearchFilters() {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
                 description: 'common.category' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, translate),
+                description: 'common.card' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
             },
         ],
         [searchAdvancedFilters, translate],
