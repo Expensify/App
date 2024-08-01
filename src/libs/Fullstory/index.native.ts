@@ -63,9 +63,7 @@ const FS = {
                 // define FullStory user identity
                 const localMetadata = metadata;
                 localMetadata.environment = envName;
-                FullStory.identify(String(localMetadata.accountID), {
-                    properties: localMetadata,
-                });
+                FullStory.identify(String(localMetadata.accountID), localMetadata);
             });
         }
     },
