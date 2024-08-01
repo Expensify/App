@@ -6,6 +6,8 @@ const INPUT_IDS = {
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
+    CATEGORY: 'category',
+    POLICY_ID: 'policyID',
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
@@ -20,6 +22,8 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.DATE_AFTER]: string;
         [INPUT_IDS.DATE_BEFORE]: string;
         [INPUT_IDS.STATUS]: string;
+        [INPUT_IDS.CATEGORY]: string[];
+        [INPUT_IDS.POLICY_ID]: string;
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.DESCRIPTION]: string;
         [INPUT_IDS.REPORT_ID]: string;
