@@ -27,6 +27,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -253,7 +254,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
-                    subtitle={ReportUtils.getReportName(report)}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));

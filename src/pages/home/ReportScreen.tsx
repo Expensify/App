@@ -5,8 +5,8 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -55,31 +55,17 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
-type ReportScreenOnyxProps = {
-    /** Tells us if the sidebar has rendered */
-    isSidebarLoaded: OnyxEntry<boolean>;
-
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** The policies which the user has access to */
-    policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** The report metadata loading states */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Whether to show educational tooltip in workspace chat for first-time user */
-    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
-};
-
-type OnyxHOCProps = {
-    /** Onyx function that marks the component ready for hydration */
-    markReadyForHydration?: () => void;
-};
-
 type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
-type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
+type ReportScreenProps = CurrentReportIDContextValue & ReportScreenNavigationProps;
+
+const defaultReportMetadata = {
+    isLoadingInitialReportActions: true,
+    isLoadingOlderReportActions: false,
+    hasLoadingOlderReportActionsError: false,
+    isLoadingNewerReportActions: false,
+    hasLoadingNewerReportActionsError: false,
+};
 
 /** Get the currently viewed report ID as number */
 function getReportID(route: ReportScreenNavigationProps['route']): string {
@@ -109,23 +95,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID ?? '0'];
 }
 
-function ReportScreen({
-    betas = [],
-    route,
-    reportMetadata = {
-        isLoadingInitialReportActions: true,
-        isLoadingOlderReportActions: false,
-        hasLoadingOlderReportActionsError: false,
-        isLoadingNewerReportActions: false,
-        hasLoadingNewerReportActionsError: false,
-    },
-    markReadyForHydration,
-    policies = {},
-    workspaceTooltip,
-    isSidebarLoaded = false,
-    currentReportID = '',
-    navigation,
-}: ReportScreenProps) {
+function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
@@ -141,10 +111,14 @@ function ReportScreen({
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`, {initialValue: false});
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
-    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
-    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
+    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
+    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {initialValue: defaultReportMetadata});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
@@ -709,15 +683,6 @@ function ReportScreen({
         };
     }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
 
-    const onListLayout = useCallback(() => {
-        if (!markReadyForHydration) {
-            return;
-        }
-
-        markReadyForHydration();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
@@ -811,7 +776,6 @@ function ReportScreen({
                         <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={onListLayout}
                                 testID="report-actions-view-wrapper"
                             >
                                 {!shouldShowSkeleton && (
@@ -859,45 +823,4 @@ function ReportScreen({
 }
 
 ReportScreen.displayName = 'ReportScreen';
-
-export default withCurrentReportID(
-    withOnyx<ReportScreenProps, ReportScreenOnyxProps>(
-        {
-            isSidebarLoaded: {
-                key: ONYXKEYS.IS_SIDEBAR_LOADED,
-            },
-            reportMetadata: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
-                initialValue: {
-                    isLoadingInitialReportActions: true,
-                    isLoadingOlderReportActions: false,
-                    hasLoadingOlderReportActionsError: false,
-                    isLoadingNewerReportActions: false,
-                    hasLoadingNewerReportActionsError: false,
-                },
-            },
-            betas: {
-                key: ONYXKEYS.BETAS,
-            },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-                allowStaleData: true,
-            },
-            workspaceTooltip: {
-                key: ONYXKEYS.NVP_WORKSPACE_TOOLTIP,
-            },
-        },
-        true,
-    )(
-        memo(
-            ReportScreen,
-            (prevProps, nextProps) =>
-                prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-                lodashIsEqual(prevProps.betas, nextProps.betas) &&
-                lodashIsEqual(prevProps.policies, nextProps.policies) &&
-                prevProps.currentReportID === nextProps.currentReportID &&
-                lodashIsEqual(prevProps.route, nextProps.route),
-        ),
-    ),
-);
+export default withCurrentReportID(memo(ReportScreen, (prevProps, nextProps) => prevProps.currentReportID === nextProps.currentReportID && lodashIsEqual(prevProps.route, nextProps.route)));
