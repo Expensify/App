@@ -120,7 +120,6 @@ function SelectionScreen<T = string>({
 
     const policy = PolicyUtils.getPolicy(policyID);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -151,7 +150,7 @@ function SelectionScreen<T = string>({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={[styles.flexGrow0]}
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldDebounceRowSelect={shouldDebounceRowSelect}
                     >
                         <ErrorMessageRow

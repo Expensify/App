@@ -24,11 +24,11 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
+            policyID={policyID}
             displayName={QuickbooksChartOfAccountsPage.displayName}
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbo.accountsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

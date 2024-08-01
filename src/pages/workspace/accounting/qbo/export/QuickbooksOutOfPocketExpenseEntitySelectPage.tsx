@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +33,7 @@ function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLo
         </View>
     );
 }
-type CardListItem = ListItem & {
+type MenuItem = ListItem & {
     value: QBOReimbursableExportAccountType;
     isShown: boolean;
     accounts: Account[];
@@ -47,7 +48,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const isTaxesEnabled = !!syncTax;
     const policyID = policy?.id ?? '-1';
 
-    const data: CardListItem[] = useMemo(
+    const data: MenuItem[] = useMemo(
         () => [
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
@@ -80,7 +81,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
     const selectExportEntity = useCallback(
-        (row: CardListItem) => {
+        (row: MenuItem) => {
             if (row.value !== reimbursableExpensesExportDestination) {
                 Connections.updateManyPolicyConnectionConfigs(
                     policyID,
@@ -109,7 +110,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             sections={sections}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID))}
-            onSelectRow={selectExportEntity}
+            onSelectRow={(selection: SelectorType) => selectExportEntity(selection as MenuItem)}
             shouldDebounceRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.exportAs"
@@ -121,7 +122,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
-            footerContent={
+            listFooterContent={
                 <Footer
                     isTaxEnabled={isTaxesEnabled}
                     isLocationsEnabled={isLocationsEnabled}

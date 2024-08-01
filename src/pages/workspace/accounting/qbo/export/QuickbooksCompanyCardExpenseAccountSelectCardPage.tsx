@@ -1,23 +1,20 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-type AccountListItem = ListItem & {
+type MenuItem = ListItem & {
     value: QBONonReimbursableExportAccountType;
     accounts: Account[];
     defaultVendor: string;
@@ -32,7 +29,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     const isLocationEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     const sections = useMemo(() => {
-        const options: AccountListItem[] = [
+        const options: MenuItem[] = [
             {
                 text: translate(`workspace.qbo.accounts.credit_card`),
                 value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
@@ -64,7 +61,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     }, [translate, nonReimbursableExpensesExportDestination, isLocationEnabled, accountPayable, bankAccounts, creditCards, vendors]);
 
     const selectExportCompanyCard = useCallback(
-        (row: AccountListItem) => {
+        (row: MenuItem) => {
             if (row.value !== nonReimbursableExpensesExportDestination) {
                 Connections.updateManyPolicyConnectionConfigs(
                     policyID,
@@ -87,28 +84,23 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.accounting.exportAs')} />
-                <View style={styles.flex1}>
-                    <SelectionList
-                        containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        sections={sections}
-                        ListItem={RadioListItem}
-                        onSelectRow={selectExportCompanyCard}
-                        shouldDebounceRowSelect
-                        initiallyFocusedOptionKey={sections[0].data.find((option) => option.isSelected)?.keyForList}
-                        footerContent={
-                            isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>
-                        }
-                    />
-                </View>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            displayName={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}
+            title="workspace.accounting.exportAs"
+            sections={sections}
+            listItem={RadioListItem}
+            onSelectRow={(selection: SelectorType) => selectExportCompanyCard(selection as MenuItem)}
+            shouldDebounceRowSelect
+            initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack()}
+            listFooterContent={
+                isLocationEnabled ? <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text> : undefined
+            }
+        />
     );
 }
 

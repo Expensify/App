@@ -1,16 +1,13 @@
 import React from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Link from '@userActions/Link';
@@ -78,48 +75,43 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
     ];
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
+        <ConnectionLayout
+            displayName={QuickbooksExportConfigurationPage.displayName}
+            headerTitle="workspace.accounting.export"
+            title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={QuickbooksExportConfigurationPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.accounting.export')} />
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDescription')}</Text>
-                    {menuItems.map((menuItem) => (
-                        <OfflineWithFeedback
-                            key={menuItem.description}
-                            pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
-                        >
-                            <MenuItemWithTopDescription
-                                title={menuItem.title}
-                                interactive={menuItem?.interactive ?? true}
-                                description={menuItem.description}
-                                shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
-                                onPress={menuItem?.onPress}
-                                brickRoadIndicator={
-                                    PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                                }
-                                errorText={menuItem?.errorText}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
-                    <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                        <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
-                        <TextLink
-                            onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                            style={[styles.mutedNormalTextLabel, styles.link]}
-                        >
-                            {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
-                        </TextLink>
-                    </Text>
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            {menuItems.map((menuItem) => (
+                <OfflineWithFeedback
+                    key={menuItem.description}
+                    pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
+                >
+                    <MenuItemWithTopDescription
+                        title={menuItem.title}
+                        interactive={menuItem?.interactive ?? true}
+                        description={menuItem.description}
+                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                        onPress={menuItem?.onPress}
+                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={menuItem?.errorText}
+                    />
+                </OfflineWithFeedback>
+            ))}
+            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
+                <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
+                <TextLink
+                    onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
+                    style={[styles.mutedNormalTextLabel, styles.link]}
+                >
+                    {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
+                </TextLink>
+            </Text>
+        </ConnectionLayout>
     );
 }
 

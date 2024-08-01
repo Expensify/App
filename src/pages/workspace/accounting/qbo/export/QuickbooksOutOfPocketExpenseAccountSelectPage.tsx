@@ -97,7 +97,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
                 subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
+                containerStyle={[styles.pb10, {backgroundColor: 'red'}]}
             />
         ),
         [translate, styles.pb10],
