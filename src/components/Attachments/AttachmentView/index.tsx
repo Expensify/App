@@ -76,6 +76,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         /* Flag indicating whether the attachment has been uploaded. */
         isUploaded?: boolean;
+
+        /** Any additional styles to apply */
+        isDeleted?: boolean;
     };
 
 function AttachmentView({
@@ -100,6 +103,7 @@ function AttachmentView({
     duration,
     isUsedAsChatAttachment,
     isUploaded = true,
+    isDeleted,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -286,6 +290,7 @@ function AttachmentView({
             shouldShowDownloadIcon={shouldShowDownloadIcon}
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
             containerStyles={containerStyles}
+            isDeleted={isDeleted}
         />
     );
 }

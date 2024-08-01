@@ -52,6 +52,8 @@ type ThumbnailImageProps = {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    isDeleted?: boolean;
 };
 
 type UpdateImageSizeParams = {
@@ -71,6 +73,7 @@ function ThumbnailImage({
     fallbackIconColor,
     fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    isDeleted,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -109,6 +112,23 @@ function ThumbnailImage({
     );
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
+
+    if (isDeleted) {
+        const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.sidebarHover);
+
+        return (
+            <View style={[style, styles.overflowHidden, fallbackColor]}>
+                <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        fill={theme.border}
+                        src={Expensicons.Trashcan}
+                        width={variables.iconSizeSuperLarge}
+                        height={variables.iconSizeSuperLarge}
+                    />
+                </View>
+            </View>
+        );
+    }
 
     if (failedToLoad || previewSourceURL === '') {
         const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);

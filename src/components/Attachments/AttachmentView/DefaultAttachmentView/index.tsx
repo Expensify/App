@@ -24,9 +24,11 @@ type DefaultAttachmentViewProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     icon?: IconAsset;
+
+    isDeleted?: boolean;
 };
 
-function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon}: DefaultAttachmentViewProps) {
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isDeleted}: DefaultAttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -40,7 +42,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
                 />
             </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{fileName}</Text>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100, isDeleted && styles.lineThrough]}>{fileName}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>

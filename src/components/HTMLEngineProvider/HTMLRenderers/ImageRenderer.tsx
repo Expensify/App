@@ -33,6 +33,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const htmlAttribs = tnode.attributes;
 
+    const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
+    const isDeleted = 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
+
     // There are two kinds of images that need to be displayed:
     //
     //     - Chat Attachment images
@@ -71,6 +74,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            isDeleted={isDeleted}
         />
     );
 
