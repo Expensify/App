@@ -166,22 +166,23 @@ function MoneyRequestView({
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? TransactionUtils.getTaxName(policy, updatedTransaction) : TransactionUtils.getTaxName(policy, transaction);
 
-    // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
 
-    // Used for non-restricted fields such as: description, category, tag, billable, etc.
-    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction, transaction);
-    const canEditTaxFields = canEdit && !isDistanceRequest;
+    // Flags for allowing or disallowing editing an expense
+    // Used for non-restricted fields such as: description, category, tag, billable, etc...
+    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
+    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
 
-    const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
-    const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
-    const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
-    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canEditTaxFields = canEdit && !isDistanceRequest;
+    const canEditAmount = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+    const canEditMerchant = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
+    const canEditDate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const canEditDistance = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
