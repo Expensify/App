@@ -47,7 +47,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
 }
 
 function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
-    return {...item, isSelected: !!selectedTransactions[item.keyForList]?.isSelected};
+    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected};
 }
 
 function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions) {
@@ -56,7 +56,7 @@ function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListIt
         : {
               ...item,
               transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions)),
-              isSelected: item.transactions.every((transaction) => !!selectedTransactions[transaction.keyForList]?.isSelected),
+              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
           };
 }
 
@@ -90,14 +90,9 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
-        if (isSmallScreenWidth) {
-            return;
-        }
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [hash]);
+    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
@@ -111,6 +106,15 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
             turnOnMobileSelectionMode();
         }
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        SearchActions.search({queryJSON, offset});
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOffline, offset, queryJSON]);
 
     const handleOnCancelConfirmModal = () => {
         setSelectedTransactionsToDelete([]);
@@ -131,19 +135,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
         setSelectedTransactionsToDelete(itemsToDelete);
         setDeleteExpensesConfirmModalVisible(true);
     };
-
-    useEffect(() => {
-        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
-        if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -180,15 +171,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     }
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
-
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-
-        SearchActions.search({queryJSON, offset});
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isOffline, offset, queryJSON]);
 
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
@@ -338,42 +320,43 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
                             onSortPress={onSortPress}
                             sortOrder={sortOrder}
                             sortBy={sortBy}
-                        shouldShowYear={shouldShowYear}
-                    />
-                )
-            }
-            canSelectMultiple={canSelectMultiple}
-            customListHeaderHeight={searchHeaderHeight}
-            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-            // we have configured a larger windowSize and a longer delay between batch renders.
-            // The windowSize determines the number of items rendered before and after the currently visible items.
-            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-            // For more information, refer to the React Native documentation:
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-            windowSize={111}
-            updateCellsBatchingPeriod={200}
-            ListItem={ListItem}
-            onSelectRow={openReport}
-            getItemHeight={getItemHeightMemoized}
-            shouldDebounceRowSelect
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
-            containerStyle={[styles.pv0]}
-            showScrollIndicator={false}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            listFooterContent={
-                shouldShowLoadingMoreItems ? (
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
-                    />
-                ) : undefined
-            }
-        /><ConfirmModal
+                            shouldShowYear={shouldShowYear}
+                        />
+                    )
+                }
+                canSelectMultiple={canSelectMultiple}
+                customListHeaderHeight={searchHeaderHeight}
+                // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+                // we have configured a larger windowSize and a longer delay between batch renders.
+                // The windowSize determines the number of items rendered before and after the currently visible items.
+                // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+                // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+                // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+                // For more information, refer to the React Native documentation:
+                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+                windowSize={111}
+                updateCellsBatchingPeriod={200}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                getItemHeight={getItemHeightMemoized}
+                shouldDebounceRowSelect
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
+                containerStyle={[styles.pv0]}
+                showScrollIndicator={false}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                listFooterContent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+            />
+            <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={handleOnCancelConfirmModal}
