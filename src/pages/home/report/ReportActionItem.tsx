@@ -22,6 +22,7 @@ import type {ActionableItem} from '@components/ReportActionItem/ActionableItemBu
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
+import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import RenameAction from '@components/ReportActionItem/RenameAction';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
@@ -90,9 +91,6 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
 };
 
 type ReportActionItemOnyxProps = {
-    /** Get modal status */
-    modal: OnyxEntry<OnyxTypes.Modal>;
-
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -161,7 +159,6 @@ type ReportActionItemProps = {
 } & ReportActionItemOnyxProps;
 
 function ReportActionItem({
-    modal,
     action,
     report,
     transactionThreadReport,
@@ -195,6 +192,7 @@ function ReportActionItem({
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
+    const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
 
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -566,6 +564,8 @@ function ReportActionItem({
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
+                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     isWhisper={isWhisper}
                 />
             );
@@ -638,6 +638,8 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(report.reportID)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -650,6 +652,10 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
+        } else if (
+            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
+        ) {
+            children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else {
@@ -898,7 +904,6 @@ function ReportActionItem({
             accessible
         >
             <Hoverable
-                shouldFreezeCapture={modal?.willAlertModalBecomeVisible}
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
             >
@@ -923,7 +928,7 @@ function ReportActionItem({
                         )}
                         <View
                             style={StyleUtils.getReportActionItemStyle(
-                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined,
+                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
                                 draftMessage === undefined && !!onPress,
                             )}
                         >
@@ -995,15 +1000,11 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
         selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
         const nextParentReportAction = nextProps.parentReportAction;
         return (
-            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible &&
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
@@ -1032,8 +1033,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-            lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
-            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible
+            lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),
 );
