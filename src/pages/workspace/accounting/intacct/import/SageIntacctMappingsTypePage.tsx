@@ -5,9 +5,13 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,11 +22,13 @@ type SageIntacctMappingsTypePageProps = StackScreenProps<SettingsNavigatorParamL
 
 function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
     const policyID = policy?.id ?? '-1';
-    const mappings = policy?.connections?.intacct?.config?.mappings;
+    const {config} = policy?.connections?.intacct ?? {};
+    const {mappings, pendingFields} = config ?? {};
 
     const selectionOptions = useMemo<SelectorType[]>(
         () => [
@@ -72,6 +78,10 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
             initiallyFocusedOptionKey={mappings?.[mappingName]}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mappingName))}
             title="workspace.common.displayedAs"
+            pendingAction={settingsPendingAction([mappingName], pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, mappingName)}
         />
     );
 }

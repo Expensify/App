@@ -223,8 +223,8 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${dimensionName}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                            errorFields: {[`dimension_${dimensionName}`]: null},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
                         },
                     },
                 },
@@ -243,8 +243,10 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${dimensionName}`]: null},
-                            errorFields: {[`dimension_${dimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
+                            errorFields: {
+                                [`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
@@ -263,8 +265,8 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${dimensionName}`]: null},
-                            errorFields: {[`dimension_${dimensionName}`]: null},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
+                            errorFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
                         },
                     },
                 },

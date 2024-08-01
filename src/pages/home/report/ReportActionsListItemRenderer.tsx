@@ -104,7 +104,7 @@ function ReportActionsListItemRenderer({
                 isOptimisticAction: reportAction.isOptimisticAction,
                 delegateAccountID: reportAction.delegateAccountID,
                 previousMessage: reportAction.previousMessage,
-                attachmentInfo: reportAction.attachmentInfo,
+                isAttachmentWithText: reportAction.isAttachmentWithText,
                 childStateNum: reportAction.childStateNum,
                 childStatusNum: reportAction.childStatusNum,
                 childReportName: reportAction.childReportName,
@@ -134,7 +134,7 @@ function ReportActionsListItemRenderer({
             reportAction.isOptimisticAction,
             reportAction.delegateAccountID,
             reportAction.previousMessage,
-            reportAction.attachmentInfo,
+            reportAction.isAttachmentWithText,
             reportAction.childStateNum,
             reportAction.childStatusNum,
             reportAction.childReportName,
@@ -171,9 +171,13 @@ function ReportActionsListItemRenderer({
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 ReportUtils.isPolicyExpenseChat(report) &&
-                [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
-                    (type) => type === reportAction.actionName,
-                )
+                [
+                    CONST.REPORT.ACTIONS.TYPE.IOU,
+                    CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                ].some((type) => type === reportAction.actionName)
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}

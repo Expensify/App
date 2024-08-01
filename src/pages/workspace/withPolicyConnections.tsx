@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -28,7 +29,8 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '-1'}`, {
             initWithStoredValues: false,
         });
-        const isConnectionDataFetchNeeded = !isOffline && props.policy && props.policy.areConnectionsEnabled && !props.policy.connections && !hasConnectionsDataBeenFetched;
+        const isConnectionDataFetchNeeded =
+            !isOffline && props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,

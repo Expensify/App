@@ -41,6 +41,9 @@ Onyx.connect({
                         emoji = {...emoji, ...findEmojiByCode(item.code)};
                     }
                     const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                    if (!emojiWithSkinTones) {
+                        return null;
+                    }
                     return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
@@ -223,7 +226,7 @@ function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
 function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
     let updatedEmojis: EmojiPickerList = [];
     emojis.forEach((emoji, index) => {
-        if ('header' in emoji) {
+        if (emoji && 'header' in emoji) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
             return;
         }

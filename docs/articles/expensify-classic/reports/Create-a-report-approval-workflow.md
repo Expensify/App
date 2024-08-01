@@ -18,7 +18,9 @@ Expensify allows Workspace Admins to create workflows and automations that deter
 5. Select an approval mode. 
    - **Submit and Close**: No approval is required. Once a report is submitted, it will be automatically approved and closed. This option may be useful if your expense approvals occur in another system or if the submitter and approver are the same person.
    - **Submit and Approve**: All reports go to one person that you assign as the approver. Once a report is submitted, it is sent to the approver. This is the default option. 
-   - **Advanced Approval**: Allows for more complex workflows, like assigning different approvers for different employees or requiring secondary approvals for expenses that exceed a set limit.
+   - **Advanced Approval**: This workflow feature is for companies that require more than one person to approve a report before it can be reimbursed. 
+   Advanced Approval is only available on the Control plan.
+
 
 To add to your approval workflow, you can also set up approval rules for specific categories and tags. 
 
