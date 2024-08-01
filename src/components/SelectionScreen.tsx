@@ -151,7 +151,7 @@ function SelectionScreen<T = string>({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={[styles.flexGrow0]}
+                        sectionListStyle={!listEmptyContent && [styles.flexGrow0]}
                         shouldDebounceRowSelect={shouldDebounceRowSelect}
                     >
                         <ErrorMessageRow
