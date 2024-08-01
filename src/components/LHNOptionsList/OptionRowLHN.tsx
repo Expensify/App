@@ -251,7 +251,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {Parser.htmlToText(optionItem.alternateText)}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
