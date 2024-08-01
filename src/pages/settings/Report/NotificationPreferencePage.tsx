@@ -21,8 +21,11 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenPr
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || -1}`);
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const shouldDisableNotificationPreferences =
-        ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report) || report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        ReportUtils.isArchivedRoom(report, reportNameValuePairs) ||
+        ReportUtils.isSelfDM(report) ||
+        (!isMoneyRequestReport && report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({
