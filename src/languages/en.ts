@@ -1009,6 +1009,7 @@ export default {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            testCrash: 'Test crash',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1288,6 +1289,7 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
+        header: 'When the following members submit expenses:',
     },
     workflowsApprovalPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -4214,6 +4216,8 @@ export default {
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
+            taxExempt: 'Request tax exempt status',
+            taxExemptEnabled: 'Tax exempt',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
             headsUp:
