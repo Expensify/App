@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {Except, LiteralUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -45,8 +45,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -549,7 +547,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
     }
@@ -558,7 +556,7 @@ function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: Err
     return settings.some((setting) => keys.includes(setting));
 }
 
-function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+function settingsPendingAction(settings?: string[], pendingFields?: PendingFields<string>): PendingAction | undefined {
     if (settings === undefined || pendingFields === undefined) {
         return null;
     }
@@ -978,8 +976,8 @@ export {
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
     getCurrentTaxID,
-    areXeroSettingsInErrorFields,
-    xeroSettingsPendingAction,
+    areSettingsInErrorFields,
+    settingsPendingAction,
 };
 
-export type {MemberEmailsToAccountIDs, XeroSettings};
+export type {MemberEmailsToAccountIDs};
