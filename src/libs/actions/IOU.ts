@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {PartialDeep, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -5699,6 +5699,15 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.created,
             },
         });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        });
     }
 
     const successData: OnyxUpdate[] = [
@@ -6602,9 +6611,8 @@ function canApproveIOU(
         return false;
     }
 
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+    if (isOnSubmitAndClosePolicy) {
         return false;
     }
 
@@ -6828,6 +6836,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        v2: PolicyUtils.isControlOnAdvancedApprovalMode(PolicyUtils.getPolicy(expenseReport?.policyID)),
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
@@ -7198,7 +7207,15 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
 
 function detachReceipt(transactionID: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
+    const newTransaction = transaction
+        ? {
+              ...transaction,
+              filename: '',
+              receipt: {
+                  source: '',
+              },
+          }
+        : null;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -7651,11 +7668,98 @@ function mergeDuplicates(params: TransactionMergeParams) {
         };
     });
 
+    const duplicateTransactionTotals = params.transactionIDList.reduce((total, id) => {
+        const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        if (!duplicateTransaction) {
+            return total;
+        }
+        return total + duplicateTransaction.amount;
+    }, 0);
+
+    const expenseReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+    const expenseReportOptimisticData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+        value: {
+            total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
+        },
+    };
+    const expenseReportFailureData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+        value: {
+            total: expenseReport?.total,
+        },
+    };
+
+    const iouActionsToDelete = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.filter(
+        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                return false;
+            }
+            const message = ReportActionsUtils.getOriginalMessage(reportAction);
+            if (!message?.IOUTransactionID) {
+                return false;
+            }
+            return params.transactionIDList.includes(message.IOUTransactionID);
+        },
+    );
+
+    const deletedTime = DateUtils.getDBTime();
+    const expenseReportActionsOptimisticData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
+        value: iouActionsToDelete.reduce<Record<string, PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
+            // eslint-disable-next-line no-param-reassign
+            val[reportAction.reportActionID] = {
+                originalMessage: {
+                    deleted: deletedTime,
+                },
+                ...(Array.isArray(reportAction.message) &&
+                    !!reportAction.message[0] && {
+                        message: [
+                            {
+                                ...reportAction.message[0],
+                                deleted: deletedTime,
+                            },
+                            ...reportAction.message.slice(1),
+                        ],
+                    }),
+                ...(!Array.isArray(reportAction.message) && {
+                    message: {
+                        deleted: deletedTime,
+                    },
+                }),
+            };
+            return val;
+        }, {}),
+    };
+    const expenseReportActionsFailureData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
+        value: iouActionsToDelete.reduce<Record<string, NullishDeep<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
+            // eslint-disable-next-line no-param-reassign
+            val[reportAction.reportActionID] = {
+                originalMessage: {
+                    deleted: null,
+                },
+                message: reportAction.message,
+            };
+            return val;
+        }, {}),
+    };
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations);
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations);
+    optimisticData.push(
+        optimisticTransactionData,
+        ...optimisticTransactionDuplicatesData,
+        ...optimisticTransactionViolations,
+        expenseReportOptimisticData,
+        expenseReportActionsOptimisticData,
+    );
+    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData);
 
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }

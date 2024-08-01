@@ -45,7 +45,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                 <PressableWithoutFeedback
                     style={[style, isOffline && styles.cursorDefault]}
                     onPress={() => {
-                        if (isDownloading || isOffline) {
+                        if (isDownloading || isOffline || !sourceID) {
                             return;
                         }
                         Download.setDownload(sourceID, true);
@@ -63,7 +63,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     <AttachmentView
                         source={sourceURLWithAuth}
                         file={{name: displayName}}
-                        shouldShowDownloadIcon={!isOffline}
+                        shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                     />

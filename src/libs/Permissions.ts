@@ -7,10 +7,6 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
-}
-
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
@@ -30,10 +26,6 @@ function canUseWorkflowsAdvancedApproval(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
-}
-
-function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
@@ -56,14 +48,12 @@ function canUseLinkPreviews(): boolean {
 }
 
 export default {
-    canUseChronos,
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseDupeDetection,
     canUseP2PDistanceRequests,
     canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
-    canUseSageIntacctIntegration,
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,

@@ -42,6 +42,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Callback method fired when the modal is shown */
+    onModalShow?: () => void;
+
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
@@ -89,6 +92,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onModalShow,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -110,7 +114,7 @@ function PopoverMenu({
 
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
-    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<number[]>([]);
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
@@ -158,7 +162,7 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    enteredSubMenuIndexes.splice(-1);
+                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
                 }}
             />
         );
@@ -195,7 +199,7 @@ function PopoverMenu({
         if (menuItems.length === 0) {
             return;
         }
-        setEnteredSubMenuIndexes([]);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
@@ -206,11 +210,12 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes([]);
+                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
             isVisible={isVisible}
             onModalHide={onModalHide}
+            onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}
@@ -272,7 +277,7 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        !lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        prevProps.menuItems.length === nextProps.menuItems.length &&
         prevProps.isVisible === nextProps.isVisible &&
         lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&

@@ -84,7 +84,6 @@ function WorkspaceCreateTaxPage({
                             submitButtonText={translate('common.save')}
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
-                            disablePressOnEnter={false}
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper
