@@ -4,14 +4,12 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import Permissions from './Permissions';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 
@@ -48,12 +46,6 @@ Onyx.connect({
     },
 });
 
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
-
 let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -75,22 +67,10 @@ Onyx.connect({
 const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
     const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
-    if (oneTransactionThreadReportID) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (
-            Permissions.canUseViolations(allBetas) &&
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                allTransactionViolations,
-                reportActions[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
-            doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
+    if (ReportUtils.doesOneTransactionThreadReportHaveViolations(report.reportID, allTransactionViolations)) {
+        doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
 
     if (doesReportContainErrors) {

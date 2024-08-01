@@ -7411,6 +7411,35 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
+/**
+ * Checks if report is one transaction thread and has violations
+ */
+function doesOneTransactionThreadReportHaveViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    if (!Permissions.canUseViolations(allBetas)) {
+        return false;
+    }
+
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, ReportActionsUtils.getAllReportActions(reportID));
+
+    if (!oneTransactionThreadReportID) {
+        return false;
+    }
+
+    const oneTransactionThreadReport = getReport(oneTransactionThreadReportID);
+
+    if (
+        !shouldDisplayTransactionThreadViolations(
+            oneTransactionThreadReport,
+            transactionViolations,
+            ReportActionsUtils.getAllReportActions(reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+        )
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7706,6 +7735,7 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
+    doesOneTransactionThreadReportHaveViolations,
 };
 
 export type {
