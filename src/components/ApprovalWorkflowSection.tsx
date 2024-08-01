@@ -82,7 +82,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                             description={approver.displayName}
                             icon={Expensicons.UserCheck}
                             iconHeight={20}
-                            iconWidth={21}
+                            iconWidth={20}
                             iconFill={theme.icon}
                             onPress={openApprovalsEdit}
                             shouldRemoveBackground
