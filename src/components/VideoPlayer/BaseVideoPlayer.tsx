@@ -107,7 +107,7 @@ function BaseVideoPlayer({
         // eslint-disable-next-line react-compiler/react-compiler
         controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
     }, [controlsOpacity]);
-    const debouncedHideControl = useMemo(() => debounce(hideControl, 2000), [hideControl]);
+    const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
     useEffect(() => {
         if (canUseTouchScreen) {
