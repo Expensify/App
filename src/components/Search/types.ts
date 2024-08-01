@@ -31,7 +31,8 @@ type SearchContext = {
     selectedTransactions: SelectedTransactions;
     setCurrentSearchHash: (hash: number) => void;
     setSelectedTransactions: (selectedTransactions: SelectedTransactions) => void;
-    clearSelectedTransactions: (hash?: number) => void;
+    clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
+    shouldTurnOffSelectionMode: boolean;
 };
 
 type ASTNode = {

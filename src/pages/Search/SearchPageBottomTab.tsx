@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {BackHandler} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,7 +10,6 @@ import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchUtils';
@@ -27,6 +27,22 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+
+    const handleBackButtonPress = useCallback(() => {
+        if (!selectionMode?.isEnabled) {
+            return false;
+        }
+        if (selectionMode?.isEnabled) {
+            clearSelectedTransactions(undefined, true);
+            return true;
+        }
+    }, [selectionMode, clearSelectedTransactions]);
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonPress);
+
+        return () => backHandler.remove();
+    }, [handleBackButtonPress]);
 
     const {queryJSON, policyIDs, isCustomQuery} = useMemo(() => {
         if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
@@ -71,10 +87,7 @@ function SearchPageBottomTab() {
                 ) : (
                     <HeaderWithBackButton
                         title={translate('common.selectMultiple')}
-                        onBackButtonPress={() => {
-                            clearSelectedTransactions();
-                            turnOffMobileSelectionMode();
-                        }}
+                        onBackButtonPress={handleBackButtonPress}
                     />
                 )}
                 {shouldUseNarrowLayout && queryJSON && (

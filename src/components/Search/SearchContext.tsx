@@ -4,6 +4,7 @@ import type {SearchContext, SelectedTransactions} from './types';
 
 const defaultSearchContext = {
     currentSearchHash: -1,
+    shouldTurnOffSelectionMode: false,
     selectedTransactions: {},
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
@@ -13,9 +14,10 @@ const defaultSearchContext = {
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions'>>({
+    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode'>>({
         currentSearchHash: defaultSearchContext.currentSearchHash,
         selectedTransactions: defaultSearchContext.selectedTransactions,
+        shouldTurnOffSelectionMode: false,
     });
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
@@ -29,16 +31,18 @@ function SearchContextProvider({children}: ChildrenProps) {
         setSearchContextData((prevState) => ({
             ...prevState,
             selectedTransactions,
+            shouldTurnOffSelectionMode: false,
         }));
     }, []);
 
     const clearSelectedTransactions = useCallback(
-        (searchHash?: number) => {
+        (searchHash?: number, shouldTurnOffSelectionMode = false) => {
             if (searchHash === searchContextData.currentSearchHash) {
                 return;
             }
             setSearchContextData((prevState) => ({
                 ...prevState,
+                shouldTurnOffSelectionMode,
                 selectedTransactions: {},
             }));
         },

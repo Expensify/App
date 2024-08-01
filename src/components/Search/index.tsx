@@ -79,7 +79,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, shouldTurnOffSelectionMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [offset, setOffset] = useState(0);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
@@ -100,6 +100,13 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [hash]);
+
+    useEffect(() => {
+        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        if (selectedKeys.length === 0 && selectionMode?.isEnabled && shouldTurnOffSelectionMode) {
+            turnOffMobileSelectionMode();
+        }
+    }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
@@ -133,19 +140,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         setSelectedTransactionsToDelete(itemsToDelete);
         setDeleteExpensesConfirmModalVisible(true);
     };
-
-    useEffect(() => {
-        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
-        if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0) {
-                turnOffMobileSelectionMode();
-            }
-            return;
-        }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
-            turnOnMobileSelectionMode();
-        }
-    }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
