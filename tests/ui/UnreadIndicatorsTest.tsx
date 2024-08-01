@@ -25,6 +25,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -80,13 +81,6 @@ function navigateToSidebar(): Promise<void> {
         fireEvent(reportHeaderBackButton, 'press');
     }
     return waitForBatchedUpdates();
-}
-
-async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRows = screen.queryAllByAccessibilityHint(hintText);
-    fireEvent(optionRows[index], 'press');
-    await waitForBatchedUpdatesWithAct();
 }
 
 function areYouOnChatListScreen(): boolean {
