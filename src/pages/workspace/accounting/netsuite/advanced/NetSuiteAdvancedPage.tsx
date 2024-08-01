@@ -17,6 +17,13 @@ import {
     settingsPendingAction,
 } from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import {
+    shouldHideCustomFormIDOptions,
+    shouldHideExportJournalsTo,
+    shouldHideExportVendorBillsTo,
+    shouldHideReimbursedReportsSection,
+    shouldHideReportsExportTo,
+} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -82,7 +89,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onToggle: (isEnabled) => Connections.updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
-            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: shouldHideReimbursedReportsSection(config),
         },
         {
             type: 'menuitem',
@@ -90,7 +97,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedReimbursementAccount ? selectedReimbursementAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID],
-            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: shouldHideReimbursedReportsSection(config),
         },
         {
             type: 'menuitem',
@@ -98,12 +105,12 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedCollectionAccount ? selectedCollectionAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT],
-            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: shouldHideReimbursedReportsSection(config),
         },
         {
             type: 'divider',
             key: 'divider2',
-            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: shouldHideReimbursedReportsSection(config),
         },
         {
             type: 'toggle',
@@ -152,7 +159,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             title: config?.syncOptions.exportReportsTo ? translate(`workspace.netsuite.advancedConfig.exportReportsTo.values.${config.syncOptions.exportReportsTo}`) : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO],
-            shouldHide: config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT,
+            shouldHide: shouldHideReportsExportTo(config),
         },
         {
             type: 'menuitem',
@@ -160,9 +167,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             title: config?.syncOptions.exportVendorBillsTo ? translate(`workspace.netsuite.advancedConfig.exportVendorBillsTo.values.${config.syncOptions.exportVendorBillsTo}`) : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO],
-            shouldHide:
-                config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL &&
-                config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL,
+            shouldHide: shouldHideExportVendorBillsTo(config),
         },
         {
             type: 'menuitem',
@@ -170,9 +175,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             title: config?.syncOptions.exportJournalsTo ? translate(`workspace.netsuite.advancedConfig.exportJournalsTo.values.${config.syncOptions.exportJournalsTo}`) : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO],
-            shouldHide:
-                config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY &&
-                config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: shouldHideExportJournalsTo(config),
         },
         {
             type: 'menuitem',
@@ -203,7 +206,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
             title: config?.customFormIDOptions?.reimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.reimbursableExpensesExportDestination]],
             subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE],
-            shouldHide: !config?.customFormIDOptions?.enabled,
+            shouldHide: shouldHideCustomFormIDOptions(config),
         },
         {
             type: 'menuitem',
@@ -211,7 +214,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
             title: config?.customFormIDOptions?.nonReimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.nonreimbursableExpensesExportDestination]],
             subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE],
-            shouldHide: !config?.customFormIDOptions?.enabled,
+            shouldHide: shouldHideCustomFormIDOptions(config),
         },
     ];
 
@@ -273,3 +276,5 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 NetSuiteAdvancedPage.displayName = 'NetSuiteAdvancedPage';
 
 export default withPolicyConnections(NetSuiteAdvancedPage);
+
+export {shouldHideReimbursedReportsSection};

@@ -1604,4 +1604,5 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     ACHAccount,
+    NetSuiteConnectionConfig,
 };

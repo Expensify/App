@@ -119,7 +119,8 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: invoiceItemValue,
             description: translate('workspace.netsuite.invoiceItem.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE],
+            // TODO: do not show invoice item error if menu item is not shown
+            subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, CONST.NETSUITE_CONFIG.INVOICE_ITEM],
         },
         {
             type: 'divider',
