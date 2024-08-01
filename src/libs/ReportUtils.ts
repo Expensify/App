@@ -2052,6 +2052,7 @@ function getIcons(
     defaultName = '',
     defaultAccountID = -1,
     policy?: OnyxInputOrEntry<Policy>,
+    invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -2130,7 +2131,7 @@ function getIcons(
                 icons.push(...getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails));
             } else {
                 const receiverPolicyID = report?.invoiceReceiver?.policyID;
-                const receiverPolicy = getPolicy(receiverPolicyID);
+                const receiverPolicy = invoiceReceiverPolicy ?? getPolicy(receiverPolicyID);
                 if (!isEmptyObject(receiverPolicy)) {
                     icons.push({
                         source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
@@ -2210,7 +2211,7 @@ function getIcons(
         }
 
         const receiverPolicyID = invoiceRoomReport?.invoiceReceiver?.policyID;
-        const receiverPolicy = getPolicy(receiverPolicyID);
+        const receiverPolicy = invoiceReceiverPolicy ?? getPolicy(receiverPolicyID);
 
         if (!isEmptyObject(receiverPolicy)) {
             icons.push({
@@ -2664,7 +2665,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): string {
+function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
     const isReportSettled = isSettled(report?.reportID ?? '-1');
     const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '-1');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
@@ -2681,7 +2682,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
         payerOrApproverName = getPolicyName(report, false, policy);
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
-        payerOrApproverName = getInvoicePayerName(chatReport);
+        payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant(report?.managerID) ?? '';
     }
@@ -3359,7 +3360,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
  */
-function getInvoicePayerName(report: OnyxEntry<Report>): string {
+function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
@@ -3367,7 +3368,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>): string {
         return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]);
     }
 
-    return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
+    return getPolicyName(report, false, invoiceReceiverPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
 }
 
 /**
@@ -3443,13 +3444,13 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
 /**
  * Get the title for an invoice room.
  */
-function getInvoicesChatName(report: OnyxEntry<Report>): string {
+function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntry<Policy>): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
     const invoiceReceiverPolicyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '-1';
-    const isCurrentUserReceiver =
-        (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && PolicyUtils.isPolicyEmployee(invoiceReceiverPolicyID, allPolicies));
+    const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
+    const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && PolicyUtils.isPolicyAdmin(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
         return getPolicyName(report);
@@ -3459,14 +3460,13 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
         return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
     }
 
-    // TODO: Check this flow in a scope of the Invoice V0.3
-    return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`]);
+    return getPolicyName(report, false, invoiceReceiverPolicy);
 }
 
 /**
  * Get the title for a report.
  */
-function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, parentReportActionParam?: OnyxInputOrEntry<ReportAction>): string {
+function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, parentReportActionParam?: OnyxInputOrEntry<ReportAction>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
     let formattedName: string | undefined;
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
@@ -3537,12 +3537,16 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
         formattedName = getPolicyExpenseChatName(report, policy);
     }
 
-    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
+    if (isMoneyRequestReport(report)) {
         formattedName = getMoneyRequestReportName(report, policy);
     }
 
+    if (isInvoiceReport(report)) {
+        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+    }
+
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report);
+        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
     }
 
     if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
@@ -3551,10 +3555,6 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
-    }
-
-    if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report);
     }
 
     if (formattedName) {
@@ -3631,14 +3631,14 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy>): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         return {};
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        let reportName = `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`;
+        let reportName = `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport, invoiceReceiverPolicy)}`;
 
         if (isArchivedRoom(parentReport, getReportNameValuePairs(parentReport?.reportID))) {
             reportName += ` (${Localize.translateLocal('common.archived')})`;

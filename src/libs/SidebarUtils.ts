@@ -244,6 +244,7 @@ function getOptionData({
     parentReportAction,
     hasViolations,
     transactionViolations,
+    invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -252,6 +253,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -462,13 +464,13 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber;
     }
 
-    const reportName = ReportUtils.getReportName(report, policy);
+    const reportName = ReportUtils.getReportName(report, policy, undefined, invoiceReceiverPolicy);
 
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy, invoiceReceiverPolicy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 

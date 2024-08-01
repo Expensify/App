@@ -21,6 +21,7 @@ function OptionRowLHNData({
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
+    invoiceReceiverPolicy,
     receiptTransactions,
     parentReportAction,
     iouReportReportActions,
@@ -50,6 +51,7 @@ function OptionRowLHNData({
             parentReportAction,
             hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
             transactionViolations,
+            invoiceReceiverPolicy,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -74,6 +76,7 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
+        invoiceReceiverPolicy,
         shouldDisplayReportViolations,
     ]);
 

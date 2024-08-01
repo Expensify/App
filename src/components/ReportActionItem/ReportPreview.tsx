@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -140,6 +140,9 @@ function ReportPreview({
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : -1}`,
+    );
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -275,7 +278,7 @@ function ReportPreview({
         if (isPolicyExpenseChat) {
             payerOrApproverName = ReportUtils.getPolicyName(chatReport);
         } else if (isInvoiceRoom) {
-            payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport);
+            payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
         } else {
             payerOrApproverName = ReportUtils.getDisplayNameForParticipant(managerID, true);
         }
