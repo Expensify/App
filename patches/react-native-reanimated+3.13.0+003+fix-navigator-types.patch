@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-reanimated/lib/typescript/js-reanimated/JSReanimated.d.ts b/node_modules/react-native-reanimated/lib/typescript/js-reanimated/JSReanimated.d.ts
+index 5c34476..df9a9b7 100644
+--- a/node_modules/react-native-reanimated/lib/typescript/js-reanimated/JSReanimated.d.ts
++++ b/node_modules/react-native-reanimated/lib/typescript/js-reanimated/JSReanimated.d.ts
+@@ -36,8 +36,8 @@ declare enum Platform {
+ }
+ declare global {
+     interface Navigator {
+-        userAgent?: string;
+-        vendor?: string;
++        userAgent: string;
++        vendor: string;
+     }
+ }
+ export {};
