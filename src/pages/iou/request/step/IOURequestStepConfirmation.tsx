@@ -275,8 +275,10 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const receiptObjWithFilename = {...receiptObj, name: receiptObj?.name || transaction.filename};
+            const receiptObjWithFilename = receiptObj && {...receiptObj};
+            if (receiptObjWithFilename && !receiptObjWithFilename?.name) {
+                receiptObjWithFilename.name = transaction.filename;
+            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
