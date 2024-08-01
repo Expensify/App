@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {Except, LiteralUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -44,9 +44,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
-// type QuickbooksSettings =
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -377,6 +374,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
 function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
@@ -419,6 +420,9 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
+        return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
     }
 
     return !!policy?.[featureName];
@@ -535,7 +539,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function areSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
     }
@@ -544,7 +548,7 @@ function areSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFi
     return settings.some((setting) => keys.includes(setting));
 }
 
-function settingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+function settingsPendingAction(settings?: string[], pendingFields?: PendingFields<string>): PendingAction | undefined {
     if (settings === undefined || pendingFields === undefined) {
         return null;
     }
@@ -903,6 +907,7 @@ export {
     hasPolicyError,
     hasPolicyErrorFields,
     hasTaxRateError,
+    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
@@ -966,4 +971,4 @@ export {
     settingsPendingAction,
 };
 
-export type {MemberEmailsToAccountIDs, XeroSettings};
+export type {MemberEmailsToAccountIDs};

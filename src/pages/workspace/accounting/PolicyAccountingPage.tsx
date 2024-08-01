@@ -25,7 +25,6 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +40,6 @@ import {
     getXeroTenants,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import type {XeroSettings} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -74,11 +72,11 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
-    subscribedImportSettings?: XeroSettings;
+    subscribedImportSettings?: string[];
     onExportPagePress: () => void;
-    subscribedExportSettings?: XeroSettings;
+    subscribedExportSettings?: string[];
     onAdvancedPagePress: () => void;
-    subscribedAdvancedSettings?: XeroSettings;
+    subscribedAdvancedSettings?: string[];
     onCardReconciliationPagePress: () => void;
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
@@ -179,9 +177,35 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS,
+                    ...Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS),
+                    CONST.SAGE_INTACCT_CONFIG.TAX,
+                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
+                ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.EXPORTER,
+                    CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    policy?.connections?.intacct?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+                        : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED,
+                    CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES,
+                    CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                ],
+                pendingFields: policy?.connections?.intacct?.config?.pendingFields,
+                errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
         default:
             return undefined;
@@ -194,7 +218,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseSageIntacctIntegration} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -209,8 +232,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration));
-
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const policyID = policy?.id ?? '-1';

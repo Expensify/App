@@ -372,7 +372,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1191,9 +1190,8 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    // This is a placeholder for attachment which is uploading
-    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -1414,6 +1412,7 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
+        DIMENSION_PREFIX: 'dimension_',
     },
 
     SAGE_INTACCT: {
@@ -2311,8 +2310,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -5413,6 +5412,14 @@ const CONST = {
                 title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
+            },
+            taxCodes: {
+                id: 'taxCodes' as const,
+                alias: 'tax-codes',
+                name: 'Tax codes',
+                title: 'workspace.upgrade.taxCodes.title' as const,
+                description: 'workspace.upgrade.taxCodes.description' as const,
+                icon: 'Coins',
             },
         };
     },
