@@ -1,3 +1,4 @@
+/** Model of frequently used emoji */
 type FrequentlyUsedEmoji = {
     /** The emoji code */
     code: string;
@@ -12,7 +13,7 @@ type FrequentlyUsedEmoji = {
     lastUpdatedAt: number;
 
     /** The emoji skin tone type */
-    types?: string[];
+    types?: readonly string[];
 
     /** The emoji keywords */
     keywords?: string[];

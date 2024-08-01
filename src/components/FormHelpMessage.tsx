@@ -1,16 +1,16 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Localize from '@libs/Localize';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type FormHelpMessageProps = {
     /** Error or hint text. Ignored when children is not empty */
-    message?: Localize.MaybePhraseKey;
+    message?: string | React.ReactNode;
 
     /** Children to render next to dot indicator */
     children?: React.ReactNode;
@@ -32,8 +32,6 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
         return null;
     }
 
-    const translatedMessage = Localize.translateIfPhraseKey(message);
-
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
@@ -43,7 +41,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ?? <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}
+                {children ?? <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>}
             </View>
         </View>
     );

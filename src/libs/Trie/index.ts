@@ -1,4 +1,5 @@
-import TrieNode, {MetaData} from './TrieNode';
+import type {MetaData} from './TrieNode';
+import TrieNode from './TrieNode';
 
 type Word<TMetaData extends MetaData> = {
     name: string;
@@ -30,7 +31,6 @@ class Trie<TMetaData extends MetaData> {
         }
         if (!newNode.children[newWord[0]]) {
             newNode.children[newWord[0]] = new TrieNode();
-            this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
         }
         this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
     }
@@ -50,7 +50,7 @@ class Trie<TMetaData extends MetaData> {
 
             newWord = newWord.substring(1);
         }
-        return node.children[newWord] && node.children[newWord].isEndOfWord ? node.children[newWord] : null;
+        return node.children[newWord]?.isEndOfWord ? node.children[newWord] : null;
     }
 
     /**

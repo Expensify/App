@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: authorChecklist.js
+      - name: authorChecklist.ts
         uses: ./.github/actions/javascript/authorChecklist
         with:
           GITHUB_TOKEN: ${{ github.token }}

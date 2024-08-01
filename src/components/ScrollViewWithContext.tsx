@@ -1,23 +1,26 @@
-import React, {ForwardedRef, useMemo, useRef, useState} from 'react';
-import {NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
+import type {ForwardedRef, ReactNode} from 'react';
+import React, {createContext, forwardRef, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
+import ScrollView from './ScrollView';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
 type ScrollContextValue = {
     contentOffsetY: number;
-    scrollViewRef: ForwardedRef<ScrollView>;
+    scrollViewRef: ForwardedRef<RNScrollView>;
 };
 
-const ScrollContext = React.createContext<ScrollContextValue>({
+const ScrollContext = createContext<ScrollContextValue>({
     contentOffsetY: 0,
     scrollViewRef: null,
 });
 
-type ScrollViewWithContextProps = {
-    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    children?: React.ReactNode;
-    scrollEventThrottle: number;
-} & Partial<ScrollView>;
+type ScrollViewWithContextProps = Partial<ScrollViewProps> & {
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    children?: ReactNode;
+    scrollEventThrottle?: number;
+};
 
 /*
  * <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
@@ -26,9 +29,9 @@ type ScrollViewWithContextProps = {
  * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
  * when the picker modal is opened
  */
-function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<ScrollView>) {
+function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<RNScrollView>) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
-    const defaultScrollViewRef = useRef<ScrollView>(null);
+    const defaultScrollViewRef = useRef<RNScrollView>(null);
     const scrollViewRef = ref ?? defaultScrollViewRef;
 
     const setContextScrollPosition = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -52,6 +55,8 @@ function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, 
             {...restProps}
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}
+            // It's possible for scrollEventThrottle to be 0, so we must use "||" to fallback to MIN_SMOOTH_SCROLL_EVENT_THROTTLE.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             scrollEventThrottle={scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>
@@ -59,8 +64,8 @@ function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, 
     );
 }
 
-ScrollViewWithContextWithRef.displayName = 'ScrollViewWithContextWithRef';
+ScrollViewWithContext.displayName = 'ScrollViewWithContext';
 
-export default React.forwardRef(ScrollViewWithContextWithRef);
+export default forwardRef(ScrollViewWithContext);
 export {ScrollContext};
 export type {ScrollContextValue};

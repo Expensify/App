@@ -1,4 +1,4 @@
-import EditedLabelStyles from './types';
+import type EditedLabelStyles from './types';
 
 const editedLabelStyles: EditedLabelStyles = {};
 

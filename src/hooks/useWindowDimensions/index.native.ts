@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import {useWindowDimensions} from 'react-native';
 import variables from '@styles/variables';
-import WindowDimensions from './types';
+import type WindowDimensions from './types';
 
 /**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
@@ -12,6 +12,8 @@ export default function (): WindowDimensions {
     const isSmallScreenWidth = true;
     const isMediumScreenWidth = false;
     const isLargeScreenWidth = false;
+    const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
+    const isSmallScreen = true;
 
     return {
         windowWidth,
@@ -20,5 +22,7 @@ export default function (): WindowDimensions {
         isSmallScreenWidth,
         isMediumScreenWidth,
         isLargeScreenWidth,
+        isExtraSmallScreenWidth,
+        isSmallScreen,
     };
 }

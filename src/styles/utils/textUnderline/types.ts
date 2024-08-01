@@ -1,4 +1,4 @@
-import {TextStyle} from 'react-native';
+import type {TextStyle} from 'react-native';
 
 type TextUnderlineStyles = {
     textUnderlinePositionUnder: Pick<TextStyle, 'textUnderlinePosition'>;

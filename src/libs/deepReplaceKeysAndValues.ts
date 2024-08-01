@@ -48,3 +48,5 @@ function deepReplaceKeysAndValues<T extends ReplaceableValue>(target: T, oldVal:
 }
 
 export default deepReplaceKeysAndValues;
+
+export type {ReplaceableValue};

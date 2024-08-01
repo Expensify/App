@@ -1,8 +1,8 @@
-import {ViewStyle} from 'react-native';
-import {ThemeStyles} from '@styles/index';
-import {type ThemeColors} from '@styles/theme/types';
+import type {ViewStyle} from 'react-native';
+import type {ThemeStyles} from '@styles/index';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
-import StyleUtilGenerator from './types';
+import type StyleUtilGenerator from './types';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
@@ -12,6 +12,10 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
     styles.flexRow,
     getDefaultWrapperStyle(theme),
     {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 4,
+        height: 36,
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
         borderColor: theme.border,
@@ -41,7 +45,7 @@ const createReportActionContextMenuStyleUtils: StyleUtilGenerator<GetReportActio
             getDefaultWrapperStyle(theme),
 
             // Small screens use a bottom-docked modal that already has vertical padding.
-            isSmallScreenWidth ? {} : styles.pv3,
+            isSmallScreenWidth ? {} : styles.pv4,
         ];
     },
 });

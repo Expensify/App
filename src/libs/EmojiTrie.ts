@@ -1,39 +1,14 @@
-import React from 'react';
-import {SvgProps} from 'react-native-svg';
+import type {TupleToUnion} from 'type-fest';
 import emojis, {localeEmojis} from '@assets/emojis';
+import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
+import type {Locale} from '@src/types/onyx';
 import Timing from './actions/Timing';
+import StringUtils from './StringUtils';
 import Trie from './Trie';
 
-type HeaderEmoji = {
-    code: string;
-    header: boolean;
-    icon: React.FC<SvgProps>;
-};
-
-type SimpleEmoji = {
-    code: string;
-    name: string;
-    types?: string[];
-};
-
-type Emoji = HeaderEmoji | SimpleEmoji;
-
-type LocalizedEmoji = {
-    name?: string;
-    keywords: string[];
-};
-
-type LocalizedEmojis = Record<string, LocalizedEmoji>;
-
-type Suggestion = {
-    code: string;
-    types?: string[];
-    name: string;
-};
-
 type EmojiMetaData = {
-    suggestions?: Suggestion[];
+    suggestions?: Emoji[];
     code?: string;
     types?: string[];
     name?: string;
@@ -43,7 +18,7 @@ Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
 
-type SupportedLanguage = (typeof supportedLanguages)[number];
+type SupportedLanguage = TupleToUnion<typeof supportedLanguages>;
 
 type EmojiTrie = {
     [key in SupportedLanguage]?: Trie<EmojiMetaData>;
@@ -57,18 +32,28 @@ type EmojiTrie = {
  * @param name The localized name of the emoji.
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
-function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: SimpleEmoji, name: string, shouldPrependKeyword = false) {
+function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
     keywords.forEach((keyword) => {
         const keywordNode = trie.search(keyword);
+        const normalizedKeyword = StringUtils.normalizeAccents(keyword);
+
         if (!keywordNode) {
-            trie.add(keyword, {suggestions: [{code: item.code, types: item.types, name}]});
+            const metadata = {suggestions: [{code: item.code, types: item.types, name}]};
+            if (normalizedKeyword !== keyword) {
+                trie.add(normalizedKeyword, metadata);
+            }
+            trie.add(keyword, metadata);
         } else {
             const suggestion = {code: item.code, types: item.types, name};
             const suggestions = shouldPrependKeyword ? [suggestion, ...(keywordNode.metaData.suggestions ?? [])] : [...(keywordNode.metaData.suggestions ?? []), suggestion];
-            trie.update(keyword, {
+            const newMetadata = {
                 ...keywordNode.metaData,
                 suggestions,
-            });
+            };
+            if (normalizedKeyword !== keyword) {
+                trie.update(normalizedKeyword, newMetadata);
+            }
+            trie.update(keyword, newMetadata);
         }
     });
 }
@@ -86,21 +71,30 @@ function getNameParts(name: string): string[] {
 
 function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
     const trie = new Trie();
-    const langEmojis: LocalizedEmojis = localeEmojis[lang];
-    const defaultLangEmojis: LocalizedEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
+    const langEmojis = localeEmojis[lang];
+    const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
     emojis
-        .filter((item: Emoji): item is SimpleEmoji => !(item as HeaderEmoji).header)
-        .forEach((item: SimpleEmoji) => {
+        .filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header)
+        .forEach((item: Emoji) => {
             const englishName = item.name;
             const localeName = langEmojis?.[item.code]?.name ?? englishName;
+            const normalizedName = StringUtils.normalizeAccents(localeName);
 
             const node = trie.search(localeName);
             if (!node) {
-                trie.add(localeName, {code: item.code, types: item.types, name: localeName, suggestions: []});
+                const metadata = {code: item.code, types: item.types, name: localeName, suggestions: []};
+                if (normalizedName !== localeName) {
+                    trie.add(normalizedName, metadata);
+                }
+                trie.add(localeName, metadata);
             } else {
-                trie.update(localeName, {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions});
+                const newMetadata = {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions};
+                if (normalizedName !== localeName) {
+                    trie.update(normalizedName, newMetadata);
+                }
+                trie.update(localeName, newMetadata);
             }
 
             const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
@@ -123,9 +117,25 @@ function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<Emoji
     return trie;
 }
 
-const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
+const emojiTrie: EmojiTrie = supportedLanguages.reduce((acc, lang) => {
+    acc[lang] = undefined;
+    return acc;
+}, {} as EmojiTrie);
+
+const buildEmojisTrie = (locale: Locale) => {
+    // Normalize the locale to lowercase and take the first part before any dash
+    const normalizedLocale = locale.toLowerCase().split('-')[0];
+    const localeToUse = supportedLanguages.includes(normalizedLocale as SupportedLanguage) ? (normalizedLocale as SupportedLanguage) : undefined;
+
+    if (!localeToUse || emojiTrie[localeToUse]) {
+        return; // Return early if the locale is not supported or the trie is already built
+    }
+    emojiTrie[localeToUse] = createTrie(localeToUse);
+};
 
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
-export type {SimpleEmoji, SupportedLanguage};
+export {buildEmojisTrie};
+
+export type {SupportedLanguage};

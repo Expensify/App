@@ -1,5 +1,8 @@
-import React, {ReactNode} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {ReactNode} from 'react';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type FixedFooterProps = {
@@ -11,8 +14,16 @@ type FixedFooterProps = {
 };
 
 function FixedFooter({style, children}: FixedFooterProps) {
+    const insets = useSafeAreaInsets();
     const styles = useThemeStyles();
-    return <View style={[styles.ph5, styles.pb5, styles.flexShrink0, style]}>{children}</View>;
+
+    if (!children) {
+        return null;
+    }
+
+    const shouldAddBottomPadding = !insets.bottom;
+
+    return <View style={[styles.ph5, shouldAddBottomPadding && styles.pb5, styles.flexShrink0, style]}>{children}</View>;
 }
 
 FixedFooter.displayName = 'FixedFooter';

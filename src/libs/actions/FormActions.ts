@@ -1,34 +1,34 @@
+import type {NullishDeep, OnyxValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {KeyValueMapping, NullishDeep} from 'react-native-onyx/lib/types';
-import FormUtils from '@libs/FormUtils';
-import {OnyxFormKey} from '@src/ONYXKEYS';
-import {Form} from '@src/types/onyx';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-
-type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
-type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
-    Onyx.merge(formID, {isLoading} satisfies Form);
+    Onyx.merge(formID, {isLoading});
 }
 
 function setErrors(formID: OnyxFormKey, errors: OnyxCommon.Errors) {
-    Onyx.merge(formID, {errors} satisfies Form);
+    Onyx.merge(formID, {errors});
 }
 
 function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields) {
-    Onyx.merge(formID, {errorFields} satisfies Form);
+    Onyx.merge(formID, {errorFields});
 }
 
-function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDeep<KeyValueMapping[`${OnyxFormKeyWithoutDraft}Draft`]>) {
-    Onyx.merge(FormUtils.getDraftKey(formID), draftValues);
+function clearErrors(formID: OnyxFormKey) {
+    Onyx.merge(formID, {errors: null});
 }
 
-/**
- * @param formID
- */
-function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
-    Onyx.merge(FormUtils.getDraftKey(formID), undefined);
+function clearErrorFields(formID: OnyxFormKey) {
+    Onyx.merge(formID, {errorFields: null});
 }
 
-export {setDraftValues, setErrorFields, setErrors, setIsLoading, clearDraftValues};
+function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<OnyxFormDraftKey>>) {
+    Onyx.merge(`${formID}Draft`, draftValues ?? null);
+}
+
+function clearDraftValues(formID: OnyxFormKey) {
+    Onyx.set(`${formID}Draft`, null);
+}
+
+export {clearDraftValues, clearErrorFields, clearErrors, setDraftValues, setErrorFields, setErrors, setIsLoading};

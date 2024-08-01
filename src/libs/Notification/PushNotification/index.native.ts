@@ -1,14 +1,16 @@
-import Airship, {EventType, PushPayload} from '@ua/react-native-airship';
+import type {PushPayload} from '@ua/react-native-airship';
+import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as PushNotificationActions from '@userActions/PushNotification';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
-import NotificationType, {NotificationData} from './NotificationType';
-import PushNotificationType, {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
+import type {PushNotificationData} from './NotificationType';
+import NotificationType from './NotificationType';
+import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
+import type PushNotificationType from './types';
 
-type NotificationEventActionCallback = (data: NotificationData) => void;
+type NotificationEventActionCallback = (data: PushNotificationData) => Promise<void>;
 
 type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
 
@@ -29,10 +31,10 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
 
     // On Android, some notification payloads are sent as a JSON string rather than an object
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as string;
     }
 
-    const data = payload as NotificationData;
+    const data = payload as PushNotificationData;
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 
@@ -54,7 +56,13 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
         });
         return;
     }
-    action(data);
+
+    /**
+     * The action callback should return a promise. It's very important we return that promise so that
+     * when these callbacks are run in Android's background process (via Headless JS), the process waits
+     * for the promise to resolve before quitting
+     */
+    return action(data);
 }
 
 /**
@@ -62,7 +70,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
  */
 function refreshNotificationOptInStatus() {
     Airship.push.getNotificationStatus().then((notificationStatus) => {
-        const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+        const isOptedIn = notificationStatus.isOptedIn && notificationStatus.areNotificationsAllowed;
         if (isOptedIn === isUserOptedInToPushNotifications) {
             return;
         }
@@ -81,23 +89,14 @@ function refreshNotificationOptInStatus() {
  */
 const init: Init = () => {
     // Setup event listeners
-    Airship.addListener(EventType.PushReceived, (notification) => {
-        // By default, refresh notification opt-in status to true if we receive a notification
-        if (!isUserOptedInToPushNotifications) {
-            PushNotificationActions.setPushNotificationOptInStatus(true);
-        }
-
-        pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload);
-    });
+    Airship.addListener(EventType.PushReceived, (notification) => pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload));
 
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
-    Airship.addListener(EventType.NotificationResponse, (event) => {
-        pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload);
-    });
+    Airship.addListener(EventType.NotificationResponse, (event) => pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload));
 
     // Keep track of which users have enabled push notifications via an NVP.
-    Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
+    Airship.addListener(EventType.PushNotificationStatusChangedStatus, refreshNotificationOptInStatus);
 
     ForegroundNotifications.configureForegroundNotifications();
 };
@@ -131,7 +130,7 @@ const register: Register = (notificationID) => {
             // Refresh notification opt-in status NVP for the new user.
             refreshNotificationOptInStatus();
         })
-        .catch((error) => {
+        .catch((error: Record<string, unknown>) => {
             Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
         });
 };
@@ -190,40 +189,6 @@ const clearNotifications: ClearNotifications = () => {
     Airship.push.clearNotifications();
 };
 
-const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
-    let payload = pushPayload.extras.payload;
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
-    }
-    const data = payload as NotificationData;
-    return {
-        notificationID: pushPayload.notificationId,
-        reportID: String(data.reportID),
-    };
-};
-
-const clearReportNotifications = (reportID: string) => {
-    Log.info('[PushNotification] clearing report notifications', false, {reportID});
-
-    Airship.push
-        .getActiveNotifications()
-        .then((pushPayloads) => {
-            const reportNotificationIDs = pushPayloads.reduce<string[]>((notificationIDs, pushPayload) => {
-                const notification = parseNotificationAndReportIDs(pushPayload);
-                if (notification.notificationID && notification.reportID === reportID) {
-                    notificationIDs.push(notification.notificationID);
-                }
-                return notificationIDs;
-            }, []);
-
-            Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
-            reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
-        })
-        .catch((error) => {
-            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
-        });
-};
-
 const PushNotification: PushNotificationType = {
     init,
     register,
@@ -232,7 +197,6 @@ const PushNotification: PushNotificationType = {
     onSelected,
     TYPE: NotificationType,
     clearNotifications,
-    clearReportNotifications,
 };
 
 export default PushNotification;

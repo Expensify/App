@@ -1,8 +1,9 @@
 import {useEffect} from 'react';
-import {dismissLink, LinkEvent, openLink, usePlaidEmitter} from 'react-native-plaid-link-sdk';
+import type {LinkEvent} from 'react-native-plaid-link-sdk';
+import {dismissLink, openLink, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import PlaidLinkProps from './types';
+import type PlaidLinkProps from './types';
 
 function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: PlaidLinkProps) {
     usePlaidEmitter((event: LinkEvent) => {
@@ -30,7 +31,7 @@ function PlaidLink({token, onSuccess = () => {}, onExit = () => {}, onEvent}: Pl
         };
 
         // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     return null;
 }

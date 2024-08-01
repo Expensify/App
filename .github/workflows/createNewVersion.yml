@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Run turnstyle
-        uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
+        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
         with:
           poll-interval-seconds: 10
         env:
@@ -89,7 +89,8 @@ jobs:
             ./package-lock.json \
             ./android/app/build.gradle \
             ./ios/NewExpensify/Info.plist \
-            ./ios/NewExpensifyTests/Info.plist
+            ./ios/NewExpensifyTests/Info.plist \
+            ./ios/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
       - name: Update main branch

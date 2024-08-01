@@ -1,14 +1,17 @@
 import React, {Fragment, useCallback, useRef} from 'react';
-import {Text as RNText, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText} from 'react-native';
+import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
-import DisplayNamesProps from './types';
+import type DisplayNamesProps from './types';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
-function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1}: DisplayNamesProps) {
+function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
@@ -23,13 +26,13 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
      * 2. Now we get the tooltip original position.
      * 3. If inline node's right edge is overflowing the container's right edge, we set the tooltip to the center
      * of the distance between the left edge of the inline node and right edge of the container.
-     * @param {Number} index Used to get the Ref to the node at the current index
-     * @returns {Number} Distance to shift the tooltip horizontally
+     * @param index Used to get the Ref to the node at the current index
+     * @returns Distance to shift the tooltip horizontally
      */
     const getTooltipShiftX = useCallback((index: number) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
         if (!containerRef.current || !childRefs.current[index]) {
-            return;
+            return 0;
         }
         const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();
 
@@ -47,13 +50,14 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
-            style={[textStyles, styles.pRelative, numberOfLines === 1 ? styles.noWrap : {}]}
+            style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
+            testID={DisplayNamesWithToolTip.displayName}
         >
             {shouldUseFullTitle
-                ? fullTitle
-                : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
+                ? ReportUtils.formatReportLastMessageText(fullTitle)
+                : displayNamesWithTooltips?.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
                           <DisplayNamesTooltipItem
@@ -69,7 +73,8 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                       </Fragment>
                   ))}
-            {Boolean(isEllipsisActive) && (
+            {renderAdditionalText?.()}
+            {!!isEllipsisActive && (
                 <View style={styles.displayNameTooltipEllipsis}>
                     <Tooltip text={fullTitle}>
                         {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}

@@ -1,7 +1,9 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -9,17 +11,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
     // redirect_uri needs to be in kebab case convention because that's how it's passed to the backend
-    const {redirectURI} = getPlaidLinkTokenParameters();
-    const params = {
+    const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
+
+    const params: OpenPlaidBankLoginParams = {
         redirectURI,
+        androidPackage,
         allowDebit,
         bankAccountID,
     };
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PLAID_DATA,
-            value: {...PlaidDataProps.plaidDataDefaultProps, isLoading: true},
+            value: {...CONST.PLAID.DEFAULT_DATA, isLoading: true},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -28,58 +33,56 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
             value: {
                 plaidAccountID: '',
             },
         },
     ];
 
-    API.read('OpenPlaidBankLogin', params, {optimisticData});
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
-    API.read(
-        'OpenPlaidBankAccountSelector',
-        {
-            publicToken,
-            allowDebit,
-            bank: bankName,
-            bankAccountID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PLAID_DATA,
-                    value: {
-                        isLoading: true,
-                        errors: null,
-                        bankName,
-                    },
+    const parameters: OpenPlaidBankAccountSelectorParams = {
+        publicToken,
+        allowDebit,
+        bank: bankName,
+        bankAccountID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_ACCOUNT_SELECTOR, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PLAID_DATA,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                    bankName,
                 },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PLAID_DATA,
-                    value: {
-                        isLoading: false,
-                        errors: null,
-                    },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PLAID_DATA,
+                value: {
+                    isLoading: false,
+                    errors: null,
                 },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PLAID_DATA,
-                    value: {
-                        isLoading: false,
-                    },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PLAID_DATA,
+                value: {
+                    isLoading: false,
                 },
-            ],
-        },
-    );
+            },
+        ],
+    });
 }
 
 export {openPlaidBankAccountSelector, openPlaidBankLogin};

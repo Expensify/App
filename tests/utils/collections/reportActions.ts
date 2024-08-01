@@ -1,29 +1,45 @@
-import {rand, randAggregation, randBoolean, randPastDate, randWord} from '@ngneat/falso';
+import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
+import type DeepRecord from '@src/types/utils/DeepRecord';
 
-type ActionType = keyof typeof CONST.REPORT.ACTIONS.TYPE;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const flattenActionNamesValues = (actionNames: any) => {
-    let result = [] as ActionType[];
-    Object.keys(actionNames).forEach((key) => {
-        if (typeof actionNames[key] === 'object') {
-            result = result.concat(flattenActionNamesValues(actionNames[key]));
+const flattenActionNamesValues = (actionNames: DeepRecord<string, ReportActionName>): ReportActionName[] => {
+    let result: ReportActionName[] = [];
+    Object.values(actionNames).forEach((value) => {
+        if (typeof value === 'object') {
+            result = result.concat(flattenActionNamesValues(value));
         } else {
-            result.push(actionNames[key]);
+            result.push(value);
         }
     });
     return result;
 };
 
+const getRandomDate = (): string => {
+    const randomTimestamp = Math.random() * new Date().getTime();
+    const randomDate = new Date(randomTimestamp);
+
+    const formattedDate = format(randomDate, CONST.DATE.FNS_DB_FORMAT_STRING);
+
+    return formattedDate;
+};
+
+const deprecatedReportActions: ReportActionName[] = [
+    CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
+    CONST.REPORT.ACTIONS.TYPE.DONATION,
+] as const;
+
 export default function createRandomReportAction(index: number): ReportAction {
     return {
-        // we need to add any here because of the way we are generating random values
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE)) as any,
+        // We need to assert the type of actionName so that rest of the properties are inferred correctly
+        actionName: rand(
+            flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType)),
+        ) as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportActionID: index.toString(),
-        previousReportActionID: index.toString(),
         actorAccountID: index,
         person: [
             {
@@ -32,7 +48,7 @@ export default function createRandomReportAction(index: number): ReportAction {
                 text: randWord(),
             },
         ],
-        created: randPastDate().toISOString(),
+        created: getRandomDate(),
         message: [
             {
                 type: randWord(),
@@ -42,31 +58,22 @@ export default function createRandomReportAction(index: number): ReportAction {
                 isEdited: randBoolean(),
                 isDeletedParentAction: randBoolean(),
                 whisperedTo: randAggregation(),
-                reactions: [
-                    {
-                        emoji: randWord(),
-                        users: [
-                            {
-                                accountID: index,
-                                skinTone: index,
-                            },
-                        ],
-                    },
-                ],
             },
         ],
         originalMessage: {
             html: randWord(),
-            type: rand(Object.values(CONST.IOU.REPORT_ACTION_TYPE)),
+            lastModified: getRandomDate(),
+            whisperedTo: randAggregation(),
         },
-        whisperedToAccountIDs: randAggregation(),
         avatar: randWord(),
         automatic: randBoolean(),
         shouldShow: randBoolean(),
-        lastModified: randPastDate().toISOString(),
+        lastModified: getRandomDate(),
         pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-        delegateAccountID: index.toString(),
+        delegateAccountID: index,
         errors: {},
-        isAttachment: randBoolean(),
+        isAttachmentOnly: randBoolean(),
     };
 }
+
+export {getRandomDate};

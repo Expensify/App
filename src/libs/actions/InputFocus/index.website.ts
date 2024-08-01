@@ -2,13 +2,14 @@ import Onyx from 'react-native-onyx';
 import * as Browser from '@libs/Browser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Modal} from '@src/types/onyx';
 
 function inputFocusChange(focus: boolean) {
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
 }
 
 let refSave: HTMLElement | undefined;
-function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean; isVisible: boolean}, onyxFocused: boolean) {
+function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: Modal, onyxFocused: boolean) {
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
         ref.focus();

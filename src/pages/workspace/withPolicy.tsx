@@ -1,67 +1,59 @@
-import {RouteProp, useNavigationState} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import React, {ComponentType, ForwardedRef, forwardRef, RefAttributes} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import policyMemberPropType from '@pages/policyMemberPropType';
-import * as Policy from '@userActions/Policy';
-import CONST from '@src/CONST';
+import type {RouteProp} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {forwardRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {AuthScreensParamList, BottomTabNavigatorParamList, FullScreenNavigatorParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
+import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<{params: {policyID: string}}>;
+type NavigatorsParamList = BottomTabNavigatorParamList & AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
+
+type PolicyRoute = RouteProp<
+    NavigatorsParamList,
+    | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
+    | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.PROFILE
+    | typeof SCREENS.WORKSPACE.BILLS
+    | typeof SCREENS.WORKSPACE.MORE_FEATURES
+    | typeof SCREENS.WORKSPACE.MEMBERS
+    | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
+    | typeof SCREENS.WORKSPACE.INVITE
+    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
+    | typeof SCREENS.WORKSPACE.TRAVEL
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.INVOICES
+    | typeof SCREENS.WORKSPACE.CARD
+    | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
+    | typeof SCREENS.WORKSPACE.TAX_EDIT
+    | typeof SCREENS.WORKSPACE.ADDRESS
+    | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
+    | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS
+    | typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION
+>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '';
+    return route?.params?.policyID ?? '-1';
 }
-
-const policyPropTypes = {
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The ID of the policy */
-        id: PropTypes.string,
-
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The current user's role in the policy */
-        role: PropTypes.oneOf(Object.values(CONST.POLICY.ROLE)),
-
-        /** The policy type */
-        type: PropTypes.oneOf(Object.values(CONST.POLICY.TYPE)),
-
-        /** The email of the policy owner */
-        owner: PropTypes.string,
-
-        /** The output currency for the policy */
-        outputCurrency: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-
-        /** Errors on the policy keyed by microtime */
-        errors: PropTypes.objectOf(PropTypes.string),
-
-        /**
-         * Error objects keyed by field name containing errors keyed by microtime
-         * E.x
-         * {
-         *     name: {
-         *        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
-         *     }
-         * }
-         */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
-
-    /** The employee list of this policy */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
-};
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
-    policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };
 
 type WithPolicyProps = WithPolicyOnyxProps & {
@@ -70,9 +62,7 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
-    policyMembers: {},
     policyDraft: {} as OnyxTypes.Policy,
-    policyMembersDraft: {},
 };
 
 /*
@@ -103,17 +93,11 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
-        policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
-        },
         policyDraft: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
-        },
-        policyMembersDraft: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(forwardRef(WithPolicy));
 }
 
-export {policyPropTypes, policyDefaultProps};
-export type {WithPolicyOnyxProps, WithPolicyProps};
+export {policyDefaultProps};
+export type {PolicyRoute, WithPolicyOnyxProps, WithPolicyProps};

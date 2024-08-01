@@ -1,14 +1,20 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {ComponentType, ForwardedRef, forwardRef, RefAttributes} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {forwardRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withPolicy, {policyDefaultProps, WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
+import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type WithPolicyAndFullscreenLoadingProps = WithPolicyProps & WithPolicyAndFullscreenLoadingOnyxProps;
@@ -21,14 +27,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentWithPolicyAndFullscreenLoading<TProps, TRef> {
     function WithPolicyAndFullscreenLoading(
-        {
-            isLoadingReportData = true,
-            policy = policyDefaultProps.policy,
-            policyDraft = policyDefaultProps.policyDraft,
-            policyMembers = policyDefaultProps.policyMembers,
-            policyMembersDraft = policyDefaultProps.policyMembersDraft,
-            ...rest
-        }: TProps,
+        {isLoadingReportData = true, policy = policyDefaultProps.policy, policyDraft = policyDefaultProps.policyDraft, ...rest}: TProps,
         ref: ForwardedRef<TRef>,
     ) {
         if (isLoadingReportData && isEmpty(policy) && isEmpty(policyDraft)) {
@@ -42,8 +41,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
                 policyDraft={policyDraft}
-                policyMembers={policyMembers}
-                policyMembersDraft={policyMembersDraft}
                 ref={ref}
             />
         );
@@ -51,12 +48,16 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
 
     WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading`;
 
-    return compose(
+    return withPolicy(
         withOnyx<TProps & RefAttributes<TRef>, WithPolicyAndFullscreenLoadingOnyxProps>({
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
-        }),
-        withPolicy,
-    )(forwardRef(WithPolicyAndFullscreenLoading));
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+        })(forwardRef(WithPolicyAndFullscreenLoading)),
+    );
 }
+
+export type {WithPolicyAndFullscreenLoadingProps};

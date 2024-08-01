@@ -1,12 +1,13 @@
+/** Model of plaid bank account data */
 type PlaidBankAccount = {
     /** Masked account number */
     accountNumber: string;
 
     /** Name of account */
-    addressName: string;
+    addressName?: string;
 
     /** Is the account a savings account? */
-    isSavings: boolean;
+    isSavings?: boolean;
 
     /** Unique identifier for this account in Plaid */
     plaidAccountID: string;

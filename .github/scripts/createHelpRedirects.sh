@@ -19,7 +19,7 @@ function checkCloudflareResult {
 
     if ! [[ "$RESULT_MESSAGE" == "true" ]]; then
         ERROR_MESSAGE=$(echo "$RESULTS" | jq .errors)
-        error "Error calling Cloudfalre API: $ERROR_MESSAGE"
+        error "Error calling Cloudflare API: $ERROR_MESSAGE"
         exit 1
     fi
 }
@@ -41,13 +41,13 @@ while read -r line; do
 
     # Basic sanity checking to make sure that the source and destination are in expected
     # subdomains.
-    if ! [[ $SOURCE_URL =~ ^https://community\.expensify\.com ]]; then
-        error "Found source URL that is not a community URL: $SOURCE_URL"
+    if ! [[ $SOURCE_URL =~ ^https://(community|help)\.expensify\.com ]]; then
+        error "Found source URL that is not a communityDot or helpDot URL: $SOURCE_URL"
         exit 1
     fi
 
-    if ! [[ $DEST_URL =~ ^https://help\.expensify\.com ]]; then
-        error "Found destination URL that is not a help URL: $DEST_URL"
+    if ! [[ $DEST_URL =~ ^https://(help|use)\.expensify\.com ]]; then
+        error "Found destination URL that is not a helpDot or useDot URL: $DEST_URL"
         exit 1
     fi
 

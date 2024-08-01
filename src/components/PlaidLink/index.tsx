@@ -1,10 +1,16 @@
-import {useCallback, useEffect, useState} from 'react';
-import {PlaidLinkOnSuccessMetadata, usePlaidLink} from 'react-plaid-link';
+import React, {useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
+import {usePlaidLink} from 'react-plaid-link';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
-import PlaidLinkProps from './types';
+import type PlaidLinkProps from './types';
 
 function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = () => {}, onEvent, receivedRedirectURI}: PlaidLinkProps) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const successCallback = useCallback(
         (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
             onSuccess({publicToken, metadata});
@@ -47,7 +53,14 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
         open();
     }, [ready, error, isPlaidLoaded, open, onError]);
 
-    return null;
+    return (
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <ActivityIndicator
+                color={theme.spinner}
+                size="large"
+            />
+        </View>
+    );
 }
 
 PlaidLink.displayName = 'PlaidLink';

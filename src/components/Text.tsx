@@ -1,10 +1,14 @@
-import React, {ForwardedRef} from 'react';
-import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
-import type {TextStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {useContext} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Text as RNText, StyleSheet} from 'react-native';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
-import fontFamily from '@styles/utils/fontFamily';
+import type {FontUtilsType} from '@styles/utils/FontUtils';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &
     ChildrenProps & {
@@ -21,18 +25,20 @@ type TextProps = RNTextProps &
         children: React.ReactNode;
 
         /** The family of the font to use */
-        family?: keyof typeof fontFamily;
+        family?: keyof FontUtilsType['fontFamily']['platform'];
     };
 
 function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
     const theme = useTheme();
+    const customStyle = useContext(CustomStylesForChildrenContext);
 
     const componentStyle: TextStyle = {
         color: color ?? theme.text,
         fontSize,
         textAlign,
-        fontFamily: fontFamily[family],
+        ...FontUtils.fontFamily.platform[family],
         ...StyleSheet.flatten(style),
+        ...StyleSheet.flatten(customStyle),
     };
 
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {

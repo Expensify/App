@@ -1,9 +1,13 @@
+/** Model of user data */
 type User = {
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter: boolean;
 
     /** Whether we should use the staging version of the secure API server */
     shouldUseStagingServer?: boolean;
+
+    /** Whether user muted all sounds in application */
+    isMutedAllSounds?: boolean;
 
     /** Is the user account validated? */
     validated: boolean;

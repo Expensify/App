@@ -1,4 +1,4 @@
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Session} from '@src/types/onyx';
 
 type WalletStatementOnyxProps = {
@@ -11,4 +11,9 @@ type WalletStatementProps = WalletStatementOnyxProps & {
     statementPageURL: string;
 };
 
-export type {WalletStatementProps, WalletStatementOnyxProps};
+type WalletStatementMessage = {
+    url: string;
+    type: string;
+};
+
+export type {WalletStatementProps, WalletStatementOnyxProps, WalletStatementMessage};

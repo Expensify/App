@@ -1,7 +1,8 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReportActionsDrafts} from '@src/types/onyx';
+import type {ReportActionsDrafts} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`;
@@ -13,7 +14,7 @@ type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFT
  * After: reportActionsDrafts_reportID: {[reportActionID]: value}
  */
 export default function () {
-    return new Promise<void>((resolve) => {
+    return new Promise<void | void[]>((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
             waitForCollectionCallback: true,
@@ -26,7 +27,7 @@ export default function () {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxInputValue<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDraft]) => {
                     if (typeof reportActionDraft !== 'string') {
                         return;
@@ -46,6 +47,7 @@ export default function () {
 
                     // If newReportActionsDrafts[newOnyxKey] isn't set, fall back on the migrated draft if there is one
                     const currentActionsDrafts = newReportActionsDrafts[newOnyxKey] ?? allReportActionsDrafts[newOnyxKey];
+
                     newReportActionsDrafts[newOnyxKey] = {
                         ...currentActionsDrafts,
                         [reportActionID]: reportActionDraft,

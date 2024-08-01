@@ -1,4 +1,4 @@
-import GetClickedTargetLocation from './types';
+import type GetClickedTargetLocation from './types';
 
 /**
  * Returns the Bounding Rectangle for the passed native event's target.

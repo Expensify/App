@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 /**
  * Flex layout utility styles with Bootstrap inspired naming.
@@ -28,6 +28,10 @@ export default {
 
     flex4: {
         flex: 4,
+    },
+
+    flex5: {
+        flex: 5,
     },
 
     flexRow: {

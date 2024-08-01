@@ -1,22 +1,17 @@
-import React, {PureComponent} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import withStyleUtils, {WithStyleUtilsProps} from '@components/withStyleUtils';
-import withTheme, {WithThemeProps} from '@components/withTheme';
-import withThemeStyles, {type WithThemeStylesProps} from '@components/withThemeStyles';
+import type {ImageContentFit} from 'expo-image';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import ImageSVG from '@components/ImageSVG';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import type IconAsset from '@src/types/utils/IconAsset';
 import IconWrapperStyles from './IconWrapperStyles';
-
-type SrcProps = {
-    width?: number;
-    height?: number;
-    fill?: string;
-    hovered?: string;
-    pressed?: string;
-};
 
 type IconProps = {
     /** The asset to render. */
-    src: (props: SrcProps) => React.ReactNode;
+    src: IconAsset;
 
     /** The width of the icon. */
     width?: number;
@@ -30,6 +25,12 @@ type IconProps = {
     /** Is small icon */
     small?: boolean;
 
+    /** Is large icon */
+    large?: boolean;
+
+    /** Is medium icon */
+    medium?: boolean;
+
     /** Is inline icon */
     inline?: boolean;
 
@@ -39,69 +40,80 @@ type IconProps = {
     /** Is icon pressed */
     pressed?: boolean;
 
+    /** Is icon will be used with text */
+    hasText?: boolean;
+
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
-} & WithThemeStylesProps &
-    WithThemeProps &
-    WithStyleUtilsProps;
 
-// We must use a class component to create an animatable component with the Animated API
-// eslint-disable-next-line react/prefer-stateless-function
-class Icon extends PureComponent<IconProps> {
-    // eslint-disable-next-line react/static-property-placement
-    public static defaultProps = {
-        width: variables.iconSizeNormal,
-        height: variables.iconSizeNormal,
-        fill: undefined,
-        small: false,
-        inline: false,
-        additionalStyles: [],
-        hovered: false,
-        pressed: false,
-    };
+    /** Used to locate this icon in end-to-end tests. */
+    testID?: string;
 
-    render() {
-        const width = this.props.small ? variables.iconSizeSmall : this.props.width;
-        const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [this.props.StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, this.props.themeStyles.pAbsolute, this.props.additionalStyles];
-        const fill = this.props.fill ?? this.props.theme.icon;
+    /** Determines how the image should be resized to fit its container */
+    contentFit?: ImageContentFit;
+};
 
-        if (this.props.inline) {
-            return (
-                <View
-                    testID={`${this.props.src.name} Icon`}
-                    style={[this.props.StyleUtils.getWidthAndHeightStyle(width ?? 0, height), this.props.themeStyles.bgTransparent, this.props.themeStyles.overflowVisible]}
-                >
-                    <View style={iconStyles}>
-                        <this.props.src
-                            width={width}
-                            height={height}
-                            fill={fill}
-                            hovered={this.props.hovered?.toString()}
-                            pressed={this.props.pressed?.toString()}
-                        />
-                    </View>
-                </View>
-            );
-        }
+function Icon({
+    src,
+    width = variables.iconSizeNormal,
+    height = variables.iconSizeNormal,
+    fill = undefined,
+    small = false,
+    hasText = false,
+    large = false,
+    medium = false,
+    inline = false,
+    additionalStyles = [],
+    hovered = false,
+    pressed = false,
+    testID = '',
+    contentFit = 'cover',
+}: IconProps) {
+    const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, hasText);
+    const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
+    if (inline) {
         return (
             <View
-                testID={`${this.props.src.name} Icon`}
-                style={this.props.additionalStyles}
+                testID={testID}
+                style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
             >
-                <this.props.src
-                    width={width}
-                    height={height}
-                    fill={fill}
-                    hovered={this.props.hovered?.toString()}
-                    pressed={this.props.pressed?.toString()}
-                />
+                <View style={iconStyles}>
+                    <ImageSVG
+                        src={src}
+                        width={iconWidth}
+                        height={iconHeight}
+                        fill={fill}
+                        hovered={hovered}
+                        pressed={pressed}
+                        contentFit={contentFit}
+                    />
+                </View>
             </View>
         );
     }
+
+    return (
+        <View
+            testID={testID}
+            style={additionalStyles}
+        >
+            <ImageSVG
+                src={src}
+                width={iconWidth}
+                height={iconHeight}
+                fill={fill}
+                hovered={hovered}
+                pressed={pressed}
+                contentFit={contentFit}
+            />
+        </View>
+    );
 }
 
-export type {SrcProps};
+Icon.displayName = 'Icon';
 
-export default withTheme(withThemeStyles(withStyleUtils(Icon)));
+export type {IconProps};
+export default Icon;

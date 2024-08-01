@@ -1,4 +1,4 @@
-import {ComponentType} from 'react';
+import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type MapViewProps = {
@@ -20,6 +20,8 @@ type MapViewProps = {
     directionCoordinates?: Array<[number, number]>;
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
+    // Whether the map is interactable or not
+    interactive?: boolean;
 };
 
 type DirectionProps = {
@@ -36,6 +38,9 @@ type PendingMapViewProps = {
 
     /** Style applied to PendingMapView */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether the size of the route pending icon is smaller. */
+    isSmallerIcon?: boolean;
 };
 
 // Initial state of the map
@@ -49,7 +54,7 @@ type InitialState = {
 type WayPoint = {
     id: string;
     coordinate: [number, number];
-    markerComponent: ComponentType;
+    markerComponent: () => ReactNode;
 };
 
 // Style used for the line that displays direction

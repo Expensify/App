@@ -1,10 +1,12 @@
-import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
-import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import React, {forwardRef} from 'react';
+import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -29,7 +31,7 @@ type CheckboxProps = Partial<ChildrenProps> & {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: () => void;
+    onMouseDown?: MouseEventHandler;
 
     /** The size of the checkbox container */
     containerSize?: number;
@@ -42,6 +44,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** An accessibility label for the checkbox */
     accessibilityLabel: string;
+
+    /** stop propagation of the mouse down event */
+    shouldStopMouseDownPropagation?: boolean;
 };
 
 function Checkbox(
@@ -58,6 +63,7 @@ function Checkbox(
         caretSize = 14,
         onPress,
         accessibilityLabel,
+        shouldStopMouseDownPropagation,
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
@@ -87,7 +93,12 @@ function Checkbox(
         <PressableWithFeedback
             disabled={disabled}
             onPress={firePressHandlerOnClick}
-            onMouseDown={onMouseDown}
+            onMouseDown={(e) => {
+                if (shouldStopMouseDownPropagation) {
+                    e.stopPropagation();
+                }
+                onMouseDown?.(e);
+            }}
             ref={ref}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
@@ -125,3 +136,5 @@ function Checkbox(
 Checkbox.displayName = 'Checkbox';
 
 export default forwardRef(Checkbox);
+
+export type {CheckboxProps};

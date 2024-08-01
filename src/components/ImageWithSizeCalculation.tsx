@@ -1,18 +1,29 @@
 import delay from 'lodash/delay';
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {OnLoadEvent} from 'react-native-fast-image';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
+import type {ImageObjectPosition} from './Image/types';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
 
+type OnLoadNativeEvent = {
+    nativeEvent: {
+        width: number;
+        height: number;
+    };
+};
+
 type ImageWithSizeCalculationProps = {
     /** Url for image to display */
-    url: string;
+    url: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
@@ -20,8 +31,13 @@ type ImageWithSizeCalculationProps = {
     /** Callback fired when the image has been measured. */
     onMeasure: OnMeasure;
 
+    onLoadFailure?: () => void;
+
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
+
+    /** The object position of image */
+    objectPosition?: ImageObjectPosition;
 };
 
 /**
@@ -30,18 +46,32 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const {isOffline} = useNetwork();
+
+    const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
+        onLoadFailure?.();
+        if (isLoadedRef.current) {
+            isLoadedRef.current = false;
+            setIsImageCached(false);
+        }
+        if (isOffline) {
+            return;
+        }
+        setIsLoading(false);
     };
 
-    const imageLoadedSuccessfully = (event: OnLoadEvent) => {
+    const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
         isLoadedRef.current = true;
+        setIsLoading(false);
+        setIsImageCached(true);
         onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
@@ -66,7 +96,7 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
         <View style={[styles.w100, styles.h100, style]}>
             <Image
                 style={[styles.w100, styles.h100]}
-                source={{uri: url}}
+                source={source}
                 isAuthTokenRequired={isAuthTokenRequired}
                 resizeMode={RESIZE_MODES.cover}
                 onLoadStart={() => {
@@ -75,14 +105,12 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
                     }
                     setIsLoading(true);
                 }}
-                onLoadEnd={() => {
-                    setIsLoading(false);
-                    setIsImageCached(true);
-                }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
+                objectPosition={objectPosition}
             />
-            {isLoading && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isImageCached && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isImageCached && <AttachmentOfflineIndicator isPreview />}
         </View>
     );
 }

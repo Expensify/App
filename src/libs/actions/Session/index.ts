@@ -1,13 +1,30 @@
 import throttle from 'lodash/throttle';
-import {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
-import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {Linking} from 'react-native';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import {InteractionManager, Linking, NativeModules} from 'react-native';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
+import type {
+    AuthenticatePusherParams,
+    BeginAppleSignInParams,
+    BeginGoogleSignInParams,
+    BeginSignInParams,
+    RequestAccountValidationLinkParams,
+    RequestNewValidateCodeParams,
+    RequestUnlinkValidationLinkParams,
+    SignInUserWithLinkParams,
+    SignUpUserParams,
+    UnlinkLoginParams,
+    ValidateTwoFactorAuthParams,
+} from '@libs/API/parameters';
+import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +37,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
@@ -28,27 +46,37 @@ import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import Credentials from '@src/types/onyx/Credentials';
-import {AutoAuthState} from '@src/types/onyx/Session';
+import type Credentials from '@src/types/onyx/Credentials';
+import type {AutoAuthState} from '@src/types/onyx/Session';
+import type Session from '@src/types/onyx/Session';
 import clearCache from './clearCache';
+import updateSessionAuthTokens from './updateSessionAuthTokens';
 
-let sessionAuthTokenType: string | null = '';
-let sessionAuthToken: string | null = null;
+let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
-
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        sessionAuthTokenType = session?.authTokenType ?? null;
-        sessionAuthToken = session?.authToken ?? null;
-
-        if (sessionAuthToken && authPromiseResolver) {
+    callback: (value) => {
+        session = value ?? {};
+        if (session.authToken && authPromiseResolver) {
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.USER_METADATA,
+    callback: Fullstory.consentAndIdentify,
+});
+
+let stashedSession: Session = {};
+Onyx.connect({
+    key: ONYXKEYS.STASHED_SESSION,
+    callback: (value) => (stashedSession = value ?? {}),
 });
 
 let credentials: Credentials = {};
@@ -57,58 +85,177 @@ Onyx.connect({
     callback: (value) => (credentials = value ?? {}),
 });
 
+let stashedCredentials: Credentials = {};
+Onyx.connect({
+    key: ONYXKEYS.STASHED_CREDENTIALS,
+    callback: (value) => (stashedCredentials = value ?? {}),
+});
+
 let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => (preferredLocale = val ?? null),
 });
+
+function isSupportAuthToken(): boolean {
+    return session.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+}
+
+/**
+ * Sets the SupportToken. This method will only be used on dev.
+ */
+function setSupportAuthToken(supportAuthToken: string, email: string, accountID: number) {
+    Onyx.merge(ONYXKEYS.SESSION, {
+        authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT,
+        authToken: supportAuthToken,
+        email,
+        accountID,
+    }).then(() => {
+        Log.info('[Supportal] Authtoken set');
+    });
+    Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
+}
+
+function getShortLivedLoginParams() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: true,
+            },
+        },
+    ];
+
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: null,
+            },
+        },
+    ];
+
+    return {optimisticData, finallyData};
+}
+
+/**
+ * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
+ */
+function signInWithSupportAuthToken(authToken: string) {
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
+}
 
 /**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
-
-    type LogOutParams = {
-        authToken: string | null;
-        partnerUserID: string;
-        partnerName: string;
-        partnerPassword: string;
-        shouldRetry: boolean;
-    };
-
-    const params: LogOutParams = {
+    const params = {
         // Send current authToken because we will immediately clear it once triggering this command
-        authToken: NetworkStore.getAuthToken(),
+        authToken: NetworkStore.getAuthToken() ?? null,
         partnerUserID: credentials?.autoGeneratedLogin ?? '',
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
     };
 
-    API.write('LogOut', params);
-    clearCache().then(() => {
-        Log.info('Cleared all cache data', true, {}, true);
-    });
-    Timing.clearData();
+    API.write(WRITE_COMMANDS.LOG_OUT, params);
 }
 
 /**
  * Checks if the account is an anonymous account.
  */
-function isAnonymousUser(): boolean {
-    return sessionAuthTokenType === 'anonymousAccount';
+function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
+    return (sessionParam?.authTokenType ?? session.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
-function signOutAndRedirectToSignIn() {
+function hasStashedSession(): boolean {
+    return !!(stashedSession.authToken && stashedCredentials.autoGeneratedLogin && stashedCredentials.autoGeneratedLogin !== '');
+}
+
+/**
+ * Checks if the user has authToken
+ */
+function hasAuthToken(): boolean {
+    return !!session.authToken;
+}
+
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
-        signOut();
-        redirectToSignIn();
+        // In the HybridApp, we want the Old Dot to handle the sign out process
+        if (NativeModules.HybridAppModule && killHybridApp) {
+            NativeModules.HybridAppModule.closeReactNativeApp();
+            return;
+        }
+        // We'll only call signOut if we're not stashing the session and this is not a supportal session,
+        // otherwise we'll call the API to invalidate the autogenerated credentials used for infinite
+        // session.
+        const isSupportal = isSupportAuthToken();
+        if (!isSupportal && !shouldStashSession) {
+            signOut();
+        }
+
+        // The function redirectToSignIn will clear the whole storage, so let's create our onyx params
+        // updates for the credentials before we call it
+        let onyxSetParams = {};
+
+        // If we are not currently using a support token, and we received stashSession as true, we need to
+        // store the credentials so the user doesn't need to login again after they finish their supportal
+        // action. This needs to computed before we call `redirectToSignIn`
+        if (!isSupportal && shouldStashSession) {
+            onyxSetParams = {
+                [ONYXKEYS.STASHED_CREDENTIALS]: credentials,
+                [ONYXKEYS.STASHED_SESSION]: session,
+            };
+        }
+        // If this is a supportal token, and we've received the parameters to stashSession as true, and
+        // we already have a stashedSession, that means we are supportaled, currently supportaling
+        // into another account and we want to keep the stashed data from the original account.
+        if (isSupportal && shouldStashSession && hasStashedSession()) {
+            onyxSetParams = {
+                [ONYXKEYS.STASHED_CREDENTIALS]: stashedCredentials,
+                [ONYXKEYS.STASHED_SESSION]: stashedSession,
+            };
+        }
+        // Now if this is a supportal access, we do not want to stash the current session and we have a
+        // stashed session, then we need to restore the stashed session instead of completely logging out
+        if (isSupportal && !shouldStashSession && hasStashedSession()) {
+            onyxSetParams = {
+                [ONYXKEYS.CREDENTIALS]: stashedCredentials,
+                [ONYXKEYS.SESSION]: stashedSession,
+            };
+        }
+        redirectToSignIn().then(() => {
+            Onyx.multiSet(onyxSetParams);
+        });
     } else {
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
+        }
+        if (shouldResetToHome) {
+            Navigation.resetToHome();
         }
         Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
@@ -126,7 +273,7 @@ function signOutAndRedirectToSignIn() {
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function checkIfActionIsAllowed<TCallback extends (...args: any[]) => any>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+function checkIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
@@ -172,13 +319,9 @@ function resendValidationLink(login = credentials.login) {
         },
     ];
 
-    type ResendValidationLinkParams = {
-        email?: string;
-    };
+    const params: RequestAccountValidationLinkParams = {email: login};
 
-    const params: ResendValidationLinkParams = {email: login};
-
-    API.write('RequestAccountValidationLink', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -195,7 +338,7 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -204,23 +347,10 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                loadingForm: null,
-            },
-        },
-    ];
-
-    type RequestNewValidateCodeParams = {
-        email?: string;
-    };
 
     const params: RequestNewValidateCodeParams = {email: login};
 
-    API.write('RequestNewValidateCode', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
 }
 
 type OnyxData = {
@@ -270,7 +400,7 @@ function signInAttemptState(): OnyxData {
                 value: {
                     isLoading: false,
                     loadingForm: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('loginForm.cannotGetAccountDetails'),
                 },
             },
         ],
@@ -283,54 +413,16 @@ function signInAttemptState(): OnyxData {
 function beginSignIn(email: string) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    type BeginSignInParams = {
-        email: string;
-    };
-
     const params: BeginSignInParams = {email};
 
-    API.read('BeginSignIn', params, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
 }
 
 /**
- * Given an idToken from Sign in with Apple, checks the API to see if an account
- * exists for that email address and signs the user in if so.
+ * Creates an account for the new user and signs them into the application with the newly created account.
+ *
  */
-function beginAppleSignIn(idToken: string) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
-
-    type BeginAppleSignInParams = {
-        idToken: string;
-        preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-    };
-
-    const params: BeginAppleSignInParams = {idToken, preferredLocale};
-
-    API.write('SignInWithApple', params, {optimisticData, successData, failureData});
-}
-
-/**
- * Shows Google sign-in process, and if an auth token is successfully obtained,
- * passes the token on to the Expensify API to sign in with
- */
-function beginGoogleSignIn(token: string) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
-
-    type BeginGoogleSignInParams = {
-        token: string;
-        preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-    };
-
-    const params: BeginGoogleSignInParams = {token, preferredLocale};
-
-    API.write('SignInWithGoogle', params, {optimisticData, successData, failureData});
-}
-
-/**
- * Will create a temporary login for the user in the passed authenticate response which is used when
- * re-authenticating after an authToken expires.
- */
-function signInWithShortLivedAuthToken(email: string, authToken: string) {
+function signUpUser() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -340,19 +432,9 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: true,
             },
         },
-        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                signedInWithShortLivedAuthToken: true,
-            },
-        },
     ];
 
-    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
-    // We are combining both success and failure data params into one const as they are identical
-    const resolutionData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -360,32 +442,59 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: false,
             },
         },
+    ];
+
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
+            key: ONYXKEYS.ACCOUNT,
             value: {
-                signedInWithShortLivedAuthToken: null,
+                isLoading: false,
             },
         },
     ];
 
-    const successData = resolutionData;
-    const failureData = resolutionData;
+    const params: SignUpUserParams = {email: credentials.login, preferredLocale};
+
+    API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Given an idToken from Sign in with Apple, checks the API to see if an account
+ * exists for that email address and signs the user in if so.
+ */
+function beginAppleSignIn(idToken: string | undefined | null) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+
+    const params: BeginAppleSignInParams = {idToken, preferredLocale};
+
+    API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Shows Google sign-in process, and if an auth token is successfully obtained,
+ * passes the token on to the Expensify API to sign in with
+ */
+function beginGoogleSignIn(token: string | null) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+
+    const params: BeginGoogleSignInParams = {token, preferredLocale};
+
+    API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Will create a temporary login for the user in the passed authenticate response which is used when
+ * re-authenticating after an authToken expires.
+ */
+function signInWithShortLivedAuthToken(email: string, authToken: string) {
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
     // scene 2: the user is transitioning to desktop app from a different account on web app.
     const oldPartnerUserID = credentials.login === email && credentials.autoGeneratedLogin ? credentials.autoGeneratedLogin : '';
-
-    type SignInWithShortLivedAuthTokenParams = {
-        authToken: string;
-        oldPartnerUserID: string;
-        skipReauthentication: boolean;
-    };
-
-    const params: SignInWithShortLivedAuthTokenParams = {authToken, oldPartnerUserID, skipReauthentication: true};
-
-    API.read('SignInWithShortLivedAuthToken', params, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, oldPartnerUserID, skipReauthentication: true}, {optimisticData, finallyData});
 }
 
 /**
@@ -438,14 +547,6 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        type SignInUserParams = {
-            twoFactorAuthCode?: string;
-            email?: string;
-            preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-            validateCode?: string;
-            deviceInfo: string;
-        };
-
         const params: SignInUserParams = {
             twoFactorAuthCode,
             email: credentials.login,
@@ -458,7 +559,7 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
             params.validateCode = validateCode || credentials.validateCode;
         }
 
-        API.write('SigninUser', params, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
@@ -524,14 +625,6 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
         },
     ];
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        type SignInUserWithLinkParams = {
-            accountID: number;
-            validateCode?: string;
-            twoFactorAuthCode?: string;
-            preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-            deviceInfo: string;
-        };
-
         const params: SignInUserWithLinkParams = {
             accountID,
             validateCode,
@@ -540,13 +633,8 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
             deviceInfo,
         };
 
-        API.write('SigninUserWithLink', params, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK, params, {optimisticData, successData, failureData});
     });
-}
-
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '') {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
-    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -572,23 +660,6 @@ function invalidateCredentials() {
 function invalidateAuthToken() {
     NetworkStore.setAuthToken('pizza');
     Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza'});
-}
-
-/**
- * Sets the SupportToken
- */
-function setSupportAuthToken(supportAuthToken: string, email: string, accountID: number) {
-    if (supportAuthToken) {
-        Onyx.merge(ONYXKEYS.SESSION, {
-            authToken: '1',
-            supportAuthToken,
-            email,
-            accountID,
-        });
-    } else {
-        Onyx.set(ONYXKEYS.SESSION, {});
-    }
-    NetworkStore.setSupportAuthToken(supportAuthToken);
 }
 
 /**
@@ -627,7 +698,7 @@ function resetHomeRouteParams() {
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
+    Welcome.resetAllChecks();
     PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
@@ -635,6 +706,10 @@ function cleanupSession() {
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetHomeRouteParams();
+    clearCache().then(() => {
+        Log.info('Cleared all cache data', true, {}, true);
+    });
+    Timing.clearData();
 }
 
 function clearAccountMessages() {
@@ -647,7 +722,7 @@ function clearAccountMessages() {
 }
 
 function setAccountError(error: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error)});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(error)});
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -656,7 +731,7 @@ function setAccountError(error: string) {
 const reauthenticatePusher = throttle(
     () => {
         Log.info('[Pusher] Re-authenticating and then reconnecting');
-        Authentication.reauthenticate('AuthenticatePusher')
+        Authentication.reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
             .then(Pusher.reconnect)
             .catch(() => {
                 console.debug('[PusherConnectionManager]', 'Unable to re-authenticate Pusher because we are offline.');
@@ -669,15 +744,6 @@ const reauthenticatePusher = throttle(
 function authenticatePusher(socketID: string, channelName: string, callback: ChannelAuthorizationCallback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
-    type AuthenticatePusherParams = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        socket_id: string;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        channel_name: string;
-        shouldRetry: boolean;
-        forceNetworkRequest: boolean;
-    };
-
     const params: AuthenticatePusherParams = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         socket_id: socketID,
@@ -689,7 +755,7 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
 
     // We use makeRequestWithSideEffects here because we need to authorize to Pusher (an external service) each time a user connects to any channel.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('AuthenticatePusher', params)
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
         .then((response) => {
             if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
@@ -709,7 +775,7 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
             callback(null, response as ChannelAuthorizationData);
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
             callback(new Error('AuthenticatePusher request failed'), {auth: ''});
         });
@@ -753,13 +819,9 @@ function requestUnlinkValidationLink() {
         },
     ];
 
-    type RequestUnlinkValidationLinkParams = {
-        email?: string;
-    };
-
     const params: RequestUnlinkValidationLinkParams = {email: credentials.login};
 
-    API.write('RequestUnlinkValidationLink', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
 
 function unlinkLogin(accountID: number, validateCode: string) {
@@ -800,17 +862,12 @@ function unlinkLogin(accountID: number, validateCode: string) {
         },
     ];
 
-    type UnlinkLoginParams = {
-        accountID: number;
-        validateCode: string;
-    };
-
     const params: UnlinkLoginParams = {
         accountID,
         validateCode,
     };
 
-    API.write('UnlinkLogin', params, {
+    API.write(WRITE_COMMANDS.UNLINK_LOGIN, params, {
         optimisticData,
         successData,
         failureData,
@@ -851,10 +908,22 @@ function toggleTwoFactorAuth(enable: boolean) {
         },
     ];
 
-    API.write(enable ? 'EnableTwoFactorAuth' : 'DisableTwoFactorAuth', {}, {optimisticData, successData, failureData});
+    API.write(enable ? WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH : WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
 }
 
-function validateTwoFactorAuth(twoFactorAuthCode: string) {
+function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
+    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+    updateSessionAuthTokens(authToken, encryptedAuthToken);
+
+    // Note: It is important to manually set the authToken that is in the store here since
+    // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
+    // enough to do the updateSessionAuthTokens() call above.
+    NetworkStore.setAuthToken(authToken ?? null);
+
+    openApp();
+}
+
+function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -885,13 +954,23 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
         },
     ];
 
-    type ValidateTwoFactorAuthParams = {
-        twoFactorAuthCode: string;
-    };
-
     const params: ValidateTwoFactorAuthParams = {twoFactorAuthCode};
 
-    API.write('TwoFactorAuth_Validate', params, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData}).then((response) => {
+        if (!response?.authToken) {
+            return;
+        }
+
+        // Clear onyx data if the user has just signed in and is forced to add 2FA
+        if (shouldClearData) {
+            const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
+            Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
+            return;
+        }
+
+        updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
+    });
 }
 
 /**
@@ -909,12 +988,32 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
  */
 function waitForUserSignIn(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-        if (sessionAuthToken) {
+        if (session.authToken) {
             resolve(true);
         } else {
             authPromiseResolver = resolve;
         }
     });
+}
+
+function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
+    InteractionManager.runAfterInteractions(() => {
+        waitForUserSignIn().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
+                Navigation.navigate(url);
+            });
+        });
+    });
+}
+
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '', exitTo?: Route | HybridAppRoute) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    if (exitTo) {
+        handleExitToNavigation(exitTo);
+    } else {
+        Navigation.goBack();
+    }
 }
 
 /**
@@ -923,7 +1022,7 @@ function waitForUserSignIn(): Promise<boolean> {
  * @param {string} route
  */
 
-const canAccessRouteByAnonymousUser = (route: string) => {
+const canAnonymousUserAccessRoute = (route: string) => {
     const reportID = ReportUtils.getReportIDFromLink(route);
     if (reportID) {
         return true;
@@ -936,9 +1035,10 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
+    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
 
-    if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
+    if ((routesAccessibleByAnonymousUser as string[]).includes(routeRemovedReportId) || isMagicLink) {
         return true;
     }
     return false;
@@ -952,6 +1052,7 @@ export {
     checkIfActionIsAllowed,
     signIn,
     signInWithValidateCode,
+    handleExitToNavigation,
     signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
@@ -973,5 +1074,10 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     waitForUserSignIn,
-    canAccessRouteByAnonymousUser,
+    hasAuthToken,
+    canAnonymousUserAccessRoute,
+    signInWithSupportAuthToken,
+    isSupportAuthToken,
+    hasStashedSession,
+    signUpUser,
 };

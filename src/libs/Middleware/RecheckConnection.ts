@@ -1,6 +1,6 @@
 import NetworkConnection from '@libs/NetworkConnection';
 import CONST from '@src/CONST';
-import Middleware from './types';
+import type Middleware from './types';
 
 /**
  * @returns cancel timer
@@ -15,7 +15,7 @@ const RecheckConnection: Middleware = (response) => {
     // When the request goes past a certain amount of time we trigger a re-check of the connection
     const cancelRequestTimeoutTimer = startRecheckTimeoutTimer();
     return response
-        .catch((error) => {
+        .catch((error: Error) => {
             if (error.name !== CONST.ERROR.REQUEST_CANCELLED) {
                 // Because we ran into an error we assume we might be offline and do a "connection" health test
                 NetworkConnection.recheckNetworkConnection();

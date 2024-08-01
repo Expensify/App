@@ -1,18 +1,20 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {InteractionManager, TextInput} from 'react-native';
+import type {RefObject} from 'react';
+import type {TextInput} from 'react-native';
+import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
+    inputRef: RefObject<TextInput | null>;
 };
 
 export default function useAutoFocusInput(): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
-    // @ts-expect-error TODO: Remove this when Expensify.js is migrated.
     const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
 
     const inputRef = useRef<TextInput | null>(null);
@@ -22,10 +24,14 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
+        const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
             inputRef.current?.focus();
             setIsScreenTransitionEnded(false);
         });
+
+        return () => {
+            focusTaskHandle.cancel();
+        };
     }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
 
     useFocusEffect(
@@ -34,19 +40,22 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
                 setIsScreenTransitionEnded(true);
             }, CONST.ANIMATED_TRANSITION);
             return () => {
+                setIsScreenTransitionEnded(false);
                 if (!focusTimeoutRef.current) {
                     return;
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []),
     );
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
+        if (isInputInitialized) {
+            return;
+        }
         setIsInputInitialized(true);
     };
 
-    return {inputCallbackRef};
+    return {inputCallbackRef, inputRef};
 }

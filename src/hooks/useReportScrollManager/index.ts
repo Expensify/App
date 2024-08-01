@@ -1,21 +1,23 @@
 import {useCallback, useContext} from 'react';
 import {ActionListContext} from '@pages/home/ReportScreenContext';
-import ReportScrollManagerData from './types';
+import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
     const {flatListRef} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
-     * we are editing a comment.
      */
-    const scrollToIndex = (index: number, isEditing?: boolean) => {
-        if (!flatListRef?.current || isEditing) {
-            return;
-        }
+    const scrollToIndex = useCallback(
+        (index: number, isEditing?: boolean) => {
+            if (!flatListRef?.current || isEditing) {
+                return;
+            }
 
-        flatListRef.current.scrollToIndex({index, animated: true});
-    };
+            flatListRef.current.scrollToIndex({index, animated: true});
+        },
+        [flatListRef],
+    );
 
     /**
      * Scroll to the bottom of the flatlist.

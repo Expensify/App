@@ -1,14 +1,14 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {type OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
-import {PublicScreensParamList} from '@navigation/types';
+import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
 type UnlinkLoginPageOnyxProps = {
@@ -26,7 +26,7 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
     useEffect(() => {
         Session.unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -35,7 +35,7 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.goBack();
     }, [prevIsLoading, account?.isLoading]);
 
     return <FullScreenLoadingIndicator />;

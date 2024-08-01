@@ -5,23 +5,34 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import CONST from '@src/CONST';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
 import Avatar from './Avatar';
 import Text from './Text';
 
 type Mention = {
-    /** Display name of the user */
+    /**
+     * Main display text of the mention
+     * always visible right after icon (if present)
+     */
     text: string;
 
-    /** The formatted email/phone number of the user */
+    /**
+     * Additional text for the mention
+     * visible if it's value is different than Mention.text value
+     * rendered after Mention.text
+     */
     alternateText: string;
 
-    /** Email/phone number of the user */
-    login: string;
+    /**
+     * Handle of the mention
+     * used as a value for the mention (e.g. in for the filtering or putting the mention in the message)
+     */
+    handle?: string;
 
-    /** Array of icons of the user. We use the first element of this array */
-    icons: Icon[];
+    /** Array of icons of the mention. If present, we use the first element of this array. For room suggestions, the icons are not used */
+    icons?: Icon[];
 };
 
 type MentionSuggestionsProps = {
@@ -31,8 +42,8 @@ type MentionSuggestionsProps = {
     /** Array of suggested mentions */
     mentions: Mention[];
 
-    /** Fired when the user selects an mention */
-    onSelect: () => void;
+    /** Fired when the user selects a mention */
+    onSelect: (highlightedMentionIndex: number) => void;
 
     /** Mention prefix that follows the @ sign  */
     prefix: string;
@@ -42,8 +53,11 @@ type MentionSuggestionsProps = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: boolean;
 
-    /** Meaures the parent container's position and dimensions. */
-    measureParentContainer: () => void;
+    /** Measures the parent container's position and dimensions. Also add cursor coordinates */
+    measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
+
+    /** Reset the emoji suggestions */
+    resetSuggestions: () => void;
 };
 
 /**
@@ -51,7 +65,15 @@ type MentionSuggestionsProps = {
  */
 const keyExtractor = (item: Mention) => item.alternateText;
 
-function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+function MentionSuggestions({
+    prefix,
+    mentions,
+    highlightedMentionIndex = 0,
+    onSelect,
+    isMentionPickerLarge,
+    measureParentContainerAndReportCursor = () => {},
+    resetSuggestions,
+}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -66,16 +88,19 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
 
             return (
                 <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                    <View style={styles.mentionSuggestionsAvatarContainer}>
-                        <Avatar
-                            source={item.icons[0].source}
-                            size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
-                            name={item.icons[0].name}
-                            type={item.icons[0].type}
-                            fill={theme.success}
-                            fallbackIcon={item.icons[0].fallbackIcon}
-                        />
-                    </View>
+                    {item.icons && !!item.icons.length && (
+                        <View style={styles.mentionSuggestionsAvatarContainer}>
+                            <Avatar
+                                source={item.icons[0].source}
+                                size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                                name={item.icons[0].name}
+                                avatarID={item.icons[0].id}
+                                type={item.icons[0].type}
+                                fill={isIcon ? theme.success : undefined}
+                                fallbackIcon={item.icons[0].fallbackIcon}
+                            />
+                        </View>
+                    )}
                     <Text
                         style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                         numberOfLines={1}
@@ -96,11 +121,11 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                     >
                         {styledHandle?.map(
                             ({text, isColored}, i) =>
-                                Boolean(text) && (
+                                !!text && (
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.textSupporting]}
                                     >
                                         {text}
                                     </Text>
@@ -119,7 +144,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             styles.flexShrink1,
             styles.flex1,
             styles.mentionSuggestionsDisplayName,
-            styles.mentionSuggestionsHandle,
+            styles.textSupporting,
             theme.success,
             StyleUtils,
         ],
@@ -134,7 +159,8 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             onSelect={onSelect}
             isSuggestionPickerLarge={isMentionPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }
@@ -142,3 +168,5 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
 MentionSuggestions.displayName = 'MentionSuggestions';
 
 export default MentionSuggestions;
+
+export type {Mention};

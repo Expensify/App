@@ -4,7 +4,7 @@
 
 ## Asynchronous Testing
 
-- Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) relies on [`AsyncStorage`](https://github.com/react-native-async-storage/async-storage) and writes data async before updating subscribers.
+- Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) writes data async before updating subscribers.
 - [Actions](https://github.com/Expensify/App#actions) do not typically return a `Promise` and therefore can't always be "awaited" before running an assertion.
 - To test a result after some asynchronous code has run we can use [`Onyx.connect()`](https://github.com/Expensify/react-native-onyx/blob/2c94a94e51fab20330f7bd5381b72ea6c25553d9/lib/Onyx.js#L217-L231) and the helper method [`waitForBatchedUpdates()`](https://github.com/Expensify/ReactNativeChat/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/utils/waitForBatchedUpdates.js#L1-L9) which returns a `Promise` and will ensure that all other `Promises` have finished running before resolving.
 - **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**.
@@ -45,9 +45,9 @@ const policies = createCollection<Policy>(
 );
 ```
 
-## Mocking `node_modules`, user modules, and what belongs in `jest/setup.js`
+## Mocking `node_modules`, user modules, and what belongs in `jest/setup.ts`
 
-If you need to mock a library that exists in `node_modules` then add it to the `__mocks__` folder in the root of the project. More information about this [here](https://jestjs.io/docs/manual-mocks#mocking-node-modules). If you need to mock an individual library you should create a mock module in a `__mocks__` subdirectory adjacent to the library as explained [here](https://jestjs.io/docs/manual-mocks#mocking-user-modules). However, keep in mind that when you do this you also must manually require the mock by calling something like `jest.mock('../../src/libs/Log');` at the top of an individual test file. If every test in the app will need something to be mocked that's a good case for adding it to `jest/setup.js`, but we should generally avoid adding user mocks or `node_modules` mocks to this file. Please use the `__mocks__` subdirectories wherever appropriate.
+If you need to mock a library that exists in `node_modules` then add it to the `__mocks__` folder in the root of the project. More information about this [here](https://jestjs.io/docs/manual-mocks#mocking-node-modules). If you need to mock an individual library you should create a mock module in a `__mocks__` subdirectory adjacent to the library as explained [here](https://jestjs.io/docs/manual-mocks#mocking-user-modules). However, keep in mind that when you do this you also must manually require the mock by calling something like `jest.mock('../../src/libs/Log');` at the top of an individual test file. If every test in the app will need something to be mocked that's a good case for adding it to `jest/setup.ts`, but we should generally avoid adding user mocks or `node_modules` mocks to this file. Please use the `__mocks__` subdirectories wherever appropriate.
 
 ## Assertions
 

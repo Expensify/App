@@ -1,7 +1,9 @@
 import {useCallback, useRef} from 'react';
-import {StyleSheet, ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Logo from '@assets/images/new-expensify-dark.svg';
+import ImageSVG from '@components/ImageSVG';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BootSplash from '@libs/BootSplash';
 import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
@@ -32,6 +34,7 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
         hideHasBeenCalled.current = true;
 
         BootSplash.hide().then(() => {
+            // eslint-disable-next-line react-compiler/react-compiler
             scale.value = withTiming(0, {
                 duration: 200,
                 easing: Easing.back(2),
@@ -62,10 +65,10 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
             ]}
         >
             <Reanimated.View style={scaleStyle}>
-                <Logo
-                    viewBox="0 0 80 80"
-                    width={100 * logoSizeRatio}
-                    height={100 * logoSizeRatio}
+                <ImageSVG
+                    contentFit="fill"
+                    style={{width: 100 * logoSizeRatio, height: 100 * logoSizeRatio}}
+                    src={Logo}
                 />
             </Reanimated.View>
         </Reanimated.View>

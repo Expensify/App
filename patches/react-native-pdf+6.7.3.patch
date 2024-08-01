@@ -1,0 +1,53 @@
+diff --git a/node_modules/react-native-pdf/react-native-pdf.podspec b/node_modules/react-native-pdf/react-native-pdf.podspec
+index fb36140..5d5f19e 100644
+--- a/node_modules/react-native-pdf/react-native-pdf.podspec
++++ b/node_modules/react-native-pdf/react-native-pdf.podspec
+@@ -17,24 +17,11 @@ Pod::Spec.new do |s|
+   s.framework    = "PDFKit"
+ 
+   if fabric_enabled
+-    folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
+-
+-    s.pod_target_xcconfig = {
+-      'HEADER_SEARCH_PATHS' => '"$(PODS_ROOT)/boost" "$(PODS_ROOT)/boost-for-react-native"  "$(PODS_ROOT)/RCT-Folly"',
+-      "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
+-    }
+     s.platforms       = { ios: '11.0', tvos: '11.0' }
+-    s.compiler_flags  = folly_compiler_flags + ' -DRCT_NEW_ARCH_ENABLED'
+     s.source_files    = 'ios/**/*.{h,m,mm,cpp}'
+     s.requires_arc    = true
+     
+-    s.dependency "React"
+-    s.dependency "React-RCTFabric"
+-    s.dependency "React-Codegen"
+-    s.dependency "RCT-Folly"
+-    s.dependency "RCTRequired"
+-    s.dependency "RCTTypeSafety"
+-    s.dependency "ReactCommon/turbomodule/core"
++    install_modules_dependencies(s)
+   else
+     s.platform       = :ios, '8.0'
+     s.source_files   = 'ios/**/*.{h,m,mm}'
+diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-pdf/index.js
+index c05de52..bea7af8 100644
+--- a/node_modules/react-native-pdf/index.js
++++ b/node_modules/react-native-pdf/index.js
+@@ -367,11 +367,17 @@ export default class Pdf extends Component {
+                 message[4] = message.splice(4).join('|');
+             }
+             if (message[0] === 'loadComplete') {
++                let tableContents;
++                try {
++                    tableContents = message[4]&&JSON.parse(message[4]);
++                } catch(e) {
++                    tableContents = message[4];
++                }
+                 this.props.onLoadComplete && this.props.onLoadComplete(Number(message[1]), this.state.path, {
+                     width: Number(message[2]),
+                     height: Number(message[3]),
+                 },
+-                message[4]&&JSON.parse(message[4]));
++                tableContents);
+             } else if (message[0] === 'pageChanged') {
+                 this.props.onPageChanged && this.props.onPageChanged(Number(message[1]), Number(message[2]));
+             } else if (message[0] === 'error') {

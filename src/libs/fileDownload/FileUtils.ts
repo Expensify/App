@@ -1,17 +1,24 @@
+import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
+import ImageSize from 'react-native-image-size';
+import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
+ * @param successMessage
  */
-function showSuccessAlert() {
+function showSuccessAlert(successMessage?: string) {
     Alert.alert(
         Localize.translateLocal('fileDownload.success.title'),
-        Localize.translateLocal('fileDownload.success.message'),
+        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        successMessage || Localize.translateLocal('fileDownload.success.message'),
         [
             {
                 text: Localize.translateLocal('common.ok'),
@@ -79,14 +86,14 @@ function showCameraPermissionsAlert() {
  * Extracts a filename from a given URL and sanitizes it for file system usage.
  *
  * This function takes a URL as input and performs the following operations:
- * 1. Extracts the last segment of the URL, which could be a file name, a path segment,
- *    or a query string parameter.
+ * 1. Extracts the last segment of the URL.
  * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
  * 3. Replaces any characters in the decoded string that are illegal in file names
  *    with underscores.
  */
 function getFileName(url: string): string {
-    const fileName = url.split(/[#?/]/).pop() ?? '';
+    const fileName = url.split('/').pop()?.split('?')[0].split('#')[0] ?? '';
+
     if (!fileName) {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
@@ -110,7 +117,7 @@ function getFileType(fileUrl: string): string | undefined {
         return;
     }
 
-    const fileName = fileUrl.split('/').pop()?.split('?')[0].split('#')[0];
+    const fileName = getFileName(fileUrl);
 
     if (!fileName) {
         return;
@@ -158,7 +165,7 @@ function appendTimeToFileName(fileName: string): string {
  * @param path - the blob url of the locally uploaded file
  * @param fileName - name of the file to read
  */
-const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
+const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}, fileType = '') =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -175,7 +182,9 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                 }
                 res.blob()
                     .then((blob) => {
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type});
+                        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+                        // In this case, let us fallback on fileType provided by the caller of this function.
+                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
                         file.source = path;
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend
@@ -235,6 +244,47 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
+function validateImageForCorruption(file: FileObject): Promise<void> {
+    if (!Str.isImage(file.name ?? '') || !file.uri) {
+        return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+        ImageSize.getSize(file.uri ?? '')
+            .then(() => resolve())
+            .catch(() => reject(new Error('Error reading file: The file is corrupted')));
+    });
+}
+
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+}
+
+function getFileResolution(targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> {
+    if (!targetFile) {
+        return Promise.resolve(null);
+    }
+
+    // If the file already has width and height, return them directly
+    if ('width' in targetFile && 'height' in targetFile) {
+        return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
+    }
+
+    // Otherwise, attempt to get the image resolution
+    return getImageResolution(targetFile)
+        .then(({width, height}) => ({width, height}))
+        .catch((error: Error) => {
+            Log.hmmm('Failed to get image resolution:', error);
+            return null;
+        });
+}
+
+function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
+    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -247,4 +297,9 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
+    validateImageForCorruption,
+    isImage,
+    getFileResolution,
+    isHighResolutionImage,
 };

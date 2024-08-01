@@ -1,24 +1,26 @@
 import {isAfter} from 'date-fns';
-import {AppState, NativeEventSubscription} from 'react-native';
+import type {NativeEventSubscription} from 'react-native';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {MapboxAccessToken, Network} from '@src/types/onyx';
+import type {MapboxAccessToken, Network} from '@src/types/onyx';
 
-let authToken: string | null;
+let authToken: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        authToken = value?.authToken ?? null;
+        authToken = value?.authToken;
     },
 });
 
 let connectionIDForToken: number | null;
 let connectionIDForNetwork: number | null;
 let appStateSubscription: NativeEventSubscription | null;
-let currentToken: MapboxAccessToken | null;
+let currentToken: MapboxAccessToken | undefined;
 let refreshTimeoutID: NodeJS.Timeout | undefined;
 let isCurrentlyFetchingToken = false;
 const REFRESH_INTERVAL = 1000 * 60 * 25;
@@ -37,7 +39,7 @@ const setExpirationTimer = () => {
             return;
         }
         console.debug(`[MapboxToken] Fetching a new token after waiting ${REFRESH_INTERVAL / 1000 / 60} minutes`);
-        API.read('GetMapboxAccessToken', {}, {});
+        API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, null, {});
     }, REFRESH_INTERVAL);
 };
 
@@ -50,7 +52,7 @@ const clearToken = () => {
 };
 
 const fetchToken = () => {
-    API.read('GetMapboxAccessToken', {}, {});
+    API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, null, {});
     isCurrentlyFetchingToken = true;
 };
 
@@ -115,7 +117,7 @@ const init = () => {
     }
 
     if (!connectionIDForNetwork) {
-        let network: Network | null;
+        let network: Network | undefined;
         connectionIDForNetwork = Onyx.connect({
             key: ONYXKEYS.NETWORK,
             callback: (value) => {

@@ -1,51 +1,29 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "expo/tsconfig.base",
     "compilerOptions": {
-        "target": "esnext",
         "module": "commonjs",
         "types": ["react-native", "jest"],
-        "lib": [
-            "DOM",
-            "es2019",
-            "es2020.bigint",
-            "es2020.date",
-            "es2020.number",
-            "es2020.promise",
-            "es2020.string",
-            "es2020.symbol.wellknown",
-            "es2021.promise",
-            "es2021.string",
-            "es2021.weakref",
-            "es2022.array",
-            "es2022.object",
-            "es2022.string",
-            "ES2021.Intl"
-        ],
-        "allowJs": true,
-        "checkJs": false,
-        "jsx": "react-native",
-        "noEmit": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
         "strict": true,
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "skipLibCheck": true,
         "incremental": true,
         "baseUrl": ".",
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],
+            "@desktop/*": ["./desktop/*"],
+            "@github/*": ["./.github/*"],
             "@hooks/*": ["./src/hooks/*"],
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],
             "@styles/*": ["./src/styles/*"],
-            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"]
         }
     },
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
+    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "workflow_tests", "scripts"],
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }

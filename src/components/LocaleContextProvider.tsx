@@ -1,16 +1,17 @@
 import React, {createContext, useMemo} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import compose from '@libs/compose';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
@@ -48,6 +49,9 @@ type LocaleContextProps = {
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;
 
+    /** Formats a number into its localized ordinal representation */
+    toLocaleOrdinal: (number: number) => string;
+
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
 
@@ -63,11 +67,12 @@ const LocaleContext = createContext<LocaleContextProps>({
     updateLocale: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
+    toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
-function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
+function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, children}: LocaleContextProviderProps) {
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
@@ -96,6 +101,8 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => LocaleDigitUtils.toLocaleDigit(locale, digit), [locale]);
 
+    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(() => (number) => LocaleDigitUtils.toLocaleOrdinal(locale, number), [locale]);
+
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 
     const contextValue = useMemo<LocaleContextProps>(
@@ -107,27 +114,27 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
             updateLocale,
             formatPhoneNumber,
             toLocaleDigit,
+            toLocaleOrdinal,
             fromLocaleDigit,
             preferredLocale: locale,
         }),
-        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, updateLocale, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, locale],
+        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, updateLocale, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, locale],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 
-const Provider = compose(
+const Provider = withCurrentUserPersonalDetails(
     withOnyx<LocaleContextProviderProps, LocaleContextProviderOnyxProps>({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             selector: (preferredLocale) => preferredLocale,
         },
-    }),
-    withCurrentUserPersonalDetails,
-)(LocaleContextProvider);
+    })(LocaleContextProvider),
+);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
 
-export {Provider as LocaleContextProvider, LocaleContext};
+export {LocaleContext, Provider as LocaleContextProvider};
 
-export type {LocaleContextProps};
+export type {Locale, LocaleContextProps};

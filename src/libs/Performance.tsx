@@ -3,8 +3,8 @@ import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
-import {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance} from 'react-native-performance';
-import {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
+import type {PerformanceEntry, PerformanceMark, PerformanceMeasure, ReactNativePerformance, Performance as RNPerformance} from 'react-native-performance';
+import type {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
@@ -14,7 +14,7 @@ type WrappedComponentConfig = {id: string};
 
 type PerformanceEntriesCallback = (entry: PerformanceEntry) => void;
 
-type Phase = 'mount' | 'update';
+type Phase = 'mount' | 'update' | 'nested-update';
 
 type WithRenderTraceHOC = <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>) => React.ComponentType<P & React.RefAttributes<unknown>>;
 
@@ -27,7 +27,7 @@ type PrintPerformanceMetrics = () => void;
 type MarkStart = (name: string, detail?: Record<string, unknown>) => PerformanceMark | void;
 type MarkEnd = (name: string, detail?: Record<string, unknown>) => PerformanceMark | void;
 type MeasureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => void;
-type MeasureTTI = (endMark: string) => void;
+type MeasureTTI = (endMark?: string) => void;
 type TraceRender = (id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>) => PerformanceMeasure | void;
 type WithRenderTrace = ({id}: WrappedComponentConfig) => WithRenderTraceHOC | BlankHOC;
 type SubscribeToMeasurements = (callback: PerformanceEntriesCallback) => void;
@@ -86,7 +86,7 @@ const Performance: PerformanceModule = {
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
-    const perfModule = require('react-native-performance');
+    const perfModule = require<ReactNativePerformance>('react-native-performance');
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 
@@ -104,7 +104,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     /**
      * Measures the TTI time. To be called when the app is considered to be interactive.
      */
-    Performance.measureTTI = (endMark: string) => {
+    Performance.measureTTI = (endMark?: string) => {
         // Make sure TTI is captured when the app is really usable
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
@@ -122,9 +122,6 @@ if (Metrics.canCapturePerformanceMetrics()) {
      * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
      */
     Performance.setupPerformanceObserver = () => {
-        const performanceReported = require('react-native-performance-flipper-reporter');
-        performanceReported.setupDefaultFlipperReporter();
-
         // Monitor some native marks that we want to put on the timeline
         new perfModule.PerformanceObserver((list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
             list.getEntries().forEach((entry: PerformanceEntry) => {
@@ -136,6 +133,13 @@ if (Metrics.canCapturePerformanceMetrics()) {
                 }
                 if (entry.name === 'runJsBundleEnd') {
                     Performance.measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                }
+                if (entry.name === 'appCreationEnd') {
+                    Performance.measureFailSafe('appCreation', 'appCreationStart', 'appCreationEnd');
+                    Performance.measureFailSafe('nativeLaunchEnd_To_appCreationStart', 'nativeLaunchEnd', 'appCreationStart');
+                }
+                if (entry.name === 'contentAppeared') {
+                    Performance.measureFailSafe('appCreationEnd_To_contentAppeared', 'appCreationEnd', 'contentAppeared');
                 }
 
                 // We don't need to keep the observer past this point
@@ -157,6 +161,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
 
                 // Capture any custom measures or metrics below
                 if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                    Performance.measureFailSafe('contentAppeared_To_screenTTI', 'contentAppeared', mark.name);
                     Performance.measureTTI(mark.name);
                 }
             });
@@ -166,6 +171,10 @@ if (Metrics.canCapturePerformanceMetrics()) {
     Performance.getPerformanceMetrics = (): PerformanceEntry[] =>
         [
             ...rnPerformance.getEntriesByName('nativeLaunch'),
+            ...rnPerformance.getEntriesByName('nativeLaunchEnd_To_appCreationStart'),
+            ...rnPerformance.getEntriesByName('appCreation'),
+            ...rnPerformance.getEntriesByName('appCreationEnd_To_contentAppeared'),
+            ...rnPerformance.getEntriesByName('contentAppeared_To_screenTTI'),
             ...rnPerformance.getEntriesByName('runJsBundle'),
             ...rnPerformance.getEntriesByName('jsBundleDownload'),
             ...rnPerformance.getEntriesByName('TTI'),

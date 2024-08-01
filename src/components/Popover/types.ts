@@ -1,41 +1,46 @@
-import BaseModalProps, {PopoverAnchorPosition} from '@components/Modal/types';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-
-type AnchorAlignment = {horizontal: string; vertical: string};
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
+import type {PopoverAnchorPosition} from '@components/Modal/types';
+import type BaseModalProps from '@components/Modal/types';
+import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type PopoverDimensions = {
     width: number;
     height: number;
 };
 
-type PopoverProps = BaseModalProps & {
-    /** The anchor position of the popover */
-    anchorPosition?: PopoverAnchorPosition;
+type PopoverProps = BaseModalProps &
+    ChildrenProps & {
+        /** The anchor position of the popover */
+        anchorPosition?: PopoverAnchorPosition;
 
-    /** The anchor alignment of the popover */
-    anchorAlignment: AnchorAlignment;
+        /** The anchor alignment of the popover */
+        anchorAlignment?: AnchorAlignment;
 
-    /** The anchor ref of the popover */
-    anchorRef: React.RefObject<HTMLElement>;
+        /** The anchor ref of the popover */
+        anchorRef: RefObject<View | HTMLDivElement | Text>;
 
-    /** Whether disable the animations */
-    disableAnimation: boolean;
+        /** Whether disable the animations */
+        disableAnimation?: boolean;
 
-    /** Whether we don't want to show overlay */
-    withoutOverlay: boolean;
+        /** Whether we don't want to show overlay */
+        withoutOverlay?: boolean;
 
-    /** The dimensions of the popover */
-    popoverDimensions?: PopoverDimensions;
+        /** The dimensions of the popover */
+        popoverDimensions?: PopoverDimensions;
 
-    /** The ref of the popover */
-    withoutOverlayRef?: React.RefObject<HTMLElement>;
+        /** The ref of the popover */
+        withoutOverlayRef?: RefObject<View | HTMLDivElement>;
 
-    /** Whether we want to show the popover on the right side of the screen */
-    fromSidebarMediumScreen?: boolean;
+        /** Whether we want to show the popover on the right side of the screen */
+        fromSidebarMediumScreen?: boolean;
 
-    /** The popover children */
-    children: React.ReactNode;
-};
+        /** Whether we should close when browser navigation change. This doesn't affect native platform */
+        shouldCloseWhenBrowserNavigationChanged?: boolean;
+    };
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 

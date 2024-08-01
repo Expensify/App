@@ -44,7 +44,12 @@
   // stopped by a native module in the JS so we can measure total time starting
   // in the native layer and ending in the JS layer.
   [RCTStartupTimer start];
-  
+
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"isFirstRunComplete"]) {
+      [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+      [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
+  }
+
   return YES;
 }
 
@@ -67,7 +72,13 @@
                      restorationHandler:restorationHandler];
 }
 
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+{
+  return [self getBundleURL];
+}
+
+- (NSURL *)getBundleURL
+{
 #if DEBUG
   return
       [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];

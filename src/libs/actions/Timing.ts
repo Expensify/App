@@ -1,4 +1,6 @@
 import * as API from '@libs/API';
+import type {SendPerformanceTimingParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
 import Firebase from '@libs/Firebase';
 import getPlatform from '@libs/getPlatform';
@@ -17,7 +19,7 @@ let timestampData: Record<string, TimestampData> = {};
  * @param eventName
  * @param shouldUseFirebase - adds an additional trace in Firebase
  */
-function start(eventName: string, shouldUseFirebase = false) {
+function start(eventName: string, shouldUseFirebase = true) {
     timestampData[eventName] = {startTime: Date.now(), shouldUseFirebase};
 
     if (!shouldUseFirebase) {
@@ -39,8 +41,8 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
         return;
     }
 
+    const {startTime, shouldUseFirebase} = timestampData[eventName];
     Environment.getEnvironment().then((envName) => {
-        const {startTime, shouldUseFirebase} = timestampData[eventName];
         const eventTime = Date.now() - startTime;
 
         if (shouldUseFirebase) {
@@ -62,15 +64,13 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
             Log.warn(`${eventName} exceeded max execution time of ${maxExecutionTime}.`, {eventTime, eventName});
         }
 
-        API.read(
-            'SendPerformanceTiming',
-            {
-                name: grafanaEventName,
-                value: eventTime,
-                platform: `${getPlatform()}`,
-            },
-            {},
-        );
+        const parameters: SendPerformanceTimingParams = {
+            name: grafanaEventName,
+            value: eventTime,
+            platform: `${getPlatform()}`,
+        };
+
+        API.read(READ_COMMANDS.SEND_PERFORMANCE_TIMING, parameters, {});
     });
 }
 

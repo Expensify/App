@@ -1,15 +1,27 @@
-import lodashClamp from 'lodash/clamp';
-import React, {useCallback, useState} from 'react';
-import {Dimensions, StyleProp, View, ViewStyle} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
+
+// Cache for the dimensions of the thumbnails to avoid flickering incorrect size when the
+// image has already been loaded once. This caches the dimensions based on the URL of
+// the image.
+const thumbnailDimensionsCache = new Map<string, {width: number; height: number}>();
 
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
-    previewSourceURL: string;
+    previewSourceURL: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
@@ -23,8 +35,23 @@ type ThumbnailImageProps = {
     /** Height of the thumbnail image */
     imageHeight?: number;
 
+    /** If the image fails to load – show the provided fallback icon */
+    fallbackIcon?: IconAsset;
+
+    /** The size of the fallback icon */
+    fallbackIconSize?: number;
+
+    /** The color of the fallback icon */
+    fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
+
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
+
+    /** The object position of image */
+    objectPosition?: ImageObjectPosition;
 };
 
 type UpdateImageSizeParams = {
@@ -32,68 +59,73 @@ type UpdateImageSizeParams = {
     height: number;
 };
 
-type CalculateThumbnailImageSizeResult = {
-    thumbnailWidth?: number;
-    thumbnailHeight?: number;
-};
-
-/**
- * Compute the thumbnails width and height given original image dimensions.
- *
- * @param width - Width of the original image.
- * @param height - Height of the original image.
- * @param windowHeight - Height of the device/browser window.
- * @returns - Object containing thumbnails width and height.
- */
-
-function calculateThumbnailImageSize(width: number, height: number, windowHeight: number): CalculateThumbnailImageSizeResult {
-    if (!width || !height) {
-        return {};
-    }
-    // Width of the thumbnail works better as a constant than it does
-    // a percentage of the screen width since it is relative to each screen
-    // Note: Clamp minimum width 40px to support touch device
-    let thumbnailScreenWidth = lodashClamp(width, 40, 250);
-    const imageHeight = height / (width / thumbnailScreenWidth);
-    // On mWeb, when soft keyboard opens, window height changes, making thumbnail height inconsistent. We use screen height instead.
-    const screenHeight = DeviceCapabilities.canUseTouchScreen() ? Dimensions.get('screen').height : windowHeight;
-    let thumbnailScreenHeight = lodashClamp(imageHeight, 40, screenHeight * 0.4);
-    const aspectRatio = height / width;
-
-    // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
-    // For portrait images, we need to adjust the width of the image to keep the aspect ratio and vice-versa.
-    if (thumbnailScreenHeight > thumbnailScreenWidth) {
-        thumbnailScreenWidth = Math.round(thumbnailScreenHeight * (1 / aspectRatio));
-    } else {
-        thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
-    }
-    return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
-}
-
-function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true}: ThumbnailImageProps) {
+function ThumbnailImage({
+    previewSourceURL,
+    style,
+    isAuthTokenRequired,
+    imageWidth = 200,
+    imageHeight = 200,
+    shouldDynamicallyResize = true,
+    fallbackIcon = Expensicons.Gallery,
+    fallbackIconSize = variables.iconSizeSuperLarge,
+    fallbackIconColor,
+    fallbackIconBackground,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+}: ThumbnailImageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {isOffline} = useNetwork();
+    const [failedToLoad, setFailedToLoad] = useState(false);
+    const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
+    const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
+    const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
     const StyleUtils = useStyleUtils();
-    const {windowHeight} = useWindowDimensions();
-    const initialDimensions = calculateThumbnailImageSize(imageWidth, imageHeight, windowHeight);
-    const [currentImageWidth, setCurrentImageWidth] = useState(initialDimensions.thumbnailWidth);
-    const [currentImageHeight, setCurrentImageHeight] = useState(initialDimensions.thumbnailHeight);
+
+    useEffect(() => {
+        setFailedToLoad(false);
+    }, [isOffline, previewSourceURL]);
 
     /**
      * Update the state with the computed thumbnail sizes.
      * @param Params - width and height of the original image.
      */
-
     const updateImageSize = useCallback(
         ({width, height}: UpdateImageSizeParams) => {
-            const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, windowHeight);
+            if (
+                !shouldDynamicallyResize ||
+                // If the provided dimensions are good avoid caching them and updating state.
+                (imageDimensions.width === width && imageDimensions.height === height)
+            ) {
+                return;
+            }
 
-            setCurrentImageWidth(thumbnailWidth);
-            setCurrentImageHeight(thumbnailHeight);
+            if (typeof previewSourceURL === 'string') {
+                thumbnailDimensionsCache.set(previewSourceURL, {width, height});
+            }
+
+            setImageDimensions({width, height});
         },
-        [windowHeight],
+        [previewSourceURL, imageDimensions, shouldDynamicallyResize],
     );
 
-    const sizeStyles = shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(currentImageWidth ?? 0, currentImageHeight)] : [styles.w100, styles.h100];
+    const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
+
+    if (failedToLoad || previewSourceURL === '') {
+        const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
+
+        return (
+            <View style={[style, styles.overflowHidden, fallbackColor]}>
+                <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
+                        height={fallbackIconSize}
+                        width={fallbackIconSize}
+                        fill={fallbackIconColor ?? theme.border}
+                    />
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={[style, styles.overflowHidden]}>
@@ -101,7 +133,9 @@ function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidt
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     onMeasure={updateImageSize}
+                    onLoadFailure={() => setFailedToLoad(true)}
                     isAuthTokenRequired={isAuthTokenRequired}
+                    objectPosition={objectPosition}
                 />
             </View>
         </View>

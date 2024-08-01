@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
-import * as Localize from './Localize';
+import type {OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -87,8 +87,22 @@ function convertToBackendAmount(amountAsFloat: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmount(amountAsInt: number): number {
-    return Math.trunc(amountAsInt) / 100.0;
+function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
+    const decimals = getCurrencyDecimals(currency);
+    return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
+}
+
+/**
+ * Takes an amount in "cents" as an integer and converts it to a string amount used in the frontend.
+ *
+ * @note we do not support any currencies with more than two decimal places.
+ */
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
+    if (amountAsInt === null || amountAsInt === undefined) {
+        return '';
+    }
+    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
+    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
 }
 
 /**
@@ -97,22 +111,82 @@ function convertToFrontendAmount(amountAsInt: number): number {
  *
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
- * @param shouldFallbackToTbd - whether to return 'TBD' instead of a falsy value (e.g. 0.00)
  */
-function convertToDisplayString(amountInCents: number, currency: string = CONST.CURRENCY.USD, shouldFallbackToTbd = false): string {
-    if (shouldFallbackToTbd && !amountInCents) {
-        return Localize.translateLocal('common.tbd');
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    /**
+     * Fallback currency to USD if it empty string or undefined
+     */
+    let currencyWithFallback = currency;
+    if (!currency) {
+        currencyWithFallback = CONST.CURRENCY.USD;
     }
+    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency: currencyWithFallback,
 
-    const convertedAmount = convertToFrontendAmount(amountInCents);
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    });
+}
+
+/**
+ * Given the amount in the "cents", convert it to a short string (no decimals) for display in the UI.
+ * The backend always handle things in "cents" (subunit equal to 1/100)
+ *
+ * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
+ * @param currency - IOU currency
+ */
+function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
-        // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        // There will be no decimals displayed (e.g. $9)
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     });
+}
+
+/**
+ * Given an amount, convert it to a string for display in the UI.
+ *
+ * @param amount – should be a float.
+ * @param currency - IOU currency
+ */
+function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
+    const convertedAmount = amount / 100.0;
+    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: getCurrencyDecimals(currency) + 1,
+    });
+}
+
+/**
+ * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
+ */
+function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
 }
 
 /**
@@ -120,7 +194,7 @@ function convertToDisplayString(amountInCents: number, currency: string = CONST.
  */
 function isValidCurrencyCode(currencyCode: string): boolean {
     const currency = currencyList?.[currencyCode];
-    return Boolean(currency);
+    return !!currency;
 }
 
 export {
@@ -130,7 +204,11 @@ export {
     getCurrencySymbol,
     isCurrencySymbolLTR,
     convertToBackendAmount,
-    convertToFrontendAmount,
+    convertToFrontendAmountAsInteger,
+    convertToFrontendAmountAsString,
     convertToDisplayString,
+    convertAmountToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
+    convertToShortDisplayString,
 };

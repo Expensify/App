@@ -1,6 +1,9 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import type {ForwardedRef, ReactElement, ReactNode, RefObject} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
+import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -30,7 +33,9 @@ function BasePicker<TPickerValue>(
         containerStyles,
         placeholder = {},
         size = 'normal',
+        shouldAllowDisabledStyle = true,
         shouldFocusPicker = false,
+        shouldShowOnlyTextWhenDisabled = true,
         onBlur = () => {},
         additionalPickerEvents = () => {},
     }: BasePickerProps<TPickerValue>,
@@ -47,10 +52,6 @@ function BasePicker<TPickerValue>(
     // reference to @react-native-picker/picker
     const picker = useRef<RNPickerSelect>(null);
 
-    // Windows will reuse the text color of the select for each one of the options
-    // so we might need to color accordingly so it doesn't blend with the background.
-    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.text} : {};
-
     useEffect(() => {
         if (!!value || !items || items.length !== 1 || !onInputChange) {
             return;
@@ -60,7 +61,7 @@ function BasePicker<TPickerValue>(
         // so they don't have to spend extra time selecting the only possible value.
         onInputChange(items[0].value, 0);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [items]);
 
     const context = useScrollContext();
@@ -71,11 +72,11 @@ function BasePicker<TPickerValue>(
      */
     const onValueChange = (inputValue: TPickerValue, index: number) => {
         if (inputID) {
-            onInputChange(inputValue);
+            onInputChange?.(inputValue);
             return;
         }
 
-        onInputChange(inputValue, index);
+        onInputChange?.(inputValue, index);
     };
 
     const enableHighlight = () => {
@@ -94,12 +95,13 @@ function BasePicker<TPickerValue>(
         // eslint-disable-next-line react/display-name
         return () => (
             <Icon
+                fill={theme.icon}
                 src={Expensicons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles]);
+    }, [icon, size, styles, theme.icon]);
 
     useImperativeHandle(ref, () => ({
         /**
@@ -149,9 +151,13 @@ function BasePicker<TPickerValue>(
         return theme.text;
     }, [theme]);
 
+    // Windows will reuse the text color of the select for each one of the options
+    // so we might need to color accordingly so it doesn't blend with the background.
+    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: itemColor} : {};
+
     const hasError = !!errorText;
 
-    if (isDisabled) {
+    if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
                 {!!label && (
@@ -172,14 +178,20 @@ function BasePicker<TPickerValue>(
         <>
             <View
                 ref={root}
-                style={[styles.pickerContainer, isDisabled && styles.inputDisabled, containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
+                style={[
+                    styles.pickerContainer,
+                    isDisabled && shouldAllowDisabledStyle && styles.inputDisabled,
+                    containerStyles,
+                    isHighlighted && styles.borderColorFocus,
+                    hasError && styles.borderColorDanger,
+                ]}
             >
                 {label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{label}</Text>}
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
                     items={items.map((item) => ({...item, color: itemColor}))}
-                    style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
+                    style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(isDisabled, backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
                     value={value}

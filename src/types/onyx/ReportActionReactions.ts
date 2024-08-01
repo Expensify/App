@@ -1,5 +1,6 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of report user reaction */
 type UserReaction = {
     /** ID of user reaction */
     id: string;
@@ -11,9 +12,11 @@ type UserReaction = {
     oldestTimestamp: string;
 };
 
+/** Record of report user reactions, indexed by their login name or account id */
 type UsersReactions = Record<string, UserReaction>;
 
-type ReportActionReaction = {
+/** Model of report action reaction */
+type ReportActionReaction = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The time the emoji was added */
     createdAt: string;
 
@@ -22,11 +25,9 @@ type ReportActionReaction = {
 
     /** All the users who have added this emoji */
     users: UsersReactions;
+}>;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
-};
-
+/** Record of report action reactions, indexed by emoji name */
 type ReportActionReactions = Record<string, ReportActionReaction>;
 
 export default ReportActionReactions;

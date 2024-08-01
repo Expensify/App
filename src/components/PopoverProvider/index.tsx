@@ -1,34 +1,41 @@
-import React from 'react';
-import {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
+import type {RefObject} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
+import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
-const PopoverContext = React.createContext<PopoverContextValue>({
+const PopoverContext = createContext<PopoverContextValue>({
     onOpen: () => {},
-    popover: {},
+    popover: null,
     close: () => {},
     isOpen: false,
 });
 
-function PopoverContextProvider(props: PopoverContextProps) {
-    const [isOpen, setIsOpen] = React.useState(false);
-    const activePopoverRef = React.useRef<AnchorRef | null>(null);
+function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, target: EventTarget | null) {
+    if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
+        return true;
+    }
+    return false;
+}
 
-    const closePopover = React.useCallback((anchorRef?: React.RefObject<HTMLElement>) => {
+function PopoverContextProvider(props: PopoverContextProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const activePopoverRef = useRef<AnchorRef | null>(null);
+
+    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
-            return;
+            return false;
         }
 
         activePopoverRef.current.close();
-        if (activePopoverRef.current.onCloseCallback) {
-            activePopoverRef.current.onCloseCallback();
-        }
         activePopoverRef.current = null;
         setIsOpen(false);
+        return true;
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const listener = (e: Event) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (activePopoverRef.current?.ref?.current?.contains(e.target as Node) || activePopoverRef.current?.anchorRef?.current?.contains(e.target as Node)) {
+            if (elementContains(activePopoverRef.current?.ref, e.target) || elementContains(activePopoverRef.current?.anchorRef, e.target)) {
                 return;
             }
             const ref = activePopoverRef.current?.anchorRef;
@@ -40,9 +47,9 @@ function PopoverContextProvider(props: PopoverContextProps) {
         };
     }, [closePopover]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const listener = (e: Event) => {
-            if (activePopoverRef.current?.ref?.current?.contains(e.target as Node)) {
+            if (elementContains(activePopoverRef.current?.ref, e.target)) {
                 return;
             }
             closePopover();
@@ -53,20 +60,22 @@ function PopoverContextProvider(props: PopoverContextProps) {
         };
     }, [closePopover]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const listener = (e: KeyboardEvent) => {
             if (e.key !== 'Escape') {
                 return;
             }
-            closePopover();
+            if (closePopover()) {
+                e.stopImmediatePropagation();
+            }
         };
-        document.addEventListener('keydown', listener, true);
+        document.addEventListener('keyup', listener, true);
         return () => {
-            document.removeEventListener('keydown', listener, true);
+            document.removeEventListener('keyup', listener, true);
         };
     }, [closePopover]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const listener = () => {
             if (document.hasFocus()) {
                 return;
@@ -79,35 +88,32 @@ function PopoverContextProvider(props: PopoverContextProps) {
         };
     }, [closePopover]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const listener = (e: Event) => {
-            if (activePopoverRef.current?.ref?.current?.contains(e.target as Node)) {
+            if (elementContains(activePopoverRef.current?.ref, e.target)) {
                 return;
             }
 
             closePopover();
         };
-        document.addEventListener('scroll', listener, true);
+        document.addEventListener('wheel', listener, true);
         return () => {
-            document.removeEventListener('scroll', listener, true);
+            document.removeEventListener('wheel', listener, true);
         };
     }, [closePopover]);
 
-    const onOpen = React.useCallback(
+    const onOpen = useCallback(
         (popoverParams: AnchorRef) => {
             if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams?.ref) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
-            if (popoverParams?.onOpenCallback) {
-                popoverParams.onOpenCallback();
-            }
             setIsOpen(true);
         },
         [closePopover],
     );
 
-    const contextValue = React.useMemo(
+    const contextValue = useMemo(
         () => ({
             onOpen,
             close: closePopover,

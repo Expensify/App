@@ -1,5 +1,5 @@
-import ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
-import {Report, ReportAction} from '@src/types/onyx';
+import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type LocalNotificationClickHandler = () => void;
 

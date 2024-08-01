@@ -1,11 +1,11 @@
 import React, {useMemo} from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
-import {AnimationDirection} from './AnimatedStepContext';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {AnimationDirection} from './AnimatedStepContext';
 
 type AnimatedStepProps = ChildrenProps & {
     /** Styles to be assigned to Container */
@@ -15,7 +15,7 @@ type AnimatedStepProps = ChildrenProps & {
     direction: AnimationDirection;
 
     /** Callback to fire when the animation ends */
-    onAnimationEnd: () => void;
+    onAnimationEnd?: () => void;
 };
 
 function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {
@@ -37,6 +37,7 @@ function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN,
             }}
             duration={CONST.ANIMATED_TRANSITION}
             animation={animationStyle}
+            // eslint-disable-next-line react-compiler/react-compiler
             useNativeDriver={useNativeDriver}
             style={style}
         >

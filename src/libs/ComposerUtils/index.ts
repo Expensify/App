@@ -1,6 +1,5 @@
+import type {TextSelection} from '@components/Composer/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import getNumberOfLines from './getNumberOfLines';
-import updateNumberOfLines from './updateNumberOfLines';
 
 type Selection = {
     start: number;
@@ -10,8 +9,16 @@ type Selection = {
 /**
  * Replace substring between selection with a text.
  */
-function insertText(text: string, selection: Selection, textToInsert: string): string {
+function insertText(text: string, selection: TextSelection, textToInsert: string): string {
     return text.slice(0, selection.start) + textToInsert + text.slice(selection.end, text.length);
+}
+
+/**
+ * Insert a white space at given index of text
+ * @param text - text that needs whitespace to be appended to
+ */
+function insertWhiteSpaceAtIndex(text: string, index: number) {
+    return `${text.slice(0, index)} ${text.slice(index)}`;
 }
 
 /**
@@ -23,4 +30,23 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys};
+/**
+ * Finds the length of common suffix between two texts
+ */
+function findCommonSuffixLength(str1: string, str2: string, cursorPosition: number) {
+    let commonSuffixLength = 0;
+    const minLength = Math.min(str1.length - cursorPosition, str2.length);
+
+    for (let i = 1; i <= minLength; i++) {
+        if (str1.charAt(str1.length - i) === str2.charAt(str2.length - i)) {
+            commonSuffixLength++;
+        } else {
+            break;
+        }
+    }
+
+    return commonSuffixLength;
+}
+
+export {insertText, canSkipTriggerHotkeys, insertWhiteSpaceAtIndex, findCommonSuffixLength};
+export type {Selection};

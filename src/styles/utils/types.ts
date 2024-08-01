@@ -1,5 +1,5 @@
-import {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type colors from '@styles/theme/colors';
 import type variables from '@styles/variables';
 import type CONST from '@src/CONST';
@@ -40,7 +40,7 @@ type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
 
-type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 type TextColorStyle = {color: string};
 
@@ -55,7 +55,7 @@ export type {
     ButtonSizeValue,
     ButtonStateName,
     AvatarSize,
-    WorkspaceColorStyle,
+    SVGAvatarColorStyle,
     EreceiptColorStyle,
     TextColorStyle,
 };

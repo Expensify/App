@@ -1,10 +1,22 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type DismissedReferralBanners from './DismissedReferralBanners';
+import type * as OnyxCommon from './OnyxCommon';
 
+/** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** Model of user account */
 type Account = {
+    /** Whether SAML is enabled for the current account */
+    isSAMLEnabled?: boolean;
+
+    /** Whether SAML is required for the current account */
+    isSAMLRequired?: boolean;
+
+    /** Is this account having trouble receiving emails? */
+    hasEmailDeliveryFailure?: boolean;
+
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
 
@@ -17,6 +29,9 @@ type Account = {
     /** Whether this account has 2FA enabled or not */
     requiresTwoFactorAuth?: boolean;
 
+    /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
+    needsTwoFactorAuthSetup?: boolean;
+
     /** Whether the account is validated */
     validated?: boolean;
 
@@ -25,9 +40,6 @@ type Account = {
 
     /** The message to be displayed when code requested */
     message?: string;
-
-    /** Accounts that are on a domain with an Approved Accountant */
-    doesDomainHaveApprovedAccountant?: boolean;
 
     /** Form that is being loaded */
     loadingForm?: ValueOf<typeof CONST.FORMS>;
@@ -47,10 +59,35 @@ type Account = {
     /** Whether a sign is loading */
     isLoading?: boolean;
 
-    errors?: OnyxCommon.Errors;
+    /** Authentication failure errors */
+    errors?: OnyxCommon.Errors | null;
+
+    /** Authentication success message */
     success?: string;
+
+    /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
+
+    /** Current two factor authentication step */
     twoFactorAuthStep?: TwoFactorAuthStep;
+
+    /** Referral banners that the user dismissed */
+    dismissedReferralBanners?: DismissedReferralBanners;
+
+    /** Indicates whether the user is an approved accountant */
+    isApprovedAccountant?: boolean;
+
+    /** Indicates whether the user is a client of an approved accountant */
+    isApprovedAccountantClient?: boolean;
+
+    /** Indicates whether the user can downgrade current subscription plan */
+    canDowngrade?: boolean;
+
+    /** Indicates whether the user can downgrade current subscription plan */
+    isEligibleForRefund?: boolean;
+
+    /** Indicates whether the user has at least one previous purchase */
+    hasPurchases?: boolean;
 };
 
 export default Account;

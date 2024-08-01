@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Session} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
 
 type OldDotIFrameOnyxProps = {
     session: OnyxEntry<Session>;
@@ -16,7 +17,7 @@ function getNewDotURL(url: string): string {
 
     let params: Record<string, string>;
     try {
-        params = JSON.parse(paramString);
+        params = JSON.parse(paramString) as Record<string, string>;
     } catch {
         params = {};
     }
@@ -36,7 +37,7 @@ function getNewDotURL(url: string): string {
 
     if (pathname === 'policy') {
         const workspaceID = params.policyID || '';
-        const section = urlObj.hash.slice(1) || 'overview';
+        const section = urlObj.hash.slice(1) || 'profile';
 
         return `workspace/${workspaceID}/${section}`;
     }

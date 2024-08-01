@@ -1,7 +1,8 @@
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {WebView, WebViewNavigation} from 'react-native-webview';
-import {ValueOf} from 'type-fest';
+import type {WebViewNavigation} from 'react-native-webview';
+import {WebView} from 'react-native-webview';
+import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
@@ -32,7 +33,7 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
 
             if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
                 webViewRef.current.stopLoading();
-                Report.navigateToConciergeChat();
+                Report.navigateToConciergeChat(true);
             }
 
             if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {

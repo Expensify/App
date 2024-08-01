@@ -1,5 +1,5 @@
-import ELECTRON_EVENTS from '../../../../desktop/ELECTRON_EVENTS';
-import UpdateUnread from './types';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
+import type UpdateUnread from './types';
 
 /**
  * Set the badge on desktop

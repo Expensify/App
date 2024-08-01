@@ -1,11 +1,12 @@
 import render from 'dom-serializer';
-import {DataNode, Element, Node} from 'domhandler';
-import Str from 'expensify-common/lib/str';
+import type {Node} from 'domhandler';
+import {DataNode, Element} from 'domhandler';
+import {Str} from 'expensify-common';
 import {parseDocument} from 'htmlparser2';
 import CONST from '@src/CONST';
-import GetCurrentSelection from './types';
+import type GetCurrentSelection from './types';
 
-const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's'];
+const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user'];
 const tagAttribute = 'data-testid';
 
 /**
@@ -111,6 +112,9 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
     // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
     if (dom.type.toString() === 'text' && dom instanceof DataNode) {
         data = Str.htmlEncode(dom.data);
+        if (dom.parent instanceof Element && dom.parent?.attribs?.id === 'email-with-break-opportunities') {
+            data = data.replaceAll('\u200b', '');
+        }
     } else if (dom instanceof Element) {
         domName = dom.name;
         if (dom.attribs?.[tagAttribute]) {

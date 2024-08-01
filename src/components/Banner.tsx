@@ -1,10 +1,13 @@
 import React, {memo} from 'react';
-import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -15,7 +18,13 @@ import Tooltip from './Tooltip';
 
 type BannerProps = {
     /** Text to display in the banner. */
-    text: string;
+    text?: string;
+
+    /** Content to display in the banner. */
+    content?: React.ReactNode;
+
+    /** The icon asset to display to the left of the text */
+    icon?: IconAsset | null;
 
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
@@ -39,7 +48,19 @@ type BannerProps = {
     textStyles?: StyleProp<TextStyle>;
 };
 
-function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
+function Banner({
+    text,
+    content,
+    icon = Expensicons.Exclamation,
+    onClose,
+    onPress,
+    containerStyles,
+    textStyles,
+    shouldRenderHTML = false,
+    shouldShowIcon = false,
+    shouldShowCloseButton = false,
+}: BannerProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -61,26 +82,29 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                             containerStyles,
                         ]}
                     >
-                        <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
-                            {shouldShowIcon && (
+                        <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
+                            {shouldShowIcon && icon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
-                                        src={Expensicons.Exclamation}
+                                        src={icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
                                     />
                                 </View>
                             )}
-                            {shouldRenderHTML ? (
-                                <RenderHTML html={text} />
-                            ) : (
-                                <Text
-                                    style={textStyles}
-                                    onPress={onPress}
-                                    suppressHighlighting
-                                >
-                                    {text}
-                                </Text>
-                            )}
+                            {content && content}
+
+                            {text &&
+                                (shouldRenderHTML ? (
+                                    <RenderHTML html={text} />
+                                ) : (
+                                    <Text
+                                        style={[styles.flex1, styles.flexWrap, textStyles]}
+                                        onPress={onPress}
+                                        suppressHighlighting
+                                    >
+                                        {text}
+                                    </Text>
+                                ))}
                         </View>
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
@@ -89,7 +113,10 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.close')}
                                 >
-                                    <Icon src={Expensicons.Close} />
+                                    <Icon
+                                        src={Expensicons.Close}
+                                        fill={theme.icon}
+                                    />
                                 </PressableWithFeedback>
                             </Tooltip>
                         )}
@@ -103,3 +130,5 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
 Banner.displayName = 'Banner';
 
 export default memo(Banner);
+
+export type {BannerProps};

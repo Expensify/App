@@ -1,5 +1,5 @@
-import Str from 'expensify-common/lib/str';
-import GenerateDeviceID from './types';
+import {Str} from 'expensify-common';
+import type GenerateDeviceID from './types';
 
 const uniqueID = Str.guid();
 

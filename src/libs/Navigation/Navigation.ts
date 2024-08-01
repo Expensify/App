@@ -1,17 +1,32 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
+import * as ReportConnection from '@libs/ReportConnection';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES, {Route} from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
+import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
+import originalDismissModalWithReport from './dismissModalWithReport';
+import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
+import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StateOrRoute} from './types';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
+import switchPolicyID from './switchPolicyID';
+import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -25,8 +40,8 @@ let shouldPopAllStateOnUP = false;
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
  */
-function setShouldPopAllStateOnUP() {
-    shouldPopAllStateOnUP = true;
+function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
+    shouldPopAllStateOnUP = shouldPopAllStateFlag;
 }
 
 function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
@@ -44,7 +59,21 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 // Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
-const dismissModal = (targetReportId = '', ref = navigationRef) => originalDismissModal(targetReportId, ref);
+const dismissModal = (reportID?: string, ref = navigationRef) => {
+    if (!reportID) {
+        originalDismissModal(ref);
+        return;
+    }
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    originalDismissModalWithReport({reportID, ...report}, ref);
+};
+// Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
+const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
+
+// Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
+// This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
+// Then we can pass the report as a param without getting it from the Onyx.
+const dismissModalWithReport = (report: OnyxEntry<Report>, ref = navigationRef) => originalDismissModalWithReport(report, ref);
 
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
@@ -58,11 +87,27 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
 
-    if ('name' in stateOrRoute && (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR)) {
+    if (
+        'name' in stateOrRoute &&
+        (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR)
+    ) {
         return 0;
     }
 
     return index;
+}
+
+/**
+ * Function that generates dynamic urls from paths passed from OldDot
+ */
+function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
+    switch (url) {
+        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
+        case HYBRID_APP_ROUTES.MONEY_REQUEST_SUBMIT_CREATE:
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+        default:
+            return url;
+    }
 }
 
 /**
@@ -71,7 +116,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
  * @param path - Path that you are looking for.
  * @return - Returns distance to path or -1 if the path is not found in root navigator.
  */
-function getDistanceFromPathInRootNavigator(path: string): number {
+function getDistanceFromPathInRootNavigator(path?: string): number {
     let currentState = navigationRef.getRootState();
 
     for (let index = 0; index < 5; index++) {
@@ -79,7 +124,9 @@ function getDistanceFromPathInRootNavigator(path: string): number {
             break;
         }
 
-        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        // When comparing path and pathFromState, the policyID parameter isn't included in the comparison
+        const currentStateWithoutPolicyID = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
+        const pathFromState = getPathFromState(currentStateWithoutPolicyID, linkingConfig.config);
         if (path === pathFromState.substring(1)) {
             return index;
         }
@@ -116,8 +163,11 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath;
+    let activeRoute = getActiveRoute();
+    activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
+
+    // We remove redundant (consecutive and trailing) slashes from path before matching
+    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
 }
 
 /**
@@ -140,7 +190,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
  * @param shouldEnforceFallback - Enforces navigation to fallback route
  * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -174,28 +224,83 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
         return;
     }
 
-    const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState())?.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
-    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+    const isCentralPaneFocused = isCentralPaneName(findFocusedRoute(navigationRef.current.getState())?.name);
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
 
-    // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
-    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
-        return;
+    if (isCentralPaneFocused && fallbackRoute) {
+        // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
+        if (distanceFromPathInRootNavigator === -1) {
+            navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+            return;
+        }
+
+        // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
+        if (distanceFromPathInRootNavigator > 0) {
+            navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
+            return;
+        }
     }
 
-    // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
-    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
-        navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
-        return;
+    // If the central pane is focused, it's possible that we navigated from other central pane with different matching bottom tab.
+    if (isCentralPaneFocused) {
+        const rootState = navigationRef.getRootState();
+        const stateAfterPop = {routes: rootState.routes.slice(0, -1)} as State<RootStackParamList>;
+        const topmostCentralPaneRouteAfterPop = getTopmostCentralPaneRoute(stateAfterPop);
+
+        const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState as State<RootStackParamList>);
+        const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateAfterPop);
+
+        // If the central pane is defined after the pop action, we need to check if it's synced with the bottom tab screen.
+        // If not, we need to pop to the bottom tab screen/screens to sync it with the new central pane.
+        if (topmostCentralPaneRouteAfterPop && topmostBottomTabRoute?.name !== matchingBottomTabRoute.name) {
+            const bottomTabNavigator = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state;
+
+            if (bottomTabNavigator && bottomTabNavigator.index) {
+                const matchingIndex = bottomTabNavigator.routes.findLastIndex((item) => item.name === matchingBottomTabRoute.name);
+                const indexToPop = matchingIndex !== -1 ? bottomTabNavigator.index - matchingIndex : undefined;
+                navigationRef.current.dispatch({...StackActions.pop(indexToPop), target: bottomTabNavigator?.key});
+            }
+        }
     }
 
     navigationRef.current.goBack();
 }
 
 /**
+ * Close the current screen and navigate to the route.
+ * If the current screen is the first screen in the navigator, we force using the fallback route to replace the current screen.
+ * It's useful in a case where we want to close an RHP and navigate to another RHP to prevent any blink effect.
+ */
+function closeAndNavigate(route: Route) {
+    if (!navigationRef.current) {
+        return;
+    }
+
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+    if (isFirstRouteInNavigator) {
+        goBack(route, true);
+        return;
+    }
+    goBack();
+    navigate(route);
+}
+
+/**
+ * Reset the navigation state to Home page
+ */
+function resetToHome() {
+    const rootState = navigationRef.getRootState();
+    const bottomTabKey = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state?.key;
+    if (bottomTabKey) {
+        navigationRef.dispatch({...StackActions.popToTop(), target: bottomTabKey});
+    }
+    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
+/**
  * Update route params for the specified route.
  */
-function setParams(params: Record<string, unknown>, routeKey: string) {
+function setParams(params: Record<string, unknown>, routeKey = '') {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
@@ -249,13 +354,13 @@ function setIsNavigationReady() {
  *
  * @param state - react-navigation state object
  */
-function navContainsProtectedRoutes(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
+function navContainsProtectedRoutes(state: State | undefined): boolean {
     if (!state?.routeNames || !Array.isArray(state.routeNames)) {
         return false;
     }
 
-    const protectedScreensName = Object.values(PROTECTED_SCREENS);
-    return !protectedScreensName.some((screen) => !state.routeNames?.includes(screen));
+    // If one protected screen is in the routeNames then other screens are there as well.
+    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
 }
 
 /**
@@ -289,14 +394,28 @@ function waitForProtectedRoutes() {
     });
 }
 
+function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
+    if (!canNavigate('navigateWithSwitchPolicyID')) {
+        return;
+    }
+
+    return switchPolicyID(navigationRef.current, params);
+}
+
+function getTopMostCentralPaneRouteFromRootState() {
+    return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
     setParams,
     dismissModal,
+    dismissModalWithReport,
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,
+    closeAndNavigate,
     goBack,
     isNavigationReady,
     setIsNavigationReady,
@@ -304,6 +423,12 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
+    parseHybridAppUrl,
+    navigateWithSwitchPolicyID,
+    resetToHome,
+    closeRHPFlow,
+    setNavigationActionToMicrotaskQueue,
+    getTopMostCentralPaneRouteFromRootState,
 };
 
 export {navigationRef};

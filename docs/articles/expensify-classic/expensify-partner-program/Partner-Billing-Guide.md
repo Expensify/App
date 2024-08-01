@@ -63,7 +63,7 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 - Using client IDs for all Workspaces: It's beneficial to use client IDs for all Workspaces to ensure each one is easily recognizable.
 - Benefits of itemized billing receipts: Employing client IDs offers itemized billing by client, with each itemization detailing unique active users.
 
-# FAQ
+{% include faq-begin.md %}
 
 **Do I automatically get the special billing rate as an ExpensifyApproved! Partner?**
 - Yes, when you join the ExpensifyApproved! program, you will automatically get the special billing rate. To join the ExpensifyApproved! Program, you need to enroll in ExpensifyApproved! University. 
@@ -85,3 +85,5 @@ Using client IDs for Optimized Billing in Expensify: A unique identifier feature
 
 **Where can I see the Billing Receipts?**
 - All billing owners receive an emailed PDF of their monthly billing receipt, but a CSV version can also be downloaded from the platform.
+
+{% include faq-end.md %}

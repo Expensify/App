@@ -1,45 +1,20 @@
-import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Session} from '@src/types/onyx';
-import {usePersonalDetails} from './OnyxProvider';
-
-type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
-
-type OnyxProps = {
-    /** Session of the current user */
-    session: OnyxEntry<Session>;
-};
+import type {PersonalDetails} from '@src/types/onyx';
 
 type HOCProps = {
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: PersonalDetails;
 };
 
-type WithCurrentUserPersonalDetailsProps = OnyxProps & HOCProps;
-
-// TODO: remove when all components that use it will be migrated to TS
-const withCurrentUserPersonalDetailsPropTypes = {
-    currentUserPersonalDetails: personalDetailsPropType,
-};
-
-const withCurrentUserPersonalDetailsDefaultProps: HOCProps = {
-    currentUserPersonalDetails: {},
-};
+type WithCurrentUserPersonalDetailsProps = HOCProps;
 
 export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentType<Omit<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
+): ComponentType<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
-        const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-        const accountID = props.session?.accountID ?? 0;
-        const accountPersonalDetails = personalDetails?.[accountID];
-        const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
-            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}) as CurrentUserPersonalDetails,
-            [accountPersonalDetails, accountID],
-        );
+        const currentUserPersonalDetails = useCurrentUserPersonalDetails();
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -52,14 +27,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
 
-    const withCurrentUserPersonalDetails = React.forwardRef(WithCurrentUserPersonalDetails);
-
-    return withOnyx<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, OnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(withCurrentUserPersonalDetails);
+    return React.forwardRef(WithCurrentUserPersonalDetails);
 }
 
-export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};
 export type {WithCurrentUserPersonalDetailsProps};

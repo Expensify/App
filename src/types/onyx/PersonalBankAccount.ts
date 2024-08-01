@@ -1,8 +1,13 @@
-import * as OnyxCommon from './OnyxCommon';
+import type {Route} from '@src/ROUTES';
+import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of personal bank account */
 type PersonalBankAccount = {
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Whether we should show the view that the bank account was successfully added */
     shouldShowSuccess?: boolean;
@@ -17,7 +22,7 @@ type PersonalBankAccount = {
     exitReportID?: string;
 
     /** If set, continue with the KYC flow after adding a PBA. This specifies the fallback route to use. */
-    onSuccessFallbackRoute?: string;
+    onSuccessFallbackRoute?: Route;
 };
 
 export default PersonalBankAccount;

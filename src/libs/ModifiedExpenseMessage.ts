@@ -1,15 +1,17 @@
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyTags, ReportAction} from '@src/types/onyx';
+import type {PolicyTagList, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
-import {ExpenseOriginalMessage} from './ReportUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportConnection from './ReportConnection';
+import * as TransactionUtils from './TransactionUtils';
 
-let allPolicyTags: Record<string, PolicyTags | null> = {};
+let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -21,6 +23,13 @@ Onyx.connect({
         allPolicyTags = value;
     },
 });
+
+/**
+ * Utility to get message based on boolean literal value.
+ */
+function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
+    return value === 'true' ? truthyMessage : falsyMessage;
+}
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -38,8 +47,10 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
+    const isOldValuePartialMerchant = valueName === Localize.translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    if (!oldValue) {
+    // In case of a partial merchant value, we want to avoid user seeing the "(none)" value in the message.
+    if (!oldValue || isOldValuePartialMerchant) {
         const fragment = Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
     } else if (!newValue) {
@@ -49,6 +60,14 @@ function buildMessageFragmentForValue(
         const fragment = Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
         changeFragments.push(fragment);
     }
+}
+
+/**
+ * Get the absolute value for a tax amount.
+ */
+function getTaxAmountAbsValue(taxAmount: number): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    return Math.abs(taxAmount ?? 0);
 }
 
 /**
@@ -93,14 +112,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportAction: ReportAction): string {
-    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+    if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
+    const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+    const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -114,11 +131,13 @@ function getForReportAction(reportAction: ReportAction): string {
         'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
-    if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency);
 
-        const currency = reportActionOriginalMessage?.currency ?? '';
+    if (hasModifiedAmount) {
+        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
+        const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldAmount = oldAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
+
+        const currency = reportActionOriginalMessage?.currency;
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
@@ -143,13 +162,11 @@ function getForReportAction(reportAction: ReportAction): string {
         );
     }
 
-    const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
-    if (hasModifiedCreated) {
-        // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
-        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.created ?? '',
+            reportActionOriginalMessage.created,
             formattedOldCreated,
             Localize.translateLocal('common.date'),
             false,
@@ -186,15 +203,55 @@ function getForReportAction(reportAction: ReportAction): string {
 
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const transactionTag = reportActionOriginalMessage?.tag ?? '';
+        const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
+        const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
+        const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
+        const localizedTagListName = Localize.translateLocal('common.tag');
+        const sortedTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
+
+        sortedTagKeys.forEach((policyTagKey, index) => {
+            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
+
+            const newTag = splittedTag[index] ?? '';
+            const oldTag = splittedOldTag[index] ?? '';
+
+            if (newTag !== oldTag) {
+                buildMessageFragmentForValue(
+                    PolicyUtils.getCleanedTagName(newTag),
+                    PolicyUtils.getCleanedTagName(oldTag),
+                    policyTagListName,
+                    true,
+                    setFragments,
+                    removalFragments,
+                    changeFragments,
+                    policyTagListName === localizedTagListName,
+                );
+            }
+        });
+    }
+
+    const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+    if (hasModifiedTaxAmount) {
+        const currency = reportActionOriginalMessage?.currency;
+
+        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(oldTaxAmountValue, currency) : '';
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    if (hasModifiedTaxRate) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.tag ?? '',
-            reportActionOriginalMessage?.oldTag ?? '',
-            policyTagListName,
-            true,
+            reportActionOriginalMessage?.taxRate ?? '',
+            reportActionOriginalMessage?.oldTaxRate ?? '',
+            Localize.translateLocal('iou.taxRate'),
+            false,
             setFragments,
             removalFragments,
             changeFragments,
-            policyTagListName === Localize.translateLocal('common.tag'),
         );
     }
 
@@ -203,7 +260,20 @@ function getForReportAction(reportAction: ReportAction): string {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
-            Localize.translateLocal('iou.request'),
+            Localize.translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedReimbursable = reportActionOriginalMessage && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
+    if (hasModifiedReimbursable) {
+        buildMessageFragmentForValue(
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            Localize.translateLocal('iou.expense'),
             true,
             setFragments,
             removalFragments,
@@ -216,7 +286,7 @@ function getForReportAction(reportAction: ReportAction): string {
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
-        return Localize.translateLocal('iou.changedTheRequest');
+        return Localize.translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;
 }

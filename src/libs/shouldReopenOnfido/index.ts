@@ -1,4 +1,4 @@
-import ShouldReopenOnfido from './types';
+import type ShouldReopenOnfido from './types';
 
 const shouldReopenOnfido: ShouldReopenOnfido = false;
 

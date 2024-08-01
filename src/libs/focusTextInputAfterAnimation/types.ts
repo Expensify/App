@@ -1,5 +1,5 @@
-import {TextInput} from 'react-native';
+import type {TextInput} from 'react-native';
 
-type FocusTextInputAfterAnimation = (inputRef: TextInput | HTMLInputElement, animationLength: number) => void;
+type FocusTextInputAfterAnimation = (inputRef: TextInput | HTMLElement | undefined, animationLength: number) => void;
 
 export default FocusTextInputAfterAnimation;

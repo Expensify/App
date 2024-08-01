@@ -1,7 +1,6 @@
 const testFileExtension = '[jt]s?(x)';
 module.exports = {
-    // TODO: change this back to preset: 'react-native' once we are able fix the tests on React Native >= 0.71.2
-    preset: '@testing-library/react-native',
+    preset: 'jest-expo',
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
@@ -9,7 +8,7 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.jsx?$': 'babel-jest',
+        '^.+\\.[jt]sx?$': 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
@@ -23,10 +22,10 @@ module.exports = {
         doNotFake: ['nextTick'],
     },
     testEnvironment: 'jsdom',
-    setupFiles: ['<rootDir>/jest/setup.js', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
-    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest/setupAfterEnv.js', '<rootDir>/tests/perf-test/setupAfterEnv.js'],
+    setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
+    setupFilesAfterEnv: ['<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.ts'],
     cacheDirectory: '<rootDir>/.jest-cache',
     moduleNameMapper: {
-        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.js',
+        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
     },
 };

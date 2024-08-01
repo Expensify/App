@@ -1,10 +1,16 @@
 // Issue - https://github.com/Expensify/App/issues/26719
-import Str from 'expensify-common/lib/str';
-import {AppState, AppStateStatus} from 'react-native';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import {Str} from 'expensify-common';
+import type {AppStateStatus} from 'react-native';
+import {AppState} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
+import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,11 +19,12 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
-import * as OnyxTypes from '@src/types/onyx';
-import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {OnyxKey} from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as Policy from './Policy';
+import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -27,30 +34,37 @@ type PolicyParamsForOpenOrReconnect = {
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-let currentUserAccountID: number | null;
+let currentUserAccountID: number | undefined;
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID ?? null;
+        currentUserAccountID = val?.accountID;
         currentUserEmail = val?.email ?? '';
     },
 });
 
-let isSidebarLoaded: boolean | null;
+let isSidebarLoaded: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | null;
+let preferredLocale: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => {
+        preferredLocale = val;
+        if (preferredLocale) {
+            importEmojiLocale(preferredLocale as Locale).then(() => {
+                buildEmojisTrie(preferredLocale as Locale);
+            });
+        }
+    },
 });
 
-let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | null;
+let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (nextPriorityMode) => {
@@ -60,6 +74,38 @@ Onyx.connect({
             openApp();
         }
         priorityMode = nextPriorityMode;
+    },
+});
+
+const KEYS_TO_PRESERVE: OnyxKey[] = [
+    ONYXKEYS.ACCOUNT,
+    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.MODAL,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.CREDENTIALS,
+];
+
+Onyx.connect({
+    key: ONYXKEYS.RESET_REQUIRED,
+    callback: (isResetRequired) => {
+        if (!isResetRequired) {
+            return;
+        }
+
+        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+            // Set this to false to reset the flag for this client
+            Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            openApp();
+        });
     },
 });
 
@@ -99,20 +145,20 @@ function setLocale(locale: Locale) {
         },
     ];
 
-    type UpdatePreferredLocaleParams = {
-        value: Locale;
-    };
-
     const parameters: UpdatePreferredLocaleParams = {
         value: locale,
     };
 
-    API.write('UpdatePreferredLocale', parameters, {optimisticData});
+    importEmojiLocale(locale).then(() => {
+        buildEmojisTrie(locale);
+    });
+
+    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 function setSidebarLoaded() {
@@ -121,7 +167,6 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
@@ -155,7 +200,7 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
 function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
-    const defaultData: Required<OnyxData> = {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -163,14 +208,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-        ],
-        failureData: [
+        finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -190,16 +228,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
-        successData: [
-            ...defaultData.successData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
-                value: false,
-            },
-        ],
-        failureData: [
-            ...defaultData.failureData,
+        finallyData: [
+            ...defaultData.finallyData,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_APP,
@@ -214,13 +244,9 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
-        type OpenAppParams = PolicyParamsForOpenOrReconnect & {
-            enablePriorityModeFilter: boolean;
-        };
-
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
 
-        API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
+        API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
@@ -231,13 +257,7 @@ function openApp() {
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        type ReconnectParams = {
-            mostRecentReportActionLastModified?: string;
-            updateIDFrom?: number;
-        };
-        type ReconnectAppParams = PolicyParamsForOpenOrReconnect & ReconnectParams;
-
-        const params: ReconnectAppParams = {...policyParams};
+        const params: ReconnectAppParams = policyParams;
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
         // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
@@ -254,7 +274,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
     });
 }
 
@@ -266,8 +286,6 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
 function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        type ReconnectAppParams = PolicyParamsForOpenOrReconnect & {mostRecentReportActionLastModified?: string};
-
         const params: ReconnectAppParams = {...policyParams};
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
@@ -284,7 +302,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
         // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
         // as soon as we have everyone migrated to the reliableUpdate beta.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
     });
 }
 
@@ -293,13 +311,8 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0): Promise<void | OnyxTypes.Response> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
-
-    type GetMissingOnyxMessagesParams = {
-        updateIDFrom: number;
-        updateIDTo: number;
-    };
 
     const parameters: GetMissingOnyxMessagesParams = {
         updateIDFrom,
@@ -310,7 +323,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0): Promise<void |
     // DO NOT FOLLOW THIS PATTERN!!!!!
     // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects('GetMissingOnyxMessages', parameters, getOnyxDataForOpenOrReconnect());
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
 }
 
 /**
@@ -346,7 +359,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
             }
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
@@ -386,7 +399,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  */
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
-    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
+    if (!session || !currentUrl?.includes('exitTo')) {
         return;
     }
 
@@ -409,10 +422,8 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady()
+        Navigation.waitForProtectedRoutes()
             .then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack(ROUTES.HOME);
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
@@ -428,56 +439,8 @@ function redirectThirdPartyDesktopSignIn() {
 
     if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.goBack();
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
-        });
-    }
-}
-
-function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
-    const oldTimezoneData = personalDetails.timezone ?? {};
-    let newTimezoneData = oldTimezoneData;
-
-    if (oldTimezoneData?.automatic ?? true) {
-        newTimezoneData = {
-            automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
-        };
-    }
-
-    type OpenProfileParams = {
-        timezone: string;
-    };
-
-    const parameters: OpenProfileParams = {
-        timezone: JSON.stringify(newTimezoneData),
-    };
-
-    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
-    if (typeof currentUserAccountID === 'number') {
-        API.write('OpenProfile', parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: newTimezoneData,
-                        },
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: oldTimezoneData,
-                        },
-                    },
-                },
-            ],
         });
     }
 }
@@ -498,14 +461,10 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
         return;
     }
 
-    type OpenOldDotLinkParams = {
-        shouldRetry: boolean;
-    };
-
     const parameters: OpenOldDotLinkParams = {shouldRetry: false};
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('OpenOldDotLink', parameters, {}).then((response) => {
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, parameters, {}).then((response) => {
         if (!response) {
             Log.alert(
                 'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
@@ -527,13 +486,13 @@ function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccou
 }
 
 function handleRestrictedEvent(eventName: string) {
-    type HandleRestrictedEventParams = {
-        eventName: string;
-    };
-
     const parameters: HandleRestrictedEventParams = {eventName};
 
-    API.write('HandleRestrictedEvent', parameters);
+    API.write(WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT, parameters);
+}
+
+function updateLastVisitedPath(path: string) {
+    Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
 export {
@@ -541,7 +500,6 @@ export {
     setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    openProfile,
     redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
@@ -553,4 +511,6 @@ export {
     finalReconnectAppAfterActivatingReliableUpdates,
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
+    updateLastVisitedPath,
+    KEYS_TO_PRESERVE,
 };

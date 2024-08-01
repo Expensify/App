@@ -1,4 +1,4 @@
-import ConvertToLTRForComposer from './types';
+import type ConvertToLTRForComposer from './types';
 
 /**
  * Android only - Do not convert RTL text to a LTR text for input box using Unicode controls.

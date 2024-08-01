@@ -1,42 +1,51 @@
 import {
     addDays,
     addHours,
+    addMilliseconds,
     addMinutes,
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
-    getDayOfYear,
+    getDate,
+    getDay,
     isAfter,
     isBefore,
     isSameDay,
+    isSameMonth,
     isSameSecond,
     isSameYear,
+    isThisYear,
     isValid,
     parse,
     set,
     setDefaultOptions,
+    startOfDay,
     startOfWeek,
     subDays,
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
-import {enGB, es} from 'date-fns/locale';
+import enGB from 'date-fns/locale/en-GB';
+import es from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {timezoneBackwardMap} from '@src/TIMEZONES';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
+import Log from './Log';
 
-type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
-type TimePeriod = 'AM' | 'PM';
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
+type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -68,6 +77,32 @@ Onyx.connect({
     },
 });
 
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
+});
+
+function isDate(arg: unknown): arg is Date {
+    return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
+/**
+ * Get the day of the week that the week starts on
+ */
+function getWeekStartsOn(): WeekDay {
+    return CONST.WEEK_STARTS_ON;
+}
+
+/**
+ * Get the day of the week that the week ends on
+ */
+function getWeekEndsOn(): WeekDay {
+    const weekStartsOn = getWeekStartsOn();
+
+    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as WeekDay);
+}
+
 /**
  * Gets the locale string and setting default locale for date-fns
  */
@@ -91,9 +126,26 @@ function setLocale(localeString: Locale) {
 function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
-        return utcToZonedTime(new Date(), currentSelectedTimezone);
+        const res = utcToZonedTime(new Date(), currentSelectedTimezone);
+        if (Number.isNaN(res.getTime())) {
+            Log.warn('DateUtils.getLocalDateFromDatetime: utcToZonedTime returned an invalid date. Returning current date.', {
+                locale,
+                datetime,
+                currentSelectedTimezone,
+            });
+            return new Date();
+        }
+        return res;
     }
-    const parsedDatetime = new Date(`${datetime}Z`);
+    let parsedDatetime;
+    try {
+        // in some cases we cannot add 'Z' to the date string
+        parsedDatetime = new Date(`${datetime}Z`);
+        parsedDatetime.toISOString(); // we need to call toISOString because it throws RangeError in case of an invalid date
+    } catch (e) {
+        parsedDatetime = new Date(datetime);
+    }
+
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
@@ -153,9 +205,10 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
     let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
+    const weekStartsOn = getWeekStartsOn();
 
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
 
     if (isLowercase) {
         todayAt = todayAt.toLowerCase();
@@ -193,7 +246,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  */
 function datetimeToRelative(locale: Locale, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
-    return formatDistanceToNow(date, {addSuffix: true});
+    return formatDistanceToNow(date, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
 }
 
 /**
@@ -218,7 +271,7 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  *
  * @returns Sunday, July 9, 2023
  */
-function formatToLongDateWithWeekday(datetime: string): string {
+function formatToLongDateWithWeekday(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
 }
 
@@ -227,8 +280,8 @@ function formatToLongDateWithWeekday(datetime: string): string {
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: string): string {
-    return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
+function formatToDayOfWeek(datetime: Date): string {
+    return format(datetime, CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
 /**
@@ -281,7 +334,6 @@ function getMonthNames(preferredLocale: Locale): string[] {
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
 
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
 }
 
@@ -292,11 +344,11 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const weekStartsOn = getWeekStartsOn();
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return daysOfWeek.map((date) => format(date, 'eeee'));
 }
 
@@ -321,12 +373,29 @@ function getMicroseconds(): number {
     return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
 
+function getDBTimeFromDate(date: Date): string {
+    return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
 /**
- * Returns the current time in milliseconds in the format expected by the database
+ * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database
+ *
+ * @param [timestamp] the given timestamp (if omitted, defaults to the current time)
  */
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return datetime.toISOString().replace('T', ' ').replace('Z', '');
+    return getDBTimeFromDate(datetime);
+}
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
+    if (networkTimeSkew > 0) {
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return getDBTime(datetime.valueOf() + networkTimeSkew);
+    }
+    return getDBTime(timestamp);
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -336,17 +405,11 @@ function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number
     return getDBTime(newTimestamp);
 }
 
-/**
- * @param isoTimestamp example: 2023-05-16 05:34:14.388
- * @returns example: 2023-05-16
- */
-function getDateStringFromISOTimestamp(isoTimestamp: string): string {
-    if (!isoTimestamp) {
-        return '';
-    }
+function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
+    const date = zonedTimeToUtc(dateTime, 'UTC');
+    const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
-    const [dateString] = isoTimestamp.split(' ');
-    return dateString;
+    return getDBTime(newTimestamp);
 }
 
 /**
@@ -471,8 +534,8 @@ function getStatusUntilDate(inputDate: string): string {
     const now = new Date();
     const endOfToday = endOfDay(now);
 
-    // If the date is equal to the end of today
-    if (isSameDay(input, endOfToday)) {
+    // If the date is adjusted to the following day
+    if (isSameSecond(input, endOfToday)) {
         return translateLocal('statusPage.untilTomorrow');
     }
 
@@ -570,28 +633,6 @@ function get12HourTimeObjectFromDate(dateTime: string): {hour: string; minute: s
 }
 
 /**
- * param {String} timeString
- * returns {String}
- * example getTimePeriod('11:10 PM') // 'PM'
- */
-function getTimePeriod(timeString: string): TimePeriod {
-    const parts = timeString.split(' ');
-    return parts[1] as TimePeriod;
-}
-
-/**
- * param {String} dateTimeStringFirst // YYYY-MM-DD HH:mm:ss
- * param {String} dateTimeStringSecond // YYYY-MM-DD HH:mm:ss
- * returns {Boolean}
- */
-function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: string): boolean {
-    const date1 = parse(dateTimeStringFirst, 'yyyy-MM-dd HH:mm:ss', new Date());
-    const date2 = parse(dateTimeStringSecond, 'yyyy-MM-dd HH:mm:ss', new Date());
-
-    return isSameSecond(date1, date2);
-}
-
-/**
  * Checks if the time input is at least one minute in the future.
  * param {String} timeString: '04:24 AM'
  * param {String} dateTimeString: '2023-11-14 14:24:00'
@@ -600,15 +641,6 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
 const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
     let dateToCheck = dateTimeString;
     if (timeString) {
-        //  return false;
-        // Parse the hour and minute from the time input
-        const [hourStr] = timeString.split(/[:\s]+/);
-        const hour = parseInt(hourStr, 10);
-
-        if (hour === 0) {
-            return false;
-        }
-
         dateToCheck = combineDateAndTime(timeString, dateTimeString);
     }
 
@@ -629,10 +661,9 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     if (!inputDate) {
         return '';
     }
-    const currentYear = getDayOfYear(new Date());
-    const inputYear = getDayOfYear(inputDate);
-    if (inputYear < currentYear) {
-        return 'common.error.invalidDateShouldBeFuture';
+
+    if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
+        return Localize.translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
 };
@@ -646,7 +677,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
-        return 'common.error.invalidTimeShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
 };
@@ -668,7 +699,128 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
     return '';
 }
 
+/**
+ *
+ * @param timezone
+ * function format unsupported timezone to supported timezone
+ * @returns Timezone
+ */
+function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
+    if (!timezoneInput?.selected) {
+        return timezoneInput;
+    }
+    return {
+        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        automatic: timezoneInput.automatic,
+    };
+}
+
+/**
+ * Returns the last business day of given date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
+
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
+    }
+
+    return getDate(currentDate);
+}
+
+/**
+ * Returns a formatted date range from date 1 to date 2.
+ * Dates are formatted as follows:
+ * 1. When both dates refer to the same day: Mar 17
+ * 2. When both dates refer to the same month: Mar 17-20
+ * 3. When both dates refer to the same year: Feb 28 to Mar 1
+ * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
+ */
+function getFormattedDateRange(date1: Date, date2: Date): string {
+    const {translateLocal} = Localize;
+
+    if (isSameDay(date1, date2)) {
+        // Dates are from the same day
+        return format(date1, 'MMM d');
+    }
+    if (isSameMonth(date1, date2)) {
+        // Dates in the same month and year, differ by days
+        return `${format(date1, 'MMM d')}-${format(date2, 'd')}`;
+    }
+    if (isSameYear(date1, date2)) {
+        // Dates are in the same year, differ by months
+        return `${format(date1, 'MMM d')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d')}`;
+    }
+    // Dates differ by years, months, days
+    return `${format(date1, 'MMM d, yyyy')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy')}`;
+}
+
+/**
+ * Returns a formatted date range from date 1 to date 2 of a reservation.
+ * Dates are formatted as follows:
+ * 1. When both dates refer to the same day and the current year: Sunday, Mar 17
+ * 2. When both dates refer to the same day but not the current year: Wednesday, Mar 17, 2023
+ * 3. When both dates refer to the current year: Sunday, Mar 17 to Wednesday, Mar 20
+ * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
+ */
+function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
+    const {translateLocal} = Localize;
+    if (isSameDay(date1, date2) && isThisYear(date1)) {
+        // Dates are from the same day
+        return format(date1, 'EEEE, MMM d');
+    }
+    if (isSameDay(date1, date2)) {
+        // Dates are from the same day but not this year
+        return format(date1, 'EEEE, MMM d, yyyy');
+    }
+    if (isSameYear(date1, date2) && isThisYear(date1)) {
+        // Dates are in the current year, differ by months
+        return `${format(date1, 'EEEE, MMM d')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d')}`;
+    }
+    // Dates differ by years, months, days or only by months but the year is not current
+    return `${format(date1, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d, yyyy')}`;
+}
+
+/**
+ * Returns a formatted date of departure.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current day: Departs on Sunday, Mar 17 at 8:00
+ * 2. When the date refers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
+ */
+function getFormattedTransportDate(date: Date): string {
+    const {translateLocal} = Localize;
+    if (isThisYear(date)) {
+        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+    }
+    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+}
+
+function doesDateBelongToAPastYear(date: string): boolean {
+    const transactionYear = new Date(date).getFullYear();
+    return transactionYear !== new Date().getFullYear();
+}
+
+/**
+ * Returns a boolean value indicating whether the card has expired.
+ * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
+ * @param expiryYear year when card expires
+ */
+
+function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
+}
+
 const DateUtils = {
+    isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
@@ -682,21 +834,17 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
-    getDateStringFromISOTimestamp,
-    getThirtyMinutesFromNow,
+    addMillisecondsFromDateTime,
     getEndOfToday,
-    getOneWeekFromNow,
     getDateFromStatusType,
     getOneHourFromNow,
     extractDate,
-    formatDateTimeTo12Hour,
     getStatusUntilDate,
     extractTime12Hour,
     get12HourTimeObjectFromDate,
-    areDatesIdentical,
-    getTimePeriod,
     getLocalizedTimePeriodDescription,
     combineDateAndTime,
     getDayValidationErrorKey,
@@ -707,7 +855,15 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
+    formatToSupportedTimezone,
+    getLastBusinessDayOfMonth,
+    getFormattedDateRange,
+    getFormattedReservationRangeDate,
+    getFormattedTransportDate,
+    doesDateBelongToAPastYear,
+    isCardExpired,
 };
 
 export default DateUtils;

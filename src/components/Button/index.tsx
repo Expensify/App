@@ -1,38 +1,30 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {ForwardedRef, useCallback} from 'react';
-import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import type {ForwardedRef} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
-import useActiveElement from '@hooks/useActiveElement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
-type ButtonWithText = {
-    /** The text for the button label */
-    text: string;
-
-    /** Boolean whether to display the right icon */
-    shouldShowRightIcon?: boolean;
-
-    /** The icon asset to display to the left of the text */
-    icon?: React.FC<SvgProps> | null;
-};
-
-type ButtonProps = (ButtonWithText | ChildrenProps) & {
+type ButtonProps = Partial<ChildrenProps> & {
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
     allowBubble?: boolean;
 
     /** The icon asset to display to the right of the text */
-    iconRight?: React.FC<SvgProps>;
+    iconRight?: IconAsset;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -97,6 +89,9 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     /** Whether we should use the danger theme color */
     danger?: boolean;
 
+    /** Whether we should display the button as a link */
+    link?: boolean;
+
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
 
@@ -114,7 +109,60 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
 
     /** Accessibility label for the component */
     accessibilityLabel?: string;
+
+    /** The icon asset to display to the left of the text */
+    icon?: IconAsset | null;
+
+    /** The text for the button label */
+    text?: string;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
+
+    /** Whether the button should use split style or not */
+    isSplitButton?: boolean;
+
+    /** Whether button's content should be centered */
+    isContentCentered?: boolean;
 };
+
+type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
+
+const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
+
+function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
+    const isFocused = useIsFocused();
+    const activeElementRole = useActiveElementRole();
+
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
+
+    const keyboardShortcutCallback = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+                return;
+            }
+            onPress();
+        },
+        [isDisabled, isLoading, onPress],
+    );
+
+    const config = useMemo(
+        () => ({
+            isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
+            shouldBubble: allowBubble,
+            priority: enterKeyEventListenerPriority,
+            shouldPreventDefault: false,
+        }),
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [shouldDisableEnterShortcut, isFocused],
+    );
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
+
+    return null;
+}
+
+KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
 
 function Button(
     {
@@ -122,8 +170,10 @@ function Button(
 
         iconRight = Expensicons.ArrowRight,
         iconFill,
+        icon = null,
         iconStyles = [],
         iconRightStyles = [],
+        text = '',
 
         small = false,
         large = false,
@@ -153,43 +203,26 @@ function Button(
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
         isLongPressDisabled = false,
+        shouldShowRightIcon = false,
 
         id = '',
         accessibilityLabel = '',
+        isSplitButton = false,
+        link = false,
+        isContentCentered = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
-    const activeElement = useActiveElement();
-    const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
-    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElement?.role ?? '') && activeElement?.role !== CONST.ACCESSIBILITY_ROLE.TEXT;
-
-    const keyboardShortcutCallback = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
-                return;
-            }
-            onPress();
-        },
-        [isDisabled, isFocused, isLoading, onPress],
-    );
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
-        isActive: pressOnEnter && !shouldDisableEnterShortcut,
-        shouldBubble: allowBubble,
-        priority: enterKeyEventListenerPriority,
-        shouldPreventDefault: false,
-    });
+    const StyleUtils = useStyleUtils();
+    const [isHovered, setIsHovered] = useState(false);
 
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
         }
-
-        const {text = '', icon = null, shouldShowRightIcon = false} = rest;
 
         const textComponent = (
             <Text
@@ -203,8 +236,12 @@ function Button(
                     large && styles.buttonLargeText,
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
-                    icon && styles.textAlignLeft,
+                    !!icon && styles.textAlignLeft,
                     textStyles,
+                    link && styles.link,
+                    link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
+                    link && styles.fontWeightNormal,
+                    link && styles.fontSizeLabel,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
@@ -215,26 +252,40 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {icon && (
-                            <View style={[styles.mr1, iconStyles]}>
+                            <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill ?? theme.textLight}
+                                    hasText={!!text}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             </View>
                         )}
                         {textComponent}
                     </View>
                     {shouldShowRightIcon && (
-                        <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
-                            <Icon
-                                src={iconRight}
-                                fill={iconFill ?? theme.textLight}
-                                small={small}
-                            />
+                        <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
+                            {!isSplitButton ? (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={medium}
+                                    medium={large}
+                                />
+                            ) : (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
+                                />
+                            )}
                         </View>
                     )}
                 </View>
@@ -245,75 +296,90 @@ function Button(
     };
 
     return (
-        <PressableWithFeedback
-            ref={ref}
-            onPress={(event) => {
-                if (event?.type === 'click') {
-                    const currentTarget = event?.currentTarget as HTMLElement;
-                    currentTarget?.blur();
-                }
-
-                if (shouldEnableHapticFeedback) {
-                    HapticFeedback.press();
-                }
-                return onPress(event);
-            }}
-            onLongPress={(event) => {
-                if (isLongPressDisabled) {
-                    return;
-                }
-                if (shouldEnableHapticFeedback) {
-                    HapticFeedback.longPress();
-                }
-                onLongPress(event);
-            }}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            onMouseDown={onMouseDown}
-            disabled={isLoading || isDisabled}
-            wrapperStyle={[
-                isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                styles.buttonContainer,
-                shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                style,
-            ]}
-            style={[
-                styles.button,
-                small ? styles.buttonSmall : undefined,
-                medium ? styles.buttonMedium : undefined,
-                large ? styles.buttonLarge : undefined,
-                success ? styles.buttonSuccess : undefined,
-                danger ? styles.buttonDanger : undefined,
-                isDisabled && (success || danger) ? styles.buttonOpacityDisabled : undefined,
-                isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
-                shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                'text' in rest && (rest?.icon || rest?.shouldShowRightIcon) ? styles.alignItemsStretch : undefined,
-                innerStyles,
-            ]}
-            hoverStyle={[
-                shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
-                success && !isDisabled ? styles.buttonSuccessHovered : undefined,
-                danger && !isDisabled ? styles.buttonDangerHovered : undefined,
-            ]}
-            id={id}
-            accessibilityLabel={accessibilityLabel}
-            role={CONST.ROLE.BUTTON}
-            hoverDimmingValue={1}
-        >
-            {renderContent()}
-            {isLoading && (
-                <ActivityIndicator
-                    color={success || danger ? theme.textLight : theme.text}
-                    style={[styles.pAbsolute, styles.l0, styles.r0]}
+        <>
+            {pressOnEnter && (
+                <KeyboardShortcutComponent
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    allowBubble={allowBubble}
+                    onPress={onPress}
+                    pressOnEnter={pressOnEnter}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
-        </PressableWithFeedback>
+            <PressableWithFeedback
+                ref={ref}
+                onPress={(event) => {
+                    if (event?.type === 'click') {
+                        const currentTarget = event?.currentTarget as HTMLElement;
+                        currentTarget?.blur();
+                    }
+
+                    if (shouldEnableHapticFeedback) {
+                        HapticFeedback.press();
+                    }
+                    return onPress(event);
+                }}
+                onLongPress={(event) => {
+                    if (isLongPressDisabled) {
+                        return;
+                    }
+                    if (shouldEnableHapticFeedback) {
+                        HapticFeedback.longPress();
+                    }
+                    onLongPress(event);
+                }}
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                onMouseDown={onMouseDown}
+                disabled={isLoading || isDisabled}
+                wrapperStyle={[
+                    isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                    styles.buttonContainer,
+                    shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    style,
+                ]}
+                style={[
+                    styles.button,
+                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+                    success ? styles.buttonSuccess : undefined,
+                    danger ? styles.buttonDanger : undefined,
+                    isDisabled ? styles.buttonOpacityDisabled : undefined,
+                    isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
+                    shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
+                    innerStyles,
+                    link && styles.bgTransparent,
+                ]}
+                hoverStyle={[
+                    shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
+                    success && !isDisabled ? styles.buttonSuccessHovered : undefined,
+                    danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                ]}
+                id={id}
+                accessibilityLabel={accessibilityLabel}
+                role={CONST.ROLE.BUTTON}
+                hoverDimmingValue={1}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
+            >
+                {renderContent()}
+                {isLoading && (
+                    <ActivityIndicator
+                        color={success || danger ? theme.textLight : theme.text}
+                        style={[styles.pAbsolute, styles.l0, styles.r0]}
+                    />
+                )}
+            </PressableWithFeedback>
+        </>
     );
 }
 
 Button.displayName = 'Button';
 
 export default withNavigationFallback(React.forwardRef(Button));
+
+export type {ButtonProps};

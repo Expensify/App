@@ -1,14 +1,18 @@
-import Report from './Report';
+import type Report from './Report';
 
+/** Model of task data */
 type Task = {
     /** Title of the Task */
-    title: string;
+    title?: string;
 
     /** Description of the Task */
     description?: string;
 
-    // TODO: Make sure this field exists in the API
-    /** Share destination of the Task */
+    /**
+     * Report ID of the report where the task will be shared
+     *
+     * (Note: This variable doesn't exist in the API. It's only used locally for UI purposes)
+     */
     shareDestination?: string;
 
     /** The task report if it's currently being edited */
@@ -22,6 +26,12 @@ type Task = {
 
     /** Report id only when a task was created from a report */
     parentReportID?: string;
+
+    /** Chat report with assignee of task */
+    assigneeChatReport?: Report;
+
+    /** If set, skip confirmation when creating the task */
+    skipConfirmation?: boolean;
 };
 
 export default Task;

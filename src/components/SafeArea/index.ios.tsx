@@ -1,7 +1,7 @@
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import useThemeStyles from '@hooks/useThemeStyles';
-import SafeAreaProps from './types';
+import type SafeAreaProps from './types';
 
 function SafeArea({children}: SafeAreaProps) {
     const styles = useThemeStyles();

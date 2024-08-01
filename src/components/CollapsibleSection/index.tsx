@@ -1,20 +1,35 @@
 import React, {useState} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Collapsible from './Collapsible';
 
 type CollapsibleSectionProps = ChildrenProps & {
     /** Title of the Collapsible section */
     title: string;
+
+    /** Style of title of the collapsible section */
+    titleStyle?: StyleProp<TextStyle>;
+
+    /** Style for the text */
+    textStyle?: StyleProp<TextStyle>;
+
+    /** Style for the wrapper view */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether or not to show border between section title and expandable items */
+    shouldShowSectionBorder?: boolean;
 };
 
-function CollapsibleSection({title, children}: CollapsibleSectionProps) {
+function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyle, shouldShowSectionBorder}: CollapsibleSectionProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -28,7 +43,7 @@ function CollapsibleSection({title, children}: CollapsibleSectionProps) {
     const src = isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
     return (
-        <View style={styles.mt4}>
+        <View style={[styles.mt4, wrapperStyle]}>
             <PressableWithFeedback
                 onPress={toggleSection}
                 style={[styles.pb4, styles.flexRow]}
@@ -38,14 +53,17 @@ function CollapsibleSection({title, children}: CollapsibleSectionProps) {
                 pressDimmingValue={0.2}
             >
                 <Text
-                    style={[styles.flex1, styles.textStrong, styles.userSelectNone]}
+                    style={textStyle ?? [styles.flex1, styles.textStrong, styles.userSelectNone, titleStyle]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     {title}
                 </Text>
-                <Icon src={src} />
+                <Icon
+                    fill={theme.icon}
+                    src={src}
+                />
             </PressableWithFeedback>
-            <View style={styles.collapsibleSectionBorder} />
+            {shouldShowSectionBorder && <View style={styles.collapsibleSectionBorder} />}
             <Collapsible isOpened={isExpanded}>
                 <View>{children}</View>
             </Collapsible>

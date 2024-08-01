@@ -1,9 +1,9 @@
-import {NavigationState, PartialState} from '@react-navigation/native';
-import NAVIGATORS from '@src/NAVIGATORS';
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from './types';
+import type {RootStackParamList} from './types';
 
-// This function is in a separate file than Navigation.js to avoid cyclic dependency.
+// This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 /**
  * Find the last visited report screen in the navigation state and get the linked reportActionID of it.
@@ -16,12 +16,12 @@ function getTopmostReportActionID(state: NavigationState | NavigationState<RootS
         return;
     }
 
-    const topmostCentralPane = state.routes.filter((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR).at(-1);
+    const topmostCentralPane = state.routes.filter((route) => isCentralPaneName(route.name)).at(-1);
     if (!topmostCentralPane) {
         return;
     }
 
-    const directReportParams = topmostCentralPane.params && 'params' in topmostCentralPane.params && topmostCentralPane?.params?.params;
+    const directReportParams = topmostCentralPane.params;
     const directReportActionIDParam = directReportParams && 'reportActionID' in directReportParams && directReportParams?.reportActionID;
 
     if (!topmostCentralPane.state && !directReportActionIDParam) {

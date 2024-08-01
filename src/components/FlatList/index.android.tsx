@@ -1,6 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {ForwardedRef, forwardRef, useCallback, useContext} from 'react';
-import {FlatList, FlatListProps} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useContext} from 'react';
+import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {FlatList} from 'react-native';
 import {ActionListContext} from '@pages/home/ReportScreenContext';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
@@ -20,6 +22,9 @@ function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>)
         }
     }, [scrollPosition?.offset, ref]);
 
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    const onMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => setScrollPosition({offset: event.nativeEvent.contentOffset.y}), []);
+
     useFocusEffect(
         useCallback(() => {
             onScreenFocus();
@@ -30,10 +35,8 @@ function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>)
         <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onScroll={(event) => props.onScroll?.(event)}
-            onMomentumScrollEnd={(event) => {
-                setScrollPosition({offset: event.nativeEvent.contentOffset.y});
-            }}
+            onScroll={props.onScroll}
+            onMomentumScrollEnd={onMomentumScrollEnd}
             ref={ref}
         />
     );

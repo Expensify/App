@@ -1,4 +1,4 @@
-import IsSelectorSupported from './types';
+import type IsSelectorSupported from './types';
 
 /**
  * Check platform supports the selector or not

@@ -37,6 +37,11 @@ local.properties
 android/app/src/main/java/com/expensify/chat/generated/
 .cxx/
 
+# VIM
+*.swp
+*.swo
+*~
+
 # Vscode
 .vscode
 
@@ -113,5 +118,18 @@ tsconfig.tsbuildinfo
 .yalc
 yalc.lock
 
+# Expo
+.expo
+dist/
+web-build/
+
 # Local https certificate/key
 config/webpack/*.pem
+
+# Expo
+.expo
+dist/
+web-build/
+
+# Storage location for downloaded app source maps (see scripts/symbolicate-profile.ts)
+.sourcemaps/
