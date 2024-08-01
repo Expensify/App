@@ -198,6 +198,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const policyID = policy?.id ?? '-1';
+    // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
         connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
