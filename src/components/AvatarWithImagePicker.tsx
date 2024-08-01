@@ -307,14 +307,14 @@ function AvatarWithImagePicker({
 
     const onPressAvatar = useCallback(
         (openPicker: OpenPicker) => {
+            if (disabled && enablePreview && onViewPhotoPress) {
+                onViewPhotoPress();
+                return;
+            }
             if (isUsingDefaultAvatar) {
                 openPicker({
                     onPicked: showAvatarCropModal,
                 });
-                return;
-            }
-            if (disabled && enablePreview && onViewPhotoPress) {
-                onViewPhotoPress();
                 return;
             }
             setIsMenuVisible((prev) => !prev);

@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroBankAccountsWithDefaultSelect, xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroBankAccountsWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -80,7 +80,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
             title="workspace.xero.advancedConfig.xeroBillPaymentAccount"
             listEmptyContent={listEmptyContent}
-            pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
+            pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}

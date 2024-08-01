@@ -1,6 +1,9 @@
 name: 'Get Release Body'
 description: 'Generate the body of a production release'
 inputs:
+  GITHUB_TOKEN:
+    description: Auth token for New Expensify Github
+    required: true
   PR_LIST:
     description: JSON array of pull request numbers (string)
     required: true
