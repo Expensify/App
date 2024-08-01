@@ -309,7 +309,7 @@ function ReportPreview({
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
-    const isFutureTravelExpense = ReportUtils.isFutureTravelExpenseReport(iouReportID);
+    const isFutureTravelExpense = ReportUtils.isPayAtEndExpenseReport(iouReportID);
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isFutureTravelExpense) {

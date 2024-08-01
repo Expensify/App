@@ -746,7 +746,10 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
     return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
 }
 
-function isFutureTravelExpense(transaction: Transaction | undefined | null): boolean {
+/**
+ * Whether an expense is going to be paid later, either at checkout for hotels or drop off for car rental
+ */
+function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList?.some((reservation) => reservation.paymentType === 'PAY_AT_HOTEL' || reservation.paymentType === 'PAY_AT_VENDOR');
 }
 
@@ -1058,7 +1061,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
-    isFutureTravelExpense,
+    isPayAtEndExpense,
 };
 
 export type {TransactionChanges};

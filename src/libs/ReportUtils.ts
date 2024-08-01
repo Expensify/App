@@ -1531,12 +1531,12 @@ function isOneTransactionReport(reportID: string): boolean {
     return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
 }
 
-function isFutureTravelExpenseReport(reportID: string): boolean {
+function isPayAtEndExpenseReport(reportID: string): boolean {
     if (!isOneTransactionReport(reportID)) {
         return false;
     }
 
-    return TransactionUtils.isFutureTravelExpense(TransactionUtils.getAllReportTransactions(reportID)[0]);
+    return TransactionUtils.isPayAtEndExpense(TransactionUtils.getAllReportTransactions(reportID)[0]);
 }
 
 /**
@@ -7691,7 +7691,7 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
-    isFutureTravelExpenseReport,
+    isPayAtEndExpenseReport,
 };
 
 export type {
