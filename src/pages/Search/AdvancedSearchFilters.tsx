@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {CardList} from '@src/types/onyx';
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
@@ -52,6 +53,16 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
 
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
+    return filterValue
+        ? Object.values(cards)
+              .filter((card) => filterValue.includes(card.cardID?.toString()))
+              .map((card) => card.bank)
+              .join(', ')
+        : undefined;
+}
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -59,6 +70,7 @@ function AdvancedSearchFilters() {
     const waitForNavigate = useWaitForNavigation();
 
     const [searchAdvancedFilters = {}] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const advancedFilters = useMemo(
         () => [
@@ -83,12 +95,12 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, translate),
+                title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
                 description: 'common.card' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
             },
         ],
-        [searchAdvancedFilters, translate],
+        [searchAdvancedFilters, translate, cardList],
     );
 
     const onFormSubmit = () => {

@@ -409,12 +409,12 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
             }
 
-            if (filterKey === INPUT_IDS.CATEGORY && filterValues[filterKey]) {
+            if (filterKey === INPUT_IDS.CATEGORY && Array.isArray(filterValue) && filterValue.length > 0) {
                 const categories = filterValues[filterKey] ?? [];
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
             }
 
-            if (filterKey === INPUT_IDS.CARD_ID && filterValues[filterKey]) {
+            if (filterKey === INPUT_IDS.CARD_ID && Array.isArray(filterValue) && filterValue.length > 0) {
                 const cardIDs = filterValues[filterKey] ?? [];
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${cardIDs.join(',')}`;
             }
