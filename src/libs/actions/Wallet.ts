@@ -259,7 +259,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
 
 function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails) {
     const {legalFirstName = '', legalLastName = '', phoneNumber = ''} = privatePersonalDetails;
-    const {city = '', country = '', state = '', street = '', zip = ''} = PersonalDetailsUtils.getAddress(privatePersonalDetails) ?? {};
+    const {city = '', country = '', state = '', street = '', zip = ''} = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails) ?? {};
 
     const requestParams: RequestPhysicalExpensifyCardParams = {
         authToken,

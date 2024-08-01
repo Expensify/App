@@ -184,6 +184,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
                             state,
                             zip,
                             country,
+                            current: true,
                         },
                     ],
                 },

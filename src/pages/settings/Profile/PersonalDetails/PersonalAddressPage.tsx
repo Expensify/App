@@ -38,7 +38,7 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
 
 function PersonalAddressPage({privatePersonalDetails, isLoadingApp = true}: PersonalAddressPageProps) {
     const {translate} = useLocalize();
-    const address = useMemo(() => PersonalDetailsUtils.getAddress(privatePersonalDetails), [privatePersonalDetails]);
+    const address = useMemo(() => PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
 
     return (
         <AddressPage

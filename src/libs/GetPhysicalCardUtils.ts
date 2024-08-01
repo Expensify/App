@@ -10,7 +10,7 @@ import * as UserUtils from './UserUtils';
 
 function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
-    const address = PersonalDetailsUtils.getAddress(privatePersonalDetails);
+    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
@@ -57,7 +57,7 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  */
 function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
-    const address = PersonalDetailsUtils.getAddress(privatePersonalDetails);
+    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
 
     return {
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */

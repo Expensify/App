@@ -40,6 +40,9 @@ type Address = {
 
     /** Google place description */
     address?: string;
+
+    /** Is the current address */
+    current?: boolean;
 };
 
 /** Model of user private personal details */
