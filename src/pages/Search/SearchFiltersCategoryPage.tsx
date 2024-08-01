@@ -17,19 +17,15 @@ import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
+import MultipleSelectionPicker from './MultipleSelectionPIcker';
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [noResultsFound, setNoResultsFound] = useState(false);
-
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentCategories = searchAdvancedFiltersForm?.category;
-    const [newCategories, setNewCategories] = useState<string[]>(currentCategories ?? []);
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-
     const [allPolicyIDCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
@@ -46,80 +42,8 @@ function SearchFiltersCategoryPage() {
         return [...new Set(categories)];
     }, [allPolicyIDCategories, singlePolicyCategories]);
 
-    const sections = useMemo(() => {
-        const newSections: CategorySection[] = [];
-        const chosenCategories = newCategories
-            .filter((category) => category.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
-            .sort((a, b) => localeCompare(a, b))
-            .map((name) => ({
-                text: name,
-                keyForList: name,
-                isSelected: newCategories?.includes(name) ?? false,
-            }));
-        const remainingCategories = categoryNames
-            .filter((category) => newCategories.includes(category) === false)
-            .filter((category) => category.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
-            .sort((a, b) => localeCompare(a, b))
-            .map((name) => ({
-                text: name,
-                keyForList: name,
-                isSelected: newCategories?.includes(name) ?? false,
-            }));
-        if (chosenCategories.length === 0 && remainingCategories.length === 0) {
-            setNoResultsFound(true);
-        } else {
-            setNoResultsFound(false);
-        }
-        newSections.push({
-            title: undefined,
-            data: chosenCategories,
-            shouldShow: chosenCategories.length > 0,
-        });
-        newSections.push({
-            title: translate('common.category'),
-            data: remainingCategories,
-            shouldShow: remainingCategories.length > 0,
-        });
-        return newSections;
-    }, [categoryNames, newCategories, translate, debouncedSearchTerm]);
+    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
 
-    const updateCategory = useCallback((values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
-        SearchActions.updateAdvancedFilters(values);
-    }, []);
-
-    const handleConfirmSelection = useCallback(() => {
-        updateCategory({
-            category: newCategories.sort((a, b) => localeCompare(a, b)),
-        });
-        Navigation.goBack();
-    }, [newCategories, updateCategory]);
-
-    const updateNewCategories = useCallback(
-        (item: Partial<OptionData>) => {
-            if (!item.text) {
-                return;
-            }
-            if (item.isSelected) {
-                setNewCategories(newCategories?.filter((category) => category !== item.text));
-            } else {
-                setNewCategories([...(newCategories ?? []), item.text]);
-            }
-        },
-        [newCategories],
-    );
-
-    const footerContent = useMemo(
-        () => (
-            <Button
-                success
-                text={translate('common.save')}
-                pressOnEnter
-                onPress={handleConfirmSelection}
-                large
-            />
-        ),
-        [translate, handleConfirmSelection],
-    );
     return (
         <ScreenWrapper
             testID={SearchFiltersCategoryPage.displayName}
@@ -129,19 +53,11 @@ function SearchFiltersCategoryPage() {
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton title={translate('common.category')} />
                 <View style={[styles.flex1]}>
-                    <SelectionList
-                        sections={sections}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        textInputLabel={translate('common.search')}
-                        onSelectRow={updateNewCategories}
-                        headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
-                        footerContent={footerContent}
-                        shouldStopPropagation
-                        showLoadingPlaceholder={!noResultsFound}
-                        shouldShowTooltips
-                        canSelectMultiple
-                        ListItem={SelectableListItem}
+                    <MultipleSelectionPicker
+                        pickerTitle={translate('common.category')}
+                        items={categoryNames}
+                        initiallySelectedItems={currentCategories}
+                        onSaveSelection={onSaveSelection}
                     />
                 </View>
             </FullPageNotFoundView>
