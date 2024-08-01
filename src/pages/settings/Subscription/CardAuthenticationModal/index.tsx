@@ -22,9 +22,10 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [isLoading, setIsLoading] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
     const onModalClose = () => {
-        PaymentMethods.clearPaymentCard3dsVerification();
+        setIsVisible(false);
     };
 
     useEffect(() => {
@@ -34,6 +35,13 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
         PaymentMethods.clearPaymentCard3dsVerification();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     }, [privateStripeCustomerID]);
+
+    useEffect(() => {
+        if (!authenticationLink) {
+            return;
+        }
+        setIsVisible(!!authenticationLink);
+    }, [authenticationLink]);
 
     const handleGBPAuthentication = useCallback(
         (event: MessageEvent<string>) => {
@@ -56,7 +64,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            isVisible={!!authenticationLink}
+            isVisible={isVisible}
             onClose={onModalClose}
             onModalHide={onModalClose}
         >
