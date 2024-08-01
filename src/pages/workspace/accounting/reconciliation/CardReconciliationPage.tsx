@@ -28,10 +28,15 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policy?.id}`);
     const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policy?.id}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.id}`);
+
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? -1;
+    const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const policyID = policy?.id ?? '-1';
     const {connection} = route.params;
-    const autoSync = !!policy?.connections?.[connection]?.config?.autoSync.enabled;
+    const autoSync = !!policy?.connections?.[connection]?.config?.autoSync?.enabled;
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const toggleContinuousReconciliation = () => {
@@ -99,7 +104,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     {!!reconciliationConnection && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
-                            title={reconciliationConnection?.title}
+                            title={bankAccountTitle}
                             description={translate('workspace.accounting.reconciliationAccount')}
                             shouldShowRightIcon
                         />

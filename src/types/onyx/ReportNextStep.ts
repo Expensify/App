@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 /** Model of report next step message */
 type Message = {
     /** Message content */
@@ -52,8 +55,8 @@ type ReportNextStep = {
     /** The message parts of the next step */
     message?: Message[];
 
-    /** The title for the next step */
-    title?: string;
+    /** The icon for the next step */
+    icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
     /** Whether the user should take some sort of action in order to unblock the report */
     requiresUserAction?: boolean;

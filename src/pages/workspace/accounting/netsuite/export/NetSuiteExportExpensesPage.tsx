@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -34,12 +35,12 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
-    const defaultVendor = useMemo(() => (vendors ?? []).find((vendor) => vendor.id === config?.defaultVendor), [vendors, config?.defaultVendor]);
+    const defaultVendor = useMemo(() => findSelectedVendorWithDefaultSelect(vendors, config?.defaultVendor), [vendors, config?.defaultVendor]);
 
-    const selectedPayableAccount = useMemo(() => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.payableAcct), [payableList, config?.payableAcct]);
+    const selectedPayableAccount = useMemo(() => findSelectedBankAccountWithDefaultSelect(payableList, config?.payableAcct), [payableList, config?.payableAcct]);
 
     const selectedReimbursablePayableAccount = useMemo(
-        () => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount),
+        () => findSelectedBankAccountWithDefaultSelect(payableList, config?.reimbursablePayableAccount),
         [payableList, config?.reimbursablePayableAccount],
     );
 
@@ -89,7 +90,9 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.journalPostingPreference.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID, params.expenseType)),
             brickRoadIndicator: config?.errorFields?.journalPostingPreference ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.journalPostingPreference ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`) : undefined,
+            title: config?.journalPostingPreference
+                ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
+                : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
             pendingAction: config?.pendingFields?.journalPostingPreference,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
@@ -101,8 +104,8 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={NetSuiteExportExpensesPage.displayName}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
-            headerTitle={`workspace.netsuite.${isReimbursable ? 'exportReimbursable' : 'exportNonReimbursable'}`}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            headerTitle={`workspace.accounting.${isReimbursable ? 'exportOutOfPocket' : 'exportCompanyCard'}`}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
