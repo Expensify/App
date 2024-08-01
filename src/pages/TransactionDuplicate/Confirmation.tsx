@@ -70,12 +70,14 @@ function Confirmation() {
         return unsubscribeBeforeRemove;
     }, [navigation]);
 
+    const doesTransactionBelongToReport = TransactionUtils.getTransactionID(report?.reportID ?? '') === transaction.transactionID;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
         !ReportUtils.isValidReport(report) ||
         ReportUtils.isReportNotFound(report) ||
-        (!isExitingPage && reviewDuplicatesResult.status === 'loaded' && !transaction?.transactionID);
+        (!isExitingPage && reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult)) {
         return <FullScreenLoadingIndicator />;
