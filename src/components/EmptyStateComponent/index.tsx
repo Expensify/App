@@ -25,6 +25,7 @@ function EmptyStateComponent({
     headerStyles,
     headerContentStyles,
     emptyStateForegroundStyles,
+    minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -79,7 +80,7 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <ScrollView contentContainerStyle={styles.emptyStateScrollView}>
+        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}]}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled

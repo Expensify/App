@@ -5110,7 +5110,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateScrollView: {
-            minHeight: 400,
             height: '100%',
             flex: 1,
         },
