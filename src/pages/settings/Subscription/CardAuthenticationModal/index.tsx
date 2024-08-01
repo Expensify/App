@@ -23,6 +23,10 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [isLoading, setIsLoading] = useState(true);
 
+    const onModalClose = () => {
+        PaymentMethods.clearPaymentCard3dsVerification();
+    };
+
     useEffect(() => {
         if (privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.SUCCEEDED) {
             return;
@@ -36,6 +40,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
             const message = event.data;
             if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
                 PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                onModalClose();
             }
         },
         [session?.accountID],
@@ -47,10 +52,6 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
             window.removeEventListener('message', handleGBPAuthentication);
         };
     }, [handleGBPAuthentication]);
-
-    const onModalClose = () => {
-        PaymentMethods.clearPaymentCard3dsVerification();
-    };
 
     return (
         <Modal

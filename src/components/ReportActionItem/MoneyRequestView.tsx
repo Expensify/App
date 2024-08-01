@@ -49,9 +49,6 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewTransactionOnyxProps = {
-    /** The transaction associated with the transactionThread */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Violations detected in this transaction */
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
@@ -109,7 +106,6 @@ function MoneyRequestView({
     parentReport,
     parentReportActions,
     policyCategories,
-    transaction,
     policyTagList,
     policy,
     transactionViolations,
@@ -132,6 +128,12 @@ function MoneyRequestView({
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
+    const linkedTransactionID = useMemo(() => {
+        const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
+        return originalMessage?.IOUTransactionID ?? '-1';
+    }, [parentReportAction]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`);
+
     const {
         created: transactionDate,
         amount: transactionAmount,
@@ -169,7 +171,7 @@ function MoneyRequestView({
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
-    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction, transaction);
     const canEditTaxFields = canEdit && !isDistanceRequest;
 
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -214,7 +216,7 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
-    const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '-1';
+    const rateID = transaction?.comment?.customUnit?.customUnitRateID ?? '-1';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -430,18 +432,18 @@ function MoneyRequestView({
                         errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
-                            if (!transaction?.transactionID) {
+                            if (!transaction?.transactionID && linkedTransactionID === '-1') {
                                 return;
                             }
 
                             const isCreateChatErrored = !!report?.errorFields?.createChat;
                             if ((isCreateChatErrored || !!report?.isOptimisticReport) && parentReportAction) {
-                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction.transactionID, parentReportAction, true);
+                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                 Navigation.goBack(urlToNavigateBack);
                                 return;
                             }
 
-                            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                            if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                                 if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
                                     Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                                     return;
@@ -450,7 +452,7 @@ function MoneyRequestView({
                                     deleteTransaction(parentReport, parentReportAction);
                                 }
                             }
-                            Transaction.clearError(transaction.transactionID);
+                            Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
                             ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
                         }}
                     >
@@ -675,15 +677,6 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
-                const originalMessage =
-                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? -1;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            },
-        },
         transactionViolations: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
