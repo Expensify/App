@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -26,17 +27,25 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const iconSrc = feature.icon in Illustrations ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
+    const isIllustration = feature.icon in Illustrations;
+    const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
 
     return (
         <View style={styles.p5}>
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    <Icon
-                        src={iconSrc}
-                        width={48}
-                        height={48}
-                    />
+                    {!isIllustration ? (
+                        <Avatar
+                            source={iconSrc}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    ) : (
+                        <Icon
+                            src={iconSrc}
+                            width={48}
+                            height={48}
+                        />
+                    )}
                     <Badge
                         icon={Expensicon.Unlock}
                         text={translate('workspace.upgrade.upgradeToUnlock')}
