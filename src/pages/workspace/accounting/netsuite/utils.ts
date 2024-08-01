@@ -1,5 +1,6 @@
+import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import type {NetSuiteConnectionConfig} from '@src/types/onyx/Policy';
+import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
 function shouldHideReimbursedReportsSection(config?: NetSuiteConnectionConfig) {
     return config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY;
@@ -47,6 +48,25 @@ function shouldHideJournalPostingPreference(isReimbursable: boolean, config?: Ne
     return config?.[exportExpensesDestinationSettingName(isReimbursable)] !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY;
 }
 
+function shouldShowInvoiceItemMenuItem(config?: NetSuiteConnectionConfig) {
+    return config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT;
+}
+
+function shouldHideProvincialTaxPostingAccountSelect(selectedSubsidiary?: NetSuiteSubsidiary, config?: NetSuiteConnectionConfig) {
+    return !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country);
+}
+
+function shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax?: boolean, selectedSubsidiary?: NetSuiteSubsidiary, config?: NetSuiteConnectionConfig) {
+    return !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country);
+}
+
+function shouldHideExportForeignCurrencyAmount(config?: NetSuiteConnectionConfig) {
+    return (
+        config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT &&
+        config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT
+    );
+}
+
 export {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
@@ -58,4 +78,8 @@ export {
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideReimbursableJournalPostingAccount,
     shouldHideJournalPostingPreference,
+    shouldShowInvoiceItemMenuItem,
+    shouldHideProvincialTaxPostingAccountSelect,
+    shouldHideTaxPostingAccountSelect,
+    shouldHideExportForeignCurrencyAmount,
 };

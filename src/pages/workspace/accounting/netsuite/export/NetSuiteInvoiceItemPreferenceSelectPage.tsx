@@ -12,8 +12,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {findSelectedInvoiceItemWithDefaultSelect} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, findSelectedInvoiceItemWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import {shouldShowInvoiceItemMenuItem} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -69,7 +70,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
-                pendingAction={config?.pendingFields?.[CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE]}
+                pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE], config?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
                 onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
@@ -85,11 +86,11 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                     containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}
                 />
             </OfflineWithFeedback>
-            {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
+            {shouldShowInvoiceItemMenuItem(config) && (
                 <View style={[styles.flexGrow1, styles.flexShrink1]}>
                     <OfflineWithFeedback
                         key={translate('workspace.netsuite.invoiceItem.label')}
-                        pendingAction={config?.pendingFields?.invoiceItem}
+                        pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.netsuite.invoiceItem.label')}
@@ -97,7 +98,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                             interactive
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={config?.errorFields?.invoiceItem ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
                 </View>

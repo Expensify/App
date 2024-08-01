@@ -25,6 +25,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,7 +55,21 @@ import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {shouldHideCustomFormIDOptions, shouldHideExportJournalsTo, shouldHideExportVendorBillsTo, shouldHideReimbursedReportsSection, shouldHideReportsExportTo} from './netsuite/utils';
+import {
+    shouldHideCustomFormIDOptions,
+    shouldHideExportForeignCurrencyAmount,
+    shouldHideExportJournalsTo,
+    shouldHideExportVendorBillsTo,
+    shouldHideJournalPostingPreference,
+    shouldHideNonReimbursableJournalPostingAccount,
+    shouldHideProvincialTaxPostingAccountSelect,
+    shouldHideReimbursableDefaultVendor,
+    shouldHideReimbursableJournalPostingAccount,
+    shouldHideReimbursedReportsSection,
+    shouldHideReportsExportTo,
+    shouldHideTaxPostingAccountSelect,
+    shouldShowInvoiceItemMenuItem,
+} from './netsuite/utils';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 
@@ -82,6 +97,7 @@ type AccountingIntegration = {
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
 };
+
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
@@ -89,8 +105,11 @@ function accountingIntegrationData(
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
     policy?: Policy,
+    canUseNetSuiteUSATax?: boolean,
 ): AccountingIntegration | undefined {
     const netsuiteConfig = policy?.connections?.netsuite?.options.config;
+    const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
+
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
@@ -153,7 +172,27 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.NETSUITE_CONFIG.EXPORTER, CONST.NETSUITE_CONFIG.EXPORT_DATE, CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION],
+                subscribedExportSettings: [
+                    CONST.NETSUITE_CONFIG.EXPORTER,
+                    CONST.NETSUITE_CONFIG.EXPORT_DATE,
+                    CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    ...(!shouldHideReimbursableDefaultVendor(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                    ...(!shouldHideNonReimbursableJournalPostingAccount(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                    ...(!shouldHideReimbursableJournalPostingAccount(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                    ...(!shouldHideJournalPostingPreference(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+                    CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    ...(!shouldHideReimbursableDefaultVendor(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                    ...(!shouldHideNonReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                    ...(!shouldHideReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                    ...(!shouldHideJournalPostingPreference(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+                    CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT,
+                    CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE,
+                    ...(shouldShowInvoiceItemMenuItem(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : []),
+                    ...(!shouldHideProvincialTaxPostingAccountSelect(netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT] : []),
+                    ...(!shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT] : []),
+                    ...(!shouldHideExportForeignCurrencyAmount(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY] : []),
+                    CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
@@ -229,6 +268,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseNetSuiteUSATax} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -365,7 +405,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -471,6 +511,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         threeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
+        canUseNetSuiteUSATax,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {

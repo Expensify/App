@@ -11,8 +11,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areSettingsInErrorFields,
-    canUseProvincialTaxNetSuite,
-    canUseTaxNetSuite,
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
@@ -20,10 +18,14 @@ import {
 } from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
+    shouldHideExportForeignCurrencyAmount,
     shouldHideJournalPostingPreference,
     shouldHideNonReimbursableJournalPostingAccount,
+    shouldHideProvincialTaxPostingAccountSelect,
     shouldHideReimbursableDefaultVendor,
     shouldHideReimbursableJournalPostingAccount,
+    shouldHideTaxPostingAccountSelect,
+    shouldShowInvoiceItemMenuItem,
 } from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -137,8 +139,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: invoiceItemValue,
             description: translate('workspace.netsuite.invoiceItem.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
-            // TODO: do not show invoice item error if menu item is not shown
-            subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, CONST.NETSUITE_CONFIG.INVOICE_ITEM],
+            subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, ...(shouldShowInvoiceItemMenuItem(config) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : [])],
         },
         {
             type: 'divider',
@@ -150,7 +151,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.journalEntriesProvTaxPostingAccount'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT],
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country),
+            shouldHide: shouldHideProvincialTaxPostingAccountSelect(selectedSubsidiary, config),
         },
         {
             type: 'menuitem',
@@ -158,7 +159,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.journalEntriesTaxPostingAccount'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country),
+            shouldHide: shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, selectedSubsidiary, config),
         },
         {
             type: 'toggle',
@@ -169,9 +170,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY], config?.pendingFields),
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
-            shouldHide:
-                config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT &&
-                config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT,
+            shouldHide: shouldHideExportForeignCurrencyAmount(config),
         },
         {
             type: 'toggle',
