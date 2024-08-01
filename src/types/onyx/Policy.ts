@@ -1492,7 +1492,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
-        /** Whether the Invoices features are enabled */
+        /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
         /** The verified bank account linked to the policy */
