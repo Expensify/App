@@ -66,6 +66,7 @@ type ShouldShow = (
     isUnreadChat: boolean,
     isOffline: boolean,
     isMini: boolean,
+    isProduction: boolean,
     moneyRequestAction: ReportAction | undefined,
     areHoldRequirementsMet: boolean,
 ) => boolean;
@@ -278,6 +279,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             isUnreadChat,
             isOffline,
             isMini,
+            isProduction,
             moneyRequestAction,
             areHoldRequirementsMet,
         ) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canUnholdRequest,
@@ -308,6 +310,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             isUnreadChat,
             isOffline,
             isMini,
+            isProduction,
             moneyRequestAction,
             areHoldRequirementsMet,
         ) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
@@ -575,7 +578,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type) => type === CONST.CONTEXT_MENU_TYPES.REPORT && (Environment.isDevelopment() || Environment.isStaging() || Environment.isInternalTestBuild()),
+        shouldShow: (type, isProduction) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {reportID}) => {
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             Clipboard.setString(JSON.stringify(report, null, 4));
