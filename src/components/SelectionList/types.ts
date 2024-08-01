@@ -416,6 +416,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
+    /** Callback to fire when the list emptiness changes after finish loading */
+    onListEmptyChange?: (isEmpty: boolean) => void;
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 

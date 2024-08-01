@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -13,9 +13,6 @@ import TextLink from './TextLink';
 type EmptySelectionListContentProps = {
     /** Type of selection list */
     contentType: string;
-
-    /** Callback to trigger when list emptiness changes (i.e. component mounts and unmounts) */
-    onEmptyChange?: (isEmpty: boolean) => void;
 };
 
 const CONTENT_TYPES = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY];
@@ -25,18 +22,9 @@ function isContentType(contentType: unknown): contentType is ContentType {
     return CONTENT_TYPES.includes(contentType as ContentType);
 }
 
-function EmptySelectionListContent({contentType, onEmptyChange}: EmptySelectionListContentProps) {
+function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    useEffect(() => {
-        if (!onEmptyChange) {
-            return;
-        }
-
-        onEmptyChange(true);
-        return () => onEmptyChange(false);
-    }, [onEmptyChange]);
 
     if (!isContentType(contentType)) {
         return null;

@@ -412,7 +412,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const onEmptyListChange = useCallback((isEmpty: boolean) => {
+    const onListEmptyChange = useCallback((isEmpty: boolean) => {
         setIsEmptyList(isEmpty);
     }, []);
 
@@ -429,12 +429,8 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             onSelectRow={onSelectRow}
             shouldDebounceRowSelect
             footerContent={footerContent}
-            listEmptyContent={
-                <EmptySelectionListContent
-                    onEmptyChange={onEmptyListChange}
-                    contentType={iouType}
-                />
-            }
+            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            onListEmptyChange={onListEmptyChange}
             headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
