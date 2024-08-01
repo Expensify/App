@@ -53,7 +53,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
         policyName = lodashEscape(policyName);
     }
 
-    let text;
+    let text: string;
     switch (archiveReason) {
         case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             text = translate(`reportArchiveReasons.${archiveReason}`, {
