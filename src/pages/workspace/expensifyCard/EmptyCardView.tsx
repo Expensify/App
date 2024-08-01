@@ -6,8 +6,10 @@ import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getPlatform from '@libs/getPlatform';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
@@ -15,16 +17,19 @@ const HEADER_HEIGHT = 80;
 const BUTTON_HEIGHT = 40;
 const BUTTON_MARGIN = 12;
 
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
-    const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN : HEADER_HEIGHT;
+    const safeAreaInsets = useSafeAreaInsets();
+    const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN + (isIOSNative ? safeAreaInsets.top : 0) : HEADER_HEIGHT;
 
     return (
         <ScrollView>
-            <View style={[{height: windowHeight - headerHeight}, styles.mt5]}>
+            <View style={[{height: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
@@ -38,7 +43,6 @@ function EmptyCardView() {
                     ]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
-                    emptyStateForegroundStyles={isSmallScreenWidth && {justifyContent: 'flex-start'}}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
