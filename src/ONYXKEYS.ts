@@ -159,8 +159,12 @@ const ONYXKEYS = {
 
     /** Whether the user has seen HybridApp explanation modal */
     NVP_SEEN_NEW_USER_MODAL: 'nvp_seen_new_user_modal',
+
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
+
+    /** Store the state of the private tax-exempt */
+    NVP_PRIVATE_TAX_EXEMPT: 'nvp_private_taxExempt',
 
     /** Store the stripe id status */
     NVP_PRIVATE_STRIPE_CUSTOMER_ID: 'nvp_private_stripeCustomerID',
@@ -844,6 +848,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
+    [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
