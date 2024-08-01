@@ -1,14 +1,19 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -23,11 +28,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
-import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchColumnType, SearchQueryJSON, SortOrder} from './types';
+import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -39,19 +42,108 @@ const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
 
+function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
+    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
+}
+
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
+    return {...item, isSelected: !!selectedTransactions[item.keyForList]?.isSelected};
+}
+
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions) {
+    return SearchUtils.isTransactionListItemType(item)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions)
+        : {
+              ...item,
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions)),
+              isSelected: item.transactions.every((transaction) => !!selectedTransactions[transaction.keyForList]?.isSelected),
+          };
+}
+
+function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
+    if (selectedTransactions[item.keyForList]?.isSelected) {
+        const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
+
+        return transactions;
+    }
+
+    return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
+}
+
 function Search({queryJSON, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash} = useSearchContext();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
-    const [offset, setOffset] = React.useState(0);
+    const [offset, setOffset] = useState(0);
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
+    const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
+    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const {sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    useEffect(() => {
+        if (isSmallScreenWidth) {
+            return;
+        }
+        clearSelectedTransactions(hash);
+        setCurrentSearchHash(hash);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [hash]);
+
+    useEffect(() => {
+        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        if (!isSmallScreenWidth) {
+            if (selectedKeys.length === 0) {
+                turnOffMobileSelectionMode();
+            }
+            return;
+        }
+        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
+            turnOnMobileSelectionMode();
+        }
+    }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
+
+    const handleOnCancelConfirmModal = () => {
+        setSelectedTransactionsToDelete([]);
+        setDeleteExpensesConfirmModalVisible(false);
+    };
+
+    const handleDeleteExpenses = () => {
+        if (selectedTransactionsToDelete.length === 0) {
+            return;
+        }
+
+        clearSelectedTransactions();
+        setDeleteExpensesConfirmModalVisible(false);
+        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsToDelete);
+    };
+
+    const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
+        setSelectedTransactionsToDelete(itemsToDelete);
+        setDeleteExpensesConfirmModalVisible(true);
+    };
+
+    useEffect(() => {
+        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        if (!isSmallScreenWidth) {
+            if (selectedKeys.length === 0) {
+                turnOffMobileSelectionMode();
+            }
+            return;
+        }
+        if (selectedKeys.length > 0 && !selectionMode?.isEnabled) {
+            turnOnMobileSelectionMode();
+        }
+    }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -94,8 +186,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
             return;
         }
 
-        setCurrentSearchHash(hash);
-
         SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
@@ -103,6 +193,33 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+
+    const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
+        if (SearchUtils.isTransactionListItemType(item)) {
+            if (!item.keyForList) {
+                return;
+            }
+
+            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions));
+            return;
+        }
+
+        if (item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+            const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+
+            item.transactions.forEach((transaction) => {
+                delete reducedSelectedTransactions[transaction.keyForList];
+            });
+
+            setSelectedTransactions(reducedSelectedTransactions);
+            return;
+        }
+
+        setSelectedTransactions({
+            ...selectedTransactions,
+            ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
+        });
+    };
 
     if (shouldShowLoadingState) {
         return (
@@ -165,7 +282,26 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type);
 
     const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
-    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+    const sortedSelectedData = data.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
+
+    const toggleAllTransactions = () => {
+        const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
+        const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+
+        if (isAllSelected) {
+            clearSelectedTransactions();
+            return;
+        }
+
+        if (areItemsOfReportType) {
+            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))));
+
+            return;
+        }
+
+        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)));
+    };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newQuery = SearchUtils.buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
@@ -177,20 +313,31 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     return (
-        <SearchListWithHeader
-            queryJSON={queryJSON}
-            hash={hash}
-            data={sortedData}
-            searchType={searchResults?.search?.type as SearchDataTypes}
-            isCustomQuery={isCustomQuery}
-            customListHeader={
-                !isLargeScreenWidth ? null : (
-                    <SearchTableHeader
-                        data={searchResults?.data}
-                        metadata={searchResults?.search}
-                        onSortPress={onSortPress}
-                        sortOrder={sortOrder}
-                        sortBy={sortBy}
+        <>
+            <SearchPageHeader
+                isCustomQuery={isCustomQuery}
+                queryJSON={queryJSON}
+                hash={hash}
+                onSelectDeleteOption={handleOnSelectDeleteOption}
+                data={data}
+                setOfflineModalOpen={() => setOfflineModalVisible(true)}
+                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
+            />
+
+            <SelectionListWithModal<ReportListItemType | TransactionListItemType>
+                sections={[{data: sortedSelectedData, isDisabled: false}]}
+                turnOnSelectionModeOnLongPress
+                onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
+                onCheckboxPress={toggleTransaction}
+                onSelectAll={toggleAllTransactions}
+                customListHeader={
+                    !isLargeScreenWidth ? null : (
+                        <SearchTableHeader
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
                         shouldShowYear={shouldShowYear}
                     />
                 )
@@ -226,7 +373,35 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
                     />
                 ) : undefined
             }
-        />
+        /><ConfirmModal
+                isVisible={deleteExpensesConfirmModalVisible}
+                onConfirm={handleDeleteExpenses}
+                onCancel={handleOnCancelConfirmModal}
+                title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('search.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
+            />
+        </>
     );
 }
 

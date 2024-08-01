@@ -4,6 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -24,6 +25,7 @@ function SearchPageBottomTab() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
+    const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const {queryJSON, policyIDs, isCustomQuery} = useMemo(() => {
@@ -69,7 +71,10 @@ function SearchPageBottomTab() {
                 ) : (
                     <HeaderWithBackButton
                         title={translate('common.selectMultiple')}
-                        onBackButtonPress={turnOffMobileSelectionMode}
+                        onBackButtonPress={() => {
+                            clearSelectedTransactions();
+                            turnOffMobileSelectionMode();
+                        }}
                     />
                 )}
                 {shouldUseNarrowLayout && queryJSON && (
