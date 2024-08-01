@@ -1,6 +1,6 @@
-import type {LayoutChangeEvent} from 'react-native';
 import type GetBounds from './types';
+import type {LayoutChangeEventWithTarget} from './types';
 
-const getBounds: GetBounds = (event: LayoutChangeEvent) => (event.nativeEvent.target as HTMLElement).getBoundingClientRect();
+const getBounds: GetBounds = (event: LayoutChangeEventWithTarget) => event.nativeEvent.target?.getBoundingClientRect();
 
 export default getBounds;

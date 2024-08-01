@@ -1,5 +1,8 @@
-import type {LayoutChangeEvent, LayoutRectangle} from 'react-native';
+import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 
-type GetBounds = (event: LayoutChangeEvent) => LayoutRectangle;
+type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
+
+type GetBounds = (event: LayoutChangeEventWithTarget) => LayoutRectangle;
 
 export default GetBounds;
+export type {LayoutChangeEventWithTarget};
