@@ -609,6 +609,7 @@ const ONYXKEYS = {
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
         SEARCH_ADVANCED_FILTERS_FORM_DRAFT: 'searchAdvancedFiltersFormDraft',
         TEXT_PICKER_MODAL_FORM: 'textPickerModalForm',
+        TEXT_PICKER_MODAL_FORM_DRAFT: 'textPickerModalFormDraft',
     },
 } as const;
 
