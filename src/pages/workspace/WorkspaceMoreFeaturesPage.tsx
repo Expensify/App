@@ -12,8 +12,8 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -82,10 +82,11 @@ const mockedCardsList = {
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
-    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
+    const hasAccountingConnection = !isEmptyObject(policy?.connections);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
@@ -93,7 +94,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const policyID = policy?.id ?? '';
     // @ts-expect-error a new props will be added during feed api implementation
     const workspaceAccountID = (policy?.workspaceAccountID as string) ?? '';
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}${CONST.EXPENSIFY_CARD.BANK}`);
     // Uncomment this line for testing disabled toggle feature - for c+
     // const [cardsList = mockedCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
@@ -225,7 +226,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Accounting,
             titleTranslationKey: 'workspace.moreFeatures.connections.title',
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
-            isActive: !!policy?.areConnectionsEnabled,
+            isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
@@ -288,10 +289,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         (section: SectionObject) => (
             <View
                 key={section.titleTranslationKey}
-                style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
             >
                 <Section
-                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                    containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     title={translate(section.titleTranslationKey)}
                     titleStyles={styles.textStrong}
                     subtitle={translate(section.subtitleTranslationKey)}
@@ -301,7 +302,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 </Section>
             </View>
         ),
-        [isSmallScreenWidth, styles, renderItem, translate],
+        [shouldUseNarrowLayout, styles, renderItem, translate],
     );
 
     const fetchFeatures = useCallback(() => {
@@ -330,7 +331,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <HeaderWithBackButton
                     icon={Illustrations.Gears}
                     title={translate('workspace.common.moreFeatures')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
