@@ -428,7 +428,7 @@ export {
     updatePolicyConnectionConfig,
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
-	getSynchronizationErrorMessage,
+    getSynchronizationErrorMessage,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
