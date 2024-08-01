@@ -3801,33 +3801,6 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         : lodashEscape(text);
 }
 
-function getUploadingAttachmentHtml(file?: FileObject): string {
-    if (!file || typeof file.uri !== 'string') {
-        return '';
-    }
-
-    const dataAttributes = [
-        `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}"`,
-        `${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="${file.uri}"`,
-        `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${file.name}"`,
-        'width' in file && `${CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE}="${file.width}"`,
-        'height' in file && `${CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE}="${file.height}"`,
-    ]
-        .filter((x) => !!x)
-        .join(' ');
-
-    // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
-    if (file.type?.startsWith('image')) {
-        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} />`;
-    }
-    if (file.type?.startsWith('video')) {
-        return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
-    }
-
-    // For all other types, we present a generic download link
-    return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
-}
-
 function getReportDescriptionText(report: Report): string {
     if (!report.description) {
         return '';
@@ -3853,14 +3826,24 @@ function buildOptimisticAddCommentReportAction(
     reportID?: string,
 ): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file);
-
-    const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
-    const textForNewComment = Parser.htmlToText(htmlForNewComment);
-
     const isAttachmentOnly = file && !text;
+    const isTextOnly = text && !file;
+
+    let htmlForNewComment;
+    let textForNewComment;
+    if (isAttachmentOnly) {
+        htmlForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+        textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+    } else if (isTextOnly) {
+        htmlForNewComment = commentText;
+        textForNewComment = Parser.htmlToText(htmlForNewComment);
+    } else {
+        htmlForNewComment = `${commentText}<uploading-attachment>${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}</uploading-attachment>`;
+        textForNewComment = `${Parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+    }
+
     const isAttachmentWithText = !!text && file !== undefined;
-    const accountID = actorAccountID ?? currentUserAccountID ?? -1;
+    const accountID = actorAccountID ?? currentUserAccountID;
 
     // Remove HTML from text when applying optimistic offline comment
     return {
@@ -3872,12 +3855,12 @@ function buildOptimisticAddCommentReportAction(
             person: [
                 {
                     style: 'strong',
-                    text: allPersonalDetails?.[accountID]?.displayName ?? currentUserEmail,
+                    text: allPersonalDetails?.[accountID ?? -1]?.displayName ?? currentUserEmail,
                     type: 'TEXT',
                 },
             ],
             automatic: false,
-            avatar: allPersonalDetails?.[accountID]?.avatar,
+            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar,
             created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {

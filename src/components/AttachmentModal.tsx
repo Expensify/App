@@ -195,8 +195,6 @@ function AttachmentModal({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
-
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
@@ -344,7 +342,6 @@ function AttachmentModal({
                     updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
                 }
                 const inputSource = URL.createObjectURL(updatedFile);
-                updatedFile.uri = inputSource;
                 const inputModalType = getModalType(inputSource, updatedFile);
                 setIsModalOpen(true);
                 setSourceState(inputSource);
@@ -415,7 +412,7 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline && allowDownload && !isLocalSource) {
+        if (!isOffline && allowDownload) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
@@ -442,7 +439,7 @@ function AttachmentModal({
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
