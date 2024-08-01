@@ -198,10 +198,15 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
  * Returns a primary policy for the user
  */
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    if (!PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+        const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+
+        return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
+    }
+
     const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
 
-    return primaryPolicy ?? activeAdminWorkspaces[0];
+    return primaryPolicy;
 }
 
 /**

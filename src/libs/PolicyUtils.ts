@@ -497,9 +497,15 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Poli
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
+/** Whether the user can send invoice from the workspace */
+function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    const policy = getPolicy(policyID);
+    return policy?.areInvoicesEnabled ?? false;
+}
+
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
-    return getActiveAdminWorkspaces(policies).some((policy) => policy?.areInvoicesEnabled);
+    return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
@@ -924,6 +930,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    canSendInvoiceFromWorkspace,
     canSendInvoice,
     hasDependentTags,
     getXeroTenants,
