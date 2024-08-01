@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import * as Expensicon from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
@@ -32,9 +32,10 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
         <View style={styles.p5}>
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
-                        source={iconSrc}
+                    <Icon
+                        src={iconSrc}
+                        width={48}
+                        height={48}
                     />
                     <Badge
                         icon={Expensicon.Unlock}
