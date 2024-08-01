@@ -35,6 +35,7 @@ import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, Selecte
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
+    policyIDs?: string;
 };
 
 const transactionItemMobileHeight = 100;
@@ -70,7 +71,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, isCustomQuery}: SearchProps) {
+function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -112,7 +113,7 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
             return;
         }
 
-        SearchActions.search({queryJSON, offset});
+        SearchActions.search({queryJSON, offset, policyIDs});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
 

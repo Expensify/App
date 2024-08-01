@@ -81,6 +81,7 @@ function SearchPageBottomTab() {
                     <Search
                         queryJSON={queryJSON}
                         isCustomQuery={isCustomQuery}
+                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>

@@ -45,6 +45,7 @@ function SearchPage({route}: SearchPageProps) {
                     <Search
                         isCustomQuery={isCustomQuery}
                         queryJSON={queryJSON}
+                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>
