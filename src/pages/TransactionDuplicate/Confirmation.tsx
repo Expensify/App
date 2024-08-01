@@ -34,8 +34,8 @@ function Confirmation() {
     const {translate} = useLocalize();
     const navigation = useNavigation();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [isExiting, setIsExiting] = useState(false);
-    const [reviewDuplicates, {status}] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [isExitingPage, setIsExitingPage] = useState(false);
+    const [reviewDuplicates, {status: reviewDuplicatesOnyxStatus}] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
@@ -63,18 +63,19 @@ function Confirmation() {
 
     useEffect(() => {
         const unsubscribeBeforeRemove = navigation.addListener('beforeRemove', () => {
-            setIsExiting(true);
+            setIsExitingPage(true);
         });
 
         return unsubscribeBeforeRemove;
     }, [navigation]);
 
-    if (status === 'loading') {
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage =
+        isEmptyObject(report) || ReportUtils.isReportNotFound(report) || (!isExitingPage && reviewDuplicatesOnyxStatus === 'loaded' && !transaction?.transactionID);
+
+    if (reviewDuplicatesOnyxStatus === 'loading') {
         return <FullScreenLoadingIndicator />;
     }
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEmptyObject(report) || ReportUtils.isReportNotFound(report) || (!isExiting && status === 'loaded' && !transaction?.transactionID);
 
     return (
         <ScreenWrapper
