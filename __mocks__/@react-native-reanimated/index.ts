@@ -1,4 +1,5 @@
-// __mocks__/react-native-reanimated/index.js
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 const actualAnimated = jest.requireActual('react-native-reanimated/mock');
 
 const mock = {

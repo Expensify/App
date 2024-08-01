@@ -1,8 +1,10 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
+import type {Listener} from 'onfido-sdk-ui/types/shared/EventEmitter';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import * as Localize from '@libs/Localize';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
@@ -15,7 +17,6 @@ import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
-import * as Localize from '@libs/Localize';
 
 type MockFetch = jest.MockedFn<typeof fetch> & {
     pause: () => void;
@@ -318,6 +319,7 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
 const createAddListenerMock = () => {
     const transitionEndListeners: Listener[] = [];
     const triggerTransitionEnd = () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
