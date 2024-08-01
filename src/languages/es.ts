@@ -360,6 +360,7 @@ export default {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        reportID: 'ID del informe',
     },
     connectionComplete: {
         title: 'Conexión completa',

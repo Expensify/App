@@ -80,6 +80,7 @@ jobs:
         id: getReleaseBody
         uses: ./.github/actions/javascript/getReleaseBody
         with:
+          GITHUB_TOKEN: ${{ github.token }}
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 
       - name: 🚀 Create release to trigger production deploy 🚀
