@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function Confirmation() {
     const styles = useThemeStyles();
@@ -35,9 +36,9 @@ function Confirmation() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [isExitingPage, setIsExitingPage] = useState(false);
-    const [reviewDuplicates, {status: reviewDuplicatesOnyxStatus}] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
@@ -71,9 +72,12 @@ function Confirmation() {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isEmptyObject(report) || ReportUtils.isReportNotFound(report) || (!isExitingPage && reviewDuplicatesOnyxStatus === 'loaded' && !transaction?.transactionID);
+        isEmptyObject(report) ||
+        !ReportUtils.isValidReport(report) ||
+        ReportUtils.isReportNotFound(report) ||
+        (!isExitingPage && reviewDuplicatesResult.status === 'loaded' && !transaction?.transactionID);
 
-    if (reviewDuplicatesOnyxStatus === 'loading') {
+    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult)) {
         return <FullScreenLoadingIndicator />;
     }
 
