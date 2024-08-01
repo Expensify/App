@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import type {Selection} from '@libs/focusComposerWithDelay/types';
+import type {FocusComposerWithDelay, Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Parser from '@libs/Parser';
@@ -170,6 +170,29 @@ function ReportActionItemMessageEdit(
         [action.reportActionID],
     );
 
+    /**
+     * Focus the composer text input
+     * @param shouldDelay - Impose delay before focusing the composer
+     */
+    const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection) => {
+        focusComposerWithDelay(textInputRef.current)(shouldDelay, forcedSelectionRange);
+    }, []);
+
+    // Take over focus priority
+    const setUpComposeFocusManager = useCallback(() => {
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+        }, true);
+    }, [focus]);
+
+    useEffect(
+        // Remove focus callback on unmount to avoid stale callbacks
+        () => () => {
+            ReportActionComposeFocusManager.clear(true);
+        },
+        [],
+    );
+
     useEffect(
         () => {
             if (isInitialMount.current) {
@@ -271,8 +294,9 @@ function ReportActionItemMessageEdit(
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
-            ReportActionComposeFocusManager.clear();
-            ReportActionComposeFocusManager.focus();
+            ReportActionComposeFocusManager.clear(true);
+            // Wait for report action compose re-mounting on mWeb
+            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -421,11 +445,6 @@ function ReportActionItemMessageEdit(
         [],
     );
 
-    /**
-     * Focus the composer text input
-     */
-    const focus = focusComposerWithDelay(textInputRef.current);
-
     useEffect(() => {
         validateCommentMaxLength(draft, {reportID});
     }, [draft, reportID, validateCommentMaxLength]);
@@ -500,6 +519,8 @@ function ReportActionItemMessageEdit(
                                     });
                                 });
                                 setShouldShowComposeInputKeyboardAware(false);
+                                // The last composer that had focus should re-gain focus
+                                setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
                                 if (!EmojiPickerAction.isActive(action.reportActionID)) {
@@ -543,7 +564,7 @@ function ReportActionItemMessageEdit(
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
                             onModalHide={() => {
-                                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+                                ReportActionComposeFocusManager.focus();
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
