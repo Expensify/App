@@ -2812,7 +2812,7 @@ export default {
             },
             earnSection: {
                 title: 'Gane',
-                subtitle: 'Habilite funciones opcionales para agilizar sus ingresos y cobrar con mayor rapidez.',
+                subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
             },
             organizeSection: {
                 title: 'Organizar',
@@ -2848,8 +2848,8 @@ export default {
                 subtitle: 'Configura cómo se aprueba y paga los gastos.',
             },
             invoices: {
-                title: 'Invoices',
-                subtitle: 'Send and receive invoices.',
+                title: 'Facturas',
+                subtitle: 'Enviar y recibir facturas.',
             },
             categories: {
                 title: 'Categorías',
