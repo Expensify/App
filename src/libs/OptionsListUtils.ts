@@ -49,7 +49,6 @@ import * as LoginUtils from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
-import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
