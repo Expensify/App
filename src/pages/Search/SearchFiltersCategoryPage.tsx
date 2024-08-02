@@ -1,23 +1,14 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
-import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
+import MultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import localeCompare from '@libs/LocaleCompare';
-import type {CategorySection} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
-import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
-import MultipleSelectionPicker from './MultipleSelectionPIcker';
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();

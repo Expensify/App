@@ -1,13 +1,12 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import Button from '@components/Button';
-import SelectionList from '@components/SelectionList';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CategorySection} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import Button from './Button';
+import SelectionList from './SelectionList';
+import SelectableListItem from './SelectionList/SelectableListItem';
 
 type MultipleSelectionPickerProps = {
     items: string[];
@@ -16,16 +15,13 @@ type MultipleSelectionPickerProps = {
     onSaveSelection: (values: string[]) => void;
 };
 
-function MultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection}: MultipleSelectionPickerProps) {
+function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection}: MultipleSelectionPickerProps) {
     const {translate} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [noResultsFound, setNoResultsFound] = useState(false);
-
     const [selectedItems, setSelectedItems] = useState<string[]>(initiallySelectedItems ?? []);
 
-    const sections = useMemo(() => {
-        const newSections: CategorySection[] = [];
+    const {sections, headerMessage} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => localeCompare(a, b))
@@ -35,36 +31,33 @@ function MultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, on
                 isSelected: selectedItems?.includes(name) ?? false,
             }));
         const remainingItemsSection = items
-            .filter((item) => selectedItems.includes(item) === false) // zwin
-            .filter((item) => item?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a, b)) // sprawdz sorta
+            .filter((item) => selectedItems.includes(item) === false && item?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .sort((a, b) => localeCompare(a, b))
             .map((name) => ({
                 text: name,
                 keyForList: name,
                 isSelected: selectedItems?.includes(name) ?? false,
             }));
-        console.log('%%%%%\n', 'selectedItemsSection.length', selectedItemsSection.length);
-        console.log('%%%%%\n', 'remainingItemsSection.length', remainingItemsSection.length);
-        if (selectedItemsSection.length === 0 && remainingItemsSection.length === 0) {
-            console.log('%%%%%\n', 'i go to setNoResultsFound');
-            setNoResultsFound(true);
-        } else {
-            console.log('%%%%%\n', 'set as true');
-            setNoResultsFound(false);
-        }
-        newSections.push({
-            title: undefined,
-            data: selectedItemsSection,
-            shouldShow: selectedItemsSection.length > 0,
-        });
-        newSections.push({
-            title: pickerTitle,
-            data: remainingItemsSection,
-            shouldShow: remainingItemsSection.length > 0,
-        });
-        return newSections;
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
-    console.log('%%%%%\n', 'sections', sections);
+        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+        return {
+            sections: isEmpty
+                ? []
+                : [
+                      {
+                          title: undefined,
+                          data: selectedItemsSection,
+                          shouldShow: selectedItemsSection.length > 0,
+                      },
+                      {
+                          title: pickerTitle,
+                          data: remainingItemsSection,
+                          shouldShow: remainingItemsSection.length > 0,
+                      },
+                  ],
+            headerMessage: isEmpty ? translate('common.noResultsFound') : undefined,
+        };
+    }, [selectedItems, items, pickerTitle, translate, debouncedSearchTerm]);
+
     const handleConfirmSelection = useCallback(() => {
         onSaveSelection(selectedItems);
         Navigation.goBack();
@@ -83,7 +76,6 @@ function MultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, on
         },
         [selectedItems],
     );
-    console.log('%%%%%\n', 'noResultsFound', noResultsFound);
 
     const footerContent = useMemo(
         () => (
@@ -104,10 +96,10 @@ function MultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, on
             onChangeText={setSearchTerm}
             textInputLabel={translate('common.search')}
             onSelectRow={onSelectItem}
-            headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
+            headerMessage={headerMessage}
             footerContent={footerContent}
             shouldStopPropagation
-            showLoadingPlaceholder={!noResultsFound}
+            showLoadingPlaceholder={!headerMessage}
             shouldShowTooltips
             canSelectMultiple
             ListItem={SelectableListItem}
@@ -115,6 +107,6 @@ function MultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, on
     );
 }
 
-MultipleSelectionPicker.displayName = 'MultipleSelectionPicker';
+SearchMultipleSelectionPicker.displayName = 'SearchMultipleSelectionPicker';
 
-export default MultipleSelectionPicker;
+export default SearchMultipleSelectionPicker;
