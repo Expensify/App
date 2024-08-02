@@ -1,13 +1,15 @@
 import type {ValueOf} from 'type-fest';
-import type {AllFieldKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
@@ -29,6 +31,18 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
+};
+
+// This map contains signs with spaces that match each operator
+const operatorToSignMap = {
+    [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]: '>=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]: '!=' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
 
 /**
@@ -316,7 +330,7 @@ function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     try {
         // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
-        result.input = query;
+        result.inputQuery = query;
 
         // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
         const policyIDPart = policyID ?? '';
@@ -327,16 +341,31 @@ function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     }
 }
 
-function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
+function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
     // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
-    for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        if (partialQueryJSON?.[value]) {
-            queryParts.push(`${value}:${partialQueryJSON[value]}`);
+    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (queryJSON?.[key]) {
+            queryParts.push(`${key}:${queryJSON[key]}`);
         } else if (defaultQueryJSON) {
-            queryParts.push(`${value}:${defaultQueryJSON[value]}`);
+            queryParts.push(`${key}:${defaultQueryJSON[key]}`);
+        }
+    }
+
+    if (!queryJSON) {
+        return queryParts.join(' ');
+    }
+
+    const filters = getFilters(queryJSON);
+
+    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+        const queryFilter = filters[filterKey];
+
+        if (queryFilter) {
+            const filterValueString = buildFilterString(filterKey, queryFilter);
+            queryParts.push(filterValueString);
         }
     }
 
@@ -351,45 +380,96 @@ function normalizeQuery(query: string) {
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys>>) {
-    let queryAST;
+/**
+ * @private
+ * returns Date filter query string part, which needs special logic
+ */
+function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const dateBefore = filterValues[INPUT_IDS.DATE_BEFORE];
+    const dateAfter = filterValues[INPUT_IDS.DATE_AFTER];
 
-    try {
-        queryAST = searchParser.parse(query) as SearchQueryJSON;
-    } catch (e) {
-        console.error(e);
-        return;
+    let dateFilter = '';
+    if (dateBefore) {
+        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<${dateBefore}`;
+    }
+    if (dateBefore && dateAfter) {
+        dateFilter += ' ';
+    }
+    if (dateAfter) {
+        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>${dateAfter}`;
     }
 
+    return dateFilter;
+}
+
+function sanitizeString(str: string) {
+    if (str.includes(' ')) {
+        return `"${str}"`;
+    }
+    return str;
+}
+
+/**
+ * Given object with chosen search filters builds correct query string from them
+ */
+function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    // TODO add handling of multiple values picked
+    const filtersString = Object.entries(filterValues)
+        .map(([filterKey, filterValue]) => {
+            if (filterKey === INPUT_IDS.TYPE && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.STATUS && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.MERCHANT && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.DESCRIPTION && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.REPORT_ID && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.CATEGORY && filterValues[filterKey]) {
+                const categories = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
+            }
+
+            return undefined;
+        })
+        .filter(Boolean)
+        .join(' ');
+
+    const dateFilter = buildDateFilterQuery(filterValues);
+
+    return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
+}
+
+function getFilters(queryJSON: SearchQueryJSON) {
     const filters = {} as QueryFilters;
-
-    fields.forEach((field) => {
-        const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-        if (queryAST[rootFieldKey] === undefined) {
-            return;
-        }
-
-        filters[field] = {
-            operator: 'eq',
-            value: queryAST[rootFieldKey],
-        };
-    });
+    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
 
     function traverse(node: ASTNode) {
         if (!node.operator) {
             return;
         }
 
-        if (typeof node?.left === 'object') {
+        if (typeof node?.left === 'object' && node.left) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object') {
+        if (typeof node?.right === 'object' && node.right) {
             traverse(node.right);
         }
 
         const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!fields.includes(nodeKey)) {
+        if (!filterKeys.includes(nodeKey)) {
             return;
         }
 
@@ -397,34 +477,65 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AllFieldKeys
             filters[nodeKey] = [];
         }
 
-        const filterArray = filters[nodeKey] as QueryFilter[];
+        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
+        const filterArray = filters[nodeKey] ?? [];
         filterArray.push({
             operator: node.operator,
             value: node.right as string | number,
         });
     }
 
-    if (queryAST.filters) {
-        traverse(queryAST.filters);
+    if (queryJSON.filters) {
+        traverse(queryJSON.filters);
     }
 
     return filters;
 }
 
+function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
+    let filterValueString = '';
+    queryFilters.forEach((queryFilter, index) => {
+        // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
+        if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
+            filterValueString += `,${filterName}:${queryFilter.value}`;
+        } else {
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+        }
+    });
+
+    return filterValueString;
+}
+
+function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
+    const {type, status} = queryJSON;
+    const filters = getFilters(queryJSON) ?? {};
+
+    let title = `type:${type} status:${status}`;
+
+    Object.keys(filters).forEach((key) => {
+        const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
+        title += buildFilterString(key, queryFilter);
+    });
+
+    return title;
+}
+
 export {
+    buildQueryStringFromFilters,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
+    getFilters,
     getListItem,
     getQueryHash,
-    getSections,
-    getSortedSections,
-    getShouldShowMerchant,
+    getSearchHeaderTitle,
     getSearchType,
-    shouldShowYear,
+    getSections,
+    getShouldShowMerchant,
+    getSortedSections,
     isReportListItemType,
-    isTransactionListItemType,
     isSearchResultsEmpty,
-    getFilters,
+    isTransactionListItemType,
     normalizeQuery,
+    shouldShowYear,
 };

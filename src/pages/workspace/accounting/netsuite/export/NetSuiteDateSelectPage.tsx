@@ -24,12 +24,13 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite.options.config;
+    const selectedValue = Object.values(CONST.NETSUITE_EXPORT_DATE).find((value) => value === config?.exportDate) ?? CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.netsuite.exportDate.values.${dateType}.label`),
         alternateText: translate(`workspace.netsuite.exportDate.values.${dateType}.description`),
         keyForList: dateType,
-        isSelected: config?.exportDate === dateType,
+        isSelected: selectedValue === dateType,
     }));
 
     const headerContent = useMemo(
