@@ -61,17 +61,17 @@ type SelectionListApprover = {
 };
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
-function WorkspaceWorkflowsApprovalsApproverPage(props: WorkspaceWorkflowsApprovalsApproverPageProps) {
+function WorkspaceWorkflowsApprovalsApproverPageWrapper(props: WorkspaceWorkflowsApprovalsApproverPageProps) {
     if (Permissions.canUseWorkflowsAdvancedApproval(props.betas) && props.route.params.approverIndex !== undefined) {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return <WorkspaceWorkflowsApprovalsApproverPageNew {...props} />;
+        return <WorkspaceWorkflowsApprovalsApproverPageBeta {...props} />;
     }
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <WorkspaceWorkflowsApprovalsApproverPageOld {...props} />;
+    return <WorkspaceWorkflowsApprovalsApproverPage {...props} />;
 }
 
-function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
+function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -206,7 +206,7 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                testID={WorkspaceWorkflowsApprovalsApproverPageWrapper.displayName}
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <FullPageNotFoundView
@@ -242,8 +242,8 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-// TODO: Remove this component once the new workflow is enabled for all users
-function WorkspaceWorkflowsApprovalsApproverPageOld({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
+// TODO: Remove this component when workflowsAdvancedApproval beta is removed
+function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
@@ -368,7 +368,7 @@ function WorkspaceWorkflowsApprovalsApproverPageOld({policy, personalDetails, is
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                testID={WorkspaceWorkflowsApprovalsApproverPageWrapper.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -398,12 +398,12 @@ function WorkspaceWorkflowsApprovalsApproverPageOld({policy, personalDetails, is
     );
 }
 
-WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
+WorkspaceWorkflowsApprovalsApproverPageWrapper.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
 export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceWorkflowsApprovalsApproverPageProps, WorkspaceWorkflowsApprovalsApproverPageOnyxProps>({
         betas: {
             key: ONYXKEYS.BETAS,
         },
-    })(WorkspaceWorkflowsApprovalsApproverPage),
+    })(WorkspaceWorkflowsApprovalsApproverPageWrapper),
 );
