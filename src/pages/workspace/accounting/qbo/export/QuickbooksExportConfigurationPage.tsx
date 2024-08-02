@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,8 +14,6 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-// type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
-
 function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -29,7 +27,13 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         nonReimbursableExpensesExportDestination,
         errorFields,
         pendingFields,
+        autoCreateVendor,
     } = policy?.connections?.quickbooksOnline?.config ?? {};
+
+    const shouldShowVendorMenuItems = useMemo(
+        () => nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+        [nonReimbursableExpensesExportDestination],
+    );
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
@@ -46,10 +50,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            brickRoadIndicator: !!errorFields?.exportEntity || !!errorFields?.reimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            pendingAction: pendingFields?.reimbursableExpensesExportDestination || pendingFields?.reimbursableExpensesAccount,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
@@ -63,8 +64,12 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined,
-            pendingAction: pendingFields?.nonReimbursableExpensesExportDestination,
-            errorText: errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined,
+            subscribedSettings: [
+                CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
+                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR] : []),
+                ...(shouldShowVendorMenuItems && autoCreateVendor ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+            ],
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
@@ -98,7 +103,6 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
                         brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={menuItem?.errorText}
                     />
                 </OfflineWithFeedback>
             ))}

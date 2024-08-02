@@ -110,7 +110,13 @@ function accountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.QUICKBOOKS_CONFIG.EXPORTER, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
+                subscribedExportSettings: [
+                    CONST.QUICKBOOKS_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
+                    CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [

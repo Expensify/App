@@ -1,8 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +10,6 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
@@ -33,23 +30,19 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
-            <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <View style={styles.flex1}>
-                    <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                    <Switch
-                        accessibilityLabel={translate('workspace.accounting.accounts')}
-                        isOn
-                        onToggle={() => {}}
-                    />
-                </View>
-            </View>
+            <ToggleSettingOptionRow
+                title={translate('workspace.accounting.import')}
+                switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                shouldPlaceSubtitleBelowSwitch
+                isActive
+                onToggle={() => {}}
+                showLockIcon
+            />
             <MenuItemWithTopDescription
                 interactive={false}
                 title={translate('workspace.common.categories')}
                 description={translate('workspace.common.displayedAs')}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
             />
             <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow

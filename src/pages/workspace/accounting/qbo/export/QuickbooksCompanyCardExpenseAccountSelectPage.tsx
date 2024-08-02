@@ -9,10 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
@@ -26,8 +29,8 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const {creditCards, accountPayable, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-
-    const {nonReimbursableExpensesAccount, nonReimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const {nonReimbursableExpensesAccount, nonReimbursableExpensesExportDestination, pendingFields} = qboConfig ?? {};
 
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
@@ -97,6 +100,9 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack()}
+            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT] ?? [], pendingFields)}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
         />
     );
 }

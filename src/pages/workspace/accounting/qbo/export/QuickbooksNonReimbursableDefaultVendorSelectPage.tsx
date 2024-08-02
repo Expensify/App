@@ -7,10 +7,13 @@ import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -22,7 +25,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const policyID = policy?.id ?? '-1';
     const sections = useMemo(() => {
@@ -31,19 +34,19 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
                 value: vendor.id,
                 text: vendor.name,
                 keyForList: vendor.name,
-                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
+                isSelected: vendor.id === qboConfig?.nonReimbursableBillDefaultVendor,
             })) ?? [];
         return data.length ? [{data}] : [];
-    }, [nonReimbursableBillDefaultVendor, vendors]);
+    }, [qboConfig?.nonReimbursableBillDefaultVendor, vendors]);
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
-            if (row.value !== nonReimbursableBillDefaultVendor) {
+            if (row.value !== qboConfig?.nonReimbursableBillDefaultVendor) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [nonReimbursableBillDefaultVendor, policyID],
+        [qboConfig?.nonReimbursableBillDefaultVendor, policyID],
     );
 
     const listEmptyContent = useMemo(
@@ -75,6 +78,9 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack()}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR)}
+            onClose={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR)}
         />
     );
 }

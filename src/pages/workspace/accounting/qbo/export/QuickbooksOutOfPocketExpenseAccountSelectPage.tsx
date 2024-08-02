@@ -97,7 +97,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
                 subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                containerStyle={[styles.pb10, {backgroundColor: 'red'}]}
+                containerStyle={styles.pb10}
             />
         ),
         [translate, styles.pb10],
@@ -117,10 +117,10 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title={title}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT], pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT], pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
+            onClose={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
             listEmptyContent={listEmptyContent}
         />
     );

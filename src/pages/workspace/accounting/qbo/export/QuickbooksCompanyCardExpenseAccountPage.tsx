@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -18,8 +19,8 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {nonReimbursableBillDefaultVendor, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} =
-        policy?.connections?.quickbooksOnline?.config ?? {};
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const {nonReimbursableBillDefaultVendor, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} = qboConfig ?? {};
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === nonReimbursableBillDefaultVendor);
 
@@ -28,7 +29,6 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             title: nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.nonReimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             hintText: nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}Description`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION],
         },
@@ -36,7 +36,6 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             title: nonReimbursableExpensesAccount?.name,
             description: ConnectionUtils.getQBONonReimbursableExportAccountType(nonReimbursableExpensesExportDestination),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT],
         },
     ];
@@ -68,13 +67,13 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             {nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
                 <>
                     <ToggleSettingOptionRow
-                        shouldPlaceSubtitleBelowSwitch
+                        title={translate('workspace.accounting.defaultVendor')}
                         subtitle={translate('workspace.qbo.defaultVendorDescription')}
                         switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
-                        errors={errorFields?.autoCreateVendor ?? undefined}
-                        title={translate('workspace.accounting.defaultVendor')}
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!autoCreateVendor}
+                        pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR] ?? [], pendingFields)}
+                        errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
                         onToggle={(isOn) =>
                             Connections.updateManyPolicyConnectionConfigs(
                                 policyID,
@@ -91,17 +90,19 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 },
                             )
                         }
-                        pendingAction={pendingFields?.autoCreateVendor}
                     />
                     {autoCreateVendor && (
-                        <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableBillDefaultVendor}>
+                        <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] ?? [], pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={nonReimbursableBillDefaultVendorObject?.name}
                                 description={translate('workspace.accounting.defaultVendor')}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                                brickRoadIndicator={errorFields?.nonReimbursableBillDefaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={
+                                    PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] ?? [], errorFields)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
                                 shouldShowRightIcon
-                                errorText={errorFields?.nonReimbursableBillDefaultVendor ? translate('common.genericErrorMessage') : undefined}
                             />
                         </OfflineWithFeedback>
                     )}
