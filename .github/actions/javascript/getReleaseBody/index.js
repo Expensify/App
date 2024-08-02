@@ -11463,7 +11463,7 @@ console.log('Got PR list: ', String(PRList));
  * Generate the well-formatted body of a production release.
  */
 function getReleaseBody(pullRequests) {
-    return pullRequests.map((pr) => `- ${pr.title.replaceAll("'", '')} by ${pr.user?.login ?? 'unknown'} in ${pr.html_url}`).join('\r\n');
+    return pullRequests.map((pr) => `- ${pr.title.replaceAll("'", "\\'")} by ${pr.user?.login ?? 'unknown'} in ${pr.html_url}`).join('\r\n');
 }
 async function run() {
     const allPRs = await GithubUtils_1.default.fetchAllPullRequests(PRList);
