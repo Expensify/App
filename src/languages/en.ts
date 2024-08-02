@@ -1294,8 +1294,9 @@ export default {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
+        header: 'Send to this member for approval:',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
