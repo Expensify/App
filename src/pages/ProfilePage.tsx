@@ -80,7 +80,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.guideCalendarLink,
     });
@@ -301,7 +301,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 })}
                             />
                         )}
-                        {!isEmptyObject(report) && report.reportID && !!user?.isDebugModeEnabled && (
+                        {!isEmptyObject(report) && report.reportID && isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
                                 icon={Expensicons.Bug}

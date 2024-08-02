@@ -39,7 +39,7 @@ function DebugReportPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`}
+                        title={`${translate('debug.debug')} - ${translate('debug.report')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <OnyxTabNavigator

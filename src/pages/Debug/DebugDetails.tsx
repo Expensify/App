@@ -5,8 +5,8 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import isObject from '@src/utils/isObject';
 
 type DebugDetailsProps = {
     data: Record<string, unknown>;
@@ -17,27 +17,32 @@ type DebugDetailsProps = {
 function DebugDetails({data, onSave, onDelete}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draftData, setDraftData] = useState(data);
+    const [draftData, setDraftData] = useState<Record<string, string>>(DebugUtils.onyxDataToDraftData(data));
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [hasChanges, setHasChanges] = useState<boolean>(false);
     return (
         <ScrollView
             style={styles.mt5}
             contentContainerStyle={[styles.gap5, styles.ph5, styles.pb5]}
         >
-            {Object.entries(data ?? {}).map(([key, value]) => (
+            {Object.entries(draftData ?? {}).map(([key, value]) => (
                 <TextInput
                     errorText={errors[key]}
                     accessibilityLabel="Text input field"
                     key={key}
                     forceActiveLabel
                     label={key}
-                    numberOfLines={4}
-                    multiline={isObject(value)}
-                    defaultValue={isObject(value) ? JSON.stringify(value, null, 6) : String(value)}
+                    numberOfLines={DebugUtils.getNumberOfLinesFromString(value)}
+                    multiline={DebugUtils.getNumberOfLinesFromString(value) > 1}
+                    value={value}
                     onChangeText={(updatedValue) => {
-                        setDraftData((currentDraftData) => ({...currentDraftData, [key]: updatedValue}));
-                        setHasChanges(true);
+                        try {
+                            DebugUtils.stringToOnyxData(updatedValue, typeof data[key]);
+                            setErrors((currentErrors) => ({...currentErrors, [key]: ''}));
+                        } catch (e) {
+                            setErrors((currentErrors) => ({...currentErrors, [key]: (e as SyntaxError).message}));
+                        } finally {
+                            setDraftData((currentDraftData) => ({...currentDraftData, [key]: updatedValue}));
+                        }
                     }}
                 />
             ))}
@@ -45,28 +50,15 @@ function DebugDetails({data, onSave, onDelete}: DebugDetailsProps) {
             <Button
                 success
                 text={translate('common.save')}
-                isDisabled={!hasChanges}
+                isDisabled={
+                    Object.entries(draftData).reduce((prev, [key, value]) => prev && DebugUtils.compareStringWithOnyxData(value, data[key]), true) ||
+                    Object.values(errors).reduce((prevError, currError) => prevError || !!currError, false)
+                }
                 onPress={() => {
-                    let updatedData = draftData;
-                    let hasErrors = false;
                     setErrors({});
-                    const results = Object.entries(draftData).map(([key, value]) => {
-                        try {
-                            if (isObject(data[key])) {
-                                return [key, typeof value === 'string' ? JSON.parse(value.replaceAll('\n', '')) : value] as [string, unknown];
-                            }
-                        } catch (e) {
-                            setErrors((currentErrors) => ({...currentErrors, [key]: (e as SyntaxError).message}));
-                            hasErrors = true;
-                        }
-                        return [key, value];
-                    });
-                    updatedData = Object.fromEntries(results) as Record<string, unknown>;
-                    if (hasErrors) {
-                        return;
-                    }
-                    setHasChanges(false);
-                    onSave(updatedData);
+                    const onyxData = Object.fromEntries(Object.entries(draftData).map(([key, value]) => [key, DebugUtils.stringToOnyxData(value, typeof data[key])] as [string, unknown]));
+                    onSave(onyxData);
+                    setDraftData(DebugUtils.onyxDataToDraftData(onyxData));
                 }}
             />
             <Button

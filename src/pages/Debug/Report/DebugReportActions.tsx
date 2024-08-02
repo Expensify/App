@@ -29,7 +29,8 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         <PressableWithFeedback
             accessibilityLabel={translate('common.details')}
             onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-            style={[styles.flexRow, styles.justifyContentBetween]}
+            style={({pressed}) => [styles.flexRow, styles.justifyContentBetween, pressed && styles.hoveredComponentBG, styles.p4]}
+            hoverStyle={styles.hoveredComponentBG}
         >
             <Text>{item.reportActionID}</Text>
             <Text style={styles.textLabelSupporting}>{datetimeToCalendarTime(item.created, false, false)}</Text>
@@ -38,15 +39,15 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     return (
         <ScrollView
             style={styles.mt5}
-            contentContainerStyle={[styles.ph5, styles.pb5, styles.gap5]}
+            contentContainerStyle={[styles.pb5, styles.gap5]}
         >
             <Button
                 success
                 text={translate('common.create')}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_CREATE.getRoute(reportID))}
+                style={styles.ph5}
             />
             <FlatList
-                contentContainerStyle={styles.gap5}
                 data={sortedAllReportActions}
                 renderItem={renderItem}
             />

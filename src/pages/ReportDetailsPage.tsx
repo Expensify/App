@@ -100,7 +100,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     );
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -430,7 +430,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (report?.reportID && !!user?.isDebugModeEnabled) {
+        if (report?.reportID && isDebugModeEnabled) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
                 translationKey: 'debug.debug',
@@ -466,7 +466,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isPolicyAdmin,
         isSingleTransactionView,
         canUnapproveRequest,
-        user?.isDebugModeEnabled,
+        isDebugModeEnabled,
         activeChatMembers.length,
         session,
         canModifyTask,

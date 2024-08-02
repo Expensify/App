@@ -30,6 +30,7 @@ const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedT
 
 function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
+    const isDebugModeEnabled = !!user?.isDebugModeEnabled;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -45,8 +46,8 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
                 <Switch
                     accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
-                    isOn={!!user.isDebugModeEnabled}
-                    onToggle={() => User.setIsDebugModeEnabled(!user.isDebugModeEnabled)}
+                    isOn={isDebugModeEnabled}
+                    onToggle={() => User.setIsDebugModeEnabled(!isDebugModeEnabled)}
                 />
             </TestToolRow>
 

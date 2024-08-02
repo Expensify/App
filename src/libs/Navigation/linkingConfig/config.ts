@@ -1198,6 +1198,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                     path: ROUTES.DEBUG_REPORT_ACTION_TAB_JSON.route,
                                     exact: true,
                                 },
+                                preview: {
+                                    path: ROUTES.DEBUG_REPORT_ACTION_TAB_PREVIEW.route,
+                                    exact: true,
+                                },
                             },
                         },
                         [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {

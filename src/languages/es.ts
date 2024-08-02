@@ -5322,7 +5322,7 @@ export default {
         reportActions: 'Actions',
         reportActionPreview: 'Previa',
         nothingToPreview: 'Nada que previsualizar',
-        editJson: 'Edit JSON:',
+        editJson: 'Editar JSON:',
         preview: 'Previa:',
         missingProperty: ({propertyName}) => `Falta ${propertyName}`,
         createReportAction: 'Crear Report Action',
