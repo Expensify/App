@@ -712,6 +712,10 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
+                // in the correct unit stored under the transaction customUnit once the request is created.
+                // The route is also not saved in the backend, so we can't rely on it.
+                routes: null,
             },
         },
 
@@ -1461,6 +1465,7 @@ function buildOnyxDataForTrackExpense(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                routes: null,
             },
         },
     );
@@ -2492,7 +2497,7 @@ function calculateAmountForUpdatedWaypoint(
             ? DistanceRequestUtils.getRateForP2P(policyCurrency)
             : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
         const {unit, rate} = mileageRate;
-        const distance = TransactionUtils.getDistance(transaction);
+        const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
         updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
         updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
@@ -2755,6 +2760,7 @@ function getUpdateMoneyRequestParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -2966,6 +2972,7 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
