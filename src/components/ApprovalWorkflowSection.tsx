@@ -73,7 +73,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
 
                 {approvalWorkflow.approvers.map((approver, index) => (
                     <View key={approver.email}>
-                        <View style={{height: 16, width: 1, backgroundColor: theme.border, marginLeft: 19}} />
+                        <View style={styles.workflowApprovalVerticalLine} />
                         <MenuItem
                             title={approverTitle(index)}
                             style={styles.p0}

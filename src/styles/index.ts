@@ -5150,6 +5150,13 @@ const styles = (theme: ThemeColors) =>
             width: 184,
             height: 112,
         },
+
+        workflowApprovalVerticalLine: {
+            height: 16,
+            width: 1,
+            marginLeft: 19,
+            backgroundColor: theme.border,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
