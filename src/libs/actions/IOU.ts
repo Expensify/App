@@ -712,6 +712,9 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
+                // in the correct unit stored under the transaction customUnit once the request is created.
+                // The route is also not saved in the backend, so we can't rely on it.
                 routes: null,
             },
         },
