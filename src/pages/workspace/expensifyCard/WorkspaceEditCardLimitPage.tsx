@@ -19,6 +19,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
@@ -72,7 +73,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
         const currentLimit = card.nameValuePairs?.limit ?? 0;
-        const currentSpend = currentLimit - card.availableSpend;
+        const currentSpend = currentLimit - (card.availableSpend ?? 0);
         const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
         const newAvailableSpend = newLimit - currentSpend;
 
@@ -109,7 +110,10 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.expensifyCard.cardLimit')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.expensifyCard.cardLimit')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
+                />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM}
                     submitButtonText={translate('common.save')}

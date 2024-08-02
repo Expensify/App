@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars */
+import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
-import type {StartTrace, StopTrace, TraceMap} from './types';
+import * as SessionUtils from '@libs/SessionUtils';
+import type {Log, StartTrace, StopTrace, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 
@@ -15,9 +17,12 @@ const startTrace: StartTrace = (customEventName) => {
         return;
     }
 
+    const session = SessionUtils.getSession();
+
     perf()
         .startTrace(customEventName)
         .then((trace) => {
+            trace.putAttribute('accountID', session?.accountID?.toString() ?? 'N/A');
             traceMap[customEventName] = {
                 trace,
                 start,
@@ -46,7 +51,12 @@ const stopTrace: StopTrace = (customEventName) => {
     delete traceMap[customEventName];
 };
 
+const log: Log = (action: string) => {
+    crashlytics().log(action);
+};
+
 export default {
     startTrace,
     stopTrace,
+    log,
 };

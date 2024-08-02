@@ -121,6 +121,9 @@ type OriginalMessageAddComment = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo: number[];
+
+    /** List accountIDs are mentioned in message */
+    mentionedAccountIDs?: number[];
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -314,6 +317,12 @@ type OriginalMessageModifiedExpense = {
     /** Old expense tax rate */
     oldTaxRate?: string;
 
+    /** Edited expense reimbursable */
+    reimbursable?: string;
+
+    /** Old expense reimbursable */
+    oldReimbursable?: string;
+
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
@@ -396,6 +405,18 @@ type OriginalMessageApproved = {
     amount: number;
 
     /** Currency of the approved expense amount */
+    currency: string;
+
+    /** Report ID of the expense */
+    expenseReportID: string;
+};
+
+/** Model of `forwarded` report action */
+type OriginalMessageForwarded = {
+    /** Forwarded expense amount */
+    amount: number;
+
+    /** Currency of the forwarded expense amount */
     currency: string;
 
     /** Report ID of the expense */
@@ -491,7 +512,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     /** */
@@ -576,6 +597,12 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {
