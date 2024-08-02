@@ -9,7 +9,7 @@ import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetS
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {canUseTaxNetSuite, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, canUseTaxNetSuite, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -49,11 +49,10 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 switchAccessibilityLabel={translate('workspace.netsuite.import.expenseCategories')}
                 onToggle={() => {}}
             />
-
             {CONST.NETSUITE_CONFIG.IMPORT_FIELDS.map((importField) => (
                 <OfflineWithFeedback
                     key={importField}
-                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.[importField]}
+                    pendingAction={settingsPendingAction([importField], config?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         description={translate(`workspace.netsuite.import.importFields.${importField}.title`)}
@@ -62,19 +61,19 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         onPress={() => {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING.getRoute(policyID, importField));
                         }}
-                        brickRoadIndicator={config?.errorFields?.[importField] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields([importField], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}
-
             <OfflineWithFeedback
-                pendingAction={
-                    settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.pendingFields) ??
-                    settingsPendingAction(
-                        [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
-                        config?.syncOptions?.mapping?.pendingFields,
-                    )
-                }
+                pendingAction={settingsPendingAction(
+                    [
+                        CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
+                        CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
+                        CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                    ],
+                    config?.pendingFields,
+                )}
             >
                 <MenuItemWithTopDescription
                     description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
@@ -84,27 +83,36 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     onPress={() => {
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
                     }}
-                    brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={
+                        areSettingsInErrorFields(
+                            [
+                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
+                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
+                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                            ],
+                            config?.errorFields,
+                        )
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : undefined
+                    }
                 />
             </OfflineWithFeedback>
-
-            {canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (
-                <ToggleSettingOptionRow
-                    wrapperStyle={[styles.mv3, styles.ph5]}
-                    title={translate('common.tax')}
-                    subtitle={translate('workspace.netsuite.import.importTaxDescription')}
-                    shouldPlaceSubtitleBelowSwitch
-                    isActive={config?.syncOptions?.syncTax ?? false}
-                    switchAccessibilityLabel={translate('common.tax')}
-                    onToggle={(isEnabled: boolean) => {
-                        updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
-                    }}
-                    pendingAction={config?.pendingFields?.syncTax}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
-                />
-            )}
-
+            {/*{canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (*/}
+            {/*    <ToggleSettingOptionRow*/}
+            {/*        wrapperStyle={[styles.mv3, styles.ph5]}*/}
+            {/*        title={translate('common.tax')}*/}
+            {/*        subtitle={translate('workspace.netsuite.import.importTaxDescription')}*/}
+            {/*        shouldPlaceSubtitleBelowSwitch*/}
+            {/*        isActive={config?.syncOptions?.syncTax ?? false}*/}
+            {/*        switchAccessibilityLabel={translate('common.tax')}*/}
+            {/*        onToggle={(isEnabled: boolean) => {*/}
+            {/*            updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);*/}
+            {/*        }}*/}
+            {/*        pendingAction={config?.pendingFields?.syncTax}*/}
+            {/*        errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}*/}
+            {/*        onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}*/}
+            {/*    />*/}
+            {/*)}*/}
             {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => (
                 <OfflineWithFeedback
                     key={importField}

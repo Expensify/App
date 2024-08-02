@@ -798,25 +798,28 @@ type NetSuiteCustomFormID = {
     enabled: boolean;
 };
 
+/** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
+type NetSuiteSyncOptionsMapping = {
+    /** A general type of classification category in NetSuite */
+    classes: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to projects */
+    jobs: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to locations */
+    locations: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to customers */
+    customers: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to departments within the company */
+    departments: NetSuiteMappingValues;
+};
+
 /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
 type NetSuiteSyncOptions = {
     /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
-    mapping: OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** A general type of classification category in NetSuite */
-        classes: NetSuiteMappingValues;
-
-        /** A type of classification category in NetSuite linked to projects */
-        jobs: NetSuiteMappingValues;
-
-        /** A type of classification category in NetSuite linked to locations */
-        locations: NetSuiteMappingValues;
-
-        /** A type of classification category in NetSuite linked to customers */
-        customers: NetSuiteMappingValues;
-
-        /** A type of classification category in NetSuite linked to departments within the company */
-        departments: NetSuiteMappingValues;
-    }>;
+    mapping: NetSuiteSyncOptionsMapping;
 
     /** Whether we want to import customers into NetSuite from across all subsidiaries */
     crossSubsidiaryCustomers: boolean;
@@ -954,7 +957,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof NetSuiteSyncOptions | keyof NetSuiteCustomFormID
+    keyof NetSuiteSyncOptions | keyof NetSuiteCustomFormID | keyof NetSuiteSyncOptionsMapping
 >;
 
 /** NetSuite connection model */

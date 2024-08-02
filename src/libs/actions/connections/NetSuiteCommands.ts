@@ -322,13 +322,13 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: mappingValue,
-                                            pendingFields: {
-                                                [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         [mappingName]: null,
+                                    },
+                                    pendingFields: {
+                                        [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
                                 },
                             },
@@ -349,12 +349,12 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: mappingValue,
-                                            pendingFields: {
-                                                [mappingName]: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
+                                        [mappingName]: null,
+                                    },
+                                    pendingFields: {
                                         [mappingName]: null,
                                     },
                                 },
@@ -376,13 +376,13 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: oldMappingValue,
-                                            pendingFields: {
-                                                [mappingName]: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                    pendingFields: {
+                                        [mappingName]: null,
                                     },
                                 },
                             },
@@ -447,15 +447,15 @@ function updateNetSuiteCustomersJobsMapping(
                                         mapping: {
                                             customers: mappingValue.customersMapping,
                                             jobs: mappingValue.jobsMapping,
-                                            pendingFields: {
-                                                customers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                                jobs: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         customers: null,
                                         jobs: null,
+                                    },
+                                    pendingFields: {
+                                        customers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        jobs: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
                                 },
                             },
@@ -477,13 +477,13 @@ function updateNetSuiteCustomersJobsMapping(
                                         mapping: {
                                             customers: mappingValue.customersMapping,
                                             jobs: mappingValue.jobsMapping,
-                                            pendingFields: {
-                                                customers: null,
-                                                jobs: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
+                                        customers: null,
+                                        jobs: null,
+                                    },
+                                    pendingFields: {
                                         customers: null,
                                         jobs: null,
                                     },
@@ -507,15 +507,15 @@ function updateNetSuiteCustomersJobsMapping(
                                         mapping: {
                                             customers: oldMappingValue.customersMapping,
                                             jobs: oldMappingValue.jobsMapping,
-                                            pendingFields: {
-                                                customers: null,
-                                                jobs: null,
-                                            },
                                         },
                                     },
                                     errorFields: {
                                         customers: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                         jobs: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                    pendingFields: {
+                                        customers: null,
+                                        jobs: null,
                                     },
                                 },
                             },
