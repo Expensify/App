@@ -108,7 +108,7 @@ function NetSuiteImportMappingPage({
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
             title={titleKey}
             listFooterContent={listFooterContent}
-            pendingAction={settingsPendingAction([importField], netsuiteConfig?.syncOptions?.mapping?.pendingFields)}
+            pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
             errorRowStyles={[styles.ph5]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
