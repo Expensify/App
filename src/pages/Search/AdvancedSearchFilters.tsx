@@ -132,7 +132,7 @@ function AdvancedSearchFilters() {
             </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
-                containerStyles={[styles.m4]}
+                containerStyles={[styles.mh4, styles.mt4]}
                 onSubmit={onFormSubmit}
                 enabledWhenOffline
             />
