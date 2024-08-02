@@ -76,7 +76,7 @@ function AddPaymentMethodMenu({
 
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
-        if (!isVisible) {
+        if (!isVisible || !isPersonalOnlyOption) {
             return;
         }
 
