@@ -24,6 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,8 +179,10 @@ function IOURequestStepWaypoint({
                             icon: Expensicons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
                             onSelected: () => {
-                                setRestoreFocusType(undefined);
-                                setIsDeleteStopModalOpen(true);
+                                Modal.close(() => {
+                                    setRestoreFocusType(undefined);
+                                    setIsDeleteStopModalOpen(true);
+                                });
                             },
                         },
                     ]}
