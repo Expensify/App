@@ -184,10 +184,10 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
 
     const goBack = useCallback(() => {
         if (!approvalWorkflow?.isBeingEdited) {
-            Workflow.setApprovalWorkflowApprover(null, approverIndex);
+            Workflow.clearApprovalWorkflowApprovers();
         }
         Navigation.goBack();
-    }, [approvalWorkflow?.isBeingEdited, approverIndex]);
+    }, [approvalWorkflow?.isBeingEdited]);
 
     const toggleApprover = (approver: SelectionListApprover) => {
         if (selectedApproverEmail === approver.login) {
