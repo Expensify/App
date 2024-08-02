@@ -55,6 +55,8 @@ function BaseGenericTooltip({
                 currentSize: animation,
                 windowWidth,
                 xOffset,
+                // On native, yOffset is calculated from bottom edge of element to the top of screen
+                // so we need to exclude targetHeight and gutterWidth
                 yOffset: yOffset - targetHeight - variables.gutterWidth,
                 tooltipTargetWidth: targetWidth,
                 tooltipTargetHeight: targetHeight,
