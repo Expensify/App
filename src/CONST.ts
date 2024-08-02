@@ -73,7 +73,6 @@ const onboardingChoices = {
 
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
-// 667479706D69663100000000
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
