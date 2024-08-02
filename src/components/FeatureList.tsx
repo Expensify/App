@@ -107,6 +107,7 @@ function FeatureList({
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
                                 containerStyle={[styles.m0, styles.wAuto]}
+                                numberOfLinesTitle={0}
                             />
                         </View>
                     ))}
