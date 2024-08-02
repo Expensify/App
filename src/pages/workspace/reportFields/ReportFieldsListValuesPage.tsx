@@ -257,6 +257,7 @@ function ReportFieldsListValuesPage({
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    isDisabled={!selectedValuesArray.length}
                 />
             );
         }
