@@ -57,7 +57,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
     return filterValue
         ? Object.values(cards)
-              .filter((card) => filterValue.includes(card.cardID?.toString()))
+              .filter((card) => filterValue.includes(card.cardID.toString()))
               .map((card) => card.bank)
               .join(', ')
         : undefined;

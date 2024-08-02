@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
-import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -31,7 +30,6 @@ function SearchFiltersCardPage() {
     const sections = useMemo(() => {
         const newSections: CategorySection[] = [];
         const cards = Object.values(cardList ?? {})
-            .filter((card) => card.cardID)
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
@@ -51,16 +49,13 @@ function SearchFiltersCardPage() {
         return newSections;
     }, [cardList, styles, newCards]);
 
-    const updateCard = useCallback((values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) => {
-        SearchActions.updateAdvancedFilters(values);
-    }, []);
-
     const handleConfirmSelection = useCallback(() => {
-        updateCard({
+        SearchActions.updateAdvancedFilters({
             cardID: newCards,
         });
+
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [updateCard, newCards]);
+    }, [newCards]);
 
     const updateNewCards = useCallback(
         (item: Partial<OptionData>) => {
@@ -68,9 +63,9 @@ function SearchFiltersCardPage() {
                 return;
             }
             if (item.isSelected) {
-                setNewCards(newCards?.filter((card) => card !== item.keyForList));
+                setNewCards(newCards.filter((card) => card !== item.keyForList));
             } else {
-                setNewCards([...(newCards ?? []), item.keyForList]);
+                setNewCards([...newCards, item.keyForList]);
             }
         },
         [newCards],
@@ -106,7 +101,6 @@ function SearchFiltersCardPage() {
                     <SelectionList
                         sections={sections}
                         onSelectRow={updateNewCards}
-                        // headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
                         footerContent={footerContent}
                         shouldStopPropagation
                         shouldShowTooltips
