@@ -221,7 +221,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     // Self review
                     optimisticNextStep = {
                         type,
-                        title: 'Next Steps:',
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                         message: [
                             {
                                 text: 'Waiting for ',
@@ -247,10 +247,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 // Another owner
                 optimisticNextStep = {
                     type,
-                    title: 'Next Steps:',
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     message: [
                         {
-                            text: ' Waiting for ',
+                            text: 'Waiting for ',
                         },
                         {
                             text: approvalChain[0],
