@@ -243,7 +243,6 @@ function ReportActionsView({
             return -1;
         }
         return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [combinedReportActions, currentReportActionID, reportActionID]);
 
     const reportActions = useMemo(() => {
@@ -290,7 +289,6 @@ function ReportActionsView({
 
                 // Get newer actions based on the newest reportAction for the transaction thread report
                 const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-
                 Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '-1', newestActionTransactionThreadReport?.reportActionID ?? '-1');
             } else {
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);

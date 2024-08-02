@@ -112,13 +112,14 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
+const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,
-        useRoute: () => jest.fn(),
+        useRoute: () => mockRoute,
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: () => jest.fn(),
@@ -212,7 +213,6 @@ function ReportScreenWrapper(props: ReportScreenWrapperProps) {
 
 const report = {...createRandomReport(1), policyID: '1'};
 const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
-const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', async () => {
     const {addListener} = createAddListenerMock();
