@@ -761,10 +761,10 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
-function getCurrentSageIntacctEntityName(policy: Policy | undefined, translate: LocaleContextProps['translate']): string | undefined {
+function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
-        return translate('workspace.common.topLevel');
+        return defaultNameIfNoEntity;
     }
     const entities = policy?.connections?.intacct?.data?.entities;
     return entities?.find((entity) => entity.id === currentEntityID)?.name;
