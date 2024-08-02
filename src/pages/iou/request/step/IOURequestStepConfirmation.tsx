@@ -360,7 +360,7 @@ function IOURequestStepConfirmation({
             formHasBeenSubmitted.current = true;
             playSound(SOUNDS.DONE);
 
-            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 return;
             }
@@ -503,11 +503,6 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
-                return;
-            }
-
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
@@ -529,8 +524,6 @@ function IOURequestStepConfirmation({
             policyCategories,
             transactionTaxAmount,
             transactionTaxCode,
-            action,
-            requestType,
         ],
     );
 
