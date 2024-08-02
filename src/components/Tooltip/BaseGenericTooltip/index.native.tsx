@@ -6,6 +6,7 @@ import type {View as RNView} from 'react-native';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
@@ -53,8 +54,8 @@ function BaseGenericTooltip({
                 tooltip: rootWrapper.current,
                 currentSize: animation,
                 windowWidth,
-                xOffset: xOffset - windowWidth,
-                yOffset: yOffset - targetHeight - 12,
+                xOffset,
+                yOffset: yOffset - targetHeight - variables.gutterWidth,
                 tooltipTargetWidth: targetWidth,
                 tooltipTargetHeight: targetHeight,
                 maxWidth,
@@ -65,6 +66,7 @@ function BaseGenericTooltip({
                 shouldForceRenderingBelow,
                 anchorAlignment,
                 wrapperStyle,
+                shouldAddHorizontalPadding: false,
             }),
         [
             StyleUtils,

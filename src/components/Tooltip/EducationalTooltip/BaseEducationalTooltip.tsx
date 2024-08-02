@@ -2,7 +2,6 @@ import React, {memo, useEffect, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
-import getBounds from './getBounds';
 
 /**
  * A component used to wrap an element intended for displaying a tooltip.
@@ -45,8 +44,16 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}:
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {
                     onLayout: (e: LayoutChangeEvent) => {
-                        updateTargetBounds(getBounds(e));
-                        showTooltip();
+                        const target = e.target || e.nativeEvent.target;
+                        target?.measure((fx, fy, width, height, px, py) => {
+                            updateTargetBounds({
+                                height,
+                                width,
+                                x: px,
+                                y: py,
+                            });
+                            showTooltip();
+                        });
                     },
                 });
             }}
