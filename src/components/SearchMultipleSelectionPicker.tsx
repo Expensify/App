@@ -21,7 +21,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<string[]>(initiallySelectedItems ?? []);
 
-    const {sections, headerMessage} = useMemo(() => {
+    const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => localeCompare(a, b))
@@ -54,9 +54,9 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                           shouldShow: remainingItemsSection.length > 0,
                       },
                   ],
-            headerMessage: isEmpty ? translate('common.noResultsFound') : undefined,
+            noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, translate, debouncedSearchTerm]);
+    }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
     const handleConfirmSelection = useCallback(() => {
         onSaveSelection(selectedItems);
@@ -96,10 +96,10 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             onChangeText={setSearchTerm}
             textInputLabel={translate('common.search')}
             onSelectRow={onSelectItem}
-            headerMessage={headerMessage}
+            headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
             footerContent={footerContent}
             shouldStopPropagation
-            showLoadingPlaceholder={!headerMessage}
+            showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             canSelectMultiple
             ListItem={SelectableListItem}

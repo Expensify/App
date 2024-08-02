@@ -78,6 +78,11 @@ function AdvancedSearchFilters() {
                 description: 'common.category' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, translate),
+                description: 'workspace.taxes.taxRate' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+            },
         ],
         [searchAdvancedFilters, translate],
     );

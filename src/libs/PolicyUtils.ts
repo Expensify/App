@@ -410,6 +410,17 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
+function getAllTaxRates(): TaxRate[] {
+    const allTaxRates: TaxRate[] = [];
+    Object.values(allPolicies ?? {})?.forEach((policy) => {
+        if (!policy?.taxRates?.taxes) {
+            return;
+        }
+        allTaxRates.concat(Object.values(policy?.taxRates?.taxes));
+    });
+    return allTaxRates;
+}
+
 /**
  * Whether the tax rate can be deleted and disabled
  */
@@ -969,6 +980,7 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getAllTaxRates,
 };
 
 export type {MemberEmailsToAccountIDs};

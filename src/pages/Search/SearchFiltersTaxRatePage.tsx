@@ -7,47 +7,47 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import MultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function SearchFiltersCategoryPage() {
+function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedCategories = searchAdvancedFiltersForm?.category;
+    const selectedTaxes = searchAdvancedFiltersForm?.taxRate;
     const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-    const [allPolicyIDCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const singlePolicyCategories = allPolicyIDCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const allTaxRates = getAllTaxRates();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const singlePolicyTaxRates = policy?.taxRates?.taxes;
 
-    const categoryNames = useMemo(() => {
-        let categories: string[] = [];
-        if (!singlePolicyCategories) {
-            categories = Object.values(allPolicyIDCategories ?? {})
-                .map((policyCategories) => Object.values(policyCategories ?? {}).map((category) => category.name))
-                .flat();
+    const taxNames = useMemo(() => {
+        let taxRates: string[] = [];
+        if (!singlePolicyTaxRates) {
+            taxRates = allTaxRates.map((taxRate) => taxRate.name);
         } else {
-            categories = Object.values(singlePolicyCategories ?? {}).map((value) => value.name);
+            taxRates = Object.values(singlePolicyTaxRates).map((taxRate) => taxRate.name);
         }
 
-        return [...new Set(categories)];
-    }, [allPolicyIDCategories, singlePolicyCategories]);
+        return [...new Set(taxRates)];
+    }, [allTaxRates, singlePolicyTaxRates]);
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCategoryPage.displayName}
+            testID={SearchFiltersTaxRatePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.category')} />
+                <HeaderWithBackButton title={translate('workspace.taxes.taxRate')} />
                 <View style={[styles.flex1]}>
                     <MultipleSelectionPicker
-                        pickerTitle={translate('common.category')}
-                        items={categoryNames}
-                        initiallySelectedItems={selectedCategories}
+                        pickerTitle={translate('workspace.taxes.taxRate')}
+                        items={taxNames}
+                        initiallySelectedItems={selectedTaxes}
                         onSaveSelection={onSaveSelection}
                     />
                 </View>
@@ -56,6 +56,6 @@ function SearchFiltersCategoryPage() {
     );
 }
 
-SearchFiltersCategoryPage.displayName = 'SearchFiltersCategoryPage';
+SearchFiltersTaxRatePage.displayName = 'SearchFiltersCategoryPage';
 
-export default SearchFiltersCategoryPage;
+export default SearchFiltersTaxRatePage;
