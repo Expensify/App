@@ -27,7 +27,10 @@ type BaseGenericTooltipProps = {
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number;
-} & Pick<SharedTooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment'>;
+} & Pick<
+    SharedTooltipProps,
+    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onPressOverlay'
+>;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {BaseGenericTooltipProps};

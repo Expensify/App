@@ -1,6 +1,7 @@
 import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
+import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -32,6 +33,8 @@ function BaseGenericTooltip({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
+    shouldUseOverlay = false,
+    onPressOverlay = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -115,15 +118,18 @@ function BaseGenericTooltip({
     }
 
     return ReactDOM.createPortal(
-        <Animated.View
-            ref={viewRef(rootWrapper)}
-            style={[rootWrapperStyle, animationStyle]}
-        >
-            {content}
-            <View style={pointerWrapperStyle}>
-                <View style={pointerStyle} />
-            </View>
-        </Animated.View>,
+        <>
+            {shouldUseOverlay && <TransparentOverlay onPress={onPressOverlay} />}
+            <Animated.View
+                ref={viewRef(rootWrapper)}
+                style={[rootWrapperStyle, animationStyle]}
+            >
+                {content}
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>
+        </>,
         body,
     );
 }

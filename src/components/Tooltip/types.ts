@@ -36,6 +36,12 @@ type SharedTooltipProps = {
 
     /** Additional styles for tooltip wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Should render a fullscreen transparent overlay */
+    shouldUseOverlay?: boolean;
+
+    /** Callback to fire when the transparent overlay is pressed */
+    onPressOverlay?: () => void;
 };
 
 type GenericTooltipState = {
@@ -65,7 +71,11 @@ type TooltipProps = ChildrenProps &
         shouldHandleScroll?: boolean;
     };
 
-type EducationalTooltipProps = ChildrenProps & SharedTooltipProps;
+type EducationalTooltipProps = ChildrenProps &
+    SharedTooltipProps & {
+        /** Whether to automatically dismiss the tooltip after 5 seconds */
+        shouldAutoDismiss?: boolean;
+    };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */

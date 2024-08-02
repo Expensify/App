@@ -34,6 +34,8 @@ function GenericTooltip({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     shouldForceAnimate = false,
+    shouldUseOverlay = false,
+    onPressOverlay = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -168,6 +170,8 @@ function GenericTooltip({
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
+                    shouldUseOverlay={shouldUseOverlay}
+                    onPressOverlay={onPressOverlay}
                 />
             )}
 
