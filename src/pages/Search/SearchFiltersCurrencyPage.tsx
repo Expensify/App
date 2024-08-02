@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +29,7 @@ function SearchFiltersCurrencyPage() {
     };
 
     const handleOnSubmit = () => {
-        updateAdvancedFilters({...searchAdvancedFiltersForm, currency: selectedCurrencies});
+        SearchActions.updateAdvancedFilters({...searchAdvancedFiltersForm, currency: selectedCurrencies});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 

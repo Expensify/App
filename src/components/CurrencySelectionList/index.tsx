@@ -30,7 +30,7 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         if (canSelectMultiple) {
-            filteredCurrencies.sort(function (currencyA, currencyB) {
+            filteredCurrencies.sort((currencyA, currencyB) => {
                 if (currencyA.isSelected === currencyB.isSelected) {
                     return 0;
                 }
