@@ -101,6 +101,12 @@ const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentRepo
     IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
 };
 
+const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
+    return originalMessage?.IOUTransactionID ?? -1;
+};
+
 function MoneyRequestView({
     report,
     parentReport,
@@ -132,7 +138,9 @@ function MoneyRequestView({
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
         return originalMessage?.IOUTransactionID ?? '-1';
     }, [parentReportAction]);
+
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`);
+    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID}`);
 
     const {
         created: transactionDate,
@@ -216,7 +224,7 @@ function MoneyRequestView({
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
+    const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
     const rateID = transaction?.comment?.customUnit?.customUnitRateID ?? '-1';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -225,7 +233,7 @@ function MoneyRequestView({
     const {unit} = mileageRate;
     const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transaction), unit);
+    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transactionBackup ?? transaction), unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -679,13 +687,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transactionViolations: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
-                const originalMessage =
-                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? -1;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-            },
+            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`,
         },
     })(MoneyRequestView),
 );

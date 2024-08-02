@@ -7196,11 +7196,10 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: stri
             searchText: policyName,
         },
     ]);
-    const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
     if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
-        Navigation.navigate(iouConfirmationPageRoute);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, true));
     }
 }
 
@@ -7292,8 +7291,8 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
     // onboarding can be an array for old accounts and accounts created from olddot
-    if (!Array.isArray(onboarding) && onboarding?.chatReportID === optionOrReport?.reportID) {
-        return true;
+    if (onboarding && !Array.isArray(onboarding) && onboarding.chatReportID) {
+        return onboarding.chatReportID === optionOrReport?.reportID;
     }
 
     return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
