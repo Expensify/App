@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import MultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

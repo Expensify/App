@@ -7,9 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import MultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
@@ -42,7 +44,12 @@ function SearchFiltersTaxRatePage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('workspace.taxes.taxRate')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.taxes.taxRate')}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    }}
+                />
                 <View style={[styles.flex1]}>
                     <MultipleSelectionPicker
                         pickerTitle={translate('workspace.taxes.taxRate')}

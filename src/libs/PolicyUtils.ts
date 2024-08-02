@@ -416,7 +416,7 @@ function getAllTaxRates(): TaxRate[] {
         if (!policy?.taxRates?.taxes) {
             return;
         }
-        allTaxRates.concat(Object.values(policy?.taxRates?.taxes));
+        allTaxRates.push(...Object.values(policy?.taxRates?.taxes));
     });
     return allTaxRates;
 }
