@@ -360,6 +360,7 @@ export default {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        reportID: 'ID del informe',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -1016,6 +1017,7 @@ export default {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            testCrash: 'Prueba de fallo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1297,6 +1299,7 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
+        header: 'Cuando los siguientes miembros presenten gastos:',
     },
     workflowsApprovalPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -4738,6 +4741,8 @@ export default {
         details: {
             title: 'Datos de suscripción',
             annual: 'Suscripción anual',
+            taxExempt: 'Solicitar estado de exención de impuestos',
+            taxExemptEnabled: 'Exento de impuestos',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
             headsUp:

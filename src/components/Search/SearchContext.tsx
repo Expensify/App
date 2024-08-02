@@ -1,49 +1,58 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {SearchContext} from './types';
+import type {SearchContext, SelectedTransactions} from './types';
 
 const defaultSearchContext = {
     currentSearchHash: -1,
-    selectedTransactionIDs: [],
+    selectedTransactions: {},
     setCurrentSearchHash: () => {},
-    setSelectedTransactionIDs: () => {},
+    setSelectedTransactions: () => {},
+    clearSelectedTransactions: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactionIDs'>>({
+    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions'>>({
         currentSearchHash: defaultSearchContext.currentSearchHash,
-        selectedTransactionIDs: defaultSearchContext.selectedTransactionIDs,
+        selectedTransactions: defaultSearchContext.selectedTransactions,
     });
 
-    const setCurrentSearchHash = useCallback(
-        (searchHash: number) => {
-            setSearchContextData({
-                ...searchContextData,
-                currentSearchHash: searchHash,
-            });
-        },
-        [searchContextData],
-    );
+    const setCurrentSearchHash = useCallback((searchHash: number) => {
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            currentSearchHash: searchHash,
+        }));
+    }, []);
 
-    const setSelectedTransactionIDs = useCallback(
-        (selectedTransactionIDs: string[]) => {
-            setSearchContextData({
-                ...searchContextData,
-                selectedTransactionIDs,
-            });
+    const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions) => {
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            selectedTransactions,
+        }));
+    }, []);
+
+    const clearSelectedTransactions = useCallback(
+        (searchHash?: number) => {
+            if (searchHash === searchContextData.currentSearchHash) {
+                return;
+            }
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                selectedTransactions: {},
+            }));
         },
-        [searchContextData],
+        [searchContextData.currentSearchHash],
     );
 
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
             setCurrentSearchHash,
-            setSelectedTransactionIDs,
+            setSelectedTransactions,
+            clearSelectedTransactions,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactionIDs],
+        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;

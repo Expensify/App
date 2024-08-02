@@ -40,6 +40,11 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return filters.currency?.join(',');
     }
 
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
+        const categories = filters[fieldName] ?? [];
+        return categories.join(', ');
+    }
+
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
     // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
     // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
@@ -76,6 +81,26 @@ function AdvancedSearchFilters() {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
                 description: 'common.currency' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
+                description: 'common.merchant' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
+                description: 'common.description' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
+                description: 'common.reportID' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
+                description: 'common.category' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
             },
         ],
         [searchAdvancedFilters, translate],

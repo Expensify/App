@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -341,16 +341,31 @@ function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
     }
 }
 
-function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
+function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
     // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
-    for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        if (partialQueryJSON?.[value]) {
-            queryParts.push(`${value}:${partialQueryJSON[value]}`);
+    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (queryJSON?.[key]) {
+            queryParts.push(`${key}:${queryJSON[key]}`);
         } else if (defaultQueryJSON) {
-            queryParts.push(`${value}:${defaultQueryJSON[value]}`);
+            queryParts.push(`${key}:${defaultQueryJSON[key]}`);
+        }
+    }
+
+    if (!queryJSON) {
+        return queryParts.join(' ');
+    }
+
+    const filters = getFilters(queryJSON);
+
+    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+        const queryFilter = filters[filterKey];
+
+        if (queryFilter) {
+            const filterValueString = buildFilterString(filterKey, queryFilter);
+            queryParts.push(filterValueString);
         }
     }
 
@@ -387,6 +402,13 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
     return dateFilter;
 }
 
+function sanitizeString(str: string) {
+    if (str.includes(' ')) {
+        return `"${str}"`;
+    }
+    return str;
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
@@ -405,6 +427,22 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             if (filterKey === INPUT_IDS.CURRENCY && Array.isArray(filterValue) && filterValue.length > 0) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${filterValue.join(',')}`;
             }
+            if (filterKey === INPUT_IDS.MERCHANT && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.DESCRIPTION && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.REPORT_ID && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${filterValue as string}`;
+            }
+
+            if (filterKey === INPUT_IDS.CATEGORY && filterValues[filterKey]) {
+                const categories = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
+            }
 
             return undefined;
         })
@@ -416,29 +454,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
     return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
 }
 
-function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFiltersKeys>>) {
-    let queryAST;
-
-    try {
-        queryAST = searchParser.parse(query) as SearchQueryJSON;
-    } catch (e) {
-        console.error(e);
-        return;
-    }
-
+function getFilters(queryJSON: SearchQueryJSON) {
     const filters = {} as QueryFilters;
-
-    fields.forEach((field) => {
-        const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-        if (queryAST[rootFieldKey] === undefined) {
-            return;
-        }
-
-        filters[field] = {
-            operator: 'eq',
-            value: queryAST[rootFieldKey],
-        };
-    });
+    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
 
     function traverse(node: ASTNode) {
         if (!node.operator) {
@@ -454,7 +472,7 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
         }
 
         const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!fields.includes(nodeKey)) {
+        if (!filterKeys.includes(nodeKey)) {
             return;
         }
 
@@ -462,26 +480,27 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
             filters[nodeKey] = [];
         }
 
-        const filterArray = filters[nodeKey] as QueryFilter[];
+        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
+        const filterArray = filters[nodeKey] ?? [];
         filterArray.push({
             operator: node.operator,
             value: node.right as string | number,
         });
     }
 
-    if (queryAST.filters) {
-        traverse(queryAST.filters);
+    if (queryJSON.filters) {
+        traverse(queryJSON.filters);
     }
 
     return filters;
 }
 
-function buildFilterValueString(filterName: string, queryFilters: QueryFilter[]) {
+function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `,${queryFilter.value}`;
+            filterValueString += `,${filterName}:${queryFilter.value}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
         }
@@ -491,14 +510,14 @@ function buildFilterValueString(filterName: string, queryFilters: QueryFilter[])
 }
 
 function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
-    const {inputQuery, type, status} = queryJSON;
-    const filters = getFilters(inputQuery, Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS)) ?? {};
+    const {type, status} = queryJSON;
+    const filters = getFilters(queryJSON) ?? {};
 
     let title = `type:${type} status:${status}`;
 
     Object.keys(filters).forEach((key) => {
-        const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] as QueryFilter[];
-        title += buildFilterValueString(key, queryFilter);
+        const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
+        title += buildFilterString(key, queryFilter);
     });
 
     return title;
