@@ -370,6 +370,8 @@ export default {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        filterLogs: 'Filter Logs',
+        network: 'Network',
         reportID: 'Report ID',
     },
     location: {
