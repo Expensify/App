@@ -38,6 +38,7 @@ function SearchFiltersCurrencyPage() {
             testID={SearchFiltersCurrencyPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={false}>
@@ -55,7 +56,7 @@ function SearchFiltersCurrencyPage() {
                     />
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}
-                        containerStyles={[styles.m4]}
+                        containerStyles={[styles.m4, styles.mb5]}
                         onSubmit={handleOnSubmit}
                         enabledWhenOffline
                     />

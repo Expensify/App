@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScrollView from '@components/ScrollView';
 import type {AdvancedFiltersKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -114,7 +115,7 @@ function AdvancedSearchFilters() {
     };
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
             <View>
                 {advancedFilters.map((item) => {
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
@@ -132,11 +133,11 @@ function AdvancedSearchFilters() {
             </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
-                containerStyles={[styles.mh4, styles.mt4]}
+                containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={onFormSubmit}
                 enabledWhenOffline
             />
-        </View>
+        </ScrollView>
     );
 }
 
