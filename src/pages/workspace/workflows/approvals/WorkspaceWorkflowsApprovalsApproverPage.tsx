@@ -182,6 +182,13 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
         [nextStep, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
+    const goBack = useCallback(() => {
+        if (!approvalWorkflow?.isBeingEdited) {
+            Workflow.setApprovalWorkflowApprover(null, approverIndex);
+        }
+        Navigation.goBack();
+    }, [approvalWorkflow?.isBeingEdited, approverIndex]);
+
     const toggleApprover = (approver: SelectionListApprover) => {
         if (selectedApproverEmail === approver.login) {
             setSelectedApproverEmail(undefined);
@@ -210,7 +217,7 @@ function WorkspaceWorkflowsApprovalsApproverPageNew({policy, personalDetails, is
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.approver')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={goBack}
                     />
                     <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
                     <SelectionList

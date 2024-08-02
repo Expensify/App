@@ -203,7 +203,7 @@ function setApprovalWorkflowMembers(members: Member[]) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members});
 }
 
-function setApprovalWorkflowApprover(approver: Approver, index: number) {
+function setApprovalWorkflowApprover(approver: Approver | null, index: number) {
     if (!currentApprovalWorkflow) {
         return;
     }
