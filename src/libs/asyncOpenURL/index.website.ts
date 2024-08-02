@@ -19,7 +19,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
                 Linking.openURL(typeof url === 'string' ? url : url(params));
             })
             .catch(() => {
-                Log.warn('[asyncOpenURL] Promise rejected, not opening URL', {url});
+                Log.warn('[asyncOpenURL] error occured while opening URL', {url});
             });
     } else {
         const windowRef = window.open();
@@ -32,7 +32,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
             })
             .catch(() => {
                 windowRef?.close();
-                Log.warn('[asyncOpenURL] Promise rejected, not opening URL', {url});
+                Log.warn('[asyncOpenURL] error occured while opening URL', {url});
             });
     }
 };

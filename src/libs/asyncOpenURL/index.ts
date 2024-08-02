@@ -12,7 +12,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url) => {
             Linking.openURL(typeof url === 'string' ? url : url(params));
         })
         .catch(() => {
-            Log.warn('[asyncOpenURL] Promise rejected, not opening URL', {url});
+            Log.warn('[asyncOpenURL] error occured while opening URL', {url});
         });
 };
 
