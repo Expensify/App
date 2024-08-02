@@ -4752,13 +4752,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
-        walletBalance: {
-            lineHeight: undefined,
-            fontSize: variables.fontSizeXLarge,
-            paddingTop: 0,
-            paddingBottom: 0,
-        },
-
         walletRedDotSectionTitle: {
             color: theme.text,
             fontWeight: FontUtils.fontWeight.bold,

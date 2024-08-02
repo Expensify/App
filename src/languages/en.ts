@@ -1190,7 +1190,7 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends',
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',

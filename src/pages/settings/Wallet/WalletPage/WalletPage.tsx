@@ -415,7 +415,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                     <MenuItemWithTopDescription
                                                         description={translate('walletPage.balance')}
                                                         title={CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0)}
-                                                        titleStyle={styles.walletBalance}
+                                                        titleStyle={styles.textHeadlineH2}
                                                         interactive={false}
                                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                                     />
