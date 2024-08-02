@@ -80,6 +80,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
 
+    /** Icon displayed on the right of the title */
+    threeDotsMenuIcon?: IconAsset;
+
+    /** The fill color to pass into the icon. */
+    threeDotsMenuIconFill?: string;
+
     /** Whether we should show a close button */
     shouldShowCloseButton?: boolean;
 

@@ -270,6 +270,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
