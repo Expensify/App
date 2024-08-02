@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
@@ -28,7 +27,6 @@ function EmptyStateComponent({
     minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
@@ -87,7 +85,7 @@ function EmptyStateComponent({
                     shouldAnimate={false}
                 />
             </View>
-            <View style={[styles.emptyStateForeground(isSmallScreenWidth), emptyStateForegroundStyles]}>
+            <View style={[styles.emptyStateForeground, emptyStateForegroundStyles]}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>

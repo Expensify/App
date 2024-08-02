@@ -5114,13 +5114,13 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+        emptyStateForeground: {
+            padding: 32,
             justifyContent: 'center',
             alignItems: 'center',
             height: '100%',
-            padding: isSmallScreenWidth ? 32 : 0,
-            width: '100%',
-        }),
+            boxSizing: 'content-box',
+        },
 
         emptyStateContent: {
             backgroundColor: theme.cardBG,
