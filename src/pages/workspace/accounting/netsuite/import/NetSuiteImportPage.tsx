@@ -97,22 +97,22 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
-            {/*{canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (*/}
-            {/*    <ToggleSettingOptionRow*/}
-            {/*        wrapperStyle={[styles.mv3, styles.ph5]}*/}
-            {/*        title={translate('common.tax')}*/}
-            {/*        subtitle={translate('workspace.netsuite.import.importTaxDescription')}*/}
-            {/*        shouldPlaceSubtitleBelowSwitch*/}
-            {/*        isActive={config?.syncOptions?.syncTax ?? false}*/}
-            {/*        switchAccessibilityLabel={translate('common.tax')}*/}
-            {/*        onToggle={(isEnabled: boolean) => {*/}
-            {/*            updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);*/}
-            {/*        }}*/}
-            {/*        pendingAction={config?.pendingFields?.syncTax}*/}
-            {/*        errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}*/}
-            {/*        onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}*/}
-            {/*    />*/}
-            {/*)}*/}
+            {canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (
+                <ToggleSettingOptionRow
+                    wrapperStyle={[styles.mv3, styles.ph5]}
+                    title={translate('common.tax')}
+                    subtitle={translate('workspace.netsuite.import.importTaxDescription')}
+                    shouldPlaceSubtitleBelowSwitch
+                    isActive={config?.syncOptions?.syncTax ?? false}
+                    switchAccessibilityLabel={translate('common.tax')}
+                    onToggle={(isEnabled: boolean) => {
+                        updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
+                    }}
+                    pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                />
+            )}
             {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => (
                 <OfflineWithFeedback
                     key={importField}

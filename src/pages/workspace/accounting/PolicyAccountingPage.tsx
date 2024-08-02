@@ -33,6 +33,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasSynchronizationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
+    canUseTaxNetSuite,
     findCurrentXeroOrganization,
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
@@ -176,6 +177,7 @@ function accountingIntegrationData(
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                    ...(canUseTaxNetSuite(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary?.country) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX] : []),
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
