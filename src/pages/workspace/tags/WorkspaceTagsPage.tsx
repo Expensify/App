@@ -279,6 +279,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedTagsArray.length}
             />
         );
     };
