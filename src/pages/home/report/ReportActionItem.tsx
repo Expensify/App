@@ -648,14 +648,6 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            children = (
-                <ReportActionItemMessage
-                    action={action}
-                    reportID={report.reportID}
-                    displayAsGroup={false}
-                />
-            );
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {

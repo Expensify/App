@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {Except, LiteralUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -44,8 +44,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -541,7 +539,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
     }
@@ -550,7 +548,7 @@ function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: Err
     return settings.some((setting) => keys.includes(setting));
 }
 
-function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+function settingsPendingAction(settings?: string[], pendingFields?: PendingFields<string>): PendingAction | undefined {
     if (settings === undefined || pendingFields === undefined) {
         return null;
     }
@@ -763,8 +761,11 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
-function getCurrentSageIntacctEntityName(policy?: Policy): string | undefined {
+function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    if (!currentEntityID) {
+        return defaultNameIfNoEntity;
+    }
     const entities = policy?.connections?.intacct?.data?.entities;
     return entities?.find((entity) => entity.id === currentEntityID)?.name;
 }
@@ -969,8 +970,8 @@ export {
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
     getCurrentTaxID,
-    areXeroSettingsInErrorFields,
-    xeroSettingsPendingAction,
+    areSettingsInErrorFields,
+    settingsPendingAction,
 };
 
-export type {MemberEmailsToAccountIDs, XeroSettings};
+export type {MemberEmailsToAccountIDs};

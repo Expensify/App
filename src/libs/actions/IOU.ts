@@ -6788,7 +6788,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`,
         value: {
-            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, full ? expenseReport?.reportID ?? '-1' : '-1'),
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport?.reportID ?? '-1'),
         },
     };
 
@@ -7240,7 +7240,6 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport(chatReport);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
