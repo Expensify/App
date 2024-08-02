@@ -168,7 +168,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                     }
 
                     if (targetAsset?.type?.startsWith('image')) {
-                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignature: CONST.HEIC_SIGNATURE})
+                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {

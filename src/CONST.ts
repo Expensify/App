@@ -73,8 +73,14 @@ const onboardingChoices = {
 
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
+// 667479706D69663100000000
 const CONST = {
-    HEIC_SIGNATURE: '000000186674797068656963',
+    HEIC_SIGNATURES: [
+        '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
+        '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
+        '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
+        '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
+    ],
     RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',

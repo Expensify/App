@@ -1,7 +1,5 @@
-import {decode} from 'base-64';
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
-import RNFS from 'react-native-fs';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
@@ -257,21 +255,20 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
     });
 }
 
-function verifyFileFormat({fileUri, formatSignature}: {fileUri: string; formatSignature: string}) {
-    return RNFS.read(fileUri, 12, 0, 'base64')
-        .then((fileContent) => {
-            const hexSignature = Array.from(decode(fileContent))
-                .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
-                .slice(0, 32)
-                .join('')
-                .toUpperCase();
+function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
+    return fetch(fileUri)
+        .then((file) => file.arrayBuffer())
+        .then((arrayBuffer) => {
+            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
 
-            const isOfProvidedFormat = hexSignature.startsWith(formatSignature);
-            return isOfProvidedFormat;
+            const hexString = Array.from(uintArray)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            return hexString;
         })
-        .catch((error: Error) => {
-            Log.hmmm('Failed to verify the file format: ', error);
-            return null;
+        .then((hexSignature) => {
+            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
         });
 }
 
