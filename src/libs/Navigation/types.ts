@@ -903,6 +903,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex?: string;
         backTo?: string;
+        participantsAutoAssigned?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
         action: IOUAction;
