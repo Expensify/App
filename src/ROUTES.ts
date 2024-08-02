@@ -48,7 +48,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
 
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
-    
+
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
 
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
