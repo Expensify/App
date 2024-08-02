@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.15-9",
+  "version": "9.0.16-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -60,7 +60,7 @@
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "ts-node workflow_tests/utils/preGenerateTest.ts",
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
-    "e2e-test-runner-build": "ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/",
+    "e2e-test-runner-build": "node --max-old-space-size=8192 node_modules/.bin/ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/",
     "react-compiler-healthcheck": "react-compiler-healthcheck --verbose",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy "
   },
