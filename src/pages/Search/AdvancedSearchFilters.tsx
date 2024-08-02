@@ -36,13 +36,9 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
-        return filters.currency?.join(',');
-    }
-
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
-        const categories = filters[fieldName] ?? [];
-        return categories.join(', ');
+    if ((fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) && filters[fieldName]) {
+        const filterArray = filters[fieldName] ?? [];
+        return filterArray.join(', ');
     }
 
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
