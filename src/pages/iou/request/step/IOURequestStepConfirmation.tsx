@@ -275,10 +275,6 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
-            const receiptObjWithFilename = receiptObj && {...receiptObj};
-            if (receiptObjWithFilename && !receiptObjWithFilename?.name) {
-                receiptObjWithFilename.name = transaction.filename;
-            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -289,7 +285,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                receiptObjWithFilename,
+                receiptObj,
                 transaction.category,
                 transaction.tag,
                 transactionTaxCode,
