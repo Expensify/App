@@ -34,19 +34,15 @@ Before you can issue your Expensify Cards, you must connect your cards with the 
 
 1. Click **Expensify Card** in the left menu.
 2. Click **Issue new card**.
+3. Select an existing bank account from the list, or follow the steps to add a new one.
 
 ![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_02.png){:width="100%"}
-
-3. Select an existing bank account from the list, or follow the steps to add a new one.
 
 # Step 3: Issue cards
 
 You can issue an unlimited amount of physical and/or virtual cards to employees.
 
 1. Click **Issue card** in the top right.
-
-![Click the issue card button in the top right]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_03.png){:width="100%"}
-
 2. Select the employee that you want to issue the card to.
 3. Select whether you want to issue a physical or virtual card.
 4. Pick a smart, monthly, or fixed limit:
@@ -56,6 +52,8 @@ You can issue an unlimited amount of physical and/or virtual cards to employees.
 5. Enter the limit amount.
 6. Add a card name.
 7. Click **Issue card** to confirm and issue the card.
+
+![Click the issue card button in the top right]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_03.png){:width="100%"}
 
 ![Click issue card to confirm and issue the card]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_04.png){:width="100%"}
 
