@@ -441,6 +441,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.TAX_RATE && filterValues[filterKey]) {
+                const taxRates = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${taxRates.map(sanitizeString).join(',')}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)

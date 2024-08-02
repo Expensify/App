@@ -35,7 +35,7 @@ function SearchFiltersTaxRatePage() {
         return [...new Set(taxRates)];
     }, [allTaxRates, singlePolicyTaxRates]);
 
-    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
+    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
 
     return (
         <ScreenWrapper
