@@ -85,6 +85,8 @@ const SPACER = 16;
 let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
+    reportIDFromRoute: reportID,
+    reportActionIDFromRoute: reportActionID,
     report,
     transactionThreadReport,
     session,
@@ -102,8 +104,8 @@ function ReportActionsView({
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
-    const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
+    const prevReportID = usePrevious(reportID);
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
@@ -122,7 +124,6 @@ function ReportActionsView({
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
-    const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
@@ -147,7 +148,7 @@ function ReportActionsView({
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID && !prevReportActionID) {
+        if (!reportActionID && !prevReportActionID && (prevReportID === reportID)) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -157,7 +158,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions, reportActionID]);
+    }, [reportID, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -239,7 +240,7 @@ function ReportActionsView({
         if (!reportActionID) {
             return -1;
         }
-        return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
+        return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionID));
     }, [combinedReportActions, currentReportActionID, reportActionID]);
 
     const reportActions = useMemo(() => {
@@ -494,6 +495,7 @@ function ReportActionsView({
             <ReportActionsList
                 report={report}
                 transactionThreadReport={transactionThreadReport}
+                reportActionIDFromRoute={reportActionID}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
@@ -528,6 +530,15 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
+
+    if (!lodashIsEqual(oldProps.reportIDFromRoute, newProps.reportIDFromRoute)) {
+        return false;
+    }
+
+    if (!lodashIsEqual(oldProps.reportActionIDFromRoute, newProps.reportActionIDFromRoute)) {
+        return false;
+    }
+
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }
