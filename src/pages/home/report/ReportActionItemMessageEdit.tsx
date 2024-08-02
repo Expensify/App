@@ -569,6 +569,7 @@ function ReportActionItemMessageEdit(
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
+                            onPress={setUpComposeFocusManager}
                         />
                     </View>
 
