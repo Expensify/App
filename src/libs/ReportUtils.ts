@@ -43,6 +43,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -2016,14 +2017,13 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
+function getGroupChatName(draftParticipants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
     }
 
-    // Get participantAccountIDs from participants object
-    let participants = participantAccountIDs ?? Object.keys(report?.participants ?? {}).map(Number);
+    let participants = draftParticipants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
     if (shouldApplyLimit) {
         participants = participants.slice(0, 5);
     }
@@ -2031,7 +2031,7 @@ function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = f
 
     if (isMultipleParticipantReport) {
         return participants
-            .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+            .map((participant, index) => getDisplayNameForParticipant(participant, isMultipleParticipantReport) || draftParticipants?.[index]?.login)
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ');
