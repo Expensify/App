@@ -242,7 +242,7 @@ function ReportActionsView({
         if (!reportActionID) {
             return -1;
         }
-        return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionID));
+        return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [combinedReportActions, currentReportActionID, reportActionID]);
 
