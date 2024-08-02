@@ -113,7 +113,14 @@ function accountingIntegrationData(
                 subscribedExportSettings: [CONST.QUICKBOOKS_CONFIG.EXPORTER, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [],
+                subscribedAdvancedSettings: [
+                    CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                    CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                ],
                 pendingFields: policy?.connections?.quickbooksOnline?.config?.pendingFields,
                 errorFields: policy?.connections?.quickbooksOnline?.config?.errorFields,
             };
