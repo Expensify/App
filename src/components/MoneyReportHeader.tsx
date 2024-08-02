@@ -109,6 +109,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
+    const isArchivedReport = ReportUtils.isArchivedRoom(moneyRequestReport);
 
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
@@ -198,7 +199,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isPayAtEndExpense) {
-            return {title: getStatusIcon(Expensicons.Building), description: 'Pending payment.'};
+            if (isArchivedReport) {
+                return {title: getStatusIcon(Expensicons.Box), description: translate('iou.bookingArchivedDescription')};
+            }
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.bookingPendingDescription')};
         }
         if (hasOnlyHeldExpenses) {
             return {title: translate('violations.hold'), description: translate('iou.expensesOnHold'), danger: true};

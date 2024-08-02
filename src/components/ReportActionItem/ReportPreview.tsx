@@ -310,10 +310,14 @@ function ReportPreview({
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
     const isFutureTravelExpense = ReportUtils.isPayAtEndExpenseReport(iouReportID);
+    const isArchivedReport = ReportUtils.isArchivedRoomWithID(iouReportID);
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isFutureTravelExpense) {
-            return {shouldShow: true, messageIcon: Expensicons.Building, messageDescription: 'Pending payment.'};
+            if (isArchivedReport) {
+                return {shouldShow: true, messageIcon: Expensicons.Box, messageDescription: translate('iou.bookingArchived')};
+            }
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.bookingPending')};
         }
         if (shouldShowScanningSubtitle) {
             return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};

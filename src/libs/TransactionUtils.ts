@@ -508,7 +508,6 @@ function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction status is set to Pending.
  */
 function isPending(transaction: OnyxEntry<Transaction>): boolean {
-    return true;
     if (!transaction?.status) {
         return false;
     }
