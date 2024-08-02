@@ -33,7 +33,6 @@ function WorkspacesSectionHeader() {
                     accessible={false}
                     role={CONST.ROLE.BUTTON}
                     onPress={() => {
-                        Navigation.goBack();
                         interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
                     }}
                 >
