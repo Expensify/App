@@ -39,7 +39,7 @@ function EmptyCardView() {
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
                     emptyStateForegroundStyles={isSmallScreenWidth && {justifyContent: 'flex-start'}}
-                    minModalHeight={500}
+                    minModalHeight={540}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
