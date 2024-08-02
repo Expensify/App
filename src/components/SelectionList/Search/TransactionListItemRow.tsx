@@ -78,10 +78,8 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
-    const reportID = transactionItem.reportID !== '0' ? transactionItem.reportID : transactionItem.transactionThreadReportID;
-    const isPaidAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.PAID;
-    const isDoneAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.DONE;
-    const canModifyReceipt = !isPaidAction && !isDoneAction && (ReportUtils.isReportOpen(reportID) || ReportUtils.isReportSubmitted(reportID));
+    const isViewAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.VIEW;
+    const canModifyReceipt = isViewAction && transactionItem.canDelete;
 
     return (
         <View
