@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -54,7 +55,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             title="workspace.intacct.entity"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            pendingAction={config?.pendingFields?.entity}
+            pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ENTITY], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
             errorRowStyles={[styles.ph5, styles.mv2]}
             onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
