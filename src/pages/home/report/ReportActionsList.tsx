@@ -360,7 +360,7 @@ function ReportActionsList({
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [reportScrollManager],
+        [reportScrollManager, report.reportID],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
