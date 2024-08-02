@@ -370,6 +370,7 @@ export default {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        reportID: 'Report ID',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2342,7 +2343,7 @@ export default {
                 label: 'Journal entries posting preference',
                 values: {
                     [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each individual expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each expense',
                 },
             },
             invoiceItem: {
@@ -2380,28 +2381,28 @@ export default {
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Expense reports',
-                        reimbursableDescription: 'Reimbursable expenses will export as expense reports to NetSuite.',
-                        nonReimbursableDescription: 'Non-reimbursable expenses will export as expense reports to NetSuite.',
+                        reimbursableDescription: 'Out-of-pocket expenses will export as expense reports to NetSuite.',
+                        nonReimbursableDescription: 'Company card expenses will export as expense reports to NetSuite.',
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Vendor bills',
                         reimbursableDescription:
-                            'Reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                         nonReimbursableDescription:
-                            'Non-reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
-                        label: 'Journal Entries',
+                        label: 'Journal entries',
                         reimbursableDescription:
-                            'Reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                         nonReimbursableDescription:
-                            'Non-reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
@@ -2425,9 +2426,9 @@ export default {
                 enableCategories: 'Enable newly imported categories',
                 customFormID: 'Custom form ID',
                 customFormIDDescription:
-                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you have the option to designate a specific transaction form to be used.',
-                customFormIDReimbursable: 'Reimbursable expense',
-                customFormIDNonReimbursable: 'Non-reimbursable expense',
+                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you can designate a specific transaction form to be used.',
+                customFormIDReimbursable: 'Out-of-pocket expense',
+                customFormIDNonReimbursable: 'Company card expense',
                 exportReportsTo: {
                     label: 'Expense report approval level',
                     description: 'Once an expense report is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
@@ -2461,13 +2462,13 @@ export default {
                 },
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
+            noAccountsFoundDescription: 'Please add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
-            noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
+            noVendorsFoundDescription: 'Please add vendors in NetSuite and sync the connection again.',
             noItemsFound: 'No invoice items found',
-            noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
+            noItemsFoundDescription: 'Please add invoice items in NetSuite and sync the connection again.',
             noSubsidiariesFound: 'No subsidiaries found',
-            noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+            noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again.',
             tokenInput: {
                 title: 'NetSuite setup',
                 formSteps: {
@@ -2502,7 +2503,7 @@ export default {
             import: {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'Your NetSuite expense categories will import into Expensify as categories.',
-                crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
+                crossSubsidiaryCustomers: 'Cross-subsidiary customers/projects',
                 importFields: {
                     departments: {
                         title: 'Departments',
@@ -3727,7 +3728,7 @@ export default {
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
-                    reimburseableLink: 'View out of pocket expenses.',
+                    reimburseableLink: 'View out-of-pocket expenses.',
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },

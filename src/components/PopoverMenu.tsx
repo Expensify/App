@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -110,8 +110,6 @@ function PopoverMenu({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const selectedItemIndex = useRef<number | null>(null);
-
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
@@ -126,8 +124,8 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else {
-            selectedItemIndex.current = index;
             onItemSelected(selectedItem, index);
+            selectedItem.onSelected?.();
         }
     };
 
@@ -189,10 +187,6 @@ function PopoverMenu({
 
     const onModalHide = () => {
         setFocusedIndex(-1);
-        if (selectedItemIndex.current !== null) {
-            currentMenuItems[selectedItemIndex.current].onSelected?.();
-            selectedItemIndex.current = null;
-        }
     };
 
     useEffect(() => {
