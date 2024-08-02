@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -63,7 +64,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const [formError, setFormError] = useState<FormError>({});
     const [validateCode, setValidateCode] = useState(credentials?.validateCode ?? '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [timeRemaining, setTimeRemaining] = useState(30);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [recoveryCode, setRecoveryCode] = useState('');
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
 
@@ -90,6 +91,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !isVisible || !isFocused) {
             return;
         }
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
         inputValidateCodeRef.current.focus();
     }, [isVisible, isFocused]);
 
@@ -160,7 +162,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
-        setTimeRemaining(30);
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
@@ -217,7 +219,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         clearLocalSignInData();
         // `clearLocalSignInData` is not required as a dependency, and adding it
         // overcomplicates things requiring clearLocalSignInData function to use useCallback
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     useEffect(() => {
@@ -291,7 +293,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
 
     return (
-        <>
+        <SafariFormWrapper>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
             {account?.requiresTwoFactorAuth ? (
                 <View style={[styles.mv3]}>
@@ -402,7 +404,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
             </View>
-        </>
+        </SafariFormWrapper>
     );
 }
 

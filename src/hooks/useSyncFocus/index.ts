@@ -21,7 +21,7 @@ const useSyncFocus = (ref: RefObject<View>, isFocused: boolean, shouldSyncFocus 
         }
 
         ref.current?.focus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [didScreenTransitionEnd, isFocused, ref]);
 };
 

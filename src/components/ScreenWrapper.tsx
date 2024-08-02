@@ -211,7 +211,7 @@ function ScreenWrapper(
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
@@ -251,6 +251,7 @@ function ScreenWrapper(
                             testID={testID}
                         >
                             <View
+                                fsClass="fs-unmask"
                                 style={[styles.flex1, paddingStyle, style]}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...keyboardDissmissPanResponder.panHandlers}

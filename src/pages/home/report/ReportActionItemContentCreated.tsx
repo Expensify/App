@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -51,7 +52,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
 
     const {report, action, transactionThreadReport} = contextValue;
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? '-1'}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '-1' : report.policyID ?? '-1'}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
@@ -75,7 +76,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
-        if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+        if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
             let message: TranslationPaths;
 
             if (isReversedTransaction) {
@@ -149,33 +150,29 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <OfflineWithFeedback pendingAction={action.pendingAction}>
                 {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                     <>
-                        {transactionCurrency !== report.currency && (
-                            <>
-                                <MoneyReportView
-                                    report={report}
-                                    policy={policy}
-                                />
-                                {renderThreadDivider}
-                            </>
-                        )}
+                        <MoneyReportView
+                            report={report}
+                            policy={policy}
+                            isCombinedReport
+                            shouldShowTotal={transactionCurrency !== report.currency}
+                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        />
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <View>
                                 <MoneyRequestView
                                     report={transactionThreadReport}
-                                    shouldShowAnimatedBackground={transactionCurrency === report.currency}
+                                    shouldShowAnimatedBackground={false}
                                 />
                                 {renderThreadDivider}
                             </View>
                         </ShowContextMenuContext.Provider>
                     </>
                 ) : (
-                    <>
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                        />
-                        {renderThreadDivider}
-                    </>
+                    <MoneyReportView
+                        report={report}
+                        policy={policy}
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    />
                 )}
             </OfflineWithFeedback>
         );

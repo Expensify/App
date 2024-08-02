@@ -27,6 +27,7 @@ import Bolt from '@assets/images/bolt.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
+import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
@@ -42,6 +43,7 @@ import ChatBubbles from '@assets/images/chatbubbles.svg';
 import CheckCircle from '@assets/images/check-circle.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
+import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
@@ -80,6 +82,7 @@ import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
+import Filters from '@assets/images/filters.svg';
 import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
@@ -99,8 +102,10 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
+import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -201,6 +206,7 @@ export {
     Wrench,
     BackArrow,
     Bank,
+    CircularArrowBackwards,
     Bill,
     Bell,
     BellSlash,
@@ -370,4 +376,8 @@ export {
     CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
+    XeroCircle,
+    QBOCircle,
+    Filters,
+    CalendarSolid,
 };

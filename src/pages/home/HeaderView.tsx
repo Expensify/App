@@ -121,7 +121,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         }
         return (
             <>
-                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.fontWeightNormal]}> {translate('threads.in')} </Text>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting]}> {translate('threads.in')} </Text>
                 <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
             </>
         );
@@ -190,7 +190,10 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <View style={[styles.flex1, styles.flexColumn]}>
+                                    <View
+                                        fsClass="fs-unmask"
+                                        style={[styles.flex1, styles.flexColumn]}
+                                    >
                                         <CaretWrapper>
                                             <DisplayNames
                                                 fullTitle={title}

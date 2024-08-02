@@ -7,12 +7,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {findSelectedBankAccountWithDefaultSelect, getFilteredApprovalAccountOptions, getFilteredCollectionAccountOptions, getFilteredReimbursableAccountOptions} from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -25,10 +28,13 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const selectedReimbursementAccount = useMemo(
-        () => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursementAccountID),
+        () => findSelectedBankAccountWithDefaultSelect(getFilteredReimbursableAccountOptions(payableList), config?.reimbursementAccountID),
         [payableList, config?.reimbursementAccountID],
     );
-    const selectedCollectionAccount = useMemo(() => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.collectionAccount), [payableList, config?.collectionAccount]);
+    const selectedCollectionAccount = useMemo(
+        () => findSelectedBankAccountWithDefaultSelect(getFilteredCollectionAccountOptions(payableList), config?.collectionAccount),
+        [payableList, config?.collectionAccount],
+    );
     const selectedApprovalAccount = useMemo(() => {
         if (config?.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
             return {
@@ -36,7 +42,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
             };
         }
-        return (payableList ?? []).find((payableAccount) => payableAccount.id === config?.approvalAccount);
+        return findSelectedBankAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
 
     const menuItems: Array<MenuItem | ToggleItem | DividerLineItem> = [
@@ -72,26 +78,29 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.reimbursementsAccount'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedReimbursementAccount ? selectedReimbursementAccount.name : undefined,
             pendingAction: config?.pendingFields?.reimbursementAccountID,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID),
+            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.collectionsAccount'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.collectionAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedCollectionAccount ? selectedCollectionAccount.name : undefined,
             pendingAction: config?.pendingFields?.collectionAccount,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT),
+            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             type: 'divider',
             key: 'divider2',
+            shouldHide: config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             type: 'toggle',
@@ -137,7 +146,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.exportReportsTo.label'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.exportReportsTo ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.syncOptions.exportReportsTo ? translate(`workspace.netsuite.advancedConfig.exportReportsTo.values.${config.syncOptions.exportReportsTo}`) : undefined,
             pendingAction: config?.syncOptions.pendingFields?.exportReportsTo,
@@ -148,7 +157,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.exportVendorBillsTo.label'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.exportVendorBillsTo ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.syncOptions.exportVendorBillsTo ? translate(`workspace.netsuite.advancedConfig.exportVendorBillsTo.values.${config.syncOptions.exportVendorBillsTo}`) : undefined,
             pendingAction: config?.syncOptions.pendingFields?.exportVendorBillsTo,
@@ -161,7 +170,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.exportJournalsTo.label'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.exportJournalsTo ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.syncOptions.exportJournalsTo ? translate(`workspace.netsuite.advancedConfig.exportJournalsTo.values.${config.syncOptions.exportJournalsTo}`) : undefined,
             pendingAction: config?.syncOptions.pendingFields?.exportJournalsTo,
@@ -174,7 +183,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.approvalAccount'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.approvalAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedApprovalAccount ? selectedApprovalAccount.name : undefined,
             pendingAction: config?.pendingFields?.approvalAccount,
@@ -200,9 +209,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.customFormIDReimbursable'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
             brickRoadIndicator: config?.errorFields?.customFormIDOptions ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.customFormIDOptions?.reimbursable[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.reimbursableExpensesExportDestination]],
+            title: config?.customFormIDOptions?.reimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.reimbursableExpensesExportDestination]],
             pendingAction: config?.pendingFields?.customFormIDOptions,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS),
@@ -211,9 +220,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             description: translate('workspace.netsuite.advancedConfig.customFormIDNonReimbursable'),
-            onPress: () => {}, // TODO: This will be implemented in a future PR
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
             brickRoadIndicator: config?.errorFields?.customFormIDOptions ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.customFormIDOptions?.reimbursable[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.nonreimbursableExpensesExportDestination]],
+            title: config?.customFormIDOptions?.nonReimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.nonreimbursableExpensesExportDestination]],
             pendingAction: config?.pendingFields?.customFormIDOptions,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS),

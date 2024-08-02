@@ -9,6 +9,8 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -94,7 +96,7 @@ function ReportActionItemParentAction({
             unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
             unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -124,6 +126,7 @@ function ReportActionItemParentAction({
                                           // Pop the chat report screen before navigating to the linked report action.
                                           Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1', ancestor.reportAction.reportActionID));
                                       }
+                                      Timing.start(CONST.TIMING.SWITCH_REPORT);
                                   }
                                 : undefined
                         }

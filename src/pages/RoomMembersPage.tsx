@@ -27,6 +27,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +85,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     useEffect(() => {
         getRoomMembers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -173,8 +174,13 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         participants.forEach((accountID) => {
             const details = personalDetails[accountID];
+            // When adding a new member to a room (whose personal detail does not exist in Onyx), an optimistic personal detail
+            // is created. However, when the real personal detail is returned from the backend, a duplicate member may appear
+            // briefly before the optimistic personal detail is deleted. To address this, we filter out the optimistically created
+            // member here.
+            const isDuplicateOptimisticDetail = details?.isOptimisticPersonalDetail && participants.some((accID) => accID !== accountID && details.login === personalDetails[accID]?.login);
 
-            if (!details) {
+            if (!details || isDuplicateOptimisticDetail) {
                 Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
                 return;
             }
@@ -248,7 +254,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
-                    subtitle={ReportUtils.getReportName(report)}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));

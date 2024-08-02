@@ -4,7 +4,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -19,6 +21,8 @@ import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList}
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import * as ReportUtils from '@libs/ReportUtils';
+import {buildSearchQueryString} from '@libs/SearchUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -71,6 +75,8 @@ const loadReportAttachments = () => require<ReactComponentModule>('../../../page
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
+const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
 const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
@@ -82,14 +88,16 @@ function shouldOpenOnAdminRoom() {
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
-        return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
+        // Generate default query string with buildSearchQueryString without argument.
+        return {q: buildSearchQueryString(), isCustomQuery: false};
     }
 
     if (screenName === SCREENS.REPORT) {
         return {
             openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
+            reportID: initialReportID,
         };
     }
 
@@ -195,17 +203,30 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
-    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
+    const {canUseDefaultRooms} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(isMediumOrLargerScreenWidth), [screenOptions, isMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
-        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, shouldUseNarrowLayout),
-        [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
+        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, isMediumOrLargerScreenWidth),
+        [StyleUtils, isSmallScreenWidth, isMediumOrLargerScreenWidth, styles],
     );
-    const isInitialRender = useRef(true);
 
+    let initialReportID: string | undefined;
+    const isInitialRender = useRef(true);
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+        const currentURL = getCurrentUrl();
+        if (currentURL) {
+            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        }
+
+        if (!initialReportID) {
+            initialReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
+        }
+
         isInitialRender.current = false;
     }
 
@@ -316,7 +337,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const CentralPaneScreenOptions = {
@@ -357,6 +378,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.CONCIERGE}
                         options={defaultScreenOptions}
                         getComponent={loadConciergePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.TRACK_EXPENSE}
+                        options={defaultScreenOptions}
+                        getComponent={loadTrackExpensePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.SUBMIT_EXPENSE}
+                        options={defaultScreenOptions}
+                        getComponent={loadSubmitExpensePage}
                     />
                     <RootStack.Screen
                         name={SCREENS.ATTACHMENTS}
@@ -471,7 +502,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
                             />

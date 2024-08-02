@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -32,11 +33,16 @@ Onyx.connect({
     },
 });
 
+const hiddenTranslation = Localize.translateLocal('common.hidden');
+const youTranslation = Localize.translateLocal('common.you').toLowerCase();
+
+const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
+
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     // If the displayName starts with the merged account prefix, remove it.
-    if (new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX).test(displayName)) {
+    if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
         displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
@@ -48,7 +54,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+        displayName = `${displayName} (${youTranslation})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -58,7 +64,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
+    return defaultValue || (shouldFallbackToHidden ? hiddenTranslation : '');
 }
 
 /**
@@ -118,7 +124,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  */
 function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentDetail: Partial<PersonalDetails> = personalDetails.find((detail) => Number(detail?.accountID) === Number(accountID)) ?? {};
+        const currentDetail: Partial<PersonalDetails> = allPersonalDetails?.[accountID] ?? {};
         if (currentDetail.login) {
             foundLogins.push(currentDetail.login);
         }
@@ -220,13 +226,25 @@ function getStreetLines(street = '') {
 }
 
 /**
+ * Get the current address from addresses array
+ *
+ * @param privatePersonalDetails - details object
+ * @returns - current address object
+ */
+function getCurrentAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Address | undefined {
+    const {addresses} = privatePersonalDetails ?? {};
+    const currentAddress = addresses?.find((address) => address.current);
+    return currentAddress ?? addresses?.[addresses.length - 1];
+}
+
+/**
  * Formats an address object into an easily readable string
  *
  * @param privatePersonalDetails - details object
  * @returns - formatted address
  */
 function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): string {
-    const {address} = privatePersonalDetails ?? {};
+    const address = getCurrentAddress(privatePersonalDetails);
     const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
@@ -313,6 +331,7 @@ export {
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
+    getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,
     getStreetLines,

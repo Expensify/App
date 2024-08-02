@@ -13,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
@@ -148,8 +147,7 @@ function Footer({navigateFocus}: FooterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;

@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchUtils from '@libs/SearchUtils';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -22,6 +22,12 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
+        shouldShow: () => true,
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TYPE,
+        translationKey: 'common.type',
         shouldShow: () => true,
         isColumnSortable: false,
     },
@@ -72,12 +78,6 @@ const SearchColumns: SearchColumnConfig[] = [
         shouldShow: () => true,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.TYPE,
-        translationKey: 'common.type',
-        shouldShow: () => true,
-        isColumnSortable: false,
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         shouldShow: () => true,
@@ -90,12 +90,11 @@ type SearchTableHeaderProps = {
     metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
-    isSortingAllowed: boolean;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -108,7 +107,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
+            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
                 {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
@@ -116,7 +115,6 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
 
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
-                    const isSortable = isSortingAllowed && isColumnSortable;
 
                     return (
                         <SortableHeaderText
@@ -126,7 +124,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName, shouldShowYear)]}
-                            isSortable={isSortable}
+                            isSortable={isColumnSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />
                     );

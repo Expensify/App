@@ -20,8 +20,8 @@ import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
@@ -60,6 +60,7 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    getIsSuggestionsMenuVisible: () => boolean;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -119,7 +120,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -196,8 +197,8 @@ function ReportActionCompose({
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1) + 1)),
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -240,7 +241,7 @@ function ReportActionCompose({
             containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isComposerFullSize],
     );
 
@@ -341,7 +342,7 @@ function ReportActionCompose({
             }
             EmojiPickerActions.hideEmojiPicker();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -383,6 +384,7 @@ function ReportActionCompose({
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
+                    shouldDisableOpacity
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
@@ -480,7 +482,12 @@ function ReportActionCompose({
                         {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
-                                onModalHide={focus}
+                                onModalHide={(isNavigating) => {
+                                    if (isNavigating) {
+                                        return;
+                                    }
+                                    focus();
+                                }}
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}
@@ -496,10 +503,10 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
-                        {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>

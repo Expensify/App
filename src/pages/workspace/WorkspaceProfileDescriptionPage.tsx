@@ -1,5 +1,4 @@
-import {ExpensiMark} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
@@ -24,17 +23,16 @@ import type {WithPolicyProps} from './withPolicy';
 
 type Props = WithPolicyProps;
 
-const parser = new ExpensiMark();
-
 function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isInputInitializedRef = useRef(false);
     const [description, setDescription] = useState(() =>
-        parseHtmlToMarkdown(
+        Parser.htmlToMarkdown(
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.description ||
-                parser.replace(
+                Parser.replace(
                     translate('workspace.common.welcomeNote', {
                         workspaceName: policy?.name ?? '',
                     }),
@@ -112,7 +110,10 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                             autoGrowHeight
                             isMarkdownEnabled
                             ref={(el: BaseTextInputRef | null): void => {
-                                updateMultilineInputRange(el);
+                                if (!isInputInitializedRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
+                                isInputInitializedRef.current = true;
                             }}
                         />
                     </View>

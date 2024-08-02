@@ -8,7 +8,7 @@ const restrictedImportPaths = [
             '',
             "For 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.",
             "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.",
-            "For 'StatusBar', please use '@src/libs/StatusBar' instead.",
+            "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
         ].join('\n'),
@@ -59,8 +59,21 @@ const restrictedImportPaths = [
     },
     {
         name: 'expensify-common',
-        importNames: ['Device'],
-        message: "Do not import Device directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+        importNames: ['Device', 'ExpensiMark'],
+        message: [
+            '',
+            "For 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+            "For 'ExpensiMark', please use '@libs/Parser' instead.",
+        ].join('\n'),
+    },
+    {
+        name: 'lodash/memoize',
+        message: "Please use '@src/libs/memoize' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['memoize'],
+        message: "Please use '@src/libs/memoize' instead.",
     },
 ];
 
@@ -93,7 +106,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
         'plugin:you-dont-need-lodash-underscore/all',
-        'prettier',
+        'plugin:prettier/recommended',
     ],
     plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler'],
     ignorePatterns: ['lib/**'],

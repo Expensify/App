@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -8,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -41,6 +41,9 @@ type ToggleSettingOptionRowProps = {
 
     /** Used to apply styles to the Title */
     titleStyle?: StyleProp<TextStyle>;
+
+    /** Used to apply styles to the Subtitle */
+    subtitleStyle?: StyleProp<TextStyle>;
 
     /** Whether the option is enabled or not */
     isActive: boolean;
@@ -76,6 +79,7 @@ function ToggleSettingOptionRow({
     title,
     customTitle,
     subtitle,
+    subtitleStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldEscapeText = undefined,
@@ -98,8 +102,7 @@ function ToggleSettingOptionRow({
         if (!subtitle || !shouldParseSubtitle) {
             return '';
         }
-        const parser = new ExpensiMark();
-        return parser.replace(subtitle, {shouldEscapeText});
+        return Parser.replace(subtitle, {shouldEscapeText});
     }, [subtitle, shouldParseSubtitle, shouldEscapeText]);
 
     const processedSubtitle = useMemo(() => {
@@ -120,8 +123,19 @@ function ToggleSettingOptionRow({
                 </View>
             );
         }
-        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>{subtitle}</Text>;
-    }, [subtitle, shouldParseSubtitle, styles.mutedNormalTextLabel, styles.mt1, styles.mr5, styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch, processedSubtitle]);
+        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
+    }, [
+        subtitle,
+        shouldParseSubtitle,
+        styles.mutedNormalTextLabel,
+        styles.mt1,
+        styles.mr5,
+        styles.flexRow,
+        styles.renderHTML,
+        shouldPlaceSubtitleBelowSwitch,
+        subtitleStyle,
+        processedSubtitle,
+    ]);
 
     return (
         <OfflineWithFeedback

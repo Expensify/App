@@ -10,7 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,8 +21,11 @@ import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
@@ -33,6 +36,7 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test1: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith'},
+        cardID: 1,
         nameValuePairs: {
             unapprovedExpenseLimit: 1000,
             cardTitle: 'Test 1',
@@ -42,6 +46,7 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test2: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller'},
+        cardID: 2,
         nameValuePairs: {
             unapprovedExpenseLimit: 2000,
             cardTitle: 'Test 2',
@@ -51,6 +56,7 @@ const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test3: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown'},
+        cardID: 3,
         nameValuePairs: {
             unapprovedExpenseLimit: 3000,
             cardTitle: 'Test 3',
@@ -76,7 +82,7 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
     const fetchExpensifyCards = useCallback(() => {
         // TODO: uncomment when OpenPolicyExpensifyCardsPage API call is supported
         // Policy.openPolicyExpensifyCardsPage(policyID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policyID]);
 
     useFocusEffect(fetchExpensifyCards);
@@ -100,14 +106,14 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
             <Button
                 medium
                 success
-                onPress={() => {}} // TODO: add navigation action when card issue flow is implemented (https://github.com/Expensify/App/issues/44309)
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldUseNarrowLayout && styles.flex1}
             />
             <Button
                 medium
-                onPress={() => {}} // TODO: add navigation action when settings screen is implemented (https://github.com/Expensify/App/issues/44311)
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
                 style={shouldUseNarrowLayout && styles.flex1}
@@ -121,24 +127,23 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
             errorRowStyles={styles.ph5}
             errors={item.errors}
         >
-            <PressableWithoutFeedback
+            <PressableWithFeedback
                 role={CONST.ROLE.BUTTON}
+                style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                 accessibilityLabel="row"
-                onPress={() => {}} // TODO: add navigation action when card details screen is implemented (https://github.com/Expensify/App/issues/44325)
+                hoverStyle={[styles.hoveredComponentBG]}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
             >
-                {({hovered}) => (
-                    <WorkspaceCardListRow
-                        style={hovered && styles.hoveredComponentBG}
-                        lastFourPAN={item.lastFourPAN ?? ''}
-                        // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        cardholder={item.cardholder}
-                        limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
-                        name={item.nameValuePairs?.cardTitle ?? ''}
-                        currency={policyCurrency}
-                    />
-                )}
-            </PressableWithoutFeedback>
+                <WorkspaceCardListRow
+                    lastFourPAN={item.lastFourPAN ?? ''}
+                    // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    cardholder={item.cardholder}
+                    limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
+                    name={item.nameValuePairs?.cardTitle ?? ''}
+                    currency={policyCurrency}
+                />
+            </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 
@@ -157,14 +162,16 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
             >
                 {!shouldUseNarrowLayout && getHeaderButtons()}
             </HeaderWithBackButton>
-
             {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-
-            <FlatList
-                data={sortedCards}
-                renderItem={renderItem}
-                ListHeaderComponent={WorkspaceCardListHeader}
-            />
+            {!isEmptyObject(cardsList) ? (
+                <EmptyCardView />
+            ) : (
+                <FlatList
+                    data={sortedCards}
+                    renderItem={renderItem}
+                    ListHeaderComponent={WorkspaceCardListHeader}
+                />
+            )}
         </ScreenWrapper>
     );
 }

@@ -32,6 +32,7 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
 import type {Account, Credentials} from '@src/types/onyx';
@@ -59,7 +60,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
     const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-    const [formError, setFormError] = useState<string | undefined>();
+    const [formError, setFormError] = useState<TranslationPaths | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
@@ -73,7 +74,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         (value: string) => {
             const loginTrim = value.trim();
             if (!loginTrim) {
-                setFormError(translate('common.pleaseEnterEmailOrPhoneNumber'));
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
                 return false;
             }
 
@@ -82,9 +83,9 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
                 if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                    setFormError(translate('common.error.phoneNumber'));
+                    setFormError('common.error.phoneNumber');
                 } else {
-                    setFormError(translate('loginForm.error.invalidFormatEmailLogin'));
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
                 }
                 return false;
             }
@@ -92,7 +93,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             setFormError(undefined);
             return true;
         },
-        [setFormError, translate],
+        [setFormError],
     );
 
     /**
@@ -173,7 +174,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {
@@ -268,7 +269,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formError}
+                    errorText={formError ? translate(formError) : undefined}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
