@@ -18061,7 +18061,9 @@ async function run() {
 }
 run().catch((error) => {
     console.error(error);
-    process.exit(1);
+    // Zero status ensures that the action is marked as successful regardless the outcome
+    // which means that no failure notification is sent to issue's subscribers
+    process.exit(0);
 });
 
 
