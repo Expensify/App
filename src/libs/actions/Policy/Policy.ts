@@ -203,16 +203,12 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
-function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
-    if (!PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
-        const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-
-        return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
+function getInvoicePrimaryWorkspace(activePolicyID?: OnyxEntry<string>): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
     }
-
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
-
-    return primaryPolicy;
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 }
 
 /**
@@ -3277,7 +3273,7 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
-    getPrimaryPolicy,
+    getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
     buildPolicyData,
