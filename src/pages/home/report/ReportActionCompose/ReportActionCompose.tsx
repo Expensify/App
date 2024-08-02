@@ -4,7 +4,7 @@ import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFo
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -20,10 +20,9 @@ import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {forceClearInput} from '@libs/ComponentUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
@@ -121,7 +120,7 @@ function ReportActionCompose({
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -198,7 +197,7 @@ function ReportActionCompose({
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1) + 1)),
+        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1) + 1)),
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
@@ -367,7 +366,7 @@ function ReportActionCompose({
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        forceClearInput(animatedRef);
+        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
@@ -483,7 +482,12 @@ function ReportActionCompose({
                         {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
-                                onModalHide={focus}
+                                onModalHide={(isNavigating) => {
+                                    if (isNavigating) {
+                                        return;
+                                    }
+                                    focus();
+                                }}
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}
@@ -499,10 +503,10 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
-                        {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>

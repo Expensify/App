@@ -112,7 +112,7 @@ const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Ch
 const PLATFORM_DEPLOY__IOS__CONFIGURE_MAPBOX_SDK__STEP_MOCK = createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK = createMockStep('Setup Node', 'Setting up Node', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = createMockStep('Setup Ruby', 'Setting up Ruby', 'IOS', ['ruby-version', 'bundler-cache']);
-const PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key', 'restore-keys'], [], {
+const PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key'], [], {
     'cache-hit': false,
 });
 const PLATFORM_DEPLOY__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = createMockStep('Compare Podfile.lock and Manifest.lock', 'Compare Podfile.lock and Manifest.lock', 'IOS', [], [], {
@@ -183,6 +183,10 @@ const PLATFORM_DEPLOY__WEB__BUILD__STEP_MOCK = createMockStep('Build web', 'Buil
 const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS__STEP_MOCK = createMockStep('Build storybook docs', 'Build storybook docs', 'WEB');
 const PLATFORM_DEPLOY__WEB__DEPLOY_S3__STEP_MOCK = createMockStep('Deploy to S3', 'Deploying to S3', 'WEB');
 const PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK = createMockStep('Purge Cloudflare cache', 'Purging Cloudflare cache', 'WEB', null, ['CF_API_KEY']);
+const PLATFORM_DEPLOY__WEB__VERIFY_STAGING_DEPLOY = createMockStep('Verify staging deploy', 'Verifying staging deploy', 'WEB');
+const PLATFORM_DEPLOY__WEB__VERIFY_PROD_DEPLOY = createMockStep('Verify production deploy', 'Verifying production deploy', 'WEB');
+const PLATFORM_DEPLOY__WEB__UPlOAD_TO_GH_ARTIFACTS__STEP_MOCK = createMockStep('Upload web build to GitHub artifacts', 'Uploading web build to GitHub artifacts', 'WEB');
+const PLATFORM_DEPLOY__WEB__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload web build to GitHub Release', 'Uploading web build to GitHub Release', 'WEB', null, ['GITHUB_TOKEN']);
 const PLATFORM_DEPLOY__WEB__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive web sourcemaps', 'Archiving web sourcemaps', 'WEB', ['name', 'path']);
 const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK,
@@ -194,6 +198,10 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__DEPLOY_S3__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__ARCHIVE_SOURCEMAPS__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__VERIFY_STAGING_DEPLOY,
+    PLATFORM_DEPLOY__WEB__VERIFY_PROD_DEPLOY,
+    PLATFORM_DEPLOY__WEB__UPlOAD_TO_GH_ARTIFACTS__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__UPLOAD_TO_GH_RELEASE__STEP_MOCK,
 ];
 
 // post slack message on failure

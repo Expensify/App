@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import {Memoize} from '@libs/memoize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +56,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
     const [sharePath, setSharePath] = useState('');
     const [totalMemory, setTotalMemory] = useState(0);
     const [usedMemory, setUsedMemory] = useState(0);
+    const [memoizeStats, setMemoizeStats] = useState<ReturnType<typeof Memoize.stopMonitoring>>();
     const {translate} = useLocalize();
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
@@ -66,11 +68,13 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
         const amountOfUsedMemory = await DeviceInfo.getUsedMemory();
         setTotalMemory(amountOfTotalMemory);
         setUsedMemory(amountOfUsedMemory);
+        setMemoizeStats(Memoize.stopMonitoring());
     }, []);
 
     const onToggleProfiling = useCallback(() => {
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
+            Memoize.startMonitoring();
             startProfiling();
         } else {
             stop();
@@ -89,8 +93,9 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
                 platform: getPlatform(),
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
+                memoizeStats,
             }),
-        [totalMemory, usedMemory],
+        [memoizeStats, totalMemory, usedMemory],
     );
 
     useEffect(() => {

@@ -110,7 +110,7 @@ const TESTBUILD__IOS__CREATE_ENV_ADHOC__STEP_MOCK = createMockStep(
 const TESTBUILD__IOS__SETUP_NODE__STEP_MOCK = createMockStep('Setup Node', 'Setup Node', 'IOS', [], []);
 const TESTBUILD__IOS__SETUP_XCODE__STEP_MOCK = createMockStep('Setup XCode', 'Setup XCode', 'IOS', [], []);
 const TESTBUILD__IOS__SETUP_RUBY__STEP_MOCK = createMockStep('Setup Ruby', 'Setup Ruby', 'IOS', ['ruby-version', 'bundler-cache'], []);
-const TESTBUILD__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key', 'restore-keys'], [], {
+const TESTBUILD__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key'], [], {
     'cache-hit': false,
 });
 const TESTBUILD__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = createMockStep('Compare Podfile.lock and Manifest.lock', 'Compare Podfile.lock and Manifest.lock', 'IOS', [], [], {

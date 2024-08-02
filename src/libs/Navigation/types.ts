@@ -11,7 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
@@ -64,12 +64,12 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+
+    // Param types of the search central pane are also used for the search bottom tab screen.
     [SCREENS.SEARCH.CENTRAL_PANE]: {
-        query: string;
+        q: SearchQueryString;
+        isCustomQuery: boolean;
         policyIDs?: string;
-        offset?: number;
-        sortBy?: SearchColumnType;
-        sortOrder?: SortOrder;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -903,6 +903,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex?: string;
         backTo?: string;
+        participantsAutoAssigned?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
         action: IOUAction;
@@ -1107,8 +1108,19 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
+        policyID: string;
+        firstApproverEmail: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
+        policyID: string;
+        approverIndex?: number;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
@@ -1168,10 +1180,18 @@ type FullScreenNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
-    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
-    [SCREENS.ONBOARDING.PURPOSE]: undefined;
-    [SCREENS.ONBOARDING.WORK]: undefined;
+    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PURPOSE]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
@@ -1184,13 +1204,7 @@ type ExplanationModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: {
-        query: string;
-        policyID?: string;
-        offset?: number;
-        sortBy?: SearchColumnType;
-        sortOrder?: SortOrder;
-    };
+    [SCREENS.SEARCH.BOTTOM_TAB]: Omit<CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE], 'policyIDs'> & {policyID: string};
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
@@ -1228,6 +1242,8 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = CentralPaneScreensParamList &
     SharedScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TRACK_EXPENSE]: undefined;
+        [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.ATTACHMENTS]: {
             reportID: string;
             source: string;
@@ -1265,7 +1281,6 @@ type AuthScreensParamList = CentralPaneScreensParamList &
 
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
-        query: string;
         reportID: string;
     };
 };

@@ -22,9 +22,9 @@ import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +32,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
+import * as Modal from '@userActions/Modal';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -121,13 +122,14 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
+    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -156,21 +158,22 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             // In such cases, let us use the available chat report ids from the policy.
             const threeDotsMenuItems: PopoverMenuItem[] = [];
 
-            if (isAdmin) {
+            if (isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
-                    onSelected: () => {
-                        setPolicyIDToDelete(item.policyID ?? '-1');
-                        setPolicyNameToDelete(item.title);
-                        setIsDeleteModalOpen(true);
-                    },
+                    onSelected: () =>
+                        Modal.close(() => {
+                            setPolicyIDToDelete(item.policyID ?? '-1');
+                            setPolicyNameToDelete(item.title);
+                            setIsDeleteModalOpen(true);
+                        }),
                 });
             }
 
             if (!(isAdmin || isOwner)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.ChatBubbles,
+                    icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
                 });
@@ -362,7 +365,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
             icon={Expensicons.Plus}
-            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
     );
 
@@ -377,13 +380,13 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
                 >
-                    {!isSmallScreenWidth && getHeaderButton()}
+                    {!shouldUseNarrowLayout && getHeaderButton()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
@@ -413,13 +416,13 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
                 >
-                    {!isSmallScreenWidth && getHeaderButton()}
+                    {!shouldUseNarrowLayout && getHeaderButton()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
                 <FlatList
                     data={workspaces}
                     renderItem={getMenuItem}
