@@ -42,7 +42,6 @@ import type {
     TransactionViolation,
     UserWallet,
 } from '@src/types/onyx';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
