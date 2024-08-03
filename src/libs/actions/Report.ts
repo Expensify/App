@@ -3700,6 +3700,24 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         resolution,
     };
 
+    const optimisticReportActions = {
+        [reportAction.reportActionID]: {
+            originalMessage: {
+                resolution,
+            },
+        },
+    };
+
+    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
+
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
+    const reportUpdateDataWithCurrentLastMessage = {
+        lastMessageTranslationKey: report?.lastMessageTranslationKey,
+        lastMessageText: report?.lastMessageText,
+        lastVisibleActionCreated: report?.lastVisibleActionCreated,
+        lastActorAccountID: report?.lastActorAccountID,
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3712,6 +3730,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            value: reportUpdateDataWithPreviousLastMessage,
         },
     ];
 
@@ -3727,6 +3750,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            value: reportUpdateDataWithCurrentLastMessage, // revert back to the current report last message data in case of failure
         },
     ];
 
@@ -3747,6 +3775,24 @@ function resolveActionableReportMentionWhisper(
         return;
     }
 
+    const optimisticReportActions = {
+        [reportAction.reportActionID]: {
+            originalMessage: {
+                resolution,
+            },
+        },
+    };
+
+    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
+
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
+    const reportUpdateDataWithCurrentLastMessage = {
+        lastMessageTranslationKey: report?.lastMessageTranslationKey,
+        lastMessageText: report?.lastMessageText,
+        lastVisibleActionCreated: report?.lastVisibleActionCreated,
+        lastActorAccountID: report?.lastActorAccountID,
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3757,7 +3803,12 @@ function resolveActionableReportMentionWhisper(
                         resolution,
                     },
                 },
-            },
+            } as ReportActions,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            value: reportUpdateDataWithPreviousLastMessage,
         },
     ];
 
@@ -3772,6 +3823,11 @@ function resolveActionableReportMentionWhisper(
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            value: reportUpdateDataWithCurrentLastMessage, // revert back to the current report last message data in case of failure
         },
     ];
 

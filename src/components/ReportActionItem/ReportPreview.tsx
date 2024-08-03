@@ -32,6 +32,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,6 +85,12 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
+    /** Callback when the payment options popover is shown */
+    onPaymentOptionsShow?: () => void;
+
+    /** Callback when the payment options popover is closed */
+    onPaymentOptionsHide?: () => void;
+
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
@@ -106,6 +113,8 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
     userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
@@ -113,6 +122,7 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
+    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID, transactions), [iouReportID, transactions]);
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -143,7 +153,6 @@ function ReportPreview({
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const numberOfRequests = allTransactions.length;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -352,6 +361,7 @@ function ReportPreview({
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
+                        Timing.start(CONST.TIMING.SWITCH_REPORT);
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
@@ -433,6 +443,8 @@ function ReportPreview({
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
                                         onPress={confirmPayment}
+                                        onPaymentOptionsShow={onPaymentOptionsShow}
+                                        onPaymentOptionsHide={onPaymentOptionsHide}
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
@@ -456,6 +468,10 @@ function ReportPreview({
                                         policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
+                                        dropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (
