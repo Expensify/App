@@ -86,8 +86,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
-            rightComponent: selectedCheckboxIcon,
-            shouldShowRightComponent: isSelected,
             numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
