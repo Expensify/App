@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -146,22 +145,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             />
                         </View>
                     </ScrollView>
-                    <FormAlertWithSubmitButton
-                        enabledWhenOffline
-                        footerContent={isSmallScreenWidth && PurposeFooterInstance}
-                        buttonText={translate('common.continue')}
-                        onSubmit={() => {
-                            if (!selectedPurpose) {
-                                Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
-                                return;
-                            }
-                            Welcome.setOnboardingErrorMessage('');
-                            saveAndNavigate();
-                        }}
-                        message={onboardingErrorMessage}
-                        isAlertVisible={!!onboardingErrorMessage}
-                        containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
-                    />
                 </View>
             )}
         </SafeAreaConsumer>
