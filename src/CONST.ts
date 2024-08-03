@@ -13,6 +13,7 @@ import type {Unit} from './types/onyx/Policy';
 type RateAndUnit = {
     unit: Unit;
     rate: number;
+    currency: string;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 

@@ -2476,44 +2476,6 @@ function calculateDiffAmount(
     return 0;
 }
 
-function calculateAmountForUpdatedWaypointOrRate(
-    transaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
-    transactionChanges: TransactionChanges,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
-) {
-    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
-        return {
-            amount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
-        };
-    }
-
-    const customUnitRateID = !isEmptyObject(transactionChanges.customUnitRateID) ? transactionChanges.customUnitRateID : TransactionUtils.getRateID(transaction) ?? '';
-
-    const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
-    const {unit, rate} = mileageRate;
-
-    const distanceInMeters = TransactionUtils.getDistanceInMeters(transaction, unit);
-    const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-    const updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
-    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
-        toLocaleDigit(preferredLocale, digit),
-    );
-
-    return {
-        amount: updatedAmount,
-        modifiedAmount: updatedAmount,
-        modifiedMerchant: updatedMerchant,
-        modifiedCurrency: policyCurrency,
-    };
-}
-
 /**
  * @param transactionID
  * @param transactionThreadReportID
@@ -2575,7 +2537,7 @@ function getUpdateMoneyRequestParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, iouReport),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2602,7 +2564,7 @@ function getUpdateMoneyRequestParams(
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, updatedTransaction, transactionChanges, isFromExpenseReport, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
     if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -2880,7 +2842,7 @@ function getUpdateTrackExpenseParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, transactionThread),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(transactionThread)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2907,7 +2869,7 @@ function getUpdateTrackExpenseParams(
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, updatedTransaction, transactionChanges, false, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy);
     if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -5078,7 +5040,7 @@ function editRegularMoneyRequest(
 
     // STEP 2: Build new modified expense report action.
     const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, updatedTransaction, transactionChanges, isFromExpenseReport, policy);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
 
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // Should only update if the transaction matches the currency of the report, else we wait for the update

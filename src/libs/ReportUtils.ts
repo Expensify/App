@@ -3237,7 +3237,6 @@ function getReportPreviewMessage(
  */
 function getModifiedExpenseOriginalMessage(
     oldTransaction: OnyxInputOrEntry<Transaction>,
-    updatedTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
@@ -3305,9 +3304,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
 
-        originalMessage.amount = TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport);
-        originalMessage.currency = TransactionUtils.getCurrency(updatedTransaction);
-        originalMessage.merchant = TransactionUtils.getMerchant(updatedTransaction);
+        const modifiedData = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
+
+        // For the originalMessage, we should use the non-negative amount, similar to what TransactionUtils.getAmount does for oldAmount
+        originalMessage.amount = Math.abs(modifiedData.modifiedAmount);
+        originalMessage.currency = modifiedData.modifiedCurrency;
+        originalMessage.merchant = modifiedData.modifiedMerchant;
     }
 
     return originalMessage;
@@ -4573,12 +4575,11 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
 function buildOptimisticModifiedExpenseReportAction(
     transactionThread: OnyxInputOrEntry<Report>,
     oldTransaction: OnyxInputOrEntry<Transaction>,
-    updatedTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, updatedTransaction, transactionChanges, isFromExpenseReport, policy);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
