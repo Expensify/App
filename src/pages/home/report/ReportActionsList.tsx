@@ -337,13 +337,6 @@ function ReportActionsList({
         };
     }, [report.reportID]);
 
-    const clearLinkedReportActionID = () => {
-        if (!linkedReportActionID || linkedReportActionID === '-1') {
-            return;
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-    };
-
     useEffect(() => {
         if (linkedReportActionID) {
             return;
@@ -361,7 +354,9 @@ function ReportActionsList({
             if (!isFromCurrentUser) {
                 return;
             }
-            clearLinkedReportActionID();
+            if (linkedReportActionID && linkedReportActionID !== '-1') {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            }
             if (!hasNewestReportActionRef.current) {
                 return;
             }
