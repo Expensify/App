@@ -5,7 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getCurrentSageIntacctEntityName} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -41,7 +41,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.autoSyncDescription'),
                 isActive: !!autoSync?.enabled,
                 onToggle: (enabled: boolean) => updateSageIntacctAutoSync(policyID, enabled),
-                pendingAction: pendingFields?.enabled,
+                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED],
                 error: ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
                 onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
             },
@@ -53,7 +53,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     updateSageIntacctImportEmployees(policyID, enabled);
                     updateSageIntacctApprovalMode(policyID, enabled);
                 },
-                pendingAction: pendingFields?.importEmployees,
+                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE],
                 error:
                     ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES) ??
                     ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE),
@@ -74,33 +74,21 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
                     }
                 },
-                pendingAction: pendingFields?.syncReimbursedReports,
+                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS],
                 error: ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS),
                 onCloseError: () => {
                     Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS);
                 },
             },
         ],
-        [
-            translate,
-            autoSync?.enabled,
-            pendingFields?.enabled,
-            pendingFields?.importEmployees,
-            pendingFields?.syncReimbursedReports,
-            config,
-            importEmployees,
-            sync?.syncReimbursedReports,
-            sync?.reimbursementAccountID,
-            policyID,
-            data?.bankAccounts,
-        ],
+        [translate, autoSync?.enabled, config, importEmployees, sync?.syncReimbursedReports, sync?.reimbursementAccountID, policyID, data?.bankAccounts],
     );
 
     return (
         <ConnectionLayout
             displayName={SageIntacctAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
-            headerSubtitle={getCurrentSageIntacctEntityName(policy)}
+            headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -119,7 +107,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     isActive={section.isActive}
                     onToggle={section.onToggle}
                     wrapperStyle={[styles.ph5, styles.pv3]}
-                    pendingAction={section.pendingAction}
+                    pendingAction={settingsPendingAction(section.subscribedSettings, pendingFields)}
                     errors={section.error}
                     onCloseError={section.onCloseError}
                 />
@@ -128,14 +116,14 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             {!!sync?.syncReimbursedReports && (
                 <OfflineWithFeedback
                     key={translate('workspace.sageIntacct.paymentAccount')}
-                    pendingAction={pendingFields?.reimbursementAccountID}
+                    pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID) ?? translate('workspace.sageIntacct.notConfigured')}
                         description={translate('workspace.sageIntacct.paymentAccount')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
-                        brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             )}

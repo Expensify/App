@@ -72,11 +72,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     useCancelSearchOnModalClose();
 
     useEffect(() => {
-        Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
-    }, []);
-
-    useEffect(() => {
         Report.searchInServer(debouncedSearchValueInServer.trim());
     }, [debouncedSearchValueInServer]);
 
