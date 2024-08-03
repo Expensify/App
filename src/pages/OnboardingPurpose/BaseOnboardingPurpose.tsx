@@ -73,18 +73,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
     );
 
-    const saveAndNavigate = useCallback(() => {
-        if (selectedPurpose === undefined) {
-            return;
-        }
-
-        if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
-    }, [selectedPurpose, route]);
-
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
         const isSelected = selectedPurpose === choice;
@@ -104,6 +92,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 Welcome.setOnboardingErrorMessage('');
+
+                if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
+                    return;
+                }
+                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
             focused: isSelected,
         };
