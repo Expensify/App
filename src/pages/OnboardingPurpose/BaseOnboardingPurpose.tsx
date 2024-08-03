@@ -84,7 +84,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconWidth: variables.menuIconSize,
             iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
-            wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
+            wrapperStyle: [styles.purposeMenuItem],
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
             numberOfLinesTitle: 0,
             onPress: () => {
@@ -97,7 +97,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
-            focused: isSelected,
         };
     });
     const isFocused = useIsFocused();
