@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -84,21 +85,23 @@ function ReportFieldsListValuesPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
     const listValuesSections = useMemo(() => {
-        const data = listValues.map<ValueListItem>((value, index) => ({
-            value,
-            index,
-            text: value,
-            keyForList: value,
-            isSelected: selectedValues[value],
-            enabled: !disabledListValues[index] ?? true,
-            pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
-            rightElement: (
-                <ListItemRightCaretWithLabel
-                    shouldShowCaret={false}
-                    labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
-                />
-            ),
-        }));
+        const data = listValues
+            .sort((a, b) => localeCompare(a, b))
+            .map<ValueListItem>((value, index) => ({
+                value,
+                index,
+                text: value,
+                keyForList: value,
+                isSelected: selectedValues[value],
+                enabled: !disabledListValues[index] ?? true,
+                pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
+                rightElement: (
+                    <ListItemRightCaretWithLabel
+                        shouldShowCaret={false}
+                        labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                    />
+                ),
+            }));
 
         return [{data, isDisabled: false}];
     }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
