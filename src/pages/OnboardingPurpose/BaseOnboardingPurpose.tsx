@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -145,6 +146,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             />
                         </View>
                     </ScrollView>
+                    <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
+                        <FormHelpMessage message={onboardingErrorMessage} />
+                    </View>
                 </View>
             )}
         </SafeAreaConsumer>
