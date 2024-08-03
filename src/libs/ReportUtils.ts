@@ -871,22 +871,6 @@ function isOpenExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * Checks if the supplied report is a report in Open state and status.
- */
-function isReportOpen(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
-    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
-}
-
-/**
- * Checks if the supplied report is a report in Submitted state and status.
- */
-function isReportSubmitted(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
-    return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
-}
-
-/**
  * Checks if the supplied report has a member with the array passed in params.
  */
 function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: number[]) {
@@ -1366,8 +1350,7 @@ function isArchivedRoomWithID(reportID?: string) {
 /**
  * Whether the provided report is a closed report
  */
-function isClosedReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
+function isClosedReport(report: OnyxEntry<Report>): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
 
@@ -7723,8 +7706,6 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
-    isReportOpen,
-    isReportSubmitted,
 };
 
 export type {
