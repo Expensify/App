@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -40,8 +39,10 @@ function SignInModal({session}: SignInModalProps) {
             shouldShowOfflineIndicator={false}
             testID={SignInModal.displayName}
         >
-            <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
-            <SignInPage shouldEnableMaxHeight={false} />
+            <SignInPage
+                shouldEnableMaxHeight={false}
+                shouldShowBackButton
+            />
         </ScreenWrapper>
     );
 }

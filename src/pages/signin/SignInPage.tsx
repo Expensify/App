@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
@@ -51,6 +52,7 @@ type SignInPageInnerOnyxProps = {
 
 type SignInPageInnerProps = SignInPageInnerOnyxProps & {
     shouldEnableMaxHeight?: boolean;
+    shouldShowBackButton?: boolean;
 };
 
 type RenderOption = {
@@ -141,7 +143,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
+function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true, shouldShowBackButton}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -149,6 +151,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
+    const clearValidateCodeFormDataRef = useRef<() => void>(null);
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
@@ -260,6 +263,23 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         loginFormRef.current?.clearDataAndFocus();
     };
 
+    const navigateBack = () => {
+        if (
+            shouldShouldSignUpWelcomeForm ||
+            (!shouldShowAnotherLoginPageOpenedMessage && (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode))
+        ) {
+            Session.clearSignInData();
+            return;
+        }
+
+        if (shouldShowValidateCodeForm) {
+            clearValidateCodeFormDataRef?.current?.();
+            return;
+        }
+
+        Navigation.goBack();
+    };
+
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
@@ -270,6 +290,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageThemeWrapper.displayName}
         >
+            {shouldShowBackButton && <HeaderWithBackButton onBackButtonPress={navigateBack} />}
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
@@ -292,6 +313,9 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                         isVisible={!shouldShowAnotherLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                        setClearSignInData={(clearSignInData: () => void) => {
+                            (clearValidateCodeFormDataRef.current as (() => void) | null) = clearSignInData;
+                        }}
                     />
                 )}
                 {!shouldShowAnotherLoginPageOpenedMessage && (

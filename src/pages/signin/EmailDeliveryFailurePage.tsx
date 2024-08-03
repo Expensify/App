@@ -9,9 +9,12 @@ import TextLink from '@components/TextLink';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Credentials} from '@src/types/onyx';
 
 type EmailDeliveryFailurePageOnyxProps = {
@@ -74,7 +77,13 @@ function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) 
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
-                    onPress={() => redirectToSignIn()}
+                    onPress={() => {
+                        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+                            Session.clearSignInData();
+                            return;
+                        }
+                        redirectToSignIn();
+                    }}
                     role="button"
                     accessibilityLabel={translate('common.back')}
                     // disable hover dim for switch

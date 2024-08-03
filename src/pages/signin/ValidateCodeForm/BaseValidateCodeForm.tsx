@@ -55,7 +55,7 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm({account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, setClearSignInData}: BaseValidateCodeFormProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -168,21 +168,25 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     /**
      * Clear local sign in states
      */
-    const clearLocalSignInData = () => {
+    const clearLocalSignInData = useCallback(() => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
         setIsUsingRecoveryCode(false);
         setRecoveryCode('');
-    };
+    }, [setIsUsingRecoveryCode]);
 
     /**
      * Clears local and Onyx sign in states
      */
-    const clearSignInData = () => {
+    const clearSignInData = useCallback(() => {
         clearLocalSignInData();
         SessionActions.clearSignInData();
-    };
+    }, [clearLocalSignInData]);
+
+    useEffect(() => {
+        setClearSignInData(clearSignInData);
+    }, [clearSignInData, setClearSignInData]);
 
     useEffect(() => {
         if (!needToClearError) {
