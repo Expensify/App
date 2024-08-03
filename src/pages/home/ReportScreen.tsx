@@ -23,6 +23,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useDetectPageRefresh from '@hooks/usePageRefresh';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -109,6 +110,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {wasPageRefreshed} = useDetectPageRefresh();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
@@ -134,11 +136,12 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     useEffect(() => {
-        // Don't update if there is a reportID in the params already
+        // Don't update if there is a reportID in the params already.
         if (route.params.reportID) {
             const reportActionID = route?.params?.reportActionID;
+            // Clear highlight if user has refreshed the page or if reportActionID is invalid.
             const isValidReportActionID = ValidationUtils.isNumeric(reportActionID);
-            if (reportActionID && !isValidReportActionID) {
+            if (reportActionID && (!isValidReportActionID || wasPageRefreshed)) {
                 navigation.setParams({reportActionID: ''});
             }
             return;
