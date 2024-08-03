@@ -136,10 +136,10 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     useEffect(() => {
-        // Don't update if there is a reportID in the params already.
+        // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
             const reportActionID = route?.params?.reportActionID;
-            // Clear highlight if user has refreshed the page or if reportActionID is invalid.
+            // Clear highlight if user has refreshed the page or if reportActionID is invalid
             const isValidReportActionID = ValidationUtils.isNumeric(reportActionID);
             if (reportActionID && (!isValidReportActionID || wasPageRefreshed)) {
                 navigation.setParams({reportActionID: ''});
