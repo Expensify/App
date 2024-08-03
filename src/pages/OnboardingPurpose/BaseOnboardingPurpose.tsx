@@ -5,8 +5,6 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -51,8 +49,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingPurposeSelected, onboardingPurposeSelectedResult] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
-    const PurposeFooterInstance = <OfflineIndicator />;
-
     useEffect(() => {
         setSelectedPurpose(onboardingPurposeSelected ?? undefined);
     }, [onboardingPurposeSelected]);
@@ -61,21 +57,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const paddingHorizontal = isMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const selectedCheckboxIcon = useMemo(
-        () => (
-            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                <Icon
-                    src={Expensicons.Checkmark}
-                    fill={theme.success}
-                />
-            </View>
-        ),
-        [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
-    );
-
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
-        const isSelected = selectedPurpose === choice;
         return {
             key: translationKey,
             title: translate(translationKey),
@@ -136,6 +119,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
                         <FormHelpMessage message={onboardingErrorMessage} />
                     </View>
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </View>
             )}
         </SafeAreaConsumer>
