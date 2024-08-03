@@ -40,8 +40,10 @@ function IOURequestStartPage({
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || -1}`);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
