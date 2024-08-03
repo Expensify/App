@@ -21,7 +21,6 @@ import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, T
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
-import type * as OnyxTypes from '@src/types/onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -405,10 +404,6 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
-    return transaction?.comment?.customUnit?.quantity ?? 0;
-}
-
 /**
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
@@ -753,9 +748,9 @@ function calculateTaxAmount(percentage: string, amount: number, currency: string
  * Calculates updated amount, currency, and merchant for a distance request with modified waypoints or customUnitRateID
  */
 function calculateAmountForUpdatedWaypointOrRate(
-    transaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
+    transaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    policy: OnyxInputOrEntry<Policy>,
     isFromExpenseReport: boolean,
 ) {
     if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
@@ -1063,7 +1058,6 @@ export {
     getTaxAmount,
     getTaxCode,
     getCurrency,
-    getDistance,
     getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
