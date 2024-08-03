@@ -11,6 +11,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
@@ -257,7 +258,8 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
 }
 
 function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails) {
-    const {legalFirstName = '', legalLastName = '', phoneNumber = '', address: {city = '', country = '', state = '', street = '', zip = ''} = {}} = privatePersonalDetails;
+    const {legalFirstName = '', legalLastName = '', phoneNumber = ''} = privatePersonalDetails;
+    const {city = '', country = '', state = '', street = '', zip = ''} = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails) ?? {};
 
     const requestParams: RequestPhysicalExpensifyCardParams = {
         authToken,
