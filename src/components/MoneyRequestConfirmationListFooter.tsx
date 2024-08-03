@@ -254,7 +254,6 @@ function MoneyRequestConfirmationListFooter({
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
-
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
