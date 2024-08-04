@@ -390,6 +390,31 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     />
                                 </Section>
+
+                                {hasAssignedCard ? (
+                                    <Section
+                                        subtitle={translate('walletPage.assignedCardsDescription')}
+                                        title={translate('walletPage.assignedCards')}
+                                        isCentralPane
+                                        titleStyles={styles.accountSettingsSectionTitle}
+                                    >
+                                        <PaymentMethodList
+                                            shouldShowAddBankAccount={false}
+                                            shouldShowAddPaymentMethodButton={false}
+                                            shouldShowAssignedCards
+                                            shouldShowEmptyListMessage={false}
+                                            shouldEnableScroll={false}
+                                            onPress={paymentMethodPressed}
+                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                            actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                                            activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
+                                            buttonRef={addPaymentMethodAnchorRef}
+                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                        />
+                                    </Section>
+                                ) : null}
+
                                 {hasWallet && (
                                     <Section
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'walletEnabledToSendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
@@ -510,29 +535,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         </>
                                     </Section>
                                 )}
-                                {hasAssignedCard ? (
-                                    <Section
-                                        subtitle={translate('walletPage.assignedCardsDescription')}
-                                        title={translate('walletPage.assignedCards')}
-                                        isCentralPane
-                                        titleStyles={styles.accountSettingsSectionTitle}
-                                    >
-                                        <PaymentMethodList
-                                            shouldShowAddBankAccount={false}
-                                            shouldShowAddPaymentMethodButton={false}
-                                            shouldShowAssignedCards
-                                            shouldShowEmptyListMessage={false}
-                                            shouldEnableScroll={false}
-                                            onPress={paymentMethodPressed}
-                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                            actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                                            activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
-                                            buttonRef={addPaymentMethodAnchorRef}
-                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
-                                        />
-                                    </Section>
-                                ) : null}
                             </OfflineWithFeedback>
                         </View>
                     </ScrollView>
