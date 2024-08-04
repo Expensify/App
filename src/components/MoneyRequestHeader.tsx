@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -59,7 +59,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 

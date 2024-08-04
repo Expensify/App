@@ -3,9 +3,9 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {isSafari} from '@libs/Browser';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
@@ -23,7 +23,7 @@ const Stack = createStackNavigator<RightModalNavigatorParamList>();
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useMemo(() => {
         const options = ModalNavigatorScreenOptions(styles);

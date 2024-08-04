@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/createCustomFullScreenNavigator';
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -38,7 +38,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 function FullScreenNavigator() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
 
     return (

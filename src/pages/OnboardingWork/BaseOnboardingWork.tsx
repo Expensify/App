@@ -10,7 +10,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -30,7 +29,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {

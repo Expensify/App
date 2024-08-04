@@ -6,7 +6,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
@@ -26,7 +26,7 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });

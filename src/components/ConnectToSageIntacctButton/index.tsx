@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,7 +35,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);

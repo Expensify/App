@@ -5,7 +5,7 @@ import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
@@ -13,7 +13,7 @@ import type FocusTrapProps from './FocusTrapProps';
 function FocusTrapForScreen({children}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const isActive = useMemo(() => {
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.

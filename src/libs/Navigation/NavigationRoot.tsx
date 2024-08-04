@@ -6,8 +6,8 @@ import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
@@ -79,7 +79,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
 

@@ -5,11 +5,10 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -202,15 +201,14 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const {shouldUseNarrowLayout, isMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(isMediumOrLargerScreenWidth), [screenOptions, isMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
-        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, isMediumOrLargerScreenWidth),
-        [StyleUtils, isSmallScreenWidth, isMediumOrLargerScreenWidth, styles],
+        () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, isMediumOrLargerScreenWidth),
+        [StyleUtils, shouldUseNarrowLayout, isMediumOrLargerScreenWidth, styles],
     );
 
     let initialReportID: string | undefined;
@@ -350,7 +348,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <OptionsListContextProvider>
-            <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator
                     screenOptions={screenOptions.centralPaneNavigator}
                     isSmallScreenWidth={isSmallScreenWidth}

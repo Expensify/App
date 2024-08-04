@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -85,7 +84,7 @@ function FeatureTrainingModal({
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');

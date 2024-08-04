@@ -14,7 +14,6 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +41,7 @@ const menuIcons = {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {isSmallScreenWidth} = useResponsiveLayout();

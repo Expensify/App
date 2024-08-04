@@ -6,8 +6,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 
 type PaymentCardCurrencyModalProps = {
@@ -28,7 +28,7 @@ type PaymentCardCurrencyModalProps = {
 };
 
 function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.PAYMENT_CARD_CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {sections} = useMemo(

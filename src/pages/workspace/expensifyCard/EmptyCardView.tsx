@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import colors from '@styles/theme/colors';
@@ -18,9 +19,10 @@ const BUTTON_MARGIN = 12;
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN : HEADER_HEIGHT;
+    const headerHeight = shouldUseNarrowLayout ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN : HEADER_HEIGHT;
 
     return (
         <ScrollView>
@@ -34,11 +36,11 @@ function EmptyCardView() {
                             overflow: 'hidden',
                             backgroundColor: colors.green700,
                         },
-                        isSmallScreenWidth && {maxHeight: 250},
+                        shouldUseNarrowLayout && {maxHeight: 250},
                     ]}
                     title={translate('workspace.expensifyCard.issueAndManageCards')}
                     subtitle={translate('workspace.expensifyCard.getStartedIssuing')}
-                    emptyStateForegroundStyles={isSmallScreenWidth && {justifyContent: 'flex-start'}}
+                    emptyStateForegroundStyles={shouldUseNarrowLayout && {justifyContent: 'flex-start'}}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>

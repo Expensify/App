@@ -3,7 +3,7 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
@@ -21,7 +21,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
         if (!navigationRef.isReady()) {

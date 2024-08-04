@@ -1,20 +1,12 @@
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import {useContext, useMemo} from 'react';
+import {Dimensions} from 'react-native';
 import ModalContext from '@components/Modal/ModalContext';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import useWindowDimensions from './useWindowDimensions';
-
-type ResponsiveLayoutResult = {
-    shouldUseNarrowLayout: boolean;
-    isSmallScreenWidth: boolean;
-    isInNarrowPaneModal: boolean;
-    isExtraSmallScreenHeight: boolean;
-    isMediumScreenWidth: boolean;
-    isLargeScreenWidth: boolean;
-    isExtraSmallScreenWidth: boolean;
-    isSmallScreen: boolean;
-};
+import type ResponsiveLayoutResult from './types';
 
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator.
@@ -32,7 +24,19 @@ type ResponsiveLayoutResult = {
  * For more details on the various modal types we've defined for this app and implemented using react-native-modal, see `ModalType`.
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
-    const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+
+    // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
+    const screenHeight = Dimensions.get('screen').height;
+    const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
+    const isMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
+    const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+    const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
+
+    const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
+    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
 
     // Note: activeModalType refers to our react-native-modal component wrapper, not react-navigation's modal stack navigators.
     // This means it will only be defined if the component calling this hook is a child of a modal component. See BaseModal for the provider.
@@ -70,7 +74,10 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isExtraSmallScreenHeight,
         isExtraSmallScreenWidth,
         isMediumScreenWidth,
+        isMediumOrLargerScreenWidth,
         isLargeScreenWidth,
         isSmallScreen,
     };
 }
+
+export type {ResponsiveLayoutResult};

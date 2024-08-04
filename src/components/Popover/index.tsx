@@ -6,7 +6,7 @@ import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
-import type {PopoverProps} from './types';
+import type PopoverProps from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
