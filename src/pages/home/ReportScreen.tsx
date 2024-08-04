@@ -157,7 +157,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-    }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp, wasPageRefreshed]);
+        // Exclude wasPageRefreshed to avoid re-running this effect unnecessarily
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
