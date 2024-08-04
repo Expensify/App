@@ -403,7 +403,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
-        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions) ||
         (!isLinkingToMessage && !isInitialPageReady) ||
         isLoadingReportOnyx ||
         !isCurrentReportLoadedFromOnyx ||
