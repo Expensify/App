@@ -297,7 +297,7 @@ function ReportActionsView({
     const handleReportActionPagination = useCallback(
         ({firstReportActionID}: {firstReportActionID: string}) => {
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached) {
+            if (!hasMoreCached && !hasNewestReportAction) {
                 isFirstLinkedActionRender.current = false;
                 fetchNewerAction(newestReportAction);
             }
