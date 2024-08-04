@@ -70,7 +70,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action},
+        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
     },
     transaction,
 }: IOURequestStepConfirmationProps) {
@@ -201,13 +201,13 @@ function IOURequestStepConfirmation({
         }
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
-        if (!transaction?.participantsAutoAssigned) {
+        if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [transaction, iouType, requestType, transactionID, reportID, action]);
+    }, [transaction, iouType, requestType, transactionID, reportID, action, participantsAutoAssignedFromRoute]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -275,10 +275,6 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
-            const receiptObjWithFilename = receiptObj && {...receiptObj};
-            if (receiptObjWithFilename && !receiptObjWithFilename?.name) {
-                receiptObjWithFilename.name = transaction.filename;
-            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -289,7 +285,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                receiptObjWithFilename,
+                receiptObj,
                 transaction.category,
                 transaction.tag,
                 transactionTaxCode,
