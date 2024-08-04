@@ -133,8 +133,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     if (lockedResponsiveLayoutResultRef.current && !isFullScreenRef.current && didScreenReturnToOriginalSize) {
         const lastlockedResponsiveLayoutResult = {...lockedResponsiveLayoutResultRef.current};
         unlockResponsiveLayoutResult();
-        return lastlockedResponsiveLayoutResult;
+        return {windowWidth: lastlockedResponsiveLayoutResult.windowWidth, windowHeight: lastlockedResponsiveLayoutResult.windowHeight};
     }
 
-    return lockedResponsiveLayoutResultRef.current;
+    return {windowWidth: lockedResponsiveLayoutResultRef.current.windowWidth, windowHeight: lockedResponsiveLayoutResultRef.current.windowHeight};
 }
