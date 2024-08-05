@@ -32,6 +32,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
+import * as Modal from '@userActions/Modal';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -161,17 +162,18 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
-                    onSelected: () => {
-                        setPolicyIDToDelete(item.policyID ?? '-1');
-                        setPolicyNameToDelete(item.title);
-                        setIsDeleteModalOpen(true);
-                    },
+                    onSelected: () =>
+                        Modal.close(() => {
+                            setPolicyIDToDelete(item.policyID ?? '-1');
+                            setPolicyNameToDelete(item.title);
+                            setIsDeleteModalOpen(true);
+                        }),
                 });
             }
 
             if (!(isAdmin || isOwner)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.ChatBubbles,
+                    icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
                 });

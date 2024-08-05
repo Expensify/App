@@ -318,6 +318,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT: 'UpdateSageIntacctNonreimbursableExpensesExportAccount',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
+    REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
@@ -563,6 +564,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
+    [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
@@ -703,6 +705,7 @@ const READ_COMMANDS = {
     SEARCH: 'Search',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
+    START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -758,6 +761,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
+    [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
