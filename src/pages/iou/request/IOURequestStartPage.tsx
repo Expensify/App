@@ -1,8 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,46 +22,31 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report, SelectedTabRequest, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-type IOURequestStartPageOnyxProps = {
-    /** The report that holds the transaction */
-    report: OnyxEntry<Report>;
-
-    /** The policy tied to the report */
-    policy: OnyxEntry<Policy>;
-
-    /** The tab to select by default (whatever the user visited last) */
-    selectedTab: OnyxEntry<SelectedTabRequest>;
-
-    /** The transaction being modified */
-    transaction: OnyxEntry<Transaction>;
-
-    /** The list of all policies */
-    allPolicies: OnyxCollection<Policy>;
-};
-
-type IOURequestStartPageProps = IOURequestStartPageOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
+type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
 function IOURequestStartPage({
-    report,
-    policy,
     route,
     route: {
         params: {iouType, reportID},
     },
-    selectedTab,
-    transaction,
-    allPolicies,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || -1}`);
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.submitExpense'),
@@ -181,20 +165,4 @@ function IOURequestStartPage({
 
 IOURequestStartPage.displayName = 'IOURequestStartPage';
 
-export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route?.params?.reportID}`,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? -1}`,
-    },
-    allPolicies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(IOURequestStartPage);
+export default IOURequestStartPage;

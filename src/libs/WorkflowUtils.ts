@@ -46,7 +46,7 @@ function getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByE
             email: nextEmail,
             forwardsTo: employees[nextEmail].forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
-            displayName: personalDetailsByEmail[nextEmail]?.displayName,
+            displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isInMultipleWorkflows: false,
             isCircularReference,
         });

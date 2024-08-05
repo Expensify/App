@@ -1294,8 +1294,9 @@ export default {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
+        header: 'Send to this member for approval:',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -2033,6 +2034,7 @@ export default {
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
+        errorMessage: 'Something went wrong. Please try again later.',
     },
     workspace: {
         common: {
@@ -2087,6 +2089,7 @@ export default {
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
+            topLevel: 'Top level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
             shareNote: {
                 header: 'Easily share your workspace with other members.',
@@ -3214,9 +3217,12 @@ export default {
                             return 'Marking NetSuite bills and invoices as paid';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
+                        case 'intacctImportDimensions':
+                            return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
