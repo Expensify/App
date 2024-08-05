@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import type {RenderContentProps} from './BaseGetPhysicalCard';
@@ -58,23 +59,23 @@ function GetPhysicalCardAddress({
         const addressPart = value as string;
         const addressPartKey = key as keyof Address;
 
-        if (addressPartKey !== 'country' && addressPartKey !== 'state' && addressPartKey !== 'city' && addressPartKey !== 'zipPostCode') {
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
             return;
         }
-        if (addressPartKey === 'country') {
+        if (addressPartKey === INPUT_IDS.COUNTRY) {
             setCountry(addressPart as Country | '');
             setState('');
             setCity('');
             setZipPostCode('');
             return;
         }
-        if (addressPartKey === 'state') {
+        if (addressPartKey === INPUT_IDS.STATE) {
             setState(addressPart);
             setCity('');
             setZipPostCode('');
             return;
         }
-        if (addressPartKey === 'city') {
+        if (addressPartKey === INPUT_IDS.CITY) {
             setCity(addressPart);
             setZipPostCode('');
             return;
