@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {isEmpty} from 'lodash';
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
@@ -17,6 +17,7 @@ import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
+import TextWithEmojiFragment from './TextWithEmojiFragment';
 
 type TextCommentFragmentProps = {
     /** The reportAction's source */
@@ -56,7 +57,14 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${containsOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        let htmlContent = htmlWithDeletedTag;
+
+        if (containsOnlyEmojis) {
+            htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>');
+        } else if (CONST.REGEX.ALL_EMOJIS.test(text ?? '')) {
+            htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji ismedium>');
+        }
+
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
         if (styleAsMuted) {
@@ -73,24 +81,36 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
+    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
+
     return (
         <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            <Text
-                style={[
-                    containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                    styles.ltr,
-                    style,
-                    styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                    styleAsMuted ? styles.colorMuted : undefined,
-                    !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
-                ]}
-            >
-                {convertToLTR(message ?? '')}
-            </Text>
+            {processedTextArray.length !== 0 ? (
+                <TextWithEmojiFragment
+                    message={message}
+                    passedStyles={style}
+                    styleAsDeleted={styleAsDeleted}
+                    styleAsMuted={styleAsMuted}
+                    hasEmojisOnly={containsOnlyEmojis}
+                />
+            ) : (
+                <Text
+                    style={[
+                        containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                        styles.ltr,
+                        style,
+                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsMuted ? styles.colorMuted : undefined,
+                        !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                    ]}
+                >
+                    {convertToLTR(message ?? '')}
+                </Text>
+            )}
             {fragment?.isEdited && (
                 <>
                     <Text

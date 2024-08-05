@@ -362,6 +362,9 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        verticalAlignMiddle: {
+            verticalAlign: 'middle',
+        },
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -1708,6 +1711,10 @@ const styles = (theme: ThemeColors) =>
 
         onlyEmojisTextLineHeight: {
             lineHeight: variables.fontSizeOnlyEmojisHeight,
+        },
+
+        emojisWithTextFontSize: {
+            fontSize: variables.fontSizeEmojisWithinText,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>

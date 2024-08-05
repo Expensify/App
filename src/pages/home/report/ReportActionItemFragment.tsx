@@ -2,12 +2,12 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
+import ReportActionItemMessageHeaderSender from '@pages/home/report/ReportActionItemMessageHeaderSender';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -160,18 +160,13 @@ function ReportActionItemFragment({
             }
 
             return (
-                <UserDetailsTooltip
+                <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    icon={actorIcon}
-                >
-                    <Text
-                        numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                    >
-                        {fragment?.text}
-                    </Text>
-                </UserDetailsTooltip>
+                    fragmentText={fragment.text}
+                    actorIcon={actorIcon}
+                    isSingleLine={isSingleLine}
+                />
             );
         }
         case 'LINK':
