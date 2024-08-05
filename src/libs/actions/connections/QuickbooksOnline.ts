@@ -2,9 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams} from '@libs/API/parameters';
-import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
-import type UpdateQuickbooksOnlineEnableNewCategoriesParams from '@libs/API/parameters/UpdateQuickbooksOnlineEnableNewCategoriesParams';
-import type UpdateQuickbooksOnlineReimbursableExpensesAccountParams from '@libs/API/parameters/UpdateQuickbooksOnlineReimbursableExpensesAccountParams';
+import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -90,7 +88,7 @@ function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValu
         },
     ];
 
-    const parameters: UpdateQuickbooksOnlineEnableNewCategoriesParams = {
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES),
@@ -165,7 +163,7 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: 
         },
     ];
 
-    const parameters: UpdateQuickbooksOnlineAutoCreateVendorParams = {
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
@@ -243,7 +241,7 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName exten
         },
     ];
 
-    const parameters: UpdateQuickbooksOnlineReimbursableExpensesAccountParams = {
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT),
