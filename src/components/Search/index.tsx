@@ -30,7 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -42,6 +42,7 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
+const sortableSearchStatuses: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
@@ -86,7 +87,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const {sortBy, sortOrder, hash} = queryJSON;
+    const {status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
@@ -265,7 +266,8 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type);
 
     const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
-    const sortedSelectedData = data.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
+    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
@@ -292,6 +294,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     };
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
+    const shouldShowSorting = sortableSearchStatuses.includes(status);
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -322,6 +325,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                             sortOrder={sortOrder}
                             sortBy={sortBy}
                             shouldShowYear={shouldShowYear}
+                            shouldShowSorting={shouldShowSorting}
                         />
                     )
                 }
