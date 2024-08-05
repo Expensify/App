@@ -1,7 +1,7 @@
-type UpdateQuickbooksOnlineEnableNewCategoriesParams = {
+type UpdateQuickbooksOnlineAutoCreateVendorParams = {
     policyID: string;
     settingValue: string;
     idempotencyKey: string;
 };
 
-export default UpdateQuickbooksOnlineEnableNewCategoriesParams;
+export default UpdateQuickbooksOnlineAutoCreateVendorParams;
