@@ -2017,13 +2017,13 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(draftParticipants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
+function getGroupChatName(groupParticipants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
     }
 
-    let participants = draftParticipants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
+    let participants = groupParticipants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
     if (shouldApplyLimit) {
         participants = participants.slice(0, 5);
     }
@@ -2031,7 +2031,10 @@ function getGroupChatName(draftParticipants?: SelectedParticipant[], shouldApply
 
     if (isMultipleParticipantReport) {
         return participants
-            .map((participant, index) => getDisplayNameForParticipant(participant, isMultipleParticipantReport) || draftParticipants?.[index]?.login)
+            .map(
+                (participant, index) =>
+                    getDisplayNameForParticipant(participant, isMultipleParticipantReport) || LocalePhoneNumber.formatPhoneNumber(groupParticipants?.[index]?.login ?? ''),
+            )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ');
