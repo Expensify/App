@@ -3285,6 +3285,8 @@ export default {
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
+            invoiceBalance: 'Invoice balance',
+            invoiceBalanceSubtitle: 'Here’s your current balance from collecting payments on invoices.',
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
