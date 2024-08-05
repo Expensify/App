@@ -3388,7 +3388,7 @@ export default {
                 other: () => 'Eliminar tasas',
             }),
             enableRates: () => ({
-                one: 'Activar 1 tasa',
+                one: 'Activar tasa',
                 other: () => 'Activar tasas',
             }),
             disableRates: () => ({
