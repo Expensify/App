@@ -10,6 +10,7 @@ import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -78,7 +79,13 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-    const managerDisplayName = ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+
+    let nextApproverDisplayName = ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    const approvalChain = PolicyUtils.getApprovalChain(policy, currentUserAccountID, report?.total ?? 0);
+    if (approvalChain.length > 0) {
+        nextApproverDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(approvalChain[0])?.displayName ?? approvalChain[0];
+    }
+
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
@@ -180,7 +187,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: managerDisplayName,
+                        text: nextApproverDisplayName,
                         type: 'strong',
                     },
                     {
