@@ -225,7 +225,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         if (!initialReportID) {
             const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-            initialReportID = initialReport?.reportID ?? "";
+            initialReportID = initialReport?.reportID ?? '';
         }
 
         isInitialRender.current = false;
