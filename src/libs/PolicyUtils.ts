@@ -22,6 +22,7 @@ import type {
     NetSuiteCustomSegment,
     NetSuiteTaxAccount,
     NetSuiteVendor,
+    PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
     Tenant,
@@ -751,14 +752,26 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 
-function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
+function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections], connectionSyncProgress?: PolicyConnectionSyncProgress) {
+    let syncSuccessfulDate;
     if (!connection) {
         return undefined;
     }
     if ((connection as NetSuiteConnection)?.lastSyncDate) {
-        return (connection as NetSuiteConnection)?.lastSyncDate;
+        syncSuccessfulDate = (connection as NetSuiteConnection)?.lastSyncDate;
+    } else {
+        syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
-    return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+
+    if (
+        connectionSyncProgress &&
+        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        syncSuccessfulDate &&
+        connectionSyncProgress.timestamp > syncSuccessfulDate
+    ) {
+        syncSuccessfulDate = connectionSyncProgress.timestamp;
+    }
+    return syncSuccessfulDate;
 }
 
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
