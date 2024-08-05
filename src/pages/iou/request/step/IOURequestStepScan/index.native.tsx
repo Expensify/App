@@ -170,39 +170,26 @@ function IOURequestStepScan({
     );
 
     const validateReceipt = (file: FileObject) => {
-        return FileUtils.validateImageForCorruption(file)
-            .then((result) => {
-                const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-                if (
-                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                    )
-                ) {
-                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                    return false;
-                }
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        if (
+            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+            )
+        ) {
+            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+            return false;
+        }
 
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                    Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                    return false;
-                }
+        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            return false;
+        }
 
-                if (Str.isImage(file.name ?? '') && typeof result === 'object' && result.width * result.height > CONST.MAX_IMAGE_CANVAS_AREA) {
-                    Alert.alert(translate('attachmentPicker.attachmentImageExceedDimensions'), translate('attachmentPicker.dimensionsExceeded'));
-                    return false;
-                }
-
-                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                    return false;
-                }
-                return true;
-            })
-
-            .catch(() => {
-                Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                return false;
-            });
+        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+            return false;
+        }
+        return true;
     };
 
     const navigateBack = () => {
@@ -401,30 +388,28 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile).then((isFileValid) => {
-            if (!isFileValid) {
+        if (!validateReceipt(originalFile)) {
+            return;
+        }
+
+        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+            setPdfFile(originalFile);
+            return;
+        }
+
+        FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
+
+            if (action === CONST.IOU.ACTION.EDIT) {
+                updateScanAndNavigate(file, file?.uri ?? '');
                 return;
             }
 
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                setPdfFile(originalFile);
-                return;
-            }
-
-            FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
-                // Store the receipt on the transaction object in Onyx
-                // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-                // So, let us also save the file type in receipt for later use during blob fetch
-                IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
-
-                if (action === CONST.IOU.ACTION.EDIT) {
-                    updateScanAndNavigate(file, file?.uri ?? '');
-                    return;
-                }
-
-                navigateToConfirmationStep(file, file.uri ?? '');
-            });
+            navigateToConfirmationStep(file, file.uri ?? '');
         });
     };
 

@@ -404,8 +404,6 @@ export default {
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
-        attachmentImageExceedDimensions: 'This image has dimensions that exceed the limit',
-        dimensionsExceeded: 'The image should have dimensions less than 4096x4096 pixels',
     },
     connectionComplete: {
         title: 'Connection complete',
