@@ -203,6 +203,17 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
+// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready
+function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
+
+    return primaryPolicy ?? activeAdminWorkspaces[0];
+}
+
+/**
+ * Returns a primary invoice workspace for the user
+ */
 function getInvoicePrimaryWorkspace(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
@@ -2975,9 +2986,10 @@ function enablePolicyInvoices(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICES, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
-    }
+    // TODO: Uncomment the following line when the invoices screen is ready
+    // if (enabled && getIsNarrowLayout()) {
+    //     navigateWhenEnableFeature(policyID);
+    // }
 }
 
 function openPolicyMoreFeaturesPage(policyID: string) {
@@ -3281,6 +3293,7 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
+    getPrimaryPolicy,
     getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
