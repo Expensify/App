@@ -3,8 +3,8 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -14,6 +14,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
+import localeCompare from '@libs/LocaleCompare';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -55,6 +56,30 @@ type SuggestionPersonalDetailsList = Record<
       })
     | null
 >;
+
+function getDisplayName(details: PersonalDetails) {
+    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(details.accountID);
+    if (!displayNameFromAccountID) {
+        return details.login?.length ? details.login : '';
+    }
+    return displayNameFromAccountID;
+}
+
+/**
+ * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
+ */
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+    if (first.weight !== second.weight) {
+        return first.weight - second.weight;
+    }
+
+    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    if (displayNameLoginOrder !== 0) {
+        return displayNameLoginOrder;
+    }
+
+    return first.accountID - second.accountID;
+}
 
 function SuggestionMention(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
@@ -270,9 +295,11 @@ function SuggestionMention(
                 }
 
                 return true;
-            });
+            }) as Array<PersonalDetails & {weight: number}>;
 
-            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, ['weight', 'displayName', 'login']);
+            // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
+            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
+
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
@@ -443,3 +470,5 @@ function SuggestionMention(
 SuggestionMention.displayName = 'SuggestionMention';
 
 export default forwardRef(SuggestionMention);
+
+export {compareUserInList};

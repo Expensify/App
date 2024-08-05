@@ -73,7 +73,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
         const currentLimit = card.nameValuePairs?.limit ?? 0;
-        const currentSpend = currentLimit - card.availableSpend;
+        const currentSpend = currentLimit - (card.availableSpend ?? 0);
         const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
         const newAvailableSpend = newLimit - currentSpend;
 
