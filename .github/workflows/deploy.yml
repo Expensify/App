@@ -68,23 +68,8 @@ jobs:
       - name: Get current app version
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
-      - name: Get Release Pull Request List
-        id: getReleasePRList
-        uses: ./.github/actions/javascript/getDeployPullRequestList
-        with:
-          TAG: ${{ env.PRODUCTION_VERSION }}
-          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
-          IS_PRODUCTION_DEPLOY: true
-
-      - name: Generate Release Body
-        id: getReleaseBody
-        uses: ./.github/actions/javascript/getReleaseBody
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
-
       - name: 🚀 Create release to trigger production deploy 🚀
-        run: gh release create ${{ env.PRODUCTION_VERSION }} --title ${{ env.PRODUCTION_VERSION }} --notes '${{ steps.getReleaseBody.outputs.RELEASE_BODY }}'
+        run: gh release create ${{ env.PRODUCTION_VERSION }} --title ${{ env.PRODUCTION_VERSION }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
