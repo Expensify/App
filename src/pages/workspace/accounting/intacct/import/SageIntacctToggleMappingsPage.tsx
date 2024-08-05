@@ -86,7 +86,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                         updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
                     } else {
                         setImportMapping(true);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
+                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
                     }
                 }}
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}

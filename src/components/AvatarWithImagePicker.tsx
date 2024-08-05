@@ -11,6 +11,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -263,14 +264,15 @@ function AvatarWithImagePicker({
             {
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () => {
-                    if (Browser.isSafari()) {
-                        return;
-                    }
-                    openPicker({
-                        onPicked: showAvatarCropModal,
-                    });
-                },
+                onSelected: () =>
+                    Modal.close(() => {
+                        if (Browser.isSafari()) {
+                            return;
+                        }
+                        openPicker({
+                            onPicked: showAvatarCropModal,
+                        });
+                    }),
             },
         ];
 
@@ -342,13 +344,14 @@ function AvatarWithImagePicker({
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: () => {
-                                            if (typeof onViewPhotoPress !== 'function') {
-                                                show();
-                                                return;
-                                            }
-                                            onViewPhotoPress();
-                                        },
+                                        onSelected: () =>
+                                            Modal.close(() => {
+                                                if (typeof onViewPhotoPress !== 'function') {
+                                                    show();
+                                                    return;
+                                                }
+                                                onViewPhotoPress();
+                                            }),
                                     });
                                 }
 

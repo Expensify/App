@@ -65,14 +65,16 @@ type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<Se
 
 function ReportCardLostPage({
     privatePersonalDetails = {
-        address: {
-            street: '',
-            street2: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
+        addresses: [
+            {
+                street: '',
+                street2: '',
+                city: '',
+                state: '',
+                zip: '',
+                country: '',
+            },
+        ],
     },
     cardList = {},
     route: {
