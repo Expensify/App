@@ -31,7 +31,7 @@ import type {
     EnterMagicCodeParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
-    ForwardedParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
@@ -142,6 +142,7 @@ export default {
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
+        selectMultiple: 'Seleccionar varios',
         next: 'Siguiente',
         create: 'Crear',
         previous: 'Anterior',
@@ -359,6 +360,9 @@ export default {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        filterLogs: 'Registros de filtrado',
+        network: 'La red',
+        reportID: 'ID del informe',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -741,6 +745,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
+        forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
@@ -1014,6 +1019,7 @@ export default {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            testCrash: 'Prueba de fallo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1251,7 +1257,7 @@ export default {
         workflowTitle: 'Gasto',
         workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
         delaySubmissionTitle: 'Retrasar envíos',
-        delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
+        delaySubmissionDescription: 'Retrasa la presentación de gastos en base a un calendario personalizado, o mantén esta opción desactivada para seguir viendo los gastos en tiempo real.',
         submissionFrequency: 'Frecuencia de envíos',
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Requerir aprobaciones',
@@ -1259,11 +1265,12 @@ export default {
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        makeOrTrackPaymentsTitle: 'Pagos',
-        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o realiza un seguimiento de los pagos realizados en otro lugar.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
+        frequencyDescription: 'Elige la frecuencia de presentación automática de gastos, o preséntalos manualmente',
         frequencies: {
             weekly: 'Semanal',
             monthly: 'Mensual',
@@ -1294,14 +1301,18 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
+        header: 'Cuando los siguientes miembros presenten gastos:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        header: 'Enviar a este miembro para su aprobación:',
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
         genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
         admins: 'Administradores',
+        payer: 'Pagador',
+        paymentAccount: 'Cuenta de pago',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
@@ -2058,6 +2069,7 @@ export default {
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
+        errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
     },
     workspace: {
         common: {
@@ -2125,6 +2137,7 @@ export default {
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
+            topLevel: 'Nivel superior',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3490,6 +3503,11 @@ export default {
                 description: `Añada códigos de libro mayor y nómina a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los códigos de libro mayor y nómina solo están disponibles en el plan Control, a partir de ',
             },
+            taxCodes: {
+                title: 'Código de impuesto',
+                description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
+            },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',
@@ -3634,7 +3652,6 @@ export default {
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        selectMultiple: 'Seleccionar varios',
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
         searchResults: {
@@ -3774,7 +3791,6 @@ export default {
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
-                forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
@@ -4729,6 +4745,8 @@ export default {
         details: {
             title: 'Datos de suscripción',
             annual: 'Suscripción anual',
+            taxExempt: 'Solicitar estado de exención de impuestos',
+            taxExemptEnabled: 'Exento de impuestos',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
             headsUp:
