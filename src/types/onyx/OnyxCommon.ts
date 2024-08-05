@@ -31,7 +31,7 @@ type Errors = Record<string, string | null>;
  ** avatar - user avatar
  ** workspace - workspace avatar
  */
-type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_SQUARE;
 
 /** Icon properties */
 type Icon = {

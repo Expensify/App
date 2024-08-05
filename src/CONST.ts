@@ -2110,6 +2110,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                APPROVALS: 'approvals',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -2117,6 +2118,7 @@ const CONST = {
                 quickbooksDesktop: 'Quickbooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
+                approvals: 'Advanced Approvals',
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
@@ -2212,6 +2214,7 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+    ICON_TYPE_SQUARE: 'square',
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
@@ -5392,6 +5395,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.APPROVALS]: {
+                id: this.POLICY.CONNECTIONS.NAME.APPROVALS,
+                alias: 'approvals',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.approvals,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.APPROVALS}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.APPROVALS}.description` as const,
+                icon: 'ApprovalsSquare',
             },
             glCodes: {
                 id: 'glCodes' as const,
