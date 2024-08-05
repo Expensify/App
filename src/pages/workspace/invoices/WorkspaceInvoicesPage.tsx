@@ -8,6 +8,7 @@ import type {FullScreenNavigatorParamList} from '@navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
@@ -28,6 +29,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
         >
             {(hasVBA?: boolean, policyID?: string) => (
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
                     {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
                     {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
                 </View>

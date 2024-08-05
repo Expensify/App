@@ -5151,6 +5151,14 @@ const styles = (theme: ThemeColors) =>
             width: 184,
             height: 112,
         },
+
+        workspaceTransferBalance: {
+            height: variables.optionRowHeight,
+            marginTop: 20,
+            paddingLeft: 8,
+            paddingRight: 0,
+            borderRadius: 100,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
