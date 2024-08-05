@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -93,7 +93,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: {approvalWorkflow:
 
     const approverDescription = useCallback(
         (index: number) =>
-            // @ts-expect-error Fix later
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
