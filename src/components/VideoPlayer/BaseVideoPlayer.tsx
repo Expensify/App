@@ -130,6 +130,9 @@ function BaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
+    const prevIsMuted = useRef(false);
+    const prevVolume = useRef(0);
+
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
             if (!status.isLoaded) {
@@ -142,6 +145,13 @@ function BaseVideoPlayer({
                 onPlaybackStatusUpdate?.(status);
                 return;
             }
+
+            if (prevIsMuted.current && prevVolume.current === 0 && !status.isMuted) {
+                updateVolume(0.25);
+            }
+            prevIsMuted.current = status.isMuted;
+            prevVolume.current = status.volume;
+
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const currentDuration = status.durationMillis || videoDuration * 1000;
