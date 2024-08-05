@@ -80,9 +80,9 @@ type ApprovalWorkflow = {
     isDefault: boolean;
 
     /**
-     * Is this workflow being edited vs created
+     * What is the current flow of the workflow, used to navigate between different screens
      */
-    isBeingEdited: boolean;
+    flow?: 'create' | 'edit';
 
     /**
      * Whether we are waiting for the API action to complete

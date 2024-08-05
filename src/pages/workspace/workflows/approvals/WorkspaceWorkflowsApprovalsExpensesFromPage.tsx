@@ -129,20 +129,25 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
         Workflow.setApprovalWorkflowMembers(members);
 
-        const firstApprover = approvalWorkflow?.approvers?.[0]?.email;
-        if (approvalWorkflow?.isBeingEdited && firstApprover) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+        if (route.params.backTo) {
+            Navigation.navigate(route.params.backTo);
+            return;
         }
-    }, [approvalWorkflow?.approvers, approvalWorkflow?.isBeingEdited, route.params.policyID, selectedMembers]);
+
+        if (approvalWorkflow?.flow === 'create') {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+        } else {
+            const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+        }
+    }, [approvalWorkflow?.approvers, approvalWorkflow?.flow, route.params.backTo, route.params.policyID, selectedMembers]);
 
     const goBack = useCallback(() => {
-        if (!approvalWorkflow?.isBeingEdited) {
+        if (approvalWorkflow?.flow === 'create' && !route.params.backTo) {
             Workflow.clearApprovalWorkflow();
         }
         Navigation.goBack();
-    }, [approvalWorkflow?.isBeingEdited]);
+    }, [approvalWorkflow?.flow, route.params.backTo]);
 
     const nextButton = useMemo(
         () => (

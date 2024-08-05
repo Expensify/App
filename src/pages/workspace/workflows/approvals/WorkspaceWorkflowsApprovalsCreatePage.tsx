@@ -82,7 +82,7 @@ function X({approvalWorkflow, policyID}: {approvalWorkflow: ApprovalWorkflow; po
                 titleStyle={styles.textNormalThemeText}
                 description={translate('workflowsExpensesFromPage.title')}
                 descriptionTextStyle={styles.textLabelSupportingNormal}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)))}
                 shouldShowRightIcon
                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
             />
@@ -90,22 +90,28 @@ function X({approvalWorkflow, policyID}: {approvalWorkflow: ApprovalWorkflow; po
             {approvalWorkflow.approvers.map((approver, approverIndex) => (
                 <MenuItemWithTopDescription
                     // eslint-disable-next-line react/no-array-index-key
-                    key={`approver-${approver.email}`}
+                    key={`approver-${approver.email}-${approverIndex}`}
                     title={approver.displayName}
                     titleStyle={styles.textNormalThemeText}
                     description={approverDescription(approverIndex)}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)))
+                    }
                     shouldShowRightIcon
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
                 />
             ))}
 
             <MenuItemWithTopDescription
                 description={translate('workflowsCreateApprovalsPage.addApproverRow')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approvalWorkflow.approvers.length))}
+                onPress={() =>
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approvalWorkflow.approvers.length, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
+                    )
+                }
                 shouldShowRightIcon
-                wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
             />
         </View>
     );

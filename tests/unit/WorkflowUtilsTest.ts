@@ -43,7 +43,6 @@ function buildWorkflow(memberIDs: number[], approverIDs: number[], workflow: Par
         members: memberIDs.map(buildMember),
         approvers: approverIDs.map((id) => buildApprover(id)),
         isDefault: false,
-        isBeingEdited: false,
         ...workflow,
     };
 }
@@ -385,7 +384,6 @@ describe('WorkflowUtils', () => {
                 members: [buildMember(1), buildMember(2)],
                 approvers: [buildApprover(1)],
                 isDefault: true,
-                isBeingEdited: false,
             };
             const employeeList: PolicyEmployeeList = {
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
@@ -405,7 +403,6 @@ describe('WorkflowUtils', () => {
                 members: [buildMember(4), buildMember(5), buildMember(6)],
                 approvers: [buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '2@example.com'}), buildApprover(3)],
                 isDefault: false,
-                isBeingEdited: false,
             };
             const employeeList: PolicyEmployeeList = {
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
@@ -438,7 +435,6 @@ describe('WorkflowUtils', () => {
                     buildApprover(1, {forwardsTo: '2@example.com'}),
                 ],
                 isDefault: false,
-                isBeingEdited: false,
             };
             const employeeList: PolicyEmployeeList = {
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
@@ -462,7 +458,6 @@ describe('WorkflowUtils', () => {
                 members: [buildMember(4), buildMember(5), buildMember(6)],
                 approvers: [buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '2@example.com'}), buildApprover(3)],
                 isDefault: false,
-                isBeingEdited: false,
             };
             const employeeList: PolicyEmployeeList = {
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),

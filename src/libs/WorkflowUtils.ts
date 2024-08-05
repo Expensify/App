@@ -8,7 +8,7 @@ const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflow = {
     members: [],
     approvers: [],
     isDefault: false,
-    isBeingEdited: false,
+    flow: 'create',
     isLoading: false,
 };
 
@@ -105,7 +105,6 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
                 members: [],
                 approvers,
                 isDefault: defaultApprover === submitsTo,
-                isBeingEdited: false,
             };
         }
         approvalWorkflows[submitsTo].members.push(member);
