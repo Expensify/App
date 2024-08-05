@@ -47,7 +47,12 @@ function SearchFiltersTypePage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.type')} />
+                <HeaderWithBackButton
+                    title={translate('common.type')}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    }}
+                />
                 <View style={[styles.flex1]}>
                     <SelectionList
                         sections={[{data: filterTypeItems}]}
