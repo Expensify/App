@@ -45,7 +45,7 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const shouldDisplayRecentlyOptions = !isEmptyObject(policyRecentlyUsedCurrencyOptions) && !searchValue;
         const selectedOption = currencyOptions.find((option) => option.isSelected);
         const shouldDisplaySelectedOptionOnTop = selectedOption && !searchValue;
-        let sections = [];
+        const sections = [];
         if (shouldDisplaySelectedOptionOnTop) {
             sections.push({
                 title: '',
