@@ -27,7 +27,6 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}
     const theme = useTheme();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
-
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const isAnonymousUser = Session.isAnonymousUser(session);
 
