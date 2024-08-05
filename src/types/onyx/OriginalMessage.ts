@@ -411,6 +411,18 @@ type OriginalMessageApproved = {
     expenseReportID: string;
 };
 
+/** Model of `forwarded` report action */
+type OriginalMessageForwarded = {
+    /** Forwarded expense amount */
+    amount: number;
+
+    /** Currency of the forwarded expense amount */
+    currency: string;
+
+    /** Report ID of the expense */
+    expenseReportID: string;
+};
+
 /**
  *
  */
@@ -500,7 +512,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     /** */

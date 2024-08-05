@@ -721,6 +721,10 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
+                // in the correct unit stored under the transaction customUnit once the request is created.
+                // The route is also not saved in the backend, so we can't rely on it.
+                routes: null,
             },
         },
 
@@ -1479,6 +1483,7 @@ function buildOnyxDataForTrackExpense(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                routes: null,
             },
         },
     );
@@ -2516,7 +2521,7 @@ function calculateAmountForUpdatedWaypoint(
             ? DistanceRequestUtils.getRateForP2P(policyCurrency)
             : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
         const {unit, rate} = mileageRate;
-        const distance = TransactionUtils.getDistance(transaction);
+        const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
         updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
         updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
@@ -2791,6 +2796,7 @@ function getUpdateMoneyRequestParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -3002,6 +3008,7 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -6304,6 +6311,7 @@ function getReportFromHoldRequestsOnyxData(
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport.reportID);
     const firstHoldTransaction = holdTransactions[0];
+    const newParentReportActionID = rand64();
 
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
         chatReport.reportID,
@@ -6312,8 +6320,16 @@ function getReportFromHoldRequestsOnyxData(
         (firstHoldTransaction?.amount ?? 0) * -1,
         getCurrency(firstHoldTransaction),
         false,
+        newParentReportActionID,
     );
-    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', firstHoldTransaction, optimisticExpenseReport.reportID);
+    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
+        chatReport,
+        optimisticExpenseReport,
+        '',
+        firstHoldTransaction,
+        optimisticExpenseReport.reportID,
+        newParentReportActionID,
+    );
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
@@ -6811,7 +6827,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`,
         value: {
-            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, full ? expenseReport?.reportID ?? '-1' : '-1'),
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport?.reportID ?? '-1'),
         },
     };
 
@@ -6915,6 +6931,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        v2: PolicyUtils.isControlOnAdvancedApprovalMode(PolicyUtils.getPolicy(expenseReport?.policyID)),
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
@@ -7262,7 +7279,6 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport(chatReport);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
@@ -7285,7 +7301,15 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
 
 function detachReceipt(transactionID: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
+    const newTransaction = transaction
+        ? {
+              ...transaction,
+              filename: '',
+              receipt: {
+                  source: '',
+              },
+          }
+        : null;
 
     const optimisticData: OnyxUpdate[] = [
         {

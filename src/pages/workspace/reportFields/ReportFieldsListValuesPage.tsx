@@ -6,19 +6,21 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,11 +57,15 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+
+    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -98,7 +104,6 @@ function ReportFieldsListValuesPage({
         return [{data, isDisabled: false}];
     }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
 
@@ -155,14 +160,14 @@ function ReportFieldsListValuesPage({
                     styles.flexRow,
                     styles.justifyContentBetween,
                     // Required padding accounting for the checkbox and the right arrow in multi-select mode
-                    !hasAccountingConnections && styles.pl3,
+                    canSelectMultiple && styles.pl3,
                 ]}
             >
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
             </View>
         );
-        if (!hasAccountingConnections) {
+        if (canSelectMultiple) {
             return header;
         }
         return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
@@ -170,15 +175,15 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-
-        if (selectedValuesArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
-                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteValuesConfirmModalVisible(true),
-            });
-
+        if ((isSmallScreenWidth && selectionMode?.isEnabled) ?? selectedValuesArray.length > 0) {
+            if (selectedValuesArray.length > 0) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
+                    value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => setDeleteValuesConfirmModalVisible(true),
+                });
+            }
             const enabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
                 return !disabledListValues?.[index];
@@ -253,6 +258,7 @@ function ReportFieldsListValuesPage({
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    isDisabled={!selectedValuesArray.length}
                 />
             );
         }
@@ -269,6 +275,8 @@ function ReportFieldsListValuesPage({
         );
     };
 
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -282,8 +290,15 @@ function ReportFieldsListValuesPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.reportFields.listValues')}
-                    onBackButtonPress={Navigation.goBack}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedValues({});
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
                 >
                     {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -292,16 +307,21 @@ function ReportFieldsListValuesPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
-                    <WorkspaceEmptyStateSection
-                        containerStyle={[styles.bgTransparent, styles.mtAuto, styles.mbAuto]}
+                    <EmptyStateComponent
                         title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                        icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={Illustrations.EmptyStateExpenses}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (
-                    <SelectionList
-                        canSelectMultiple={!hasAccountingConnections}
+                    <SelectionListWithModal
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
