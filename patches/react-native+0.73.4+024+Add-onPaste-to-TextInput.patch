@@ -170,70 +170,52 @@ index 481938f..a74fda7 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 582b49c..ae3e967 100644
+index 582b49c..ac31cb1 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -13,6 +13,8 @@
+@@ -13,6 +13,9 @@
  #import <React/RCTBackedTextInputDelegateAdapter.h>
  #import <React/RCTTextAttributes.h>
  
++#import <MobileCoreServices/UTType.h>
 +#import <UIKit/UIKit.h>
 +
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -166,7 +168,49 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
+@@ -166,7 +169,30 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +  if (clipboard.hasImages) {
-+    NSArray *clipboardTypes = [clipboard pasteboardTypes];
-+    if ([clipboardTypes containsObject:@"com.compuserve.gif"]) {
-+      NSString *type = @"image/gif";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"com.compuserve.gif"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.png"]) {
-+      NSString *type = @"image/png";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.png"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.jpeg"]) {
-+      NSString *type = @"image/jpeg";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.jpeg"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"org.webmproject.webp"]) {
-+      NSString *type = @"image/webp";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"org.webmproject.webp"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.tiff"]) {
-+      NSString *type = @"image/tiff";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.tiff"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"com.microsoft.bmp"]) {
-+      NSString *type = @"image/bmp";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"com.microsoft.bmp"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.svg-image"]) {
-+      NSString *type = @"image/svg+xml";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.svg-image"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
++    for (NSItemProvider *itemProvider in [clipboard itemProviders]) {
++      if ([itemProvider canLoadObjectOfClass:[UIImage class]]) {
++        NSString *identifier = itemProvider.registeredTypeIdentifiers.firstObject;
++        if (identifier != nil) {
++          NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
++          NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
++          NSString *fileName = [NSString stringWithFormat:@"%@.%@", itemProvider.suggestedName ?: @"file", fileExtension];
++          NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++          NSURL *fileURL = [NSURL fileURLWithPath:filePath];
++          NSData *fileData = [clipboard dataForPasteboardType:identifier];
++          [fileData writeToFile:filePath atomically:YES];
++          [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
++        }
++        break;
++      }
 +    }
 +  } else {
-+    [_textInputDelegateAdapter didPaste:@"text/plain" withData:clipboard.string];
++    if (clipboard.hasStrings) {
++      [_textInputDelegateAdapter didPaste:@"text/plain" withData:clipboard.string];
++    }
 +    [super paste:sender];
 +  }
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -258,6 +302,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -258,6 +284,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -360,19 +342,20 @@ index a19b555..8146c0d 100644
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 4d0afd9..a611f69 100644
+index 4d0afd9..a6afc7b 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -12,6 +12,8 @@
+@@ -12,6 +12,9 @@
  #import <React/RCTUtils.h>
  #import <React/UIView+React.h>
  
++#import <MobileCoreServices/UTType.h>
 +#import <UIKit/UIKit.h>
 +
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -139,6 +141,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -139,6 +142,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -383,52 +366,33 @@ index 4d0afd9..a611f69 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -204,7 +210,49 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
+@@ -204,7 +211,30 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +  if (clipboard.hasImages) {
-+    NSArray *clipboardTypes = [clipboard pasteboardTypes];
-+    if ([clipboardTypes containsObject:@"com.compuserve.gif"]) {
-+      NSString *type = @"image/gif";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"com.compuserve.gif"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.png"]) {
-+      NSString *type = @"image/png";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.png"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.jpeg"]) {
-+      NSString *type = @"image/jpeg";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.jpeg"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"org.webmproject.webp"]) {
-+      NSString *type = @"image/webp";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"org.webmproject.webp"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.tiff"]) {
-+      NSString *type = @"image/tiff";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.tiff"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"com.microsoft.bmp"]) {
-+      NSString *type = @"image/bmp";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"com.microsoft.bmp"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
-+    } else if ([clipboardTypes containsObject:@"public.svg-image"]) {
-+      NSString *type = @"image/svg+xml";
-+      NSString *encodedData = [[clipboard dataForPasteboardType:@"public.svg-image"] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-+      NSString *data = [NSString stringWithFormat:@"data:%@;base64,%@", type, encodedData];
-+      [_textInputDelegateAdapter didPaste:type withData:data];
++    for (NSItemProvider *itemProvider in [clipboard itemProviders]) {
++      if ([itemProvider canLoadObjectOfClass:[UIImage class]]) {
++        NSString *identifier = itemProvider.registeredTypeIdentifiers.firstObject;
++        if (identifier != nil) {
++          NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
++          NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
++          NSString *fileName = [NSString stringWithFormat:@"%@.%@", itemProvider.suggestedName ?: @"file", fileExtension];
++          NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++          NSURL *fileURL = [NSURL fileURLWithPath:filePath];
++          NSData *fileData = [clipboard dataForPasteboardType:identifier];
++          [fileData writeToFile:filePath atomically:YES];
++          [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
++        }
++        break;
++      }
 +    }
 +  } else {
-+    [_textInputDelegateAdapter didPaste:@"text/plain" withData:clipboard.string];
++    if (clipboard.hasStrings) {
++      [_textInputDelegateAdapter didPaste:@"text/plain" withData:clipboard.string];
++    }
 +    [super paste:sender];
 +  }
  }
@@ -476,7 +440,7 @@ index 0000000..bfb5819
 +  public void onPaste(String type, String data);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 081f2b8..cf8f04d 100644
+index 081f2b8..ff91d47 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 @@ -9,14 +9,17 @@ package com.facebook.react.views.textinput;
@@ -498,23 +462,7 @@ index 081f2b8..cf8f04d 100644
  import android.os.Build;
  import android.os.Bundle;
  import android.text.Editable;
-@@ -28,6 +31,7 @@ import android.text.TextUtils;
- import android.text.TextWatcher;
- import android.text.method.KeyListener;
- import android.text.method.QwertyKeyListener;
-+import android.util.Base64;
- import android.util.TypedValue;
- import android.view.ActionMode;
- import android.view.Gravity;
-@@ -68,6 +72,7 @@ import com.facebook.react.views.text.TextAttributes;
- import com.facebook.react.views.text.TextInlineImageSpan;
- import com.facebook.react.views.text.TextLayoutManager;
- import com.facebook.react.views.view.ReactViewBackgroundManager;
-+import java.io.IOException;
- import java.util.ArrayList;
- import java.util.Objects;
- 
-@@ -110,6 +115,7 @@ public class ReactEditText extends AppCompatEditText {
+@@ -110,6 +113,7 @@ public class ReactEditText extends AppCompatEditText {
    private @Nullable SelectionWatcher mSelectionWatcher;
    private @Nullable ContentSizeWatcher mContentSizeWatcher;
    private @Nullable ScrollWatcher mScrollWatcher;
@@ -522,7 +470,7 @@ index 081f2b8..cf8f04d 100644
    private InternalKeyListener mKeyListener;
    private boolean mDetectScrollMovement = false;
    private boolean mOnKeyPress = false;
-@@ -153,6 +159,7 @@ public class ReactEditText extends AppCompatEditText {
+@@ -153,6 +157,7 @@ public class ReactEditText extends AppCompatEditText {
        mKeyListener = new InternalKeyListener();
      }
      mScrollWatcher = null;
@@ -530,7 +478,7 @@ index 081f2b8..cf8f04d 100644
      mTextAttributes = new TextAttributes();
  
      applyTextAttributes();
-@@ -307,10 +314,38 @@ public class ReactEditText extends AppCompatEditText {
+@@ -307,10 +312,31 @@ public class ReactEditText extends AppCompatEditText {
     */
    @Override
    public boolean onTextContextMenuItem(int id) {
@@ -553,14 +501,7 @@ index 081f2b8..cf8f04d 100644
 +            if (itemUri != null) {
 +              ContentResolver cr = getReactContext(this).getContentResolver();
 +              type = cr.getType(itemUri);
-+              if (type != null) {
-+                try {
-+                  String encodedData = Base64.encodeToString(cr.openInputStream(itemUri).readAllBytes(), Base64.DEFAULT);
-+                  data = "data:" + type + ";base64," + encodedData;
-+                } catch (IOException e) {
-+                  e.printStackTrace();
-+                }
-+              }
++              data = itemUri.toString();
 +            }
 +          }
 +          if (type != null && data != null) {
@@ -571,7 +512,7 @@ index 081f2b8..cf8f04d 100644
          ClipboardManager clipboard =
              (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
          ClipData previousClipData = clipboard.getPrimaryClip();
-@@ -389,6 +424,10 @@ public class ReactEditText extends AppCompatEditText {
+@@ -389,6 +415,10 @@ public class ReactEditText extends AppCompatEditText {
      mScrollWatcher = scrollWatcher;
    }
  

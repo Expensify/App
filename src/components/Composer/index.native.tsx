@@ -73,8 +73,9 @@ function Composer(
             if (clipboardContent.type === 'text/plain') {
                 return;
             }
-            const filename = `file.${mimeDb[clipboardContent.type].extensions?.[0] ?? 'bin'}`;
-            const file: FileObject = {uri: clipboardContent.data, name: filename, type: clipboardContent.type};
+            const fileURI = clipboardContent.data;
+            const fileName = fileURI.split('/').pop();
+            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
             onPasteFile(file);
         },
         [onPasteFile],
