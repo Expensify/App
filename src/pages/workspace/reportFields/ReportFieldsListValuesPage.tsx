@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,8 +15,8 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -306,11 +307,14 @@ function ReportFieldsListValuesPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
-                    <WorkspaceEmptyStateSection
-                        containerStyle={[styles.bgTransparent, styles.mtAuto, styles.mbAuto]}
+                    <EmptyStateComponent
                         title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                        icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={Illustrations.EmptyStateExpenses}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (
