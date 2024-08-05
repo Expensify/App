@@ -79,11 +79,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-
     let nextApproverDisplayName = ReportUtils.getDisplayNameForParticipant(submitToAccountID);
-    const approvalChain = PolicyUtils.getApprovalChain(policy, currentUserAccountID, report?.total ?? 0);
+
+    const approvalChain = PolicyUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
     if (approvalChain.length > 0) {
-        nextApproverDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(approvalChain[0])?.displayName ?? approvalChain[0];
+        const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+        nextApproverDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
     }
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
