@@ -11,6 +11,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -121,6 +122,9 @@ type AvatarWithImagePickerProps = {
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
 
+    /** Hard disables the "View photo" option */
+    shouldDisableViewPhoto?: boolean;
+
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
 
@@ -154,6 +158,7 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
+    shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
     shouldUseStyleUtilityForAnchorPosition = false,
 }: AvatarWithImagePickerProps) {
@@ -259,14 +264,15 @@ function AvatarWithImagePicker({
             {
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () => {
-                    if (Browser.isSafari()) {
-                        return;
-                    }
-                    openPicker({
-                        onPicked: showAvatarCropModal,
-                    });
-                },
+                onSelected: () =>
+                    Modal.close(() => {
+                        if (Browser.isSafari()) {
+                            return;
+                        }
+                        openPicker({
+                            onPicked: showAvatarCropModal,
+                        });
+                    }),
             },
         ];
 
@@ -303,14 +309,14 @@ function AvatarWithImagePicker({
 
     const onPressAvatar = useCallback(
         (openPicker: OpenPicker) => {
+            if (disabled && enablePreview && onViewPhotoPress) {
+                onViewPhotoPress();
+                return;
+            }
             if (isUsingDefaultAvatar) {
                 openPicker({
                     onPicked: showAvatarCropModal,
                 });
-                return;
-            }
-            if (disabled && enablePreview && onViewPhotoPress) {
-                onViewPhotoPress();
                 return;
             }
             setIsMenuVisible((prev) => !prev);
@@ -334,17 +340,18 @@ function AvatarWithImagePicker({
                                 const menuItems = createMenuItems(openPicker);
 
                                 // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
-                                if (!isUsingDefaultAvatar) {
+                                if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: () => {
-                                            if (typeof onViewPhotoPress !== 'function') {
-                                                show();
-                                                return;
-                                            }
-                                            onViewPhotoPress();
-                                        },
+                                        onSelected: () =>
+                                            Modal.close(() => {
+                                                if (typeof onViewPhotoPress !== 'function') {
+                                                    show();
+                                                    return;
+                                                }
+                                                onViewPhotoPress();
+                                            }),
                                     });
                                 }
 
