@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
@@ -14,9 +15,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type WorkspaceOwnerPaymentCardFormProps = {
@@ -29,6 +30,9 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
 
     const policyID = policy?.id ?? '-1';
 
@@ -55,25 +59,54 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     );
 
     useEffect(() => {
+        if (privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.SUCCEEDED) {
+            return;
+        }
+        PaymentMethods.clearPaymentCard3dsVerification();
+        // Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+    }, [privateStripeCustomerID]);
+
+    const handleGBPAuthentication = useCallback(
+        (event: MessageEvent<string>) => {
+            const message = event.data;
+            if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
+                PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                // onModalClose();
+            }
+        },
+        [session?.accountID],
+    );
+
+    useEffect(() => {
+        window.addEventListener('message', handleGBPAuthentication);
+        return () => {
+            window.removeEventListener('message', handleGBPAuthentication);
+        };
+    }, [handleGBPAuthentication]);
+
+    useEffect(() => {
+        if (!fundList || (fundList && Object.entries(fundList).length < 1)) {
+            return;
+        }
+        // TODO: should also be checking for errors in the fund list
+        MemberActions.requestWorkspaceOwnerChange(policyID);
+    }, [fundList, policyID]);
+
+    useEffect(() => {
         checkIfCanBeRendered();
     }, [checkIfCanBeRendered]);
 
-    const addPaymentCard = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
-            const cardData = {
-                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
-                cardCVV: values.securityCode,
-                addressName: values.nameOnCard,
-                addressZip: values.addressZipCode,
-                currency: CONST.CURRENCY.USD,
-            };
-
-            PolicyActions.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
-        },
-        [policyID],
-    );
+    const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
+        PaymentMethods.addSubscriptionPaymentCard({
+            cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
+            cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
+            cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+            cardCVV: values.securityCode,
+            addressName: values.nameOnCard,
+            addressZip: values.addressZipCode,
+            currency: values.currency,
+        });
+    }, []);
 
     return (
         <PaymentCardForm
