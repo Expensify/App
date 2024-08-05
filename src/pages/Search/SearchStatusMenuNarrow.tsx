@@ -79,14 +79,12 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
                                 src={menuIcon}
                                 fill={theme.icon}
                             />
-                            <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textStrong]}
-                                >
-                                    {menuTitle}
-                                </Text>
-                            </View>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textStrong, styles.flexShrink1]}
+                            >
+                                {menuTitle}
+                            </Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}
