@@ -23,7 +23,6 @@ function DebugJSON({data}: DebugJSONProps) {
             contentContainerStyle={[styles.gap5, styles.ph5]}
         >
             <Button
-                // success
                 isDisabled={!isThrottledButtonActive}
                 text={isThrottledButtonActive ? translate('reportActionContextMenu.copyOnyxData') : translate('reportActionContextMenu.copied')}
                 onPress={() => {

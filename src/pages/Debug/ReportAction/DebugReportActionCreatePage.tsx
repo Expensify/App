@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isValid from 'date-fns/isValid';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -35,7 +36,7 @@ const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, p
             actorAccountID: session?.accountID,
             avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
             message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
-        },
+        } satisfies ReportAction,
         null,
         6,
     );
@@ -122,11 +123,8 @@ function DebugReportActionCreatePage({
                         <Button
                             success
                             text={translate('common.save')}
-                            isDisabled={!draftReportAction}
+                            isDisabled={!draftReportAction || !!error}
                             onPress={() => {
-                                if (!draftReportAction || error) {
-                                    return;
-                                }
                                 const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
                                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[parsedReportAction.reportActionID]: parsedReportAction});
