@@ -125,7 +125,6 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
     for (let i = 1; i < sortedPages.length; i++) {
         const page = sortedPages[i];
         const prevPage = result[result.length - 1];
-        //const prevPage = result?.at(-1) ?? sortedPages[i - 1];
 
         // Current page is inside the previous page, skip
         if (page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
