@@ -84,6 +84,8 @@ function BaseVideoPlayer({
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+    const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumberRef.current = 0;
@@ -102,8 +104,10 @@ function BaseVideoPlayer({
             if (!('rate' in status && status.rate)) {
                 return;
             }
+            if (shouldUseNewRate) {
+                setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+            }
             setIsPopoverVisible(true);
-            setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
         });
         if (!event || !('nativeEvent' in event)) {
             return;
@@ -359,8 +363,7 @@ function BaseVideoPlayer({
                                                     playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
-                                                const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
-                                                if (typeof source === 'number' || !source || source.uri !== sourceURL) {
+                                                if (shouldUseNewRate) {
                                                     return;
                                                 }
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
