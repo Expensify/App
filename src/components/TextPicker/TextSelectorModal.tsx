@@ -39,6 +39,16 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
         }
     }, [onClose, shouldClearOnClose]);
 
+    // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
+    // Therefore, we need to update the currentValue with the value prop when the modal is shown. This is done once when the modal is shown again.
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        setValue(value);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isVisible]);
+
     useEffect(() => {
         inputValueRef.current = currentValue;
     }, [currentValue]);
