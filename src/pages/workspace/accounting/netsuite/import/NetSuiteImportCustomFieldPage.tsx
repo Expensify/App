@@ -15,7 +15,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import type {ThemeStyles} from '@styles/index';
@@ -122,8 +122,8 @@ function NetSuiteImportCustomFieldPage({
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
             {data.length === 0 ? listEmptyComponent : listHeaderComponent}
-            <OfflineWithFeedback pendingAction={config?.pendingFields?.[importCustomField]}>
-                {data.map((record, index) => (
+            {data.map((record, index) => (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         // eslint-disable-next-line react/no-array-index-key
                         key={`${record.internalID}-${index}`}
@@ -133,8 +133,8 @@ function NetSuiteImportCustomFieldPage({
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
                         brickRoadIndicator={areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
-                ))}
-            </OfflineWithFeedback>
+                </OfflineWithFeedback>
+            ))}
 
             <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
