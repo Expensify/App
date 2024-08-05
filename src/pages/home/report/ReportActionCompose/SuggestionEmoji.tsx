@@ -60,6 +60,8 @@ function SuggestionEmoji(
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    const suggestionValuesRef = useRef(suggestionValues);
+    suggestionValuesRef.current = suggestionValues;
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
 
@@ -171,8 +173,9 @@ function SuggestionEmoji(
                 nextState.shouldShowSuggestionMenu = !isEmptyObject(newSuggestedEmojis);
             }
 
-            // Early return if there is no update 
-            if (nextState.suggestedEmojis.length === 0 && !nextState.shouldShowSuggestionMenu) {
+            // Early return if there is no update
+            const currentState = suggestionValuesRef.current;
+            if (nextState.suggestedEmojis.length === 0 && currentState.suggestedEmojis.length === 0) {
                 return;
             }
 

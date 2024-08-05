@@ -88,6 +88,8 @@ function SuggestionMention(
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    const suggestionValuesRef = useRef(suggestionValues);
+    suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
@@ -402,7 +404,8 @@ function SuggestionMention(
             }
 
             // Early return if there is no update
-            if (nextState.suggestedMentions === undefined || (nextState.suggestedMentions.length === 0 && !nextState.shouldShowSuggestionMenu)) {
+            const currentState = suggestionValuesRef.current;
+            if (currentState.suggestedMentions.length === 0 && nextState.suggestedMentions?.length === 0) {
                 return;
             }
 
