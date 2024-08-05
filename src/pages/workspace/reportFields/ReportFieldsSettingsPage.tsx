@@ -70,17 +70,6 @@ function ReportFieldsSettingsPage({
                     title={reportField.name}
                     shouldSetModalVisibility={false}
                 />
-                <ConfirmModal
-                    title={translate('workspace.reportFields.delete')}
-                    isVisible={isDeleteModalVisible && !hasAccountingConnections}
-                    onConfirm={deleteReportFieldAndHideModal}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.reportFields.deleteConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 <MenuItemWithTopDescription
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -126,6 +115,17 @@ function ReportFieldsSettingsPage({
                         />
                     </View>
                 )}
+                <ConfirmModal
+                    title={translate('workspace.reportFields.delete')}
+                    isVisible={isDeleteModalVisible && !hasAccountingConnections}
+                    onConfirm={deleteReportFieldAndHideModal}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    shouldSetModalVisibility={false}
+                    prompt={translate('workspace.reportFields.deleteConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
