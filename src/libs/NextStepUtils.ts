@@ -215,62 +215,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (PolicyUtils.hasAdvancedApprovalEnabled(policy)) {
-                const approvalChain = PolicyUtils.getApprovalChain(policy, currentUserAccountID, report?.total ?? 0);
-                if (approvalChain[0] === currentUserEmail) {
-                    // Self review
-                    optimisticNextStep = {
-                        type,
-                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        message: [
-                            {
-                                text: 'Waiting for ',
-                            },
-                            {
-                                text: 'you',
-                                type: 'strong',
-                            },
-                            {
-                                text: ' to ',
-                            },
-                            {
-                                text: 'pay',
-                                type: 'strong',
-                            },
-                            {
-                                text: ' %expenses.',
-                            },
-                        ],
-                    };
-                }
-
-                // Another owner
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: approvalChain[0],
-                            type: 'strong',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'approve',
-                            type: 'strong',
-                        },
-                        {
-                            text: ' this report.',
-                        },
-                    ],
-                };
-                break;
-            }
-
             if (
                 ReportUtils.isInvoiceReport(report) ||
                 !ReportUtils.isPayer(
