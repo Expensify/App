@@ -437,10 +437,6 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function hasAdvancedApprovalEnabled(policy: OnyxEntry<Policy>): boolean {
-    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
-}
-
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
@@ -471,7 +467,7 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number):
 }
 
 function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
-    if (!hasAdvancedApprovalEnabled(policy)) {
+    if (!isControlOnAdvancedApprovalMode(policy)) {
         return '';
     }
 
@@ -1013,7 +1009,6 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getApprovalChain,
-    hasAdvancedApprovalEnabled,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
