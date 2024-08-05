@@ -265,6 +265,7 @@ function PolicyDistanceRatesPage({
                     style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     wrapperStyle={styles.w100}
                     isSplitButton={false}
+                    isDisabled={!selectedDistanceRates.length}
                 />
             )}
         </View>

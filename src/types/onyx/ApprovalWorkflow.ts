@@ -48,14 +48,14 @@ type Member = {
     email: string;
 
     /**
+     * Display name of the current user from their personal details
+     */
+    displayName: string;
+
+    /**
      * Avatar URL of the current user from their personal details
      */
     avatar?: AvatarSource;
-
-    /**
-     * Display name of the current user from their personal details
-     */
-    displayName?: string;
 };
 
 /**
@@ -84,8 +84,15 @@ type ApprovalWorkflow = {
      */
     isBeingEdited: boolean;
 
-    /** Whether we are waiting for the API action to complete */
+    /**
+     * Whether we are waiting for the API action to complete
+     */
     isLoading?: boolean;
+
+    /**
+     * List of available members that can be selected in the workflow
+     */
+    availableMembers?: Member[];
 };
 
 export default ApprovalWorkflow;
