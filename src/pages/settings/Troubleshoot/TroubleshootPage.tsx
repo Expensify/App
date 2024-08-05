@@ -187,11 +187,13 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                                                 return;
                                                             }
 
+                                                            // 1. Read the file content
                                                             RNFS.readFile(file.uri).then((fileContent) => {
                                                                 const importedState = JSON.parse(fileContent);
-                                                                // this needs to be exactly the same as we get from running the App.openApp command
+                                                                // TODO: this needs to be exactly the same as we get from running the App.openApp command?
                                                                 const parsedState = Object.assign({}, importedState);
 
+                                                                // 2. Only keep the keys that we're interested in
                                                                 Object.keys(parsedState).forEach((key) => {
                                                                     const shouldStay = keysToInclude.some((onyxKey) => key.startsWith(onyxKey));
 
@@ -204,8 +206,11 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
 
                                                                 // App.openApp();
 
+                                                                // 3. Go offline
                                                                 Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true}).then(() => {
                                                                     // Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
+
+                                                                    // 4. Apply the new state from the file
                                                                     Onyx.multiSet(parsedState).then(() => {
                                                                         console.log('Applied imported state.');
                                                                         Navigation.navigate(ROUTES.HOME);
