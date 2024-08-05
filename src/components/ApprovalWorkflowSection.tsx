@@ -72,7 +72,8 @@ function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowS
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
-                    <View key={approver.email}>
+                    // eslint-disable-next-line react/no-array-index-key
+                    <View key={`approver-${approver.email}-${index}`}>
                         <View style={styles.workflowApprovalVerticalLine} />
                         <MenuItem
                             title={approverTitle(index)}
