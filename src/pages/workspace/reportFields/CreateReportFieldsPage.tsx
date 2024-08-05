@@ -119,7 +119,6 @@ function CreateReportFieldsPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
-                    disablePressOnEnter={false}
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>

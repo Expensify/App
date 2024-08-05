@@ -7,9 +7,10 @@ import type {
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     RevealExpensifyCardDetailsParams,
+    StartIssueNewCardFlowParams,
     UpdateExpensifyCardLimitParams,
 } from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
@@ -372,6 +373,14 @@ function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: nu
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
 }
 
+function startIssueNewCardFlow(policyID: string) {
+    const parameters: StartIssueNewCardFlowParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -383,5 +392,6 @@ export {
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
     updateSettlementAccount,
+    startIssueNewCardFlow,
 };
 export type {ReplacementReason};
