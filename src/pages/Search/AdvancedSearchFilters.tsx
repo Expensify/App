@@ -98,6 +98,11 @@ function AdvancedSearchFilters() {
                 description: 'workspace.taxes.taxRate' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, translate),
+                description: 'workspace.taxes.taxRate' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+            },
         ],
         [searchAdvancedFilters, translate],
     );

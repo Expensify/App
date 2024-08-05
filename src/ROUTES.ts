@@ -57,6 +57,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
 
+    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,

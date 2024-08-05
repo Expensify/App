@@ -3674,6 +3674,7 @@ export default {
             },
             status: 'Estado',
         },
+        expenseTypes: 'Tipos de gastos',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

@@ -446,6 +446,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${taxRates.map(sanitizeString).join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.EXPENSE_TYPE && filterValues[filterKey]) {
+                const expenseTypes = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE}:${expenseTypes.map(sanitizeString).join(',')}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)

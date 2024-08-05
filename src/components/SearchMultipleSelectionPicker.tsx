@@ -13,9 +13,10 @@ type MultipleSelectionPickerProps = {
     initiallySelectedItems: string[] | undefined;
     pickerTitle?: string;
     onSaveSelection: (values: string[]) => void;
+    shouldShowTextInput?: boolean;
 };
 
-function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection}: MultipleSelectionPickerProps) {
+function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: MultipleSelectionPickerProps) {
     const {translate} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -94,7 +95,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             sections={sections}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
-            textInputLabel={translate('common.search')}
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onSelectRow={onSelectItem}
             headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
             footerContent={footerContent}

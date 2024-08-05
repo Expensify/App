@@ -3620,6 +3620,7 @@ export default {
             },
             status: 'Status',
         },
+        expenseTypes: 'Expense types',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
