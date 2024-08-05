@@ -9,7 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {
+    canUseProvincialTaxNetSuite,
+    canUseTaxNetSuite,
+    findSelectedBankAccountWithDefaultSelect,
+    findSelectedInvoiceItemWithDefaultSelect,
+    findSelectedTaxAccountWithDefaultSelect,
+} from '@libs/PolicyUtils';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,13 +36,13 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
-    const selectedReceivable = useMemo(() => (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount), [receivableList, config?.receivableAccount]);
+    const selectedReceivable = useMemo(() => findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount), [receivableList, config?.receivableAccount]);
 
-    const selectedItem = useMemo(() => (items ?? []).find((item) => item.id === config?.invoiceItem), [items, config?.invoiceItem]);
+    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
 
     const invoiceItemValue = useMemo(() => {
         if (!config?.invoiceItemPreference) {
-            return undefined;
+            return translate('workspace.netsuite.invoiceItem.values.create.label');
         }
         if (config.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
             return translate('workspace.netsuite.invoiceItem.values.create.label');
@@ -47,13 +53,10 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         return selectedItem.name;
     }, [config?.invoiceItemPreference, selectedItem, translate]);
 
-    const selectedTaxPostingAccount = useMemo(
-        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount),
-        [taxAccountsList, config?.taxPostingAccount],
-    );
+    const selectedTaxPostingAccount = useMemo(() => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount), [taxAccountsList, config?.taxPostingAccount]);
 
     const selectedProvTaxPostingAccount = useMemo(
-        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount),
+        () => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount),
         [taxAccountsList, config?.provincialTaxPostingAccount],
     );
 
@@ -76,17 +79,19 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('common.date'),
+            description: translate('workspace.accounting.exportDate'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.exportDate ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`) : undefined,
+            title: config?.exportDate
+                ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`)
+                : translate(`workspace.netsuite.exportDate.values.${CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE}.label`),
             pendingAction: config?.pendingFields?.exportDate,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE),
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportReimbursable'),
+            description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
             brickRoadIndicator: config?.errorFields?.reimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
@@ -96,7 +101,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportNonReimbursable'),
+            description: translate('workspace.accounting.exportCompanyCard'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
             brickRoadIndicator: config?.errorFields?.nonreimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.nonreimbursableExpensesExportDestination

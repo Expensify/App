@@ -7,16 +7,27 @@ import Lottie from '@components/Lottie';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles, headerContentStyles}: EmptyStateComponentProps) {
+function EmptyStateComponent({
+    SkeletonComponent,
+    headerMediaType,
+    headerMedia,
+    buttonText,
+    buttonAction,
+    title,
+    subtitle,
+    headerStyles,
+    headerContentStyles,
+    emptyStateForegroundStyles,
+}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
@@ -75,7 +86,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                     shouldAnimate={false}
                 />
             </View>
-            <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
+            <View style={[styles.emptyStateForeground(shouldUseNarrowLayout), emptyStateForegroundStyles]}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>

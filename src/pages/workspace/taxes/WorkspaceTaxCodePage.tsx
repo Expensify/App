@@ -41,8 +41,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             }
 
             setPolicyTaxCode(policyID, currentTaxCode, newTaxCode);
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, newTaxCode));
+            Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
         [currentTaxCode, policyID],
     );
@@ -52,9 +51,14 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             if (!policy) {
                 return {};
             }
+            const newTaxCode = values.taxCode.trim();
+            if (newTaxCode === currentTaxCode) {
+                return {};
+            }
+
             return validateTaxCode(policy, values);
         },
-        [policy],
+        [currentTaxCode, policy],
     );
 
     return (

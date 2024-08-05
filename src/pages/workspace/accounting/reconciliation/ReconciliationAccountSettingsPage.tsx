@@ -8,9 +8,11 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ReconciliationAccountSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS>;
@@ -23,9 +25,10 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const {translate} = useLocalize();
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
 
-    const selectedBankAccount = useMemo(() => reconciliationConnection ?? Object.values(bankAccountList ?? {})[0], [reconciliationConnection, bankAccountList]);
+    const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID], [paymentBankAccountID, bankAccountList]);
 
     const sections = useMemo(() => {
         const data = Object.values(bankAccountList ?? {}).map((bankAccount) => ({
@@ -56,11 +59,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
                 {translate('workspace.accounting.chooseReconciliationAccount.accountMatches')}
-                <TextLink
-                    onPress={() => {
-                        // TODO: navigate to Settlement Account https://github.com/Expensify/App/issues/44313
-                    }}
-                >
+                <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}>
                     {translate('workspace.accounting.chooseReconciliationAccount.settlementAccount')}
                 </TextLink>
                 {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', settlementAccountEnding)}

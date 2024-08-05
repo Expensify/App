@@ -227,6 +227,7 @@ function SuggestionEmoji(
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }

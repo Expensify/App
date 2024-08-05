@@ -281,13 +281,13 @@ describe('Pagination', () => {
     });
 
     it('opens a chat and load older messages', async () => {
-        mockOpenReport(5, '8');
+        mockOpenReport(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT, '18');
         mockGetOlderActions(5);
 
         await signInAndGetApp();
         await navigateToSidebarOption(REPORT_ID);
 
-        expect(getReportActions()).toHaveLength(5);
+        expect(getReportActions()).toHaveLength(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID, reportActionID: ''});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
@@ -304,9 +304,9 @@ describe('Pagination', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // We now have 8 messages. 5 from the initial OpenReport and 3 from GetOlderActions.
+        // We now have 18 messages. 15 (MIN_INITIAL_REPORT_ACTION_COUNT) from the initial OpenReport and 3 from GetOlderActions.
         // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
-        expect(getReportActions()).toHaveLength(8);
+        expect(getReportActions()).toHaveLength(18);
     });
 
     // Currently broken on main by https://github.com/Expensify/App/pull/42582.

@@ -13,27 +13,25 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 type SearchHoldReasonPageRouteParams = {
-    /** ID of the transaction the page was opened for */
-    transactionID: string;
-
     /** Link to previous page */
     backTo: Route;
 };
 
 type SearchHoldReasonPageProps = {
     /** Navigation route context info provided by react navigation */
-    route: RouteProp<{params: SearchHoldReasonPageRouteParams}>;
+    route: RouteProp<{params?: SearchHoldReasonPageRouteParams}>;
 };
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {currentSearchHash} = useSearchContext();
-    const {transactionID, backTo} = route.params;
+    const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {backTo = ''} = route.params ?? {};
 
+    const selectedTransactionIDs = Object.keys(selectedTransactions);
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, [transactionID], values.comment);
-
+        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
+        clearSelectedTransactions();
         Navigation.goBack();
     };
 

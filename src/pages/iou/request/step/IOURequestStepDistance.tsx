@@ -94,13 +94,12 @@ function IOURequestStepDistance({
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
     const hasRouteError = !!transaction?.errorFields?.route;
-    const hasRoute = TransactionUtils.hasRoute(transaction, true);
+    const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
-    const isEmptyCoordinates = !transaction?.routes?.route0?.geometry?.coordinates?.length;
-    const shouldFetchRoute = (isEmptyCoordinates || isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
+    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const isWaypointEmpty = (waypoint?: Waypoint) => {
         if (!waypoint) {
@@ -119,6 +118,8 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
+    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const iouRequestType = TransactionUtils.getRequestType(transaction);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -141,6 +142,16 @@ function IOURequestStepDistance({
             buttonText = translate('iou.submitExpense');
         }
     }
+
+    useEffect(() => {
+        if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || isOffline || recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
+            return;
+        }
+
+        // Only load the recent waypoints if they have been read from Onyx as undefined
+        // If the account doesn't have recent waypoints they will be returned as an empty array
+        TransactionAction.openDraftDistanceExpense();
+    }, [iouRequestType, recentWaypointsStatus, recentWaypoints, isOffline]);
 
     useEffect(() => {
         MapboxToken.init();
@@ -184,6 +195,7 @@ function IOURequestStepDistance({
             // If the user cancels out of the modal without without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
             if (transactionWasSaved.current) {
+                TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '-1');
                 return;
             }
             TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', action === CONST.IOU.ACTION.CREATE);
@@ -261,7 +273,7 @@ function IOURequestStepDistance({
                         category: '',
                         tag: '',
                         billable: false,
-                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        iouRequestType,
                         existingSplitChatReportID: report?.reportID,
                     });
                     return;
@@ -333,6 +345,7 @@ function IOURequestStepDistance({
         navigateToParticipantPage,
         navigateToConfirmationPage,
         policy,
+        iouRequestType,
         reportNameValuePairs,
     ]);
 
