@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js b/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js
-index 5b77ad6..7b0fee1 100644
+index 5b77ad6..a3ecdb0 100644
 --- a/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js
 +++ b/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js
 @@ -1,5 +1,13 @@
@@ -16,15 +16,6 @@ index 5b77ad6..7b0fee1 100644
  function getResults(canvas, options) {
      let uri;
      if (options) {
-@@ -8,7 +16,7 @@ function getResults(canvas, options) {
-             console.warn('compress is not supported with png format.');
-         }
-         const quality = Math.min(1, Math.max(0, options.compress ?? 1));
--        uri = canvas.toDataURL('image/' + format, quality);
-+        uri = canvas.toDataURL('image/'  format, quality);
-     }
-     else {
-         // defaults to PNG with no loss
 @@ -21,16 +29,49 @@ function getResults(canvas, options) {
          base64: uri.replace(/^data:image\/\w+;base64,/, ''),
      };
