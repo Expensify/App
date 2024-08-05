@@ -33,7 +33,7 @@ Onyx.connect({
 });
 
 function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[policyID];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!authToken || !policy) {
         return;
@@ -85,12 +85,12 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(updatedEmployees)};
+    const parameters: CreateWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[policyID];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!authToken || !policy) {
         return;
@@ -135,12 +135,12 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: UpdateWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(updatedEmployees)};
+    const parameters: UpdateWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
 function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
-    const policy = allPolicies?.[policyID];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!authToken || !policy) {
         return;
@@ -195,7 +195,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: RemoveWorkspaceApprovalParams = {policyID, authToken, employees: Object.values(updatedEmployees)};
+    const parameters: RemoveWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
