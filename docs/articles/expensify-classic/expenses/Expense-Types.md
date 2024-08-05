@@ -3,42 +3,41 @@ title: Expense Types
 description: Details of the different Expense filters and Expense Types
 ---
 
-# Overview
-Expense types help categorize different expenses for better financial management. While reimbursable and non-reimbursable expenses are common, Expensify offers various other options to suit your needs. Let's explore the available expense types.
+## Organize a Report by Expense Type
+Organizing a report by expense type can make it easier to review expenses on a report.
 
-# How To
-## Filtering a Report by Expense Type
-Organizing a report by expense type can make it easier to review expenses on a report. 
-- Open the report you're interested in.
-- Click the **Details** icon in the upper right corner of the report,
-- Change the “View” to **Detailed** and “Split by” **Reimbursable** or **Billable**.
-- You’ll also see the option to **Group by Category** or **Tags**. 
+1. Open the desired report.
+2. Click Details in the upper right corner of the report.
+3. Click the View dropdown and select Detailed. 
+4. Click the Split by dropdown and select Reimbursable or Billable.
 
+To group the expenses by category or tag, you can also click the Group by dropdown and select Category or Tags.
 
-# Deep Dive
-Each report will show the total amount for all expenses in the upper right. Under that total, there will be a breakdown of amounts that are reimbursable, billable, and non-reimbursable (depending on which of those expense types exist on the report). 
+## Identify Expense Types
+The right side of every report provides the total for all the expenses. Under the total, there is a breakdown of reimbursable, billable, and non-reimbursable amounts (depending on the expense types that exist on the report).
 
-## Expense Types
-- **Reimbursable Expenses:** Employees pay for these expenses out of their pockets on behalf of the business and are usually reimbursed. They often come from cash, debit cards, or personal credit card purchases.
-- **Non-reimbursable Expenses:** The business directly covers these expenses, so there's no need to reimburse the employee. Typically, these expenses are company card expenses.
-- **Billable Expenses:** Business or employee expenses must be billed to a specific client or vendor. Choose this option if you need to track expenses for invoicing to customers, clients, or other departments.
-- **Per Diem Expenses:** These expenses involve a daily or partial daily rate you can configure in your expense Workspace.
-- **Time Expenses:** Employees or jobs are billed based on an hourly rate that you can set within Expensify.
-- **Distance Expenses:** These expenses are related to travel for work.
+- Reimbursable expenses: Expenses paid to the employee, including:
+    - Cash & personal card: Expenses paid for by the employee on behalf of the business.
+    - Per diem: Expenses for a daily or partial daily rate [configured in your Workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
+    - Time: An hourly rate for your employees or jobs as [set for your workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates). This expense type is usually used by contractors or small businesses billing the customer via [Expensify Invoicing](https://help.expensify.com/articles/expensify-classic/workspaces/Set-Up-Invoicing).
+    - Distance: Expenses related to business travel.
+- Non-reimbursable expenses: Expenses directly covered by the business, typically on company cards.
+- Billable expenses: Business or employee expenses that must be billed to a specific client or vendor. This option is for tracking expenses for invoicing to customers, clients, or other departments. Any kind of expense can be billable, in _addition_ to being either reimbursable or non-reimbursable.
+
+![Image of a report showing multiple expense totals]({{site.url}}/assets/images/amounts.png){:width="100%"}
 
 {% include faq-begin.md %}
 
-## What’s the difference between a receipt, an expense, and a report attachment?
+**What’s the difference between an expense, a receipt, and a report attachment?**
 
 - **Expense:** Created when you SmartScan or manually upload a receipt from a purchase.
-- **Receipt:** Automatically attached to the expense during the SmartScan process.
-- **Report Attachments:** Additional documents that need to be submitted to your approver (e.g., supplemental documents to the purchase) can be added to a report anytime by clicking the paperclip icon in the Reports Comments. 
+- **Receipt:** A picture file that is automatically attached to the expense during the SmartScan process.
+- **Report Attachments:** Additional documents that need to be submitted to your approver (e.g., supplemental documents to the purchase) can be added to a report any time by clicking the paperclip icon in the comments at the bottom of the report.
 
-## How are credits or refunds displayed in Expensify?
-In Expensify, a credit is displayed as an expense with a minus (ex. -$1.00) in front of it. That’s because Expensify defaults all expenses as something that needs to be paid by the company. So a credit that is returned to the company is displayed as a negative expense. 
+**How are credits or refunds displayed in Expensify?**
 
-If a report includes a credit or a refund expense, it will offset the total amount on the report. 
-For example, the report has two reimbursable expenses, $400 and $500. The total Reimbursable is $900. 
-Conversely, a -$400 and $500 will be a total Reimbursable amount of $500
+In Expensify, a credit is displayed as an expense with a minus in front of it (e.g., -$1.00). Expensify defaults all expenses as something that needs to be paid by the company. So a credit that is returned to the company is displayed as a negative expense.
+
+If a report includes a credit or a refund expense, it will offset the total amount on the report. For example, if the report has two reimbursable expenses, one for $400 and one for $500, then the total reimbursable amount is $900. Conversely, an expense for -$400 and one for $500 will be a total reimbursable amount of $500.
 
 {% include faq-end.md %}
