@@ -485,6 +485,12 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
 
 function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
     const approvalChain: string[] = [];
+
+    // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
+    if (!isControlOnAdvancedApprovalMode(policy)) {
+        return approvalChain;
+    }
+
     let nextApproverEmail = getSubmitToEmail(policy, employeeAccountID);
 
     while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
