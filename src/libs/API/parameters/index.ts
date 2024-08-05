@@ -220,6 +220,8 @@ export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTax
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdateQuickbooksOnlineEnableNewCategoriesParams} from './UpdateQuickbooksOnlineEnableNewCategoriesParams';
+export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
+export type {default as UpdateQuickbooksOnlineReimbursableExpensesAccountParams} from './UpdateQuickbooksOnlineReimbursableExpensesAccountParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
