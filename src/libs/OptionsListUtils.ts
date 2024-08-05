@@ -289,7 +289,7 @@ Onyx.connect({
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
-const visibleReportActionItems: ReportActions = {};
+const lastVisibleReportActions: ReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -327,7 +327,7 @@ Onyx.connect({
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                     !ReportActionUtils.isResolvedActionTrackExpense(reportAction),
             );
-            visibleReportActionItems[reportID] = reportActionsForDisplay[0];
+            lastVisibleReportActions[reportID] = reportActionsForDisplay[0];
         });
     },
 });
@@ -625,7 +625,7 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
     if (!report?.reportID) {
         return;
     }
-    const lastAction = visibleReportActionItems[report.reportID];
+    const lastAction = lastVisibleReportActions[report.reportID];
     if (!ReportActionUtils.isReportPreviewAction(lastAction)) {
         return;
     }
@@ -637,7 +637,7 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const reportID = report?.reportID ?? '-1';
-    const lastReportAction = visibleReportActionItems[reportID] ?? null;
+    const lastReportAction = lastVisibleReportActions[reportID] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[reportID] ?? null;
@@ -705,6 +705,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getIOUSubmittedMessage(reportID);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         lastMessageTextFromReport = ReportUtils.getIOUApprovedMessage(reportID);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+        lastMessageTextFromReport = ReportUtils.getIOUForwardedMessage(reportID);
     } else if (ReportActionUtils.isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = ReportActionUtils.getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
@@ -807,7 +809,7 @@ function createOption(
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
-        const lastAction = visibleReportActionItems[report.reportID];
+        const lastAction = lastVisibleReportActions[report.reportID];
         const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
 
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {

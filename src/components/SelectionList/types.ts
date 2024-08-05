@@ -66,9 +66,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
-
-    /** Whether Selection Mode is active - used only on small screens */
-    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -492,9 +489,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
-
-    /** Whether Selection Mode is active - used only on small screens */
-    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

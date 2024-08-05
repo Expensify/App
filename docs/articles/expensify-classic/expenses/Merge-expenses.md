@@ -47,7 +47,7 @@ If the expenses exist on two different reports, you will be asked which report y
 **How can the icons and receipt images help me diagnose my issue?**
 
 Look carefully at your expenses. Each expense has an icon that denotes where the expense came from:
-- Cash (bill & coins) icon: Added manually or by SmartScanning an expense
+- Cash (banknotes) icon: Added manually or by SmartScanning an expense
 - Credit Card icon: Imported from a connected personal credit card
 - Spreadsheet icon: Imported from a personal CSV import
 - Locked Credit Card icon: Imported from a company card feed or CSV upload
