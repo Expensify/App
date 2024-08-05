@@ -1007,6 +1007,7 @@ export default {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            importOnyxState: 'Import Onyx state',
         },
         debugConsole: {
             saveLog: 'Save log',

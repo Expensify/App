@@ -15,6 +15,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
+import * as App from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -50,6 +51,11 @@ Onyx.registerLogger(({level, message}) => {
     } else {
         Log.info(message);
     }
+});
+
+// This is supposed to restart to the initial state
+Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
+    App.openApp();
 });
 
 type ExpensifyOnyxProps = {
