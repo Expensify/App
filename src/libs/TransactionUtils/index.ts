@@ -21,6 +21,10 @@ import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, T
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -39,6 +43,17 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allTransactionViolations = value),
+});
+
+let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        preferredLocale = value;
+    },
 });
 
 let currentUserEmail = '';
@@ -203,7 +218,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Given the edit made to the expnse, return an updated transaction object.
+ * Given the edit made to the expense, return an updated transaction object.
  */
 function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
@@ -237,6 +252,11 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
 
     if (Object.hasOwn(transactionChanges, 'waypoints')) {
         updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
+        shouldStopSmartscan = true;
+    }
+
+    if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
+        updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
         shouldStopSmartscan = true;
     }
 
@@ -725,6 +745,48 @@ function calculateTaxAmount(percentage: string, amount: number, currency: string
 }
 
 /**
+ * Calculates updated amount, currency, and merchant for a distance request with modified waypoints or customUnitRateID
+ */
+function calculateAmountForUpdatedWaypointOrRate(
+    transaction: OnyxInputOrEntry<Transaction>,
+    transactionChanges: TransactionChanges,
+    policy: OnyxInputOrEntry<Policy>,
+    isFromExpenseReport: boolean,
+) {
+    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
+        return {
+            amount: CONST.IOU.DEFAULT_AMOUNT,
+            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
+            modifiedCurrency: Localize.translateLocal('iou.fieldPending'),
+        };
+    }
+
+    const customUnitRateID = transactionChanges.customUnitRateID ?? getRateID(transaction) ?? '';
+    const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
+    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction)
+        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
+    const {unit, rate, currency} = mileageRate;
+
+    const distanceInMeters = getDistanceInMeters(transaction, unit);
+    const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+    const updatedAmount = isFromExpenseReport ? -amount : amount;
+    const updatedCurrency = currency ?? CONST.CURRENCY.USD;
+    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
+        toLocaleDigit(preferredLocale, digit),
+    );
+
+    return {
+        amount: updatedAmount,
+        modifiedAmount: updatedAmount,
+        modifiedMerchant: updatedMerchant,
+        modifiedCurrency: updatedCurrency,
+    };
+}
+
+/**
  * Calculates count of all tax enabled options
  */
 function getEnabledTaxRateCount(options: TaxRates) {
@@ -743,10 +805,10 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
 }
 
 /**
- * Get rate ID from the transaction object
+ * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    return transaction?.comment?.customUnit?.customUnitRateID?.toString();
+    return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();
 }
 
 /**
@@ -980,6 +1042,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    calculateAmountForUpdatedWaypointOrRate,
     getWorkspaceTaxesSettingsName,
     getDefaultTaxCode,
     transformedTaxRates,

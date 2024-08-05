@@ -13,6 +13,7 @@ import type {Unit} from './types/onyx/Policy';
 type RateAndUnit = {
     unit: Unit;
     rate: number;
+    currency: string;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 
@@ -2511,6 +2512,7 @@ const CONST = {
         CATEGORY: 'category',
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
+        DISTANCE_RATE: 'distanceRate',
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
