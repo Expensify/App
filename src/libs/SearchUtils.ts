@@ -441,6 +441,10 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.KEYWORD && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}:${filterValue as string}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)
