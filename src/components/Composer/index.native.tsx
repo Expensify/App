@@ -1,5 +1,4 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
-import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
