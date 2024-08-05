@@ -457,9 +457,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [participants, personalDetails]);
 
     const toggleTruncateTitle = useCallback(() => {
-        if (!canEditReportDescription) {
-            setShouldTruncateTitle((prev) => !prev);
+        if (canEditReportDescription) {
+            return;
         }
+        setShouldTruncateTitle((prev) => !prev);
     }, [canEditReportDescription]);
 
     const icons = useMemo(() => ReportUtils.getIcons(report, personalDetails, null, '', -1, policy), [report, personalDetails, policy]);
