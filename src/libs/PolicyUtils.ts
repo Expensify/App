@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -240,7 +240,7 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
-function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -251,7 +251,7 @@ function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof 
 /**
  * Gets a tag name of policy tags based on a tag's orderWeight.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
@@ -262,7 +262,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<PolicyTagLists>> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -275,7 +275,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<Pol
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
+function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
 
     return (
@@ -311,7 +311,7 @@ function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
 /**
  * Whether the policy has multi-level tags
  */
-function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagList>): boolean {
+function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return Object.keys(policyTagList ?? {}).length > 1;
 }
 
@@ -513,7 +513,7 @@ function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
 }
 
-function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists) {
         return false;
     }

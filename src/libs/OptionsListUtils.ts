@@ -23,7 +23,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
-    PolicyTagList,
+    PolicyTagLists,
     PolicyTags,
     Report,
     ReportAction,
@@ -1401,7 +1401,7 @@ function getTagListSections(
 /**
  * Verifies that there is at least one enabled tag
  */
-function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
     const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
 
     return hasEnabledOptions(policyTagValueList);
