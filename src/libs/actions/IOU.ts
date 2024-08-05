@@ -6249,6 +6249,7 @@ function getReportFromHoldRequestsOnyxData(
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport.reportID);
     const firstHoldTransaction = holdTransactions[0];
+    const newParentReportActionID = rand64();
 
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
         chatReport.reportID,
@@ -6257,8 +6258,16 @@ function getReportFromHoldRequestsOnyxData(
         (firstHoldTransaction?.amount ?? 0) * -1,
         getCurrency(firstHoldTransaction),
         false,
+        newParentReportActionID,
     );
-    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', firstHoldTransaction, optimisticExpenseReport.reportID);
+    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
+        chatReport,
+        optimisticExpenseReport,
+        '',
+        firstHoldTransaction,
+        optimisticExpenseReport.reportID,
+        newParentReportActionID,
+    );
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
