@@ -42,6 +42,7 @@ function CardSection() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const subscriptionPlan = useSubscriptionPlan();
@@ -50,7 +51,6 @@ function CardSection() {
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
     const requestRefund = useCallback(() => {
@@ -73,9 +73,15 @@ function CardSection() {
         Subscription.clearOutstandingBalance();
     };
 
+    useEffect(() => {
+        if (!authenticationLink || privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+    }, [authenticationLink, privateStripeCustomerID?.status]);
+
     const handleAuthenticatePayment = () => {
         PaymentMethods.verifySetupIntent(session?.accountID ?? -1, false);
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     };
 
     const handleBillingBannerClose = () => {
