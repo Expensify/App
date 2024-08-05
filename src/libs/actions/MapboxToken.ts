@@ -1,7 +1,7 @@
 import {isAfter} from 'date-fns';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState} from 'react-native';
-import type {ConnectionMetadata} from 'react-native-onyx';
+import type {Connection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -18,8 +18,8 @@ Onyx.connect({
     },
 });
 
-let tokenConnection: ConnectionMetadata | null;
-let networkConnection: ConnectionMetadata | null;
+let tokenConnection: Connection | null;
+let networkConnection: Connection | null;
 let appStateSubscription: NativeEventSubscription | null;
 let currentToken: MapboxAccessToken | undefined;
 let refreshTimeoutID: NodeJS.Timeout | undefined;
