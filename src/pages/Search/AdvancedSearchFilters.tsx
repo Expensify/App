@@ -113,6 +113,7 @@ function AdvancedSearchFilters() {
                 title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
                 description: 'common.card' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
+                shouldHide: Object.keys(cardList).length === 0,
             },
         ],
         [searchAdvancedFilters, translate, cardList],
@@ -134,7 +135,9 @@ function AdvancedSearchFilters() {
             <View>
                 {advancedFilters.map((item) => {
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-
+                    if (item.shouldHide) {
+                        return undefined;
+                    }
                     return (
                         <MenuItemWithTopDescription
                             key={item.description}
