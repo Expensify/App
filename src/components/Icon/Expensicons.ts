@@ -179,6 +179,7 @@ import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
+import UserCheck from '@assets/images/user-check.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
@@ -350,6 +351,7 @@ export {
     Upload,
     UploadAlt,
     User,
+    UserCheck,
     Users,
     VolumeHigh,
     VolumeLow,
