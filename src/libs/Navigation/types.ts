@@ -891,6 +891,7 @@ type MoneyRequestNavigatorParamList = {
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+        action: IOUAction;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         backTo: Routes;
@@ -903,6 +904,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex?: string;
         backTo?: string;
+        participantsAutoAssigned?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
         action: IOUAction;
@@ -1119,6 +1121,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
+        approverIndex?: number;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
@@ -1178,10 +1181,18 @@ type FullScreenNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
-    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
-    [SCREENS.ONBOARDING.PURPOSE]: undefined;
-    [SCREENS.ONBOARDING.WORK]: undefined;
+    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PURPOSE]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
@@ -1232,6 +1243,8 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = CentralPaneScreensParamList &
     SharedScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TRACK_EXPENSE]: undefined;
+        [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.ATTACHMENTS]: {
             reportID: string;
             source: string;

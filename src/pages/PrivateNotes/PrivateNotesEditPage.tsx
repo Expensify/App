@@ -162,8 +162,10 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
                             if (!el) {
                                 return;
                             }
+                            if (!privateNotesInput.current) {
+                                updateMultilineInputRange(el);
+                            }
                             privateNotesInput.current = el;
-                            updateMultilineInputRange(privateNotesInput.current);
                         }}
                         isMarkdownEnabled
                     />

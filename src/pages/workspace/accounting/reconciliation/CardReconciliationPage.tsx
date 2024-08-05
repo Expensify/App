@@ -36,7 +36,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const policyID = policy?.id ?? '-1';
     const {connection} = route.params;
-    const autoSync = !!policy?.connections?.[connection]?.config?.autoSync.enabled;
+    const autoSync = !!policy?.connections?.[connection]?.config?.autoSync?.enabled;
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const toggleContinuousReconciliation = () => {

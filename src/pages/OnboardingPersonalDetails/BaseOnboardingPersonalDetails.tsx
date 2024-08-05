@@ -36,6 +36,7 @@ function BaseOnboardingPersonalDetails({
     onboardingPurposeSelected,
     onboardingAdminsChatReportID,
     onboardingPolicyID,
+    route,
 }: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,7 +79,7 @@ function BaseOnboardingPersonalDetails({
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
-            if (!isSmallScreenWidth) {
+            if (!isSmallScreenWidth && !route.params?.backTo) {
                 if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
                     Report.navigateToSystemChat();
                 } else {
@@ -92,7 +93,7 @@ function BaseOnboardingPersonalDetails({
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, route.params?.backTo, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
