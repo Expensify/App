@@ -84,7 +84,9 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const approvalChain = PolicyUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
     if (approvalChain.length > 0) {
         const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
-        nextApproverDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
+        if (nextApproverEmail) {
+            nextApproverDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
+        }
     }
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
