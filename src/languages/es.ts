@@ -1295,6 +1295,8 @@ export default {
     },
     workflowsCreateApprovalsPage: {
         title: 'Añadir flujo de aprobación',
+        header: 'Agrega más aprobadores y confirma.',
+        addApproverRow: 'Añadir aprobador',
     },
     workflowsEditApprovalsPage: {
         title: 'Edicion flujo de aprobación',
@@ -2080,6 +2082,7 @@ export default {
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            everyone: 'Todos',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             reimburse: 'Reembolsos',

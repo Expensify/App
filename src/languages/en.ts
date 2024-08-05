@@ -1285,7 +1285,9 @@ export default {
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {
-        title: 'Add approval workflow',
+        title: 'Confirm',
+        header: 'Add more approvers and confirm.',
+        addApproverRow: 'Additional approver',
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',
@@ -2045,6 +2047,7 @@ export default {
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
+            everyone: 'Everyone',
             delete: 'Delete workspace',
             settings: 'Settings',
             reimburse: 'Reimbursements',

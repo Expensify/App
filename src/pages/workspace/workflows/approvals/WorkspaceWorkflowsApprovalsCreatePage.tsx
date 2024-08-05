@@ -1,9 +1,14 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -11,13 +16,17 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ApprovalWorkflow} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW>;
 
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const {translate} = useLocalize();
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
@@ -41,9 +50,64 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         title={translate('workflowsCreateApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
+                    {approvalWorkflow && (
+                        <X
+                            approvalWorkflow={approvalWorkflow}
+                            policyID={route.params.policyID}
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
+    );
+}
+
+function X({approvalWorkflow, policyID}: {approvalWorkflow: ApprovalWorkflow; policyID: string}) {
+    const styles = useThemeStyles();
+    const {translate, toLocaleOrdinal} = useLocalize();
+
+    const approverDescription = useCallback(
+        (index: number) =>
+            // @ts-expect-error Fix later
+            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
+        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
+    );
+
+    return (
+        <View style={styles.mh5}>
+            <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
+
+            <MenuItemWithTopDescription
+                title={approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ')}
+                titleStyle={styles.textNormalThemeText}
+                description={translate('workflowsExpensesFromPage.title')}
+                descriptionTextStyle={styles.textLabelSupportingNormal}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID))}
+                shouldShowRightIcon
+                wrapperStyle={[styles.sectionMenuItemTopDescription]}
+            />
+
+            {approvalWorkflow.approvers.map((approver, approverIndex) => (
+                <MenuItemWithTopDescription
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`approver-${approver.email}`}
+                    title={approver.displayName}
+                    titleStyle={styles.textNormalThemeText}
+                    description={approverDescription(approverIndex)}
+                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex))}
+                    shouldShowRightIcon
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                />
+            ))}
+
+            <MenuItemWithTopDescription
+                description={translate('workflowsCreateApprovalsPage.addApproverRow')}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approvalWorkflow.approvers.length))}
+                shouldShowRightIcon
+                wrapperStyle={[styles.sectionMenuItemTopDescription]}
+            />
+        </View>
     );
 }
 

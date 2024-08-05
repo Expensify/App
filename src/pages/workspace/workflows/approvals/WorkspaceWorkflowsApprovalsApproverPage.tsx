@@ -162,7 +162,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         );
 
         const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-        if (!approvalWorkflow?.isBeingEdited && firstApprover) {
+        if (approvalWorkflow?.isBeingEdited && firstApprover) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
