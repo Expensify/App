@@ -37,12 +37,6 @@ function assertDeployProductionJobExecuted(workflowResult: Step[], didExecute = 
             {key: 'OS_BOTIFY_PRIVATE_KEY', value: '***'},
         ]),
         createStepAssertion('Get current app version', true, null, 'DEPLOY_PRODUCTION', 'Getting current app version'),
-        createStepAssertion('Get Release Pull Request List', true, null, 'DEPLOY_PRODUCTION', 'Getting release PR list', [
-            {key: 'TAG', value: '1.2.3'},
-            {key: 'GITHUB_TOKEN', value: 'os_botify_api_token'},
-            {key: 'IS_PRODUCTION_DEPLOY', value: 'true'},
-        ]),
-        createStepAssertion('Generate Release Body', true, null, 'DEPLOY_PRODUCTION', 'Generating release body', [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}]),
         createStepAssertion(
             '🚀 Create release to trigger production deploy 🚀',
             true,

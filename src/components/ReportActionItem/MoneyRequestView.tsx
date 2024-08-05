@@ -233,7 +233,7 @@ function MoneyRequestView({
     const {unit} = mileageRate;
     const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transactionBackup ?? transaction), unit);
+    const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -335,7 +335,7 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
-                    title={getPendingFieldAction('waypoints') ? translate('iou.fieldPending') : distanceToDisplay}
+                    title={distanceToDisplay}
                     interactive={canEditDistance && !readonly}
                     shouldShowRightIcon={canEditDistance && !readonly}
                     titleStyle={styles.flex1}
@@ -632,7 +632,9 @@ function MoneyRequestView({
                         icon={Expensicons.Suitcase}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
-                        onPress={() => Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))}
+                        onPress={() => {
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                        }}
                     />
                 )}
                 {shouldShowBillable && (

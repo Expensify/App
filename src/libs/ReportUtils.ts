@@ -4097,8 +4097,17 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
  * @param total - Amount in cents
  * @param currency
  * @param reimbursable – Whether the expense is reimbursable
+ * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  */
-function buildOptimisticExpenseReport(chatReportID: string, policyID: string, payeeAccountID: number, total: number, currency: string, reimbursable = true): OptimisticExpenseReport {
+function buildOptimisticExpenseReport(
+    chatReportID: string,
+    policyID: string,
+    payeeAccountID: number,
+    total: number,
+    currency: string,
+    reimbursable = true,
+    parentReportActionID?: string,
+): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const policyName = getPolicyName(ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
@@ -4126,6 +4135,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
+        parentReportActionID,
     };
 
     // Get the approver/manager for this report to properly display the optimistic data
@@ -4472,6 +4482,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param iouReport
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
+ * @param reportActionID
  */
 function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
@@ -4479,12 +4490,13 @@ function buildOptimisticReportPreview(
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
+    reportActionID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     const created = DateUtils.getDBTime();
     return {
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: reportActionID ?? NumberUtils.rand64(),
         reportID: chatReport?.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -7196,11 +7208,10 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: stri
             searchText: policyName,
         },
     ]);
-    const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
     if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
-        Navigation.navigate(iouConfirmationPageRoute);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, true));
     }
 }
 
