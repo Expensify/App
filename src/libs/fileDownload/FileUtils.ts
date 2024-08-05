@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
+import {updateLastScreen} from '@libs/actions/App';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -63,7 +64,7 @@ function showPermissionErrorAlert() {
 /**
  * Inform the users when they need to grant camera access and guide them to settings
  */
-function showCameraPermissionsAlert() {
+function showCameraPermissionsAlert(lastScreen: string | undefined) {
     Alert.alert(
         Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
         Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
@@ -76,6 +77,9 @@ function showCameraPermissionsAlert() {
                 text: Localize.translateLocal('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
+                    if (lastScreen) {
+                        updateLastScreen(lastScreen);
+                    }
                 },
             },
         ],

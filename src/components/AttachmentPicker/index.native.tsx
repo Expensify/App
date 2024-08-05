@@ -148,7 +148,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                FileUtils.showCameraPermissionsAlert();
+                                FileUtils.showCameraPermissionsAlert(undefined);
                                 return resolve();
                             default:
                                 showGeneralAlert();

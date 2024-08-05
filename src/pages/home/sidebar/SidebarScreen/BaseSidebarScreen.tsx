@@ -5,12 +5,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateLastScreen} from '@libs/actions/App';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
+import * as ReportUtils from '@libs/ReportUtils';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import * as IOU from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +32,7 @@ function BaseSidebarScreen() {
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const [lastScreen] = useOnyx(ONYXKEYS.LAST_SCREEN);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -42,6 +47,22 @@ function BaseSidebarScreen() {
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID]);
+
+    useEffect(() => {
+        if (lastScreen !== CONST.ADD_EXPENSES) {
+            return;
+        }
+
+        updateLastScreen(undefined);
+        interceptAnonymousUser(() =>
+            IOU.startMoneyRequest(
+                CONST.IOU.TYPE.SUBMIT,
+                // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                // for all of the routes in the creation flow.
+                ReportUtils.generateReportID(),
+            ),
+        );
+    }, [lastScreen]);
 
     return (
         <ScreenWrapper

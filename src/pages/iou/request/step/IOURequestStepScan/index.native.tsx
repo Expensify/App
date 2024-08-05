@@ -96,7 +96,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert();
+                    FileUtils.showCameraPermissionsAlert(CONST.ADD_EXPENSES);
                 }
             })
             .catch(() => {
