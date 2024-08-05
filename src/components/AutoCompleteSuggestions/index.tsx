@@ -1,9 +1,11 @@
 import React, {useEffect} from 'react';
+import {Platform} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
@@ -95,7 +97,11 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            // This is a workaround to fix suggestion box positioning on android devices, to be removed with react-native 0.75
+            let bottomValue =
+                Platform.OS === 'android'
+                    ? windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight - (StatusBar.currentHeight ?? 0) - 20
+                    : windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
