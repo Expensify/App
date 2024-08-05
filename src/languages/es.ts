@@ -3594,7 +3594,7 @@ export default {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala de ${oldName} a ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
