@@ -6733,7 +6733,14 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         total = expenseReport?.unheldTotal;
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '-1');
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
+
+    const approvalChain = PolicyUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), userAccountID, expenseReport?.total ?? 0);
+    const isLastApprover = approvalChain.length === 1;
+
+    const predictedNextStatus = isLastApprover ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = isLastApprover ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = getReportOrDraftReport(expenseReport?.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
@@ -6753,8 +6760,8 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             ...expenseReport,
             lastMessageText: ReportActionsUtils.getReportActionText(optimisticApprovedReportAction),
             lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticApprovedReportAction),
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            stateNum: predictedNextState,
+            statusNum: predictedNextStatus,
             pendingFields: {
                 partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
