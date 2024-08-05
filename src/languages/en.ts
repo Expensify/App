@@ -4808,6 +4808,7 @@ export default {
         editJson: 'Edit JSON:',
         preview: 'Preview:',
         missingProperty: ({propertyName}) => `Missing ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
         createReportAction: 'Create Report Action',
         reportAction: 'Report Action',
         report: 'Report',

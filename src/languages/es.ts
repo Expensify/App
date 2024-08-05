@@ -5325,6 +5325,7 @@ export default {
         editJson: 'Editar JSON:',
         preview: 'Previa:',
         missingProperty: ({propertyName}) => `Falta ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
         createReportAction: 'Crear Report Action',
         reportAction: 'Report Action',
         report: 'Report',

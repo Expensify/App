@@ -87,6 +87,9 @@ function DebugReportActionCreatePage({
                                         if (!parsedReportAction.created) {
                                             throw SyntaxError(translate('debug.missingProperty', {propertyName: 'created'}));
                                         }
+                                        if (!isValid(new Date(parsedReportAction.created))) {
+                                            throw SyntaxError(translate('debug.invalidProperty', {propertyName: 'created', expectedType: CONST.DATE.FNS_DATE_TIME_FORMAT_STRING}));
+                                        }
                                         if (!parsedReportAction.actionName) {
                                             throw SyntaxError(translate('debug.missingProperty', {propertyName: 'actionName'}));
                                         }
