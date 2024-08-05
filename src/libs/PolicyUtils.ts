@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -285,6 +286,24 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
             tags: {},
         }
     );
+}
+
+function getTagsNamesFromTagsList(policyTagList: PolicyTagLists) {
+    const listOfObjectsHavingTagsObject: PolicyTagList[] = [...Object.values(policyTagList ?? {})];
+    const tagsObjectList: PolicyTags[] = [];
+    listOfObjectsHavingTagsObject.forEach((item) => {
+        if (!item) {
+            return;
+        }
+        tagsObjectList.push(item.tags);
+    });
+    const tagNamesTable: string[] = [];
+    tagsObjectList.forEach((tagsObject) => {
+        Object.values(tagsObject).forEach((tag) => {
+            tagNamesTable.push(tag.name);
+        });
+    });
+    return tagNamesTable;
 }
 
 /**
@@ -984,6 +1003,7 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getAllTaxRates,
+    getTagsNamesFromTagsList,
 };
 
 export type {MemberEmailsToAccountIDs};

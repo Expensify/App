@@ -13,6 +13,7 @@ const INPUT_IDS = {
     REPORT_ID: 'reportID',
     TAX_RATE: 'taxRate',
     EXPENSE_TYPE: 'expenseType',
+    TAG: 'tag',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -31,6 +32,7 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.REPORT_ID]: string;
         [INPUT_IDS.TAX_RATE]: string[];
         [INPUT_IDS.EXPENSE_TYPE]: string[];
+        [INPUT_IDS.TAG]: string[];
     }
 >;
 

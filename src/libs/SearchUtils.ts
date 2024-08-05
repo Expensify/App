@@ -451,6 +451,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE}:${expenseTypes.map(sanitizeString).join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.TAG && filterValues[filterKey]) {
+                const tags = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG}:${tags.map(sanitizeString).join(',')}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)

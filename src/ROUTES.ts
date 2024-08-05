@@ -38,32 +38,21 @@ const ROUTES = {
         getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
             `search?q=${query}&isCustomQuery=${isCustomQuery}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
     },
-
     SEARCH_ADVANCED_FILTERS: 'search/filters',
-
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
-
     SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
-
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
-
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
-
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
-
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
-
     SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
-
+    SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,
     },
-
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated

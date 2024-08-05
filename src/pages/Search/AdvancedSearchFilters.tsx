@@ -103,6 +103,11 @@ function AdvancedSearchFilters() {
                 description: 'search.expenseTypes' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
+                description: 'common.tag' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+            },
         ],
         [searchAdvancedFilters, translate],
     );
