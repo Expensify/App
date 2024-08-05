@@ -14,6 +14,7 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
@@ -796,7 +797,14 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
+                                {shouldShowSkeleton && (
+                                    <View>
+                                        <View style={[styles.borderBottom]}>
+                                            <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                                        </View>
+                                        <ReportActionsSkeletonView />
+                                    </View>
+                                )}
 
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
