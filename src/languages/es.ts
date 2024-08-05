@@ -2082,6 +2082,7 @@ export default {
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
+        errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
     },
     workspace: {
         common: {
