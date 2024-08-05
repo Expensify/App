@@ -267,8 +267,7 @@ function createPolicyCategory(policyID: string, categoryName: string) {
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName] ?? {};
-    const pendingFields = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName]?.pendingFields ?? {};
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -282,7 +281,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         name: policyCategory.newName,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            ...pendingFields,
+                            ...(policyCategoryToUpdate?.pendingFields ?? {}),
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         previousCategoryName: policyCategory.oldName,
@@ -302,7 +301,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         errors: null,
                         pendingAction: null,
                         pendingFields: {
-                            ...pendingFields,
+                            ...(policyCategoryToUpdate?.pendingFields ?? {}),
                             name: null,
                         },
                     },
