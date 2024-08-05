@@ -11,6 +11,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useResponsiveLayout from './useResponsiveLayout';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
@@ -86,6 +87,7 @@ function ReportIDsContextProvider({
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
@@ -118,7 +120,17 @@ function ReportIDsContextProvider({
         // we first generate the list as if there was no current report, then we check if
         // the current report is missing from the list, which should very rarely happen. In this
         // case we re-generate the list a 2nd time with the current report included.
-        if (derivedCurrentReportID && derivedCurrentReportID !== '-1' && orderedReportIDs.indexOf(derivedCurrentReportID) === -1) {
+
+        // We also execute the following logic if `shouldUseNarrowLayout` is false because this is
+        // requirement for web and desktop. Consider a case, where we have report with expenses and we click on
+        // any expense, a new LHN item is added in the list and is visible on web and desktop. But on mobile, we
+        // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
+        if (
+            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            derivedCurrentReportID &&
+            derivedCurrentReportID !== '-1' &&
+            orderedReportIDs.indexOf(derivedCurrentReportID) === -1
+        ) {
             return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? '-1', policyMemberAccountIDs};
         }
 
@@ -127,7 +139,7 @@ function ReportIDsContextProvider({
             currentReportID: derivedCurrentReportID ?? '-1',
             policyMemberAccountIDs,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout]);
 
     return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;
 }

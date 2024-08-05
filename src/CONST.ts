@@ -366,7 +366,6 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
@@ -376,7 +375,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -685,6 +683,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
+                CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
+                CARD_ISSUED: 'CARDISSUED',
+                CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
@@ -1192,9 +1193,8 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    // This is a placeholder for attachment which is uploading
-    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -1411,6 +1411,7 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
+        DIMENSION_PREFIX: 'dimension_',
     },
 
     SAGE_INTACCT: {
@@ -5254,6 +5255,9 @@ const CONST = {
             DRAFTS: 'drafts',
             FINISHED: 'finished',
         },
+        TYPE: {
+            EXPENSE: 'expense',
+        },
         TAB: {
             EXPENSE: {
                 ALL: 'type:expense status:all',
@@ -5407,6 +5411,14 @@ const CONST = {
                 title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
+            },
+            taxCodes: {
+                id: 'taxCodes' as const,
+                alias: 'tax-codes',
+                name: 'Tax codes',
+                title: 'workspace.upgrade.taxCodes.title' as const,
+                description: 'workspace.upgrade.taxCodes.description' as const,
+                icon: 'Coins',
             },
         };
     },

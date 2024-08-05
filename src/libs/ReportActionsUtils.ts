@@ -386,14 +386,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
- * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
- * Separated it from getCombinedReportActions, so it can be reused
- */
-function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
-    return reportActions.filter((action) => !isSentMoneyReportAction(action));
-}
-
-/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -421,7 +413,7 @@ function getCombinedReportActions(
 
     if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
         filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-    } else {
+    } else if (transactionThreadCreatedAction) {
         filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     }
 
@@ -955,6 +947,13 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
+// Get all IOU report actions for the report.
+const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
+    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+    CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+    CONST.IOU.REPORT_ACTION_TYPE.PAY,
+    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+]);
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
@@ -966,28 +965,23 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
         return;
     }
 
-    const reportActionsArray = Object.values(reportActions ?? {});
+    const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
         return;
     }
 
-    // Get all IOU report actions for the report.
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-    ];
-
-    const iouRequestActions = reportActionsArray.filter((action) => {
+    const iouRequestActions = [];
+    for (const action of reportActionsArray) {
         if (!isMoneyRequestAction(action)) {
-            return false;
+            // eslint-disable-next-line no-continue
+            continue;
         }
+
         const originalMessage = getOriginalMessage(action);
         const actionType = originalMessage?.type;
-        return (
+        if (
             actionType &&
-            (iouRequestTypes.includes(actionType) ?? []) &&
+            iouRequestTypes.has(actionType) &&
             action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
@@ -997,22 +991,27 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
-        );
-    });
+        ) {
+            iouRequestActions.push(action);
+        }
+    }
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
         return;
     }
 
+    const singleAction = iouRequestActions[0];
+    const originalMessage = getOriginalMessage(singleAction);
+
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
-    if (isMoneyRequestAction(iouRequestActions[0]) && (getOriginalMessage(iouRequestActions[0])?.deleted ?? '') !== '') {
+    if ((originalMessage?.deleted ?? '') !== '' && isMoneyRequestAction(singleAction)) {
         return;
     }
 
     // Ensure we have a childReportID associated with the IOU report action
-    return iouRequestActions[0].childReportID;
+    return singleAction.childReportID;
 }
 
 /**
@@ -1162,7 +1161,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
-        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
@@ -1283,6 +1281,15 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
+    const html = getUpdateRoomDescriptionMessage(reportAction);
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -1296,7 +1303,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        const message = getUpdateRoomDescriptionMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -1591,7 +1598,6 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
-    getFilteredForOneTransactionView,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
@@ -1601,6 +1607,7 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
+    getUpdateRoomDescriptionFragment,
     getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,

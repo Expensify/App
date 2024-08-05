@@ -60,6 +60,21 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
         );
     }
 
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
+        const fragment = ReportActionsUtils.getUpdateRoomDescriptionFragment(action);
+        return (
+            <View style={[styles.chatItemMessage, style]}>
+                <TextCommentFragment
+                    fragment={fragment}
+                    displayAsGroup={displayAsGroup}
+                    style={style}
+                    source=""
+                    styleAsDeleted={false}
+                />
+            </View>
+        );
+    }
+
     let iouMessage: string | undefined;
     if (isIOUReport) {
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage(action) : null;

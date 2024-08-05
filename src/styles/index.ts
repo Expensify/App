@@ -115,7 +115,8 @@ const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
-        ...FontUtils.fontFamily.platform.EXP_NEUE,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
@@ -2734,9 +2735,14 @@ const styles = (theme: ThemeColors) =>
             width: 110,
         },
 
-        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
             let paddingHorizontal = spacing.ph5;
             let paddingVertical = spacing.pv5;
+
+            if (isSmallScreenWidth) {
+                paddingHorizontal = spacing.ph4;
+                paddingVertical = spacing.pv4;
+            }
 
             if (isExtraSmallScreenWidth) {
                 paddingHorizontal = spacing.ph2;
@@ -5104,6 +5110,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateScrollView: {
+            marginTop: 12,
             minHeight: 400,
             height: '100%',
             flex: 1,
