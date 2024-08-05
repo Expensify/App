@@ -134,11 +134,97 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     return {optimisticData, failureData, successData};
 }
 
-function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']['syncOptions']>(
+function updateNetSuiteCustomFieldOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']['syncOptions']>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
+    modifiedFieldID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        options: {
+                            config: {
+                                syncOptions: {
+                                    [settingName]: settingValue ?? null,
+                                },
+                                pendingFields: {
+                                    [modifiedFieldID]: pendingAction,
+                                },
+                                errorFields: {
+                                    [modifiedFieldID]: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    let syncOptionsAfterFailure;
+    if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        syncOptionsAfterFailure = {
+            [settingName]: oldSettingValue ?? null,
+        };
+    }
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        options: {
+                            config: {
+                                syncOptions: syncOptionsAfterFailure,
+                                errorFields: {
+                                    [modifiedFieldID]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        options: {
+                            config: {
+                                pendingFields: {
+                                    [modifiedFieldID]: null,
+                                },
+                                errorFields: {
+                                    [modifiedFieldID]: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    return {optimisticData, failureData, successData};
+}
+
+function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']['syncOptions']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
+    oldSettingValue?: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -559,8 +645,14 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION, params, onyxData);
 }
 
-function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomSegment[], oldRecords: NetSuiteCustomSegment[]) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords);
+function updateNetSuiteCustomSegments(
+    policyID: string,
+    records: NetSuiteCustomSegment[],
+    oldRecords: NetSuiteCustomSegment[],
+    modifiedSegmentID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
+    const onyxData = updateNetSuiteCustomFieldOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords, modifiedSegmentID, pendingAction);
 
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS,
@@ -572,8 +664,8 @@ function updateNetSuiteCustomSegments(policyID: string, records: NetSuiteCustomS
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[]) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords);
+function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+    const onyxData = updateNetSuiteCustomFieldOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords, modifiedListID, pendingAction);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
         {

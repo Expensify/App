@@ -72,9 +72,21 @@ function NetSuiteImportCustomFieldEdit({
                 });
 
                 if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
-                    updateNetSuiteCustomSegments(policyID, updatedRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
+                    updateNetSuiteCustomSegments(
+                        policyID,
+                        updatedRecords as NetSuiteCustomSegment[],
+                        allRecords as NetSuiteCustomSegment[],
+                        `${importCustomField}_${valueIndex}`,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    );
                 } else {
-                    updateNetSuiteCustomLists(policyID, updatedRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
+                    updateNetSuiteCustomLists(
+                        policyID,
+                        updatedRecords as NetSuiteCustomList[],
+                        allRecords as NetSuiteCustomList[],
+                        `${importCustomField}_${valueIndex}`,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    );
                 }
             }
 

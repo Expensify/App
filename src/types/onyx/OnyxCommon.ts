@@ -23,6 +23,9 @@ type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TO
 /** Mapping of form fields with errors */
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
+/** */
+type PreviousValues<TKey extends string, TValue> = Record<TKey, TValue>;
+
 /** Mapping of form fields with error translation keys and variables */
 type Errors = Record<string, string | null>;
 
@@ -54,4 +57,4 @@ type Icon = {
     fill?: string;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback, PreviousValues};

@@ -140,7 +140,13 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     mapping: formValues[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 },
             ]);
-            Connections.updateNetSuiteCustomSegments(policyID, updatedCustomSegments, customSegments);
+            Connections.updateNetSuiteCustomSegments(
+                policyID,
+                updatedCustomSegments,
+                customSegments,
+                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             nextScreen();
         },
         [customSegments, nextScreen, policyID],
