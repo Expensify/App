@@ -253,6 +253,10 @@ function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
         return {borderRadius: avatarBorderSizes[size]};
     }
 
+    if (type === CONST.ICON_TYPE_SQUARE) {
+        return {borderRadius: 0};
+    }
+
     // Default to rounded border
     return {borderRadius: variables.buttonBorderRadius};
 }

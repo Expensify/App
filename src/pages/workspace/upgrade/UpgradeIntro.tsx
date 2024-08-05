@@ -27,13 +27,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const iconSrc = feature.icon in Illustrations ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
+    const iconType = feature === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals ? CONST.ICON_TYPE_SQUARE : CONST.ICON_TYPE_AVATAR;
 
     return (
         <View style={styles.p5}>
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
+                        type={iconType}
                         source={iconSrc}
                     />
                     <Badge
