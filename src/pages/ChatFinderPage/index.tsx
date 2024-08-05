@@ -120,7 +120,10 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         if (recentReports?.length > 0) {
             newSections.push({
-                data: recentReports.map((report) => ({...report, isBold: false})),
+                data: recentReports.map((report) => {
+                    const isBold = report.isUnread && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+                    return {...report, isBold};
+                }),
                 shouldShow: true,
             });
         }
@@ -134,7 +137,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         if (!isEmpty(userToInvite)) {
             newSections.push({
-                data: [{...userToInvite, isBold: false}],
+                data: [userToInvite],
                 shouldShow: true,
             });
         }

@@ -841,6 +841,7 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
+        result.notificationPreference = report.notificationPreference;
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
