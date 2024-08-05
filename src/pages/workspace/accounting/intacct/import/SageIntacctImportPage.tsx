@@ -65,7 +65,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctImportPage.displayName}
             headerTitle="workspace.accounting.import"
-            headerSubtitle={getCurrentSageIntacctEntityName(policy)}
+            headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

@@ -516,6 +516,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
                         style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                        isDisabled={!selectedEmployees.length}
                     />
                 ) : (
                     <Button

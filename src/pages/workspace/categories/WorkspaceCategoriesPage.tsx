@@ -232,6 +232,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    isDisabled={!selectedCategoriesArray.length}
                 />
             );
         }

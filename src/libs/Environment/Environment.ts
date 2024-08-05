@@ -17,20 +17,6 @@ const OLDDOT_ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_EXPENSIFY_URL,
 };
 
-const TRAVELDOT_ENVIRONMENT_URLS: Record<string, string> = {
-    [CONST.ENVIRONMENT.DEV]: CONST.STAGING_TRAVEL_DOT_URL,
-    [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_TRAVEL_DOT_URL,
-    [CONST.ENVIRONMENT.PRODUCTION]: CONST.TRAVEL_DOT_URL,
-    [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_TRAVEL_DOT_URL,
-};
-
-const SPOTNANA_ENVIRONMENT_TMC_ID: Record<string, string> = {
-    [CONST.ENVIRONMENT.DEV]: CONST.STAGING_SPOTNANA_TMC_ID,
-    [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_SPOTNANA_TMC_ID,
-    [CONST.ENVIRONMENT.PRODUCTION]: CONST.SPOTNANA_TMC_ID,
-    [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_SPOTNANA_TMC_ID,
-};
-
 /**
  * Are we running the app in development?
  */
@@ -68,12 +54,4 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-function getTravelDotEnvironmentURL(): Promise<string> {
-    return getEnvironment().then((environment) => TRAVELDOT_ENVIRONMENT_URLS[environment]);
-}
-
-function getSpotnanaEnvironmentTMCID(): Promise<string> {
-    return getEnvironment().then((environment) => SPOTNANA_ENVIRONMENT_TMC_ID[environment]);
-}
-
-export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getTravelDotEnvironmentURL, getSpotnanaEnvironmentTMCID};
+export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL};

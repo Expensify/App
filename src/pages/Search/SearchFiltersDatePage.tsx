@@ -36,7 +36,12 @@ function SearchFiltersDatePage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.date')} />
+                <HeaderWithBackButton
+                    title={translate('common.date')}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    }}
+                />
                 <FormProvider
                     style={[styles.flex1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
