@@ -2366,11 +2366,12 @@ function formatSectionsFromSearchTerm(
         };
     }
 
+    const cleanSearchTerm = searchTerm.trim().toLowerCase();
     // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(searchTerm.trim().toLowerCase());
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
         return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;

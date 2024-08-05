@@ -85,15 +85,15 @@ function useOptions({isGroupChat}: NewChatPageProps) {
 
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
-
+    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return OptionsListUtils.getHeaderMessage(
             options.personalDetails.length + options.recentReports.length !== 0,
             !!options.userToInvite,
             debouncedSearchTerm.trim(),
-            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
+            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
-    }, [debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
+    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
