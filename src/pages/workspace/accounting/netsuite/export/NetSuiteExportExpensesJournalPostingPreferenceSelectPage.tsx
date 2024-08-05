@@ -27,11 +27,15 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
     const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
+    const selectedValue =
+        Object.values(CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE).find((value) => value === config?.journalPostingPreference) ??
+        CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE;
+
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE).map((postingPreference) => ({
         value: postingPreference,
         text: translate(`workspace.netsuite.journalPostingPreference.values.${postingPreference}`),
         keyForList: postingPreference,
-        isSelected: config?.journalPostingPreference === postingPreference,
+        isSelected: selectedValue === postingPreference,
     }));
 
     const selectPostingPreference = useCallback(

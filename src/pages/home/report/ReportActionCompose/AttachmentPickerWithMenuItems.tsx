@@ -11,9 +11,9 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -23,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
@@ -120,9 +121,7 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const isReportOpenInRHP = useIsReportOpenInRHP();
-    const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Returns the list of IOU Options
@@ -226,12 +225,13 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
+                        onSelected: () =>
+                            Modal.close(() => {
+                                if (Browser.isSafari()) {
+                                    return;
+                                }
+                                triggerAttachmentPicker();
+                            }),
                     },
                 ];
                 return (

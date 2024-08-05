@@ -5,8 +5,8 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
@@ -85,13 +85,13 @@ function FeatureTrainingModal({
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
@@ -148,7 +148,7 @@ function FeatureTrainingModal({
                         <Lottie
                             source={animation ?? LottieAnimations.Hands}
                             style={styles.h100}
-                            webStyle={isSmallScreenWidth ? styles.h100 : undefined}
+                            webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
                             autoPlay
                             loop
                         />
@@ -156,7 +156,7 @@ function FeatureTrainingModal({
                 )}
             </View>
         );
-    }, [animation, videoURL, videoAspectRatio, videoStatus, isSmallScreenWidth, styles]);
+    }, [animation, videoURL, videoAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 
@@ -178,14 +178,14 @@ function FeatureTrainingModal({
             {({safeAreaPaddingBottomStyle}) => (
                 <Modal
                     isVisible={isModalVisible}
-                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    type={isMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
                     innerContainerStyle={{
                         boxShadow: 'none',
                         borderRadius: 16,
                         paddingBottom: 20,
-                        paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
-                        ...(shouldUseNarrowLayout
+                        paddingTop: isMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
+                        ...(isMediumOrLargerScreenWidth
                             ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                               // To make it take as little space as possible.
                               {
@@ -196,11 +196,11 @@ function FeatureTrainingModal({
                     }}
                 >
                     <GestureHandlerRootView>
-                        <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                            <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                            <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
                             <View style={[styles.mt5, styles.mh5]}>
                                 {title && description && (
-                                    <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                         <Text style={styles.textSupporting}>{description}</Text>
                                         {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}

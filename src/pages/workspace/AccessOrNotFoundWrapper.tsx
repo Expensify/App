@@ -3,7 +3,6 @@ import React, {useEffect, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
@@ -84,20 +83,19 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
-type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean};
+type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean; isMoneyRequest: boolean};
 
-function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps}: PageNotFoundFallbackProps) {
-    return shouldShowFullScreenFallback ? (
-        <FullPageNotFoundView
-            shouldShow
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-            shouldForceFullScreen
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...fullPageNotFoundViewProps}
-        />
-    ) : (
+function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps, isMoneyRequest}: PageNotFoundFallbackProps) {
+    return (
         <NotFoundPage
-            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined)}
+            shouldForceFullScreen={shouldShowFullScreenFallback}
+            onBackButtonPress={() => {
+                if (shouldShowFullScreenFallback) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined);
+            }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
         />
@@ -155,7 +153,8 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         return (
             <PageNotFoundFallback
                 policyID={policyID}
-                shouldShowFullScreenFallback={!isFeatureEnabled}
+                isMoneyRequest={isMoneyRequest}
+                shouldShowFullScreenFallback={!isFeatureEnabled || isPolicyNotAccessible}
                 fullPageNotFoundViewProps={fullPageNotFoundViewProps}
             />
         );
