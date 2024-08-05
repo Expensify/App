@@ -46,6 +46,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption<TValueType>) => void;
 
+    /** Callback when the options popover is shown */
+    onOptionsMenuShow?: () => void;
+
+    /** Callback when the options popover is shown */
+    onOptionsMenuHide?: () => void;
+
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
 

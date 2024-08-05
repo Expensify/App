@@ -124,6 +124,8 @@ type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
 
+type ForwardedAmountParams = {amount: number | string};
+
 type ManagerApprovedParams = {manager: string};
 
 type ManagerApprovedAmountParams = {manager: string; amount: number | string};
@@ -312,9 +314,7 @@ type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
-type ExportedToIntegrationParams = {label: string};
-
-type ForwardedParams = {amount: string; currency: string};
+type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type IntegrationsMessageParams = {
     label: string;
@@ -349,6 +349,11 @@ type DeleteExpenseTranslationParams = {
     count: number;
 };
 
+type IssueVirtualCardParams = {
+    assignee: string;
+    link: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -373,10 +378,12 @@ export type {
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     HeldRequestParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -460,7 +467,6 @@ export type {
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
-    ForwardedParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
