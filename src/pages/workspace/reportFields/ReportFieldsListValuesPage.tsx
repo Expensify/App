@@ -86,7 +86,6 @@ function ReportFieldsListValuesPage({
 
     const listValuesSections = useMemo(() => {
         const data = listValues
-            // .sort((a, b) => localeCompare(a, b))
             .map<ValueListItem>((value, index) => ({
                 value,
                 index,
