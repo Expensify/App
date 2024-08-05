@@ -6734,7 +6734,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '-1');
 
-    const approvalChain = PolicyUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), userAccountID, expenseReport?.total ?? 0);
+    const approvalChain = PolicyUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), expenseReport?.ownerAccountID ?? -1, expenseReport?.total ?? 0);
     const isLastApprover = approvalChain[approvalChain.length - 1] === currentUserEmail ?? true;
 
     const predictedNextStatus = isLastApprover ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
