@@ -15,7 +15,8 @@ import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, V
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import type {useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
@@ -30,7 +31,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {forceClearInput} from '@libs/ComponentUtils';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {getDraftComment} from '@libs/DraftCommentUtils';
@@ -63,6 +63,8 @@ type SyncSelection = {
     value: string;
 };
 
+type AnimatedRef = ReturnType<typeof useAnimatedRef>;
+
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
@@ -93,9 +95,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Callback to update the value of the composer */
         onValueChange: (value: string) => void;
 
-        /** Callback when the composer got cleared on the UI thread */
-        onCleared?: (text: string) => void;
-
         /** Whether the composer is full size */
         isComposerFullSize: boolean;
 
@@ -107,6 +106,12 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
 
         /** Function to display a file in a modal */
         displayFileInModal: (file: FileObject) => void;
+
+        /** Whether the text input should clear */
+        textInputShouldClear: boolean;
+
+        /** Function to set the text input should clear */
+        setTextInputShouldClear: (shouldClear: boolean) => void;
 
         /** Whether the user is blocked from concierge */
         isBlockedFromConcierge: boolean;
@@ -140,6 +145,9 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
 
         /** The ref to the suggestions */
         suggestionsRef: React.RefObject<SuggestionsRef>;
+
+        /** The ref to the animated input */
+        animatedRef: AnimatedRef;
 
         /** The ref to the next modal will open */
         isNextModalWillOpenRef: MutableRefObject<boolean | null>;
@@ -231,6 +239,8 @@ function ComposerWithSuggestions(
         isMenuVisible,
         inputPlaceholder,
         displayFileInModal,
+        textInputShouldClear,
+        setTextInputShouldClear,
         isBlockedFromConcierge,
         disabled,
         isFullComposerAvailable,
@@ -241,10 +251,10 @@ function ComposerWithSuggestions(
         measureParentContainer = () => {},
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
-        onCleared = () => {},
 
         // Refs
         suggestionsRef,
+        animatedRef,
         isNextModalWillOpenRef,
         editFocused,
 
@@ -272,11 +282,7 @@ function ComposerWithSuggestions(
         return draftComment;
     });
     const commentRef = useRef(value);
-
     const lastTextRef = useRef(value);
-    useEffect(() => {
-        lastTextRef.current = value;
-    }, [value]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -303,7 +309,6 @@ function ComposerWithSuggestions(
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
-    const animatedRef = useAnimatedRef();
     /**
      * Set the TextInput Ref
      */
@@ -416,7 +421,6 @@ function ComposerWithSuggestions(
                 setIsCommentEmpty(isNewCommentEmpty);
             }
             emojisPresentBefore.current = emojis;
-
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
@@ -446,6 +450,31 @@ function ComposerWithSuggestions(
         },
         [findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
     );
+
+    const prepareCommentAndResetComposer = useCallback((): string => {
+        const trimmedComment = commentRef.current.trim();
+        const commentLength = ReportUtils.getCommentLength(trimmedComment, {reportID});
+
+        // Don't submit empty comments or comments that exceed the character limit
+        if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
+            return '';
+        }
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        debouncedSaveReportComment.cancel();
+        isCommentPendingSaved.current = false;
+
+        setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
+        updateComment('');
+        setTextInputShouldClear(true);
+        if (isComposerFullSize) {
+            Report.setIsComposerFullSize(reportID, false);
+        }
+        setIsFullComposerAvailable(false);
+        return trimmedComment;
+    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
@@ -604,16 +633,6 @@ function ComposerWithSuggestions(
         textInputRef.current.blur();
     }, []);
 
-    const clear = useCallback(() => {
-        'worklet';
-
-        forceClearInput(animatedRef, textInputRef);
-    }, [animatedRef]);
-
-    const getCurrentText = useCallback(() => {
-        return commentRef.current;
-    }, []);
-
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -673,12 +692,15 @@ function ComposerWithSuggestions(
             blur,
             focus,
             replaceSelectionWithText,
+            prepareCommentAndResetComposer,
             isFocused: () => !!textInputRef.current?.isFocused(),
-            clear,
-            getCurrentText,
         }),
-        [blur, clear, focus, replaceSelectionWithText, getCurrentText],
+        [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+
+    useEffect(() => {
+        lastTextRef.current = value;
+    }, [value]);
 
     useEffect(() => {
         onValueChange(value);
@@ -695,15 +717,11 @@ function ComposerWithSuggestions(
         [composerHeight],
     );
 
-    const onClear = useCallback(
-        (text: string) => {
-            mobileInputScrollPosition.current = 0;
-            // Note: use the value when the clear happened, not the current value which might have changed already
-            onCleared(text);
-            updateComment('', true);
-        },
-        [onCleared, updateComment],
-    );
+    const onClear = useCallback(() => {
+        mobileInputScrollPosition.current = 0;
+        setTextInputShouldClear(false);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
@@ -766,6 +784,7 @@ function ComposerWithSuggestions(
                         textInputRef.current?.blur();
                         displayFileInModal(file);
                     }}
+                    shouldClear={textInputShouldClear}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose
