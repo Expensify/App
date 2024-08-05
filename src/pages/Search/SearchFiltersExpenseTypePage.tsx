@@ -39,7 +39,7 @@ function SearchFiltersExpenseTypePage() {
         return allExpenseTypes.map((expenseType) => translate(getExpenseTypeTranslationKey(expenseType)));
     }, [allExpenseTypes, translate]);
 
-    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
+    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
 
     return (
         <ScreenWrapper

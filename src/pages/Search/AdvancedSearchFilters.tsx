@@ -100,7 +100,7 @@ function AdvancedSearchFilters() {
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, translate),
-                description: 'workspace.taxes.taxRate' as const,
+                description: 'search.expenseTypes' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
             },
         ],
