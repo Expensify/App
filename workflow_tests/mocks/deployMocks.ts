@@ -31,17 +31,6 @@ const DEPLOY_PRODUCTION__SETUP_GIT__STEP_MOCK = createMockStep(
 const DEPLOY_PRODUCTION__CURRENT_APP_VERSION__STEP_MOCK = createMockStep('Get current app version', 'Getting current app version', 'DEPLOY_PRODUCTION', null, null, null, {
     PRODUCTION_VERSION: '1.2.3',
 });
-const DEPLOY_PRODUCTION__RELEASE_PR_LIST__STEP_MOCK = createMockStep(
-    'Get Release Pull Request List',
-    'Getting release PR list',
-    'DEPLOY_PRODUCTION',
-    ['TAG', 'GITHUB_TOKEN', 'IS_PRODUCTION_DEPLOY'],
-    null,
-    {PR_LIST: '["1.2.1", "1.2.2"]'},
-);
-const DEPLOY_PRODUCTION__GENERATE_RELEASE_BODY__STEP_MOCK = createMockStep('Generate Release Body', 'Generating release body', 'DEPLOY_PRODUCTION', ['PR_LIST'], null, {
-    RELEASE_BODY: 'Release body',
-});
 const DEPLOY_PRODUCTION__CREATE_RELEASE__STEP_MOCK = createMockStep(
     '🚀 Create release to trigger production deploy 🚀',
     'Creating release to trigger production deploy',
@@ -54,8 +43,6 @@ const DEPLOY_PRODUCTION_STEP_MOCKS = [
     DEPLOY_PRODUCTION__CHECKOUT__STEP_MOCK,
     DEPLOY_PRODUCTION__SETUP_GIT__STEP_MOCK,
     DEPLOY_PRODUCTION__CURRENT_APP_VERSION__STEP_MOCK,
-    DEPLOY_PRODUCTION__RELEASE_PR_LIST__STEP_MOCK,
-    DEPLOY_PRODUCTION__GENERATE_RELEASE_BODY__STEP_MOCK,
     DEPLOY_PRODUCTION__CREATE_RELEASE__STEP_MOCK,
     DEPLOY_PRODUCTION__WARN_DEPLOYERS__STEP_MOCK,
 ] as const satisfies StepIdentifier[];
