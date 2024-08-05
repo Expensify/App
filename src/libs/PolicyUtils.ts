@@ -507,7 +507,7 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
-    // TODO: Uncomment the following line when the invoices screen is ready
+    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
     // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 

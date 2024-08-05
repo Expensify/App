@@ -203,7 +203,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
-// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready
+// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
     const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
@@ -2986,7 +2986,7 @@ function enablePolicyInvoices(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICES, parameters, onyxData);
 
-    // TODO: Uncomment the following line when the invoices screen is ready
+    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
     // if (enabled && getIsNarrowLayout()) {
     //     navigateWhenEnableFeature(policyID);
     // }

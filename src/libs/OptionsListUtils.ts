@@ -2032,7 +2032,7 @@ function getOptions(
 
             const shouldShowInvoiceRoom =
                 includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.isArchivedRoom;
-            // TODO: Uncomment the following line when the invoices screen is ready
+            // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
             // && PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 
             /**
