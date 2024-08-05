@@ -1,4 +1,4 @@
-import {isBoolean} from 'lodash';
+import isBoolean from 'lodash/isBoolean';
 import React, {useEffect, useState} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -32,7 +32,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             initWithStoredValues: false,
         });
         const isConnectionDataFetchNeeded =
-            !isOffline && props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
+            !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
 
         const [isFetchingData, setIsFetchingData] = useState(false);
 
@@ -55,7 +55,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if ((!!isConnectionDataFetchNeeded || isFetchingData) && shouldBlockView) {
+        if ((isConnectionDataFetchNeeded || isFetchingData) && shouldBlockView) {
             return <FullScreenLoadingIndicator />;
         }
 
