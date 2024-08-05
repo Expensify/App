@@ -74,6 +74,21 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
             },
             {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
+                description: 'common.merchant' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
+                description: 'common.description' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
+                description: 'common.reportID' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+            },
+            {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
                 description: 'common.category' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
