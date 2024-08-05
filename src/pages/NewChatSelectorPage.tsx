@@ -22,7 +22,7 @@ function NewChatSelectorPage() {
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
     const containerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
+        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const TabBarWithFocusTrapInclusion = useCallback(

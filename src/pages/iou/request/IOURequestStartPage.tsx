@@ -111,7 +111,7 @@ function IOURequestStartPage({
     }, []);
 
     const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
+        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const TabSelectorWithFocusTrapInclusion = useCallback(
