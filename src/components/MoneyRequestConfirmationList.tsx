@@ -366,30 +366,6 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        console.log(
-            'ALDO_DEBUG shouldShowTax',
-            shouldShowTax,
-            'transaction',
-            transaction,
-            'transaction.taxAmount',
-            transaction?.taxAmount,
-            'previousTransactionAmount',
-            previousTransactionAmount,
-            'transaction?.amount',
-            transaction?.amount,
-            'previousTransactionCurrency',
-            previousTransactionCurrency,
-            'transaction?.currency',
-            transaction?.currency,
-            'previousCustomUnitRateID',
-            previousCustomUnitRateID,
-            'customUnitRateID',
-            customUnitRateID,
-            'previousTaxCode',
-            previousTaxCode,
-            'transaction.taxCode',
-            transaction?.taxCode,
-        );
         if (
             !shouldShowTax ||
             !transaction ||
@@ -404,11 +380,8 @@ function MoneyRequestConfirmationList({
 
         let taxableAmount: number;
         let taxCode: string;
-        console.log('ALDO_DEBUG isDistanceRequest', isDistanceRequest);
         if (isDistanceRequest) {
             const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
-            console.log('ALDO_DEBUG customUnitRate', customUnitRate);
-            console.log('ALDO_DEBUG distance', distance);
             taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
             taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
         } else {
@@ -417,10 +390,6 @@ function MoneyRequestConfirmationList({
         }
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
         const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
-        console.log('ALDO_DEBUG taxCode', taxCode);
-        console.log('ALDO_DEBUG taxAmount', taxAmount);
-        console.log('ALDO_DEBUG taxableAmount', taxableAmount);
-        console.log('ALDO_DEBUG taxPercentage', taxPercentage);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
         IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
     }, [
