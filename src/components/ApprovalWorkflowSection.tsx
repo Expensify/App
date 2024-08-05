@@ -14,7 +14,10 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 type ApprovalWorkflowSectionProps = {
+    /** Single workflow displayed in this component */
     approvalWorkflow: ApprovalWorkflow;
+
+    /** ID of the policy */
     policyId?: string;
 };
 
