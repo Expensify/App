@@ -103,8 +103,8 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, chi
 
     const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(
         () =>
-            (number, returnWords = false) =>
-                LocaleDigitUtils.toLocaleOrdinal(locale, number, returnWords),
+            (number, writtenOrdinals = false) =>
+                LocaleDigitUtils.toLocaleOrdinal(locale, number, writtenOrdinals),
         [locale],
     );
 
