@@ -10,6 +10,9 @@ type Log = {
 
     /** Log message */
     message: string;
+
+    /** Additional data */
+    extraData: string | Record<string, unknown> | Array<Record<string, unknown>> | Error;
 };
 
 /** Record of captured logs */
