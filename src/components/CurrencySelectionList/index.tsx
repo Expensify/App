@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -13,7 +13,7 @@ import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelection
 function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList, policyRecentlyUsedCurrencies}: CurrencySelectionListProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
-
+    const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
     const {sections, headerMessage} = useMemo(() => {
         const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
             const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
@@ -43,34 +43,35 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
         const shouldDisplayRecentlyOptions = !isEmptyObject(policyRecentlyUsedCurrencyOptions) && !searchValue;
-
+        const selectedOption = currencyOptions.find((option) => option.isSelected);
+        const shouldDisplaySelectedOptionOnTop = selectedOption && !searchValue;
+        let sections = [];
+        if (shouldDisplaySelectedOptionOnTop) {
+            sections.push({
+                title: '',
+                data: [selectedOption],
+                shouldShow: true,
+            });
+        }
         if (shouldDisplayRecentlyOptions) {
             const cutPolicyRecentlyUsedCurrencyOptions = policyRecentlyUsedCurrencyOptions.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
-            return {
-                sections: isEmpty
-                    ? []
-                    : [
-                          {
-                              title: translate('common.recents'),
-                              data: cutPolicyRecentlyUsedCurrencyOptions,
-                              shouldShow: shouldDisplayRecentlyOptions,
-                          },
-                          {title: translate('common.all'), data: filteredCurrencies},
-                      ],
-                headerMessage: isEmpty ? translate('common.noResultsFound') : '',
-            };
+            if (!isEmpty) {
+                sections.push(
+                    {
+                        title: translate('common.recents'),
+                        data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(cutPolicyRecentlyUsedCurrencyOptions) : cutPolicyRecentlyUsedCurrencyOptions,
+                        shouldShow: shouldDisplayRecentlyOptions,
+                    },
+                    {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? getUnselectedOptions(filteredCurrencies) : filteredCurrencies},
+                );
+            }
+        } else if (!isEmpty) {
+            sections.push({
+                data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(filteredCurrencies) : filteredCurrencies,
+            });
         }
-        return {
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          data: filteredCurrencies,
-                      },
-                  ],
-            headerMessage: isEmpty ? translate('common.noResultsFound') : '',
-        };
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, policyRecentlyUsedCurrencies]);
+        return {sections, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
+    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, policyRecentlyUsedCurrencies, getUnselectedOptions]);
 
     return (
         <SelectionList
