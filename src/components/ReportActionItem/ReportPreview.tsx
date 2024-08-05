@@ -122,6 +122,7 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
+    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID, transactions), [iouReportID, transactions]);
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -156,7 +157,6 @@ function ReportPreview({
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const numberOfRequests = allTransactions.length;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -481,6 +481,10 @@ function ReportPreview({
                                         policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
+                                        dropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

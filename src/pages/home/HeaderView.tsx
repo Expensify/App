@@ -192,7 +192,10 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <View style={[styles.flex1, styles.flexColumn]}>
+                                    <View
+                                        fsClass="fs-unmask"
+                                        style={[styles.flex1, styles.flexColumn]}
+                                    >
                                         <CaretWrapper>
                                             <DisplayNames
                                                 fullTitle={title}
