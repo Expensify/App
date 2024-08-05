@@ -3888,6 +3888,7 @@ const CONST = {
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
+        CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',

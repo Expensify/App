@@ -20,21 +20,14 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
 
-    const onModalClose = () => {
+    const onModalClose = useCallback(() => {
         setIsVisible(false);
-    };
-
-    useEffect(() => {
-        if (privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.SUCCEEDED) {
-            return;
-        }
         PaymentMethods.clearPaymentCard3dsVerification();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
-    }, [privateStripeCustomerID]);
+    }, []);
 
     useEffect(() => {
         if (!authenticationLink) {
@@ -51,7 +44,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
                 onModalClose();
             }
         },
-        [session?.accountID],
+        [onModalClose, session?.accountID],
     );
 
     useEffect(() => {

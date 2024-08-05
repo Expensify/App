@@ -18,6 +18,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +41,8 @@ function CardSection() {
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const subscriptionPlan = useSubscriptionPlan();
     const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING);
@@ -64,13 +67,14 @@ function CardSection() {
 
     useEffect(() => {
         setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
-    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, translate, defaultCard?.accountData]);
+    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, translate, defaultCard?.accountData, privateStripeCustomerID]);
 
     const handleRetryPayment = () => {
         Subscription.clearOutstandingBalance();
     };
 
     const handleAuthenticatePayment = () => {
+        PaymentMethods.verifySetupIntent(session?.accountID ?? -1, false);
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     };
 
