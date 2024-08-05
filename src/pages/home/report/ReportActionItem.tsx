@@ -657,7 +657,7 @@ function ReportActionItem({
             children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        } else if (ReportActionsUtils.isRenamedAction(action)) {
             const initialMessage = ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
             const message = translate('newRoomPage.renamedRoomAction', {
                 oldName: initialMessage?.oldName ?? '',
