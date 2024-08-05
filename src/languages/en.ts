@@ -1253,6 +1253,7 @@ export default {
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
+        addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -1276,6 +1277,18 @@ export default {
                 two: 'nd',
                 few: 'rd',
                 other: 'th',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'First',
+                '2': 'Second',
+                '3': 'Third',
+                '4': 'Fourth',
+                '5': 'Fifth',
+                '6': 'Sixth',
+                '7': 'Seventh',
+                '8': 'Eighth',
+                '9': 'Ninth',
+                '10': 'Tenth',
+                /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
     },
@@ -1294,8 +1307,9 @@ export default {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
+        header: 'Send to this member for approval:',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -2033,6 +2047,7 @@ export default {
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
+        errorMessage: 'Something went wrong. Please try again later.',
     },
     workspace: {
         common: {
@@ -2043,6 +2058,7 @@ export default {
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
+            everyone: 'Everyone',
             delete: 'Delete workspace',
             settings: 'Settings',
             reimburse: 'Reimbursements',
