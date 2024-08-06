@@ -347,22 +347,15 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const handleNewCurrenUserAction = useCallback(
+    const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new action is added and it's from the current user clear the yellow highlight
-            // and scroll to the bottom otherwise leave the user positioned where they are now in the list.
-            if (!isFromCurrentUser) {
-                return;
-            }
-            if (linkedReportActionID && linkedReportActionID !== '-1') {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            }
-            if (!hasNewestReportActionRef.current) {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportScrollManager],
     );
     useEffect(() => {
@@ -380,7 +373,7 @@ function ReportActionsList({
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, handleNewCurrenUserAction);
+        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
             if (!unsubscribe) {
