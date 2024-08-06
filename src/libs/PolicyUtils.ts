@@ -528,15 +528,14 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
     return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
 }
 
-function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
-    const isMatchFound = bankAccounts?.some(({id}) => id === selectedBankAccountId);
 
-    return (bankAccounts ?? []).map(({id, name}, index) => ({
+    return (bankAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
+        isSelected: selectedBankAccountId === id,
     }));
 }
 
@@ -945,7 +944,7 @@ export {
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
-    getXeroBankAccountsWithDefaultSelect,
+    getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,

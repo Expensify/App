@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroBankAccountsWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -27,7 +27,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const {config} = policy?.connections?.xero ?? {};
     const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
-    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, invoiceCollectionsAccountID), [invoiceCollectionsAccountID, policy]);
+    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, invoiceCollectionsAccountID), [invoiceCollectionsAccountID, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -53,7 +53,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             );
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
-        [policyID],
+        [policyID, invoiceCollectionsAccountID],
     );
 
     const listEmptyContent = useMemo(

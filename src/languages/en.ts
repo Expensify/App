@@ -2235,6 +2235,7 @@ export default {
             customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
             taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
             notImported: 'Not imported',
+            notConfigured: 'Not configured',
             trackingCategoriesOptions: {
                 default: 'Xero contact default',
                 tag: 'Tags',
