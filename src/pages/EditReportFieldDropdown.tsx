@@ -43,7 +43,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
     const {translate} = useLocalize();
-    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
+    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey].sort((a, b) => localeCompare(a, b)) ?? [], [recentlyUsedReportFields, fieldKey]);
 
     const itemRightSideComponent = useCallback(
         (item: ListItem) => {
