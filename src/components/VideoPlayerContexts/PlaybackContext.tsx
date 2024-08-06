@@ -1,4 +1,4 @@
-import type {AVPlaybackStatusToSet, AVPlaybackStatus} from 'expo-av';
+import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
