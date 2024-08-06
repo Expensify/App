@@ -1212,9 +1212,6 @@ type Connections = {
 
     /** Sage Intacct integration connection */
     intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
-
-    /** Advanced Approvals integration connection */
-    approvals: Connection<undefined, undefined>;
 };
 
 /** Names of integration connections */
