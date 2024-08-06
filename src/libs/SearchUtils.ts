@@ -220,7 +220,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
-            } else {
+            } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
