@@ -3,7 +3,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getAllReports} from '@libs/ReportConnection';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {Log, StartTrace, StopTrace, TraceMap} from './types';
 
@@ -21,8 +21,8 @@ const startTrace: StartTrace = (customEventName) => {
 
     const session = SessionUtils.getSession();
     const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength();
-    const allReports = getAllReports();
-    const reportsLength = allReports ? Object.keys(allReports).length : 0;
+    const reportsLength = ReportUtils.getAllReportsLength();
+    // const reportsLength = allReports ? Object.keys(allReports).length : 0;
     // const reportsLength = ReportConnection.getAllReportsLength();
 
     // console.log('personalDetailsLength: ', personalDetailsLength);
