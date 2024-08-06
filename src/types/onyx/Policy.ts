@@ -1292,6 +1292,18 @@ type PolicyReportField = {
     defaultExternalID?: string | null;
 };
 
+/** Policy invoicing details */
+type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Back account */
+    bankAccount?: {
+        /** Account balance */
+        stripeConnectAccountBalance?: number;
+
+        /** bankAccountID of selected BBA for payouts */
+        transferBankAccountID?: number;
+    };
+}>;
+
 /** Names of policy features */
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
@@ -1446,6 +1458,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
          * @deprecated - use tax.trackingEnabled instead
          */
         isTaxTrackingEnabled?: boolean;
+
+        /** Policy invoicing details */
+        invoice?: PolicyInvoicingDetails;
 
         /** Tax data */
         tax?: {

@@ -26,8 +26,6 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             childrenStyles={styles.pt5}
             subtitleMuted
             menuItems={
-                // @ts-expect-error TODO: Add invoice to types/onyx/Policy.ts
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 policy?.invoice?.bankAccount
                     ? [
                           {
@@ -44,8 +42,6 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
         >
             <Balance
                 textStyles={styles.walletBalance}
-                // @ts-expect-error TODO: Add invoice to types/onyx/Policy.ts
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                 balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0}
             />
         </Section>
