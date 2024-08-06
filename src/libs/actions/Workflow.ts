@@ -1,15 +1,18 @@
+import lodashDropRightWhile from 'lodash/dropRightWhile';
+import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
+import {convertApprovalWorkflowToPolicyEmployees, getApprovalWorkflowApprovers} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflow, Policy} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
-let currentApprovalWorkflow: ApprovalWorkflow | undefined;
+let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 Onyx.connect({
     key: ONYXKEYS.APPROVAL_WORKFLOW,
     callback: (approvalWorkflow) => {
@@ -32,6 +35,14 @@ Onyx.connect({
     },
 });
 
+let personalDetails: PersonalDetailsList | undefined;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        personalDetails = value;
+    },
+});
+
 function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
@@ -41,7 +52,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const previousEmployeeList = {...policy.employeeList};
     const previousApprovalMode = policy.approvalMode;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'create'});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -97,7 +108,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'update'});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -147,7 +158,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, removeWorkflow: true});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'remove'});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
@@ -203,22 +214,48 @@ function setApprovalWorkflowMembers(members: Member[]) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members});
 }
 
-function setApprovalWorkflowApprover(approver: Approver, index: number) {
+/**
+ * Set the approver at the specified index in the current approval workflow
+ * @param approver - The new approver to set
+ * @param approverIndex - The index of the approver to set
+ * @param policyID - The ID of the policy
+ */
+function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, policyID: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+    if (!currentApprovalWorkflow || !policy?.employeeList) {
+        return;
+    }
+
+    const updatedApprovers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((newApprover) => (newApprover ? {...newApprover, isInMultipleWorkflows: false} : undefined));
+    updatedApprovers[approverIndex] = approver;
+
+    // Check if the approver forwards to other approvers and add them to the list
+    if (policy.employeeList[approver.email]?.forwardsTo) {
+        const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
+        const additionalApprovers = getApprovalWorkflowApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
+        updatedApprovers.splice(approverIndex, updatedApprovers.length, ...additionalApprovers);
+    }
+
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: updatedApprovers});
+}
+
+function clearApprovalWorkflowApprover(approverIndex: number) {
     if (!currentApprovalWorkflow) {
         return;
     }
 
-    const updatedApprovers = [...currentApprovalWorkflow.approvers];
-    updatedApprovers[index] = approver;
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: updatedApprovers});
-}
-
-function setApprovalWorkflow(approvalWorkflow: ApprovalWorkflow) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+    const updatedApprovers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
+    updatedApprovers[approverIndex] = undefined;
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(updatedApprovers, (approver) => !approver)});
 }
 
 function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
+}
+
+function setApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx) {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
 function clearApprovalWorkflow() {
@@ -232,6 +269,7 @@ export {
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
     setApprovalWorkflow,
+    clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
 };

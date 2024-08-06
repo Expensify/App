@@ -1,12 +1,13 @@
 import lodashMapKeys from 'lodash/mapKeys';
-import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
-const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflow = {
+const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
     approvers: [],
+    availableMembers: [],
     isDefault: false,
     flow: 'create',
     isLoading: false,
@@ -29,8 +30,8 @@ type GetApproversParams = {
     firstEmail: string;
 };
 
-/** Get the list of approvers for a given workflow */
-function getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail}: GetApproversParams): Approver[] {
+/** Get the list of approvers for a given email */
+function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: GetApproversParams): Approver[] {
     const approvers: Approver[] = [];
     // Keep track of approver emails to detect circular references
     const currentApproverEmails = new Set<string>();
@@ -98,7 +99,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 
         const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
         if (!approvalWorkflows[submitsTo]) {
-            const approvers = getApprovalWorkflowApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
+            const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
             approvers.forEach((approver) => (approverCountsByEmail[approver.email] = (approverCountsByEmail[approver.email] ?? 0) + 1));
 
             approvalWorkflows[submitsTo] = {
@@ -118,6 +119,15 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 
         return (a.approvers[0]?.displayName ?? '-1').localeCompare(b.approvers[0]?.displayName ?? '-1');
     });
+
+    // Add a default workflow if one doesn't exist (no employees submit to the default approver)
+    if (!sortedApprovalWorkflows[0].isDefault) {
+        sortedApprovalWorkflows.unshift({
+            members: [],
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            isDefault: true,
+        });
+    }
 
     // Add a flag to each approver to indicate if they are in multiple workflows
     return sortedApprovalWorkflows.map((workflow) => ({
@@ -143,11 +153,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Should the workflow be removed from the employees
      */
-    removeWorkflow?: boolean;
+    mode: 'create' | 'update' | 'remove';
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, removeWorkflow = false}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, mode}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -163,18 +173,18 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             ...employeeList[approver.email],
-            forwardsTo: removeWorkflow ? undefined : nextApprover?.email,
+            forwardsTo: mode === 'remove' ? '' : nextApprover?.email ?? '',
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
-            submitsTo: removeWorkflow ? undefined : firstApprover.email,
+            submitsTo: mode === 'remove' ? '' : firstApprover.email ?? '',
         };
     });
 
     return updatedEmployeeList;
 }
 
-export {getApprovalWorkflowApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, EMPTY_APPROVAL_WORKFLOW};
+export {calculateApprovers as getApprovalWorkflowApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, EMPTY_APPROVAL_WORKFLOW};
