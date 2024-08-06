@@ -1,4 +1,5 @@
 import {Linking} from 'react-native';
+import Log from '@libs/Log';
 import type AsyncOpenURL from './types';
 
 /**
@@ -13,9 +14,13 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     if (!isSafari || shouldSkipCustomSafariLogic) {
-        promise.then((params) => {
-            Linking.openURL(typeof url === 'string' ? url : url(params));
-        });
+        promise
+            .then((params) => {
+                Linking.openURL(typeof url === 'string' ? url : url(params));
+            })
+            .catch(() => {
+                Log.warn('[asyncOpenURL] error occured while opening URL', {url});
+            });
     } else {
         const windowRef = window.open();
         promise
@@ -25,7 +30,10 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic) =
                 }
                 windowRef.location = typeof url === 'string' ? url : url(params);
             })
-            .catch(() => windowRef?.close());
+            .catch(() => {
+                windowRef?.close();
+                Log.warn('[asyncOpenURL] error occured while opening URL', {url});
+            });
     }
 };
 

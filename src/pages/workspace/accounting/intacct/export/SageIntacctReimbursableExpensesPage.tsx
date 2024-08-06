@@ -16,7 +16,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updateSageIntacctDefaultVendor, updateSageIntacctReimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
+import {changeMappingsValueFromDefaultToTag, updateSageIntacctDefaultVendor, updateSageIntacctReimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -50,10 +50,12 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                 updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value);
             }
             if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
+                // Employee default mapping value is not allowed when expense type is VENDOR_BILL, so we have to change mapping value to Tag
+                changeMappingsValueFromDefaultToTag(policyID, config?.mappings);
                 Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
             }
         },
-        [reimbursable, policyID],
+        [reimbursable, policyID, config?.mappings],
     );
 
     const defaultVendor = useMemo(() => {

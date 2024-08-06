@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressPageProps = {
@@ -49,23 +50,23 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
         const addressPart = value as string;
         const addressPartKey = key as keyof Address;
 
-        if (addressPartKey !== 'country' && addressPartKey !== 'state' && addressPartKey !== 'city' && addressPartKey !== 'zipPostCode') {
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
             return;
         }
-        if (addressPartKey === 'country') {
+        if (addressPartKey === INPUT_IDS.COUNTRY) {
             setCurrentCountry(addressPart as Country | '');
             setState('');
             setCity('');
             setZipcode('');
             return;
         }
-        if (addressPartKey === 'state') {
+        if (addressPartKey === INPUT_IDS.STATE) {
             setState(addressPart);
             setCity('');
             setZipcode('');
             return;
         }
-        if (addressPartKey === 'city') {
+        if (addressPartKey === INPUT_IDS.CITY) {
             setCity(addressPart);
             setZipcode('');
             return;

@@ -118,7 +118,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     }, [isOffline, offset, queryJSON]);
 
     const handleOnCancelConfirmModal = () => {
-        setSelectedTransactionsToDelete([]);
         setDeleteExpensesConfirmModalVisible(false);
     };
 
@@ -361,6 +360,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={handleOnCancelConfirmModal}
+                onModalHide={() => setSelectedTransactionsToDelete([])}
                 title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
                 prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
                 confirmText={translate('common.delete')}
