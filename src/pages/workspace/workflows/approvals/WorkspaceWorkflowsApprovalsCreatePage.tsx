@@ -1,15 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,10 +17,10 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ApprovalWorkflow} from '@src/types/onyx';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
 type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW>;
 
@@ -41,8 +37,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        Workflow.createApprovalWorkflow(route.params.policyID, approvalWorkflow);
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        Workflow.createApprovalWorkflow(route.params.policyID, {...approvalWorkflow, approvers: approvalWorkflow.approvers as Approver[]});
+        Navigation.goBack();
     }, [approvalWorkflow, route.params.policyID]);
 
     return (
@@ -78,68 +74,13 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         onPress={createApprovalWorkflow}
                         pressOnEnter
                         large
-                        text={translate('common.save')}
+                        text={translate('workflowsCreateApprovalsPage.submitButton')}
                         isLoading={approvalWorkflow?.isLoading}
+                        isDisabled={approvalWorkflow?.approvers.length === 0 || approvalWorkflow?.approvers.some((approver) => !approver)}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
-    );
-}
-
-function ApprovalWorkflowEditor({approvalWorkflow, policyID}: {approvalWorkflow: ApprovalWorkflow; policyID: string}) {
-    const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal} = useLocalize();
-
-    const approverDescription = useCallback(
-        (index: number) =>
-            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
-        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
-    );
-
-    return (
-        <ScrollView style={[styles.flex1]}>
-            <View style={[styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
-
-                <MenuItemWithTopDescription
-                    title={approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ')}
-                    titleStyle={styles.textNormalThemeText}
-                    description={translate('workflowsExpensesFromPage.title')}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)))}
-                    shouldShowRightIcon
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                />
-
-                {approvalWorkflow.approvers.map((approver, approverIndex) => (
-                    <MenuItemWithTopDescription
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`approver-${approver.email}-${approverIndex}`}
-                        title={approver.displayName}
-                        titleStyle={styles.textNormalThemeText}
-                        description={approverDescription(approverIndex)}
-                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)))
-                        }
-                        shouldShowRightIcon
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                    />
-                ))}
-
-                <MenuItemWithTopDescription
-                    description={translate('workflowsCreateApprovalsPage.addApproverRow')}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approvalWorkflow.approvers.length, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
-                        )
-                    }
-                    shouldShowRightIcon
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                />
-            </View>
-        </ScrollView>
     );
 }
 
