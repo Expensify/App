@@ -9,7 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type ResponsiveLayoutResult from './types';
 
 /**
- * Hook to determine if we are on mobile devices or in the Modal Navigator.
+ * Hook to determine if we are on mobile devices or in the Modal Navigator. It also provides booleans for our breakpoints
  * Use "shouldUseNarrowLayout" for "on mobile or in RHP/LHP", "isSmallScreenWidth" for "on mobile", "isInNarrowPaneModal" for "in RHP/LHP".
  *
  * There are two kinds of modals in this app:

@@ -14,7 +14,7 @@ const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
 const isMobile = Browser.isMobile();
 
 /**
- * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
+ * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
     const {isFullScreenRef, lockedResponsiveLayoutResultRef, lockResponsiveLayoutResult, unlockResponsiveLayoutResult} = useContext(FullScreenContext) ?? {
