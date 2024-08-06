@@ -1,11 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import CurrencySelectionList from '@components/CurrencySelectionList';
-import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
@@ -17,17 +16,16 @@ function SearchFiltersCurrencyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(searchAdvancedFiltersForm?.currency ?? []);
+    const selectedCurrencies = searchAdvancedFiltersForm?.currency;
 
-    const handleOnSelectOption = (option: CurrencyListItem) => {
-        if (selectedCurrencies.includes(option.currencyCode)) {
-            setSelectedCurrencies(selectedCurrencies.filter((currency) => currency !== option.currencyCode));
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const currencyNames: string[] = [];
+    Object.values(currencyList ?? {}).forEach((currency) => {
+        if (!currency) {
             return;
         }
-
-        setSelectedCurrencies([option.currencyCode, ...selectedCurrencies]);
-    };
-
+        currencyNames.push(currency.name);
+    });
     const handleOnSubmit = () => {
         SearchActions.updateAdvancedFilters({...searchAdvancedFiltersForm, currency: selectedCurrencies});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
@@ -40,28 +38,17 @@ function SearchFiltersCurrencyPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={false}>
-                    <HeaderWithBackButton title={translate('search.filters.currency')} />
-                    <CurrencySelectionList
-                        canSelectMultiple
-                        selectedCurrencies={selectedCurrencies}
-                        searchInputLabel={translate('common.search')}
-                        onSelect={(option: CurrencyListItem) => {
-                            if (!didScreenTransitionEnd) {
-                                return;
-                            }
-                            handleOnSelectOption(option);
-                        }}
+            <FullPageNotFoundView shouldShow={false}>
+                <HeaderWithBackButton title={translate('search.filters.currency')} />
+                <View style={[styles.flex1, styles.pb5]}>
+                    <SearchMultipleSelectionPicker
+                        pickerTitle={translate('search.filters.currency')}
+                        items={currencyNames}
+                        initiallySelectedItems={selectedCurrencies}
+                        onSaveSelection={handleOnSubmit}
                     />
-                    <FormAlertWithSubmitButton
-                        buttonText={translate('common.save')}
-                        containerStyles={[styles.m4, styles.mb5]}
-                        onSubmit={handleOnSubmit}
-                        enabledWhenOffline
-                    />
-                </FullPageNotFoundView>
-            )}
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
