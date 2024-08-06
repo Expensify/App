@@ -27,35 +27,45 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
     const policyID = policy?.id ?? '-1';
-    const {config} = policy?.connections?.intacct ?? {};
-    const {mappings, pendingFields} = config ?? {};
 
-    const selectionOptions = useMemo<SelectorType[]>(
-        () => [
-            {
+    const {config} = policy?.connections?.intacct ?? {};
+    const {mappings, pendingFields, export: exportConfig} = config ?? {};
+
+    const selectionOptions = useMemo<SelectorType[]>(() => {
+        const mappingOptions: SelectorType[] = [];
+        if (
+            !([CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS] as string[]).includes(mappingName) &&
+            exportConfig?.reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+        ) {
+            mappingOptions.push({
                 value: CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT,
                 text: translate('workspace.intacct.employeeDefault'),
                 alternateText: translate('workspace.common.appliedOnExport'),
                 keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT,
                 isSelected: mappings?.[mappingName] === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT,
-            },
-            {
-                value: CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
-                text: translate('workspace.common.tags'),
-                alternateText: translate('workspace.common.lineItemLevel'),
-                keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
-                isSelected: mappings?.[mappingName] === CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
-            },
-            {
-                value: CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
-                text: translate('workspace.common.reportFields'),
-                alternateText: translate('workspace.common.reportLevel'),
-                keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
-                isSelected: mappings?.[mappingName] === CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
-            },
-        ],
-        [mappingName, mappings, translate],
-    );
+            });
+        }
+        mappingOptions.push(
+            ...[
+                {
+                    value: CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
+                    text: translate('workspace.common.tags'),
+                    alternateText: translate('workspace.common.lineItemLevel'),
+                    keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
+                    isSelected: mappings?.[mappingName] === CONST.SAGE_INTACCT_MAPPING_VALUE.TAG,
+                },
+                {
+                    value: CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
+                    text: translate('workspace.common.reportFields'),
+                    alternateText: translate('workspace.common.reportLevel'),
+                    keyForList: CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
+                    isSelected: mappings?.[mappingName] === CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD,
+                },
+            ],
+        );
+
+        return mappingOptions;
+    }, [exportConfig?.reimbursable, mappingName, mappings, translate]);
 
     const updateMapping = useCallback(
         ({value}: SelectorType) => {

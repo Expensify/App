@@ -370,6 +370,8 @@ export default {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        filterLogs: 'Filter Logs',
+        network: 'Network',
         reportID: 'Report ID',
     },
     location: {
@@ -1251,6 +1253,7 @@ export default {
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
+        addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -1274,6 +1277,18 @@ export default {
                 two: 'nd',
                 few: 'rd',
                 other: 'th',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'First',
+                '2': 'Second',
+                '3': 'Third',
+                '4': 'Fourth',
+                '5': 'Fifth',
+                '6': 'Sixth',
+                '7': 'Seventh',
+                '8': 'Eighth',
+                '9': 'Ninth',
+                '10': 'Tenth',
+                /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
     },
@@ -1292,8 +1307,9 @@ export default {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
+        header: 'Send to this member for approval:',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -2031,6 +2047,7 @@ export default {
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
+        errorMessage: 'Something went wrong. Please try again later.',
     },
     workspace: {
         common: {
@@ -2041,6 +2058,7 @@ export default {
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
+            everyone: 'Everyone',
             delete: 'Delete workspace',
             settings: 'Settings',
             reimburse: 'Reimbursements',
@@ -2085,6 +2103,7 @@ export default {
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
+            topLevel: 'Top level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
             shareNote: {
                 header: 'Easily share your workspace with other members.',
@@ -3212,9 +3231,12 @@ export default {
                             return 'Marking NetSuite bills and invoices as paid';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
+                        case 'intacctImportDimensions':
+                            return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
@@ -3518,7 +3540,7 @@ export default {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
         pleaseEnterRoomName: 'Please enter a room name.',
         pleaseSelectWorkspace: 'Please select a workspace.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` renamed this room from ${oldName} to ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room from ${oldName} to ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -3615,6 +3637,7 @@ export default {
             status: 'Status',
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
+            currency: 'Currency',
         },
     },
     genericErrorPage: {

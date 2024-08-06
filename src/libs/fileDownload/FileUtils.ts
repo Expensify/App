@@ -6,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
@@ -244,7 +245,7 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
-function validateImageForCorruption(file: FileObject): Promise<void> {
+function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
     if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
     }
@@ -285,6 +286,21 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
+const getImageDimensionsAfterResize = (file: FileObject) =>
+    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+        const newWidth = Math.max(1, width * scaleFactor);
+        const newHeight = Math.max(1, height * scaleFactor);
+
+        return {width: newWidth, height: newHeight};
+    });
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
+};
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -302,4 +318,6 @@ export {
     isImage,
     getFileResolution,
     isHighResolutionImage,
+    getImageDimensionsAfterResize,
+    resizeImageIfNeeded,
 };

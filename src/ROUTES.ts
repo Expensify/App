@@ -47,6 +47,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
 
+    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
 
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
@@ -55,6 +57,7 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
+    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
@@ -634,7 +637,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/approver` as const,
+        getRoute: (policyID: string, approverIndex?: number) =>
+            `settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
