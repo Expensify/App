@@ -101,6 +101,12 @@ const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentRepo
     IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
 };
 
+const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
+    const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
+    return originalMessage?.IOUTransactionID ?? -1;
+};
+
 function MoneyRequestView({
     report,
     parentReport,
@@ -132,7 +138,9 @@ function MoneyRequestView({
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
         return originalMessage?.IOUTransactionID ?? '-1';
     }, [parentReportAction]);
+
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`);
+    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID}`);
 
     const {
         created: transactionDate,
@@ -183,6 +191,7 @@ function MoneyRequestView({
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
     const canEditDistance = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const canEditDistanceRate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -216,8 +225,8 @@ function MoneyRequestView({
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
-    const rateID = transaction?.comment?.customUnit?.customUnitRateID ?? '-1';
+    const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
+    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -225,7 +234,7 @@ function MoneyRequestView({
     const {unit} = mileageRate;
     const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transaction), unit);
+    const distance = TransactionUtils.getDistanceInMeters(transactionBackup ?? transaction, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -327,7 +336,7 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
-                    title={getPendingFieldAction('waypoints') ? translate('iou.fieldPending') : distanceToDisplay}
+                    title={distanceToDisplay}
                     interactive={canEditDistance && !readonly}
                     shouldShowRightIcon={canEditDistance && !readonly}
                     titleStyle={styles.flex1}
@@ -336,17 +345,16 @@ function MoneyRequestView({
                     }
                 />
             </OfflineWithFeedback>
-            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36987 */}
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}
-                    // TODO: https://github.com/Expensify/App/issues/36987 make it interactive and show right icon when EditRatePage is ready
-                    interactive={false}
-                    shouldShowRightIcon={false}
+                    interactive={canEditDistanceRate}
+                    shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
-                    // TODO: https://github.com/Expensify/App/issues/36987 Add route for editing rate
-                    onPress={() => {}}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
+                    }
                 />
             </OfflineWithFeedback>
         </>
@@ -624,7 +632,9 @@ function MoneyRequestView({
                         icon={Expensicons.Suitcase}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
-                        onPress={() => Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))}
+                        onPress={() => {
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                        }}
                     />
                 )}
                 {shouldShowBillable && (
@@ -679,13 +689,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transactionViolations: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
-                const originalMessage =
-                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? -1;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-            },
+            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`,
         },
     })(MoneyRequestView),
 );

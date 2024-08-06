@@ -15,6 +15,7 @@ function SearchAdvancedFiltersPage() {
             testID={SearchAdvancedFiltersPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton title={translate('search.filtersHeader')} />
