@@ -73,9 +73,8 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
-        (playVideoPromiseRef.current ?? Promise.resolve()).then(() => {
+        (playVideoPromiseRef.current ?? Promise.resolve()).then(stopVideo).finally(() => {
             videoResumeTryNumberRef.current = 0;
-            stopVideo();
             setCurrentlyPlayingURL(null);
             setSharedElement(null);
             setOriginalParent(null);
