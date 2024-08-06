@@ -174,10 +174,10 @@ Onyx.connect({
         if (value === undefined) {
             return;
         }
+        resolveOnboardingFlowStatus(value);
         isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
             resolveOnboardingFlowStatus = resolve;
         });
-        resolveOnboardingFlowStatus(value);
     },
 });
 
