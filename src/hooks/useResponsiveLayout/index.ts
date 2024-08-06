@@ -79,5 +79,3 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isSmallScreen,
     };
 }
-
-export type {ResponsiveLayoutResult};
