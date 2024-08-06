@@ -58,14 +58,14 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
-
-    /** Whether Selection Mode is active - used only on small screens */
-    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -130,6 +130,9 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** The search value from the selection list */
     searchText?: string | null;
@@ -308,6 +311,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to debounce `onRowSelect` */
     shouldDebounceRowSelect?: boolean;
 
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
+
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -440,6 +446,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
@@ -480,9 +489,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
-
-    /** Whether Selection Mode is active - used only on small screens */
-    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
