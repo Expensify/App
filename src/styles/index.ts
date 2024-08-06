@@ -5115,11 +5115,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateForeground: {
-            padding: 32,
+            margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '100%',
-            boxSizing: 'content-box',
+            flex: 1,
         },
 
         emptyStateContent: {
