@@ -1,3 +1,4 @@
+import isValid from 'date-fns/isValid';
 import React, {useState} from 'react';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
@@ -7,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 
 type DebugDetailsProps = {
     data: Record<string, unknown>;
@@ -36,6 +38,9 @@ function DebugDetails({data, onSave, onDelete}: DebugDetailsProps) {
                     value={value}
                     onChangeText={(updatedValue) => {
                         try {
+                            if (isValid(new Date(data[key] as string)) && !isValid(new Date(updatedValue))) {
+                                throw SyntaxError(translate('debug.invalidProperty', {propertyName: key, expectedType: CONST.DATE.FNS_DATE_TIME_FORMAT_STRING}));
+                            }
                             DebugUtils.stringToOnyxData(updatedValue, typeof data[key]);
                             setErrors((currentErrors) => ({...currentErrors, [key]: ''}));
                         } catch (e) {
