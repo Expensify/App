@@ -1888,10 +1888,19 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
 }
 
 /**
+ * Cache the workspace icons
+ */
+const workSpaceIconsCache = new Map<string, Icon>();
+
+/**
  * Given a report, return the associated workspace icon.
  */
 function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
+    const iconFromCache = workSpaceIconsCache.get(workspaceName);
+    if (iconFromCache) {
+        return iconFromCache;
+    }
     const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
         ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
         : getDefaultWorkspaceAvatar(workspaceName);
@@ -1902,6 +1911,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
         name: workspaceName,
         id: report?.policyID,
     };
+    workSpaceIconsCache.set(workspaceName, workspaceIcon);
     return workspaceIcon;
 }
 
