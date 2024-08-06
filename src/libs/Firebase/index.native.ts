@@ -22,11 +22,6 @@ const startTrace: StartTrace = (customEventName) => {
     const session = SessionUtils.getSession();
     const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength();
     const reportsLength = ReportUtils.getAllReportsLength();
-    // const reportsLength = allReports ? Object.keys(allReports).length : 0;
-    // const reportsLength = ReportConnection.getAllReportsLength();
-
-    // console.log('personalDetailsLength: ', personalDetailsLength);
-    // console.log('reportsLength: ', reportsLength);
 
     perf()
         .startTrace(customEventName)
