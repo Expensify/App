@@ -156,6 +156,7 @@ function WorkspaceInviteMessagePage({
                     onSubmit={sendInvitation}
                     submitButtonText={translate('common.invite')}
                     enabledWhenOffline
+                    disablePressOnEnter
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}

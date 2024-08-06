@@ -272,6 +272,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
+                            disablePressOnEnter
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
