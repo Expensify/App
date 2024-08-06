@@ -180,7 +180,7 @@ type SearchTransaction = {
     tag: string;
 
     /** The transaction description */
-    comment: {
+    comment?: {
         /** Content of the transaction description */
         comment: string;
     };
