@@ -27,7 +27,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const iconSrc = feature.icon in Illustrations ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
-    const iconAdditionalStyles = feature === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals ? {borderRadius: 0} : undefined;
+    const iconAdditionalStyles = feature === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals ? styles.br0 : undefined;
 
     return (
         <View style={styles.p5}>
