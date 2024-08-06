@@ -361,7 +361,7 @@ export {
     Workspace,
     XeroSquare,
     SageIntacctSquare as IntacctSquare,
-    AdvancedApprovalsSquare as ApprovalsSquare,
+    AdvancedApprovalsSquare,
     Zoom,
     Twitter,
     Youtube,

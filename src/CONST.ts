@@ -5410,7 +5410,7 @@ const CONST = {
                 name: 'Advanced Approvals' as const,
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
-                icon: 'ApprovalsSquare',
+                icon: 'AdvancedApprovalsSquare',
             },
             glCodes: {
                 id: 'glCodes' as const,
