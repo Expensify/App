@@ -3635,6 +3635,7 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            currency: 'Currency',
         },
     },
     genericErrorPage: {
