@@ -37,7 +37,6 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
-import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -222,9 +221,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-		const shouldShowSynchronizationError = !!synchronizationError;
-		const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-		const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
+        const shouldShowSynchronizationError = !!synchronizationError;
+        const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {

@@ -12,6 +12,7 @@ import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, Pol
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
+    ConnectionName,
     Connections,
     CustomUnit,
     InvoiceItem,

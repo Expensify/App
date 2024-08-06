@@ -429,7 +429,7 @@ export {
     updatePolicyConnectionConfig,
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
-	hasSynchronizationError,
+    hasSynchronizationError,
     isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,

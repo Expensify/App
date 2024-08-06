@@ -178,6 +178,12 @@ type ConnectionLastSync = {
     /** Date when the connection's last failed sync occurred */
     errorDate?: string;
 
+    /** Error message when the connection's last sync failed */
+    errorMessage?: string;
+
+    /** If the connection's last sync failed due to authentication error */
+    isAuthenticationError: boolean;
+
     /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
 
