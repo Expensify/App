@@ -1,15 +1,18 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import type {RenderContentProps} from './BaseGetPhysicalCard';
 
@@ -28,7 +31,22 @@ function GetPhysicalCardAddress({
 }: GetPhysicalCardAddressProps) {
     const {translate} = useLocalize();
 
-    const {addressLine1 = '', addressLine2 = '', city = '', state = '', zipPostCode = '', country = ''} = draftValues ?? {};
+    const {addressLine1, addressLine2} = draftValues ?? {};
+    const [country, setCountry] = useState(draftValues?.country);
+    const [state, setState] = useState(draftValues?.state);
+    const [city, setCity] = useState(draftValues?.city);
+    const [zipPostCode, setZipPostCode] = useState(draftValues?.zipPostCode);
+
+    useEffect(() => {
+        if (!draftValues) {
+            return;
+        }
+        setState(draftValues.state);
+        setCountry(draftValues.country);
+        setCity(draftValues.city);
+        setZipPostCode(draftValues.zipPostCode);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [draftValues?.state, draftValues?.country, draftValues?.city, draftValues?.zipPostCode]);
 
     useEffect(() => {
         if (!countryFromUrl) {
@@ -37,11 +55,40 @@ function GetPhysicalCardAddress({
         FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, {country: countryFromUrl});
     }, [countryFromUrl]);
 
+    const handleAddressChange = useCallback((value: unknown, key: unknown) => {
+        const addressPart = value as string;
+        const addressPartKey = key as keyof Address;
+
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.COUNTRY) {
+            setCountry(addressPart as Country | '');
+            setState('');
+            setCity('');
+            setZipPostCode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.STATE) {
+            setState(addressPart);
+            setCity('');
+            setZipPostCode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.CITY) {
+            setCity(addressPart);
+            setZipPostCode('');
+            return;
+        }
+        setZipPostCode(addressPart);
+    }, []);
+
     const renderContent = useCallback(
         ({onSubmit, submitButtonText}: RenderContentProps) => (
             <AddressForm
                 formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
                 onSubmit={onSubmit}
+                onAddressChanged={handleAddressChange}
                 submitButtonText={submitButtonText}
                 city={city}
                 country={country}
@@ -52,7 +99,7 @@ function GetPhysicalCardAddress({
                 zip={zipPostCode}
             />
         ),
-        [addressLine1, addressLine2, city, country, state, zipPostCode],
+        [addressLine1, addressLine2, city, country, handleAddressChange, state, zipPostCode],
     );
 
     return (

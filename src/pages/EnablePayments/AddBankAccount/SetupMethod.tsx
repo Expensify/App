@@ -53,7 +53,7 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
                     icon={Expensicons.Bank}
                     text={translate('bankAccount.addBankAccount')}
                     onPress={() => BankAccounts.openPersonalBankAccountSetupWithPlaid()}
-                    isDisabled={isPlaidDisabled ?? !user?.validated}
+                    isDisabled={!!isPlaidDisabled || !user?.validated}
                     style={[styles.mt4, styles.mb2]}
                     iconStyles={styles.buttonCTAIcon}
                     shouldShowRightIcon

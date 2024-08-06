@@ -37,6 +37,9 @@ inputs:
   EXPENSIFY_PARTNER_PASSWORD_EMAIL:
     description: The email address of the Expensify partner to use for the build
     required: true
+  SLACK_WEBHOOK_URL:
+    description: 'URL of the slack webhook'
+    required: true
 
 runs:
   using: composite
@@ -74,6 +77,23 @@ runs:
       shell: bash
       env:
         RUBYOPT: '-rostruct'
+
+    - name: Announce failed workflow in Slack
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        custom_payload: |
+          {
+            channel: '#e2e-announce',
+            attachments: [{
+              color: 'danger',
+              text: `🚧 ${process.env.AS_REPO} E2E APK build run failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 🚧`,
+            }]
+          }
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
 
     - name: Upload APK
       uses: actions/upload-artifact@v4

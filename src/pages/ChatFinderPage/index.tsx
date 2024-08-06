@@ -72,11 +72,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     useCancelSearchOnModalClose();
 
     useEffect(() => {
-        Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
-    }, []);
-
-    useEffect(() => {
         Report.searchInServer(debouncedSearchValueInServer.trim());
     }, [debouncedSearchValueInServer]);
 
@@ -108,7 +103,10 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, betas, preferChatroomsOverThreads: true});
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,

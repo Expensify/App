@@ -10,6 +10,7 @@ import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -126,6 +127,7 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
     const threedotRef = useRef<View>(null);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
@@ -145,7 +147,7 @@ function BaseReportActionContextMenu({
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
-            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini),
+            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini, isProduction),
     );
 
     if (isMini) {
@@ -203,7 +205,7 @@ function BaseReportActionContextMenu({
             menuItemRefs.current[focusedIndex]?.triggerPressAndUpdateSuccess?.();
             setFocusedIndex(-1);
         },
-        {isActive: shouldEnableArrowNavigation},
+        {isActive: shouldEnableArrowNavigation, shouldPreventDefault: false},
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
