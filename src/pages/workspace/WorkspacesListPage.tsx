@@ -438,7 +438,7 @@ function WorkspacesListPage() {
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {isSmallScreenWidth && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+            {shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
         </ScreenWrapper>
     );
 }
