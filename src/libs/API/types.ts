@@ -161,6 +161,7 @@ const WRITE_COMMANDS = {
     UPDATE_MONEY_REQUEST_TAX_AMOUNT: 'UpdateMoneyRequestTaxAmount',
     UPDATE_MONEY_REQUEST_TAX_RATE: 'UpdateMoneyRequestTaxRate',
     UPDATE_MONEY_REQUEST_DISTANCE: 'UpdateMoneyRequestDistance',
+    UPDATE_MONEY_REQUEST_DISTANCE_RATE: 'UpdateMoneyRequestDistanceRate',
     UPDATE_MONEY_REQUEST_CATEGORY: 'UpdateMoneyRequestCategory',
     UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
     UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
@@ -475,6 +476,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST]: Parameters.HoldMoneyRequestParams;
