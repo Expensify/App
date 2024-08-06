@@ -1515,7 +1515,7 @@ export default {
         explanationModal: {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
-            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > <strong>Go to Expensify Classic.</strong>',
+            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
         },
         welcomeVideo: {
             title: 'Welcome to Expensify',
