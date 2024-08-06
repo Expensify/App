@@ -6,7 +6,6 @@ import type {View as RNView} from 'react-native';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
@@ -55,9 +54,7 @@ function BaseGenericTooltip({
                 currentSize: animation,
                 windowWidth,
                 xOffset,
-                // On native, yOffset is calculated from bottom edge of element to the top of screen
-                // so we need to exclude targetHeight and gutterWidth
-                yOffset: yOffset - targetHeight - variables.gutterWidth,
+                yOffset,
                 tooltipTargetWidth: targetWidth,
                 tooltipTargetHeight: targetHeight,
                 maxWidth,
@@ -104,7 +101,7 @@ function BaseGenericTooltip({
     }
 
     return (
-        <Portal hostName="tooltip">
+        <Portal>
             {shouldUseOverlay && <TransparentOverlay onPress={onPressOverlay} />}
             <Animated.View
                 ref={rootWrapper}

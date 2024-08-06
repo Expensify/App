@@ -815,7 +815,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 ) : null}
                             </View>
                             <PortalHost name="suggestions" />
-                            <PortalHost name="tooltip" />
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
