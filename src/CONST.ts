@@ -2231,7 +2231,6 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
-    ICON_TYPE_SQUARE: 'square',
 
     ACTIVITY_INDICATOR_SIZE: {
         LARGE: 'large',
