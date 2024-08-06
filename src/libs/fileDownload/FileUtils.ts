@@ -256,6 +256,7 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
     });
 }
 
+/** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
 function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
     return fetch(fileUri)
         .then((file) => file.arrayBuffer())
