@@ -5,8 +5,8 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
-    ApproverInMultipleWorkflowsParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1301,8 +1301,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: ({name1, name2}: ApproverInMultipleWorkflowsParams) =>
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',

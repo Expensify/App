@@ -353,7 +353,7 @@ type IssueVirtualCardParams = {
     link: string;
 };
 
-type ApproverInMultipleWorkflowsParams = {
+type ApprovalWorkflowErrorParams = {
     name1: string;
     name2: string;
 };
@@ -480,5 +480,5 @@ export type {
     UnapprovedParams,
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
-    ApproverInMultipleWorkflowsParams,
+    ApprovalWorkflowErrorParams,
 };
