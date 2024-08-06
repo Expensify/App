@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import MultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
+import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +55,7 @@ function SearchFiltersExpenseTypePage() {
                     }}
                 />
                 <View style={[styles.flex1]}>
-                    <MultipleSelectionPicker
+                    <SearchMultipleSelectionPicker
                         pickerTitle={translate('search.expenseTypes')}
                         items={expenseTypesNames}
                         initiallySelectedItems={selectedExpenseTypes}

@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import MultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
+import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,7 +56,7 @@ function SearchFiltersTagPage() {
                     }}
                 />
                 <View style={[styles.flex1]}>
-                    <MultipleSelectionPicker
+                    <SearchMultipleSelectionPicker
                         pickerTitle={translate('common.tag')}
                         items={tagNames}
                         initiallySelectedItems={selectedTags}

@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScrollView from '@components/ScrollView';
 import type {AdvancedFiltersKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -17,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {CardList} from '@src/types/onyx';
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
@@ -36,9 +38,17 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[fieldName]) {
-        const categories = filters[fieldName] ?? [];
-        return categories.join(', ');
+    if ((fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) && filters[fieldName]) {
+        const filterArray = filters[fieldName] ?? [];
+        return filterArray.join(', ');
+    }
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+        return filters[fieldName];
+    }
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters[fieldName]) {
+        const cards = filters[fieldName] ?? [];
+        return cards.join(', ');
     }
 
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
@@ -48,6 +58,16 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
 
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
+    return filterValue
+        ? Object.values(cards)
+              .filter((card) => filterValue.includes(card.cardID.toString()))
+              .map((card) => card.bank)
+              .join(', ')
+        : undefined;
+}
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -55,6 +75,7 @@ function AdvancedSearchFilters() {
     const waitForNavigate = useWaitForNavigation();
 
     const [searchAdvancedFilters = {}] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const advancedFilters = useMemo(
         () => [
@@ -72,6 +93,11 @@ function AdvancedSearchFilters() {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
                 description: 'common.date' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
+                description: 'common.currency' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
@@ -94,6 +120,12 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
             },
             {
+                title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
+                description: 'common.card' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
+                shouldHide: Object.keys(cardList).length === 0,
+            },
+            {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, translate),
                 description: 'workspace.taxes.taxRate' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
@@ -109,7 +141,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
             },
         ],
-        [searchAdvancedFilters, translate],
+        [searchAdvancedFilters, translate, cardList],
     );
 
     const onFormSubmit = () => {
@@ -124,11 +156,13 @@ function AdvancedSearchFilters() {
     };
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
             <View>
                 {advancedFilters.map((item) => {
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-
+                    if (item.shouldHide) {
+                        return undefined;
+                    }
                     return (
                         <MenuItemWithTopDescription
                             key={item.description}
@@ -142,11 +176,11 @@ function AdvancedSearchFilters() {
             </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
-                containerStyles={[styles.m4]}
+                containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={onFormSubmit}
                 enabledWhenOffline
             />
-        </View>
+        </ScrollView>
     );
 }
 

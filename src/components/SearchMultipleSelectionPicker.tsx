@@ -8,7 +8,7 @@ import Button from './Button';
 import SelectionList from './SelectionList';
 import SelectableListItem from './SelectionList/SelectableListItem';
 
-type MultipleSelectionPickerProps = {
+type SearchMultipleSelectionPickerProps = {
     items: string[];
     initiallySelectedItems: string[] | undefined;
     pickerTitle?: string;
@@ -16,7 +16,7 @@ type MultipleSelectionPickerProps = {
     shouldShowTextInput?: boolean;
 };
 
-function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: MultipleSelectionPickerProps) {
+function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
