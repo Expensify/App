@@ -1,4 +1,4 @@
-import type {ViewProps} from 'react-native-svg/lib/typescript/fabric/utils';
+import type {ViewProps} from 'react-native';
 
 type FocusTrapContainerElementProps = ViewProps & {
     onContainerElementChanged?: (element: HTMLElement | null) => void;

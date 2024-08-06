@@ -1,3 +1,6 @@
+/**
+ * A wrapper View component allowing us to register a container element for a FocusTrap
+ */
 import type {ForwardedRef} from 'react';
 import React from 'react';
 import {View} from 'react-native';
@@ -11,7 +14,6 @@ function FocusTrapContainerElement({onContainerElementChanged, ...props}: FocusT
                 if (typeof r === 'function') {
                     r(node);
                 } else if (r) {
-                    // eslint-disable
                     r.current = node;
                 }
                 if (node) {
