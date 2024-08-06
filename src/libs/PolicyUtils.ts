@@ -12,7 +12,6 @@ import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, Pol
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
-    ConnectionName,
     Connections,
     CustomUnit,
     InvoiceItem,
@@ -29,7 +28,6 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getSynchronizationErrorMessage} from './actions/connections';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
@@ -84,13 +82,6 @@ function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
  */
 function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
     return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
-}
-
-/**
- * Checks if the policy has auto-sync error.
- */
-function hasAutoSyncError(policy: OnyxEntry<Policy>): boolean {
-    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, false));
 }
 
 /**
@@ -153,7 +144,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasAutoSyncError(policy)) {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -924,7 +915,6 @@ export {
     getUnitRateValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
-    hasAutoSyncError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,

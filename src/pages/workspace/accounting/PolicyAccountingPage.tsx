@@ -22,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getSynchronizationErrorMessage, isAuthenticationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {hasSynchronizationError, isAuthenticationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -70,7 +70,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
-    const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+    const synchronizationError = connectedIntegration && hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
     const policyID = policy?.id ?? '-1';
@@ -222,9 +222,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-        const shouldShowSynchronizationError = !!synchronizationError;
-        const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
+		const shouldShowSynchronizationError = !!synchronizationError;
+		const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
+		const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -233,7 +233,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-                errorText: synchronizationError,
+                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: isSyncInProgress
