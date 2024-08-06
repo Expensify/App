@@ -11,7 +11,7 @@ index b63bcfc..bd6419e 100644
      buildPanResponder: () => void;
      getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 80f4e75..734bc88 100644
+index 80f4e75..602cdff 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
 @@ -59,6 +59,11 @@ export class ReactNativeModal extends React.Component {
@@ -75,7 +75,7 @@ index 80f4e75..734bc88 100644
                      Animated.spring(this.state.pan, {
                          toValue: { x: 0, y: 0 },
                          bounciness: 0,
-@@ -300,40 +316,56 @@ export class ReactNativeModal extends React.Component {
+@@ -300,40 +316,53 @@ export class ReactNativeModal extends React.Component {
                  }
              }
          };
@@ -114,15 +114,12 @@ index 80f4e75..734bc88 100644
 +                    prevOpacity: prevState.backdrop.opacity,
 +                    opacity: this.props.backdropOpacity,
 +                    duration: this.props.backdropTransitionInTiming,
++                },
++                contentAnimation: {
++                    animation: this.animationIn,
++                    duration: this.props.animationInTiming,
 +                }
-+            }), () => {
-+                this.setState({
-+                    contentAnimation: {
-+                        animation: this.animationIn,
-+                        duration: this.props.animationInTiming,
-+                    }
-+                })
-+            })
++            }))
              // This is for resetting the pan position,otherwise the modal gets stuck
              // at the last released position when you try to open it.
              // TODO: Could certainly be improved - no idea for the moment.
@@ -155,24 +152,17 @@ index 80f4e75..734bc88 100644
              }
          };
          this.close = () => {
-@@ -341,9 +373,13 @@ export class ReactNativeModal extends React.Component {
+@@ -341,9 +370,6 @@ export class ReactNativeModal extends React.Component {
                  return;
              }
              this.isTransitioning = true;
 -            if (this.backdropRef) {
 -                this.backdropRef.transitionTo({ opacity: 0 }, this.props.backdropTransitionOutTiming);
 -            }
-+            this.setState((prevState) => ({
-+                backdrop: {
-+                    prevOpacity: prevState.backdrop.opacity,
-+                    opacity: 0,
-+                    duration: this.props.backdropTransitionOutTiming,
-+                }
-+            }))
              let animationOut = this.animationOut;
              if (this.inSwipeClosingState) {
                  this.inSwipeClosingState = false;
-@@ -360,35 +396,17 @@ export class ReactNativeModal extends React.Component {
+@@ -360,35 +386,22 @@ export class ReactNativeModal extends React.Component {
                      animationOut = 'slideOutLeft';
                  }
              }
@@ -209,16 +199,21 @@ index 80f4e75..734bc88 100644
 +                this.interactionHandle = InteractionManager.createInteractionHandle();
              }
 +
-+            this.setState({
++            this.setState((prevState) => ({
++                backdrop: {
++                    prevOpacity: prevState.backdrop.opacity,
++                    opacity: 0,
++                    duration: this.props.backdropTransitionOutTiming,
++                },
 +                contentAnimation: {
 +                    animation: animationOut,
 +                    duration: this.props.animationOutTiming,
 +                }
-+            })
++            }))
          };
          this.makeBackdrop = () => {
              if (!this.props.hasBackdrop) {
-@@ -409,9 +427,20 @@ export class ReactNativeModal extends React.Component {
+@@ -409,9 +422,20 @@ export class ReactNativeModal extends React.Component {
                          : 'transparent',
                  },
              ];
@@ -240,7 +235,7 @@ index 80f4e75..734bc88 100644
              if (hasCustomBackdrop) {
                  // The user will handle backdrop presses himself
                  return backdropWrapper;
-@@ -453,10 +482,18 @@ export class ReactNativeModal extends React.Component {
+@@ -453,10 +477,18 @@ export class ReactNativeModal extends React.Component {
          if (this.state.isVisible) {
              this.open();
          }
@@ -260,7 +255,7 @@ index 80f4e75..734bc88 100644
          if (this.didUpdateDimensionsEmitter) {
              this.didUpdateDimensionsEmitter.remove();
          }
-@@ -464,6 +501,9 @@ export class ReactNativeModal extends React.Component {
+@@ -464,6 +496,9 @@ export class ReactNativeModal extends React.Component {
              InteractionManager.clearInteractionHandle(this.interactionHandle);
              this.interactionHandle = null;
          }
@@ -270,7 +265,7 @@ index 80f4e75..734bc88 100644
      }
      componentDidUpdate(prevProps) {
          // If the animations have been changed then rebuild them to make sure we're
-@@ -475,9 +515,14 @@ export class ReactNativeModal extends React.Component {
+@@ -475,9 +510,14 @@ export class ReactNativeModal extends React.Component {
              this.animationOut = animationOut;
          }
          // If backdrop opacity has been changed then make sure to update it
@@ -288,7 +283,7 @@ index 80f4e75..734bc88 100644
          }
          // On modal open request, we slide the view up and fade in the backdrop
          if (this.props.isVisible && !prevProps.isVisible) {
-@@ -515,7 +560,13 @@ export class ReactNativeModal extends React.Component {
+@@ -515,7 +555,13 @@ export class ReactNativeModal extends React.Component {
          const _children = this.props.hideModalContentWhileAnimating &&
              this.props.useNativeDriver &&
              !this.state.showContent ? (React.createElement(animatable.View, null)) : (children);
@@ -303,7 +298,7 @@ index 80f4e75..734bc88 100644
          // If coverScreen is set to false by the user
          // we render the modal inside the parent view directly
          if (!coverScreen && this.state.isVisible) {
-@@ -525,7 +576,7 @@ export class ReactNativeModal extends React.Component {
+@@ -525,7 +571,7 @@ export class ReactNativeModal extends React.Component {
          }
          return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress }, otherProps),
              this.makeBackdrop(),
