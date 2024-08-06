@@ -428,11 +428,14 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 
 /** Notify the ReportActionsView that a new comment has arrived */
 function notifyNewAction(reportID: string, accountID?: number, reportActionID?: string) {
+    const isFromCurrentUser = accountID === currentUserAccountID;
+    if(isFromCurrentUser){
+        Navigation.setParams({reportActionID: ''});
+    }
     const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
     if (!actionSubscriber) {
         return;
     }
-    const isFromCurrentUser = accountID === currentUserAccountID;
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
