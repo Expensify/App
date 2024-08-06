@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import usePrevious from '@hooks/usePrevious';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
 
@@ -15,6 +16,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [originalParent, setOriginalParent] = useState<View | HTMLDivElement | null>(null);
     const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
+    const prevCurrentReportID = usePrevious(currentReportID);
     const videoResumeTryNumberRef = useRef<number>(0);
     const playVideoPromiseRef = useRef<Promise<AVPlaybackStatus>>();
 
@@ -85,7 +87,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
-        if (!currentReportID) {
+        if (!currentReportID || !prevCurrentReportID) {
             return;
         }
         resetVideoPlayerData();
