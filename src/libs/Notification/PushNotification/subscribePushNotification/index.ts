@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -85,6 +86,10 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
             // The attachment modal remains open when navigating to the report so we need to close it
             Modal.close(() => {
                 try {
+                    // Get rid of the transition screen, if it is on the top of the stack
+                    if (NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+                        Navigation.goBack();
+                    }
                     // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
                     if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                         Navigation.goBack();
