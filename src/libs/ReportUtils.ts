@@ -1168,10 +1168,8 @@ function findSelfDMReportID(): string | undefined {
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
 function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID?: string) {
-    return (
-        isConciergeChatReport(report) ||
-        (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report?.policyID === policyID)
-    );
+    const isPolicyRelatedReport = report?.policyID === policyID || !!(report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID);
+    return isConciergeChatReport(report) || (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport);
 }
 
 /**
