@@ -360,6 +360,9 @@ export default {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        filterLogs: 'Registros de filtrado',
+        network: 'La red',
+        reportID: 'ID del informe',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -708,6 +711,13 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
+        companyInfo: 'Información de la empresa',
+        companyInfoDescription: 'Necesitamos algunos detalles más antes de que pueda enviar su primera factura.',
+        yourCompanyName: 'Nombre de su empresa',
+        yourCompanyWebsite: 'Sitio web de su empresa',
+        yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
+        invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
+        publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
@@ -1181,6 +1191,7 @@ export default {
         },
     },
     walletPage: {
+        balance: 'Saldo',
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -1199,11 +1210,12 @@ export default {
         secureAccessToYourMoney: 'Acceso seguro a tu dinero',
         receiveMoney: 'Recibe dinero en tu moneda local',
         expensifyWallet: 'Billetera Expensify',
-        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
-        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify',
+        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
+        walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
         bankAccounts: 'Cuentas bancarias',
-        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccountToSendAndReceive: 'Agregar una cuenta bancaria te permite recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
@@ -1259,6 +1271,7 @@ export default {
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Requerir aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',
+        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico',
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
@@ -1282,6 +1295,18 @@ export default {
                 two: '.º',
                 few: '.º',
                 other: '.º',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'Primero',
+                '2': 'Segundo',
+                '3': 'Tercero',
+                '4': 'Cuarto',
+                '5': 'Quinto',
+                '6': 'Sexto',
+                '7': 'Séptimo',
+                '8': 'Octavo',
+                '9': 'Noveno',
+                '10': 'Décimo',
+                /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
     },
@@ -1300,8 +1325,9 @@ export default {
         title: 'Gastos de',
         header: 'Cuando los siguientes miembros presenten gastos:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        header: 'Enviar a este miembro para su aprobación:',
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -2065,6 +2091,7 @@ export default {
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
+        errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
     },
     workspace: {
         common: {
@@ -2075,6 +2102,7 @@ export default {
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            everyone: 'Todos',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             reimburse: 'Reembolsos',
@@ -2132,6 +2160,7 @@ export default {
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
+            topLevel: 'Nivel superior',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3574,7 +3603,7 @@ export default {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala de ${oldName} a ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
@@ -3669,6 +3698,7 @@ export default {
                 after: (date?: string) => `Después de ${date ?? ''}`,
             },
             status: 'Estado',
+            currency: 'Divisa',
         },
     },
     genericErrorPage: {

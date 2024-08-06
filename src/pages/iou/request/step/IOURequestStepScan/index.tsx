@@ -69,7 +69,6 @@ function IOURequestStepScan({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
@@ -78,6 +77,7 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
@@ -207,7 +207,7 @@ function IOURequestStepScan({
                     return false;
                 }
 
-                if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
                     return false;
                 }
@@ -419,27 +419,30 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(file).then((isFileValid) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateReceipt(originalFile).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
 
             // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(file.name ?? '') && !isPdfValidated) {
-                setPdfFile(file);
+            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+                setPdfFile(originalFile);
                 return;
             }
-            // Store the receipt on the transaction object in Onyx
-            const source = URL.createObjectURL(file as Blob);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
 
-            if (action === CONST.IOU.ACTION.EDIT) {
-                updateScanAndNavigate(file, source);
-                return;
-            }
-            navigateToConfirmationStep(file, source);
+            FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+                // Store the receipt on the transaction object in Onyx
+                const source = URL.createObjectURL(file as Blob);
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
+
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    updateScanAndNavigate(file, source);
+                    return;
+                }
+                navigateToConfirmationStep(file, source);
+            });
         });
     };
 

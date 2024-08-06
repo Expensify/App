@@ -90,12 +90,12 @@ type SearchTableHeaderProps = {
     metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
-    isSortingAllowed: boolean;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
+    shouldShowSorting: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -114,9 +114,9 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
                         return null;
                     }
 
+                    const isSortable = shouldShowSorting && isColumnSortable;
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
-                    const isSortable = isSortingAllowed && isColumnSortable;
 
                     return (
                         <SortableHeaderText
