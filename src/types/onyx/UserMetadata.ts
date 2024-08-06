@@ -17,6 +17,9 @@ type UserMetadata = {
 
     /** Type of environment the user is using (staging or production) */
     environment?: string;
+
+    /** Information if user dismissed the try new dot popup before. Can be "empty", true or false */
+    tryNewDotDismissed?: string | Boolean;
 };
 
 export default UserMetadata;
