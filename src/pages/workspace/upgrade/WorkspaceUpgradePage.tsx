@@ -55,7 +55,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => (isUpgraded ? confirmUpgrade() : Navigation.goBack())}
             />
             {isUpgraded && (
                 <UpgradeConfirmation
