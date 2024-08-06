@@ -5805,7 +5805,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
         }
 
         // If we are looking for a group chat, then skip non-group chat report
-        if (shouldIncludeGroupChats && !isGroupChat(report) && !isSystemChat(report)) {
+        if (shouldIncludeGroupChats && !isGroupChat(report)) {
             return false;
         }
 
