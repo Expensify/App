@@ -2,6 +2,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -12,9 +13,12 @@ import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import Log from '@libs/Log';
+import {getUnreadTotalCount} from '@libs/UnreadIndicatorUpdater/updateUnread';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -89,6 +93,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+
+    const unreadTotalCount = getUnreadTotalCount();
 
     const initialState = useMemo(() => {
         if (!user || user.isFromPublicDomain) {
@@ -177,7 +183,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             ref={navigationRef}
             linking={linkingConfig}
             documentTitle={{
-                enabled: false,
+                formatter: (options, route) =>
+                    `${unreadTotalCount !== 0 ? `(${unreadTotalCount}) ` : ''}${route?.name && !Object.values(NAVIGATORS).includes(route?.name as any) ? `${route.name} - ` : ''}${
+                        CONFIG.SITE_TITLE
+                    }`,
             }}
         >
             {/* HybridAppMiddleware needs to have access to navigation ref and SplashScreenHidden context */}

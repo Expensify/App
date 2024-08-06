@@ -11,13 +11,19 @@ let unreadTotalCount = 0;
 const updateUnread: UpdateUnread = (totalCount) => {
     const hasUnread = totalCount !== 0;
     unreadTotalCount = totalCount;
+    const regex = /^\(\d+\)\s/; // Matches "(number) " at the start of the string
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
     setTimeout(() => {
-        // There is a Chrome browser bug that causes the title to revert back to the previous when we are navigating back. Setting the title to an empty string
-        // seems to improve this issue.
-        document.title = '';
-        document.title = hasUnread ? `(${totalCount}) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
+        let currentTitle = document.title;
+        const unreadCountString = hasUnread ? `(${totalCount}) ` : '';
+        if (regex.test(currentTitle)) {
+            currentTitle = currentTitle.replace(regex, unreadCountString);
+        } else if (hasUnread) {
+            currentTitle = unreadCountString + currentTitle;
+        }
+
+        document.title = currentTitle;
         const favicon = document.getElementById('favicon');
         if (favicon instanceof HTMLLinkElement) {
             favicon.href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
@@ -29,4 +35,8 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
+function getUnreadTotalCount() {
+    return unreadTotalCount;
+}
+export {getUnreadTotalCount};
 export default updateUnread;
