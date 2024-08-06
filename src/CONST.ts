@@ -5405,9 +5405,9 @@ const CONST = {
                 icon: 'IntacctSquare',
             },
             approvals: {
-                id: 'approvals',
-                alias: 'approvals',
-                name: 'Advanced Approvals',
+                id: 'approvals' as const,
+                alias: 'approvals' as const,
+                name: 'Advanced Approvals' as const,
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'ApprovalsSquare',
