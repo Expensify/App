@@ -38,7 +38,7 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type PolicyTags = Record<string, PolicyTag>;
 
 /** Single policy tag list */
-type PolicyTypeList = {
+type PolicyTagList = {
     /** Name of the tag list */
     name: string;
 
@@ -59,6 +59,6 @@ type PolicyTypeList = {
 };
 
 /** Record of policy tag lists, index by the name of the tag list */
-type PolicyTagLists = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTypeList>>;
+type PolicyTagLists = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTagList>>;
 
 export type {PolicyTag, PolicyTags, PolicyTagLists};
