@@ -1,5 +1,6 @@
+import {useNavigation} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,6 +21,7 @@ import UpgradeIntro from './UpgradeIntro';
 type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
+    const navigation = useNavigation();
     const styles = useThemeStyles();
     const policyID = route.params.policyID;
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === route.params.featureName);
@@ -29,15 +31,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const isUpgraded = React.useMemo(() => isControlPolicy(policy), [policy]);
 
-    if (!feature || !policy) {
-        return <NotFoundPage />;
-    }
-
     const upgradeToCorporate = () => {
+        if (!policy || !feature) {
+            return;
+        }
+
         Policy.upgradeToCorporate(policy.id, feature.name);
     };
 
-    const confirmUpgrade = () => {
+    const confirmUpgrade = useCallback(() => {
+        if (!feature) {
+            return;
+        }
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 Policy.enablePolicyReportFields(policyID, true, true);
@@ -45,7 +50,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
-    };
+    }, [feature, policyID, route.params.backTo]);
+
+    useEffect(() => {
+        const unsubscribeListener = navigation.addListener('blur', () => {
+            if (!isUpgraded) {
+                return;
+            }
+            confirmUpgrade();
+        });
+
+        return unsubscribeListener;
+    }, [isUpgraded, confirmUpgrade, navigation]);
+
+    if (!feature || !policy) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
@@ -55,11 +75,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => (isUpgraded ? confirmUpgrade() : Navigation.goBack())}
+                onBackButtonPress={() => (isUpgraded ? Navigation.dismissModal() : Navigation.goBack())}
             />
             {isUpgraded && (
                 <UpgradeConfirmation
-                    onConfirmUpgrade={confirmUpgrade}
+                    onConfirmUpgrade={() => Navigation.dismissModal()}
                     policyName={policy.name}
                 />
             )}
