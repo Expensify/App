@@ -1267,6 +1267,9 @@ type PolicyReportField = {
     /** Value of the field */
     value?: string | null;
 
+    /** Value of the target */
+    target?: string;
+
     /** Options to select from if field is of type dropdown */
     values: string[];
 
