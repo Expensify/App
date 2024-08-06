@@ -27,9 +27,9 @@ function SubscriptionSettingsPage() {
         Subscription.openSubscriptionPage();
     }, []);
 
-    // if (!subscriptionPlan) {
-    //     return <NotFoundPage />;
-    // }
+    if (!subscriptionPlan) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
