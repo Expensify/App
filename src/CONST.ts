@@ -2113,15 +2113,6 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
         },
-        // Upgradeable modules that don't need outside connections
-        INTERNAL: {
-            NAME: {
-                APPROVALS: 'approvals',
-            },
-            NAME_USER_FRIENDLY: {
-                approvals: 'Advanced Approvals',
-            },
-        },
         CONNECTIONS: {
             NAME: {
                 // Here we will add other connections names when we add support for them
@@ -5413,12 +5404,12 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
             },
-            [this.POLICY.INTERNAL.NAME.APPROVALS]: {
-                id: this.POLICY.INTERNAL.NAME.APPROVALS,
+            approvals: {
+                id: 'approvals',
                 alias: 'approvals',
-                name: this.POLICY.INTERNAL.NAME_USER_FRIENDLY.approvals,
-                title: `workspace.upgrade.${this.POLICY.INTERNAL.NAME.APPROVALS}.title` as const,
-                description: `workspace.upgrade.${this.POLICY.INTERNAL.NAME.APPROVALS}.description` as const,
+                name: 'Advanced Approvals',
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
                 icon: 'ApprovalsSquare',
             },
             glCodes: {
