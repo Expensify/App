@@ -362,6 +362,7 @@ type TransactionDetails = {
     currency: string;
     merchant: string;
     waypoints?: WaypointCollection | string;
+    customUnitRateID?: string;
     comment: string;
     category: string;
     billable: boolean;
@@ -2719,6 +2720,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
         waypoints: TransactionUtils.getWaypoints(transaction),
+        customUnitRateID: TransactionUtils.getRateID(transaction),
         category: TransactionUtils.getCategory(transaction),
         billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
@@ -2813,6 +2815,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         CONST.EDIT_REQUEST_FIELD.DATE,
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
+        CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
     ];
 
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) {
@@ -2850,6 +2853,11 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
         return !isInvoiceReport(moneyRequestReport) && !TransactionUtils.isReceiptBeingScanned(transaction) && !TransactionUtils.isDistanceRequest(transaction) && isRequestor;
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
+        // The distance rate can be modified only on the distance expense reports
+        return isExpenseReport(moneyRequestReport) && TransactionUtils.isDistanceRequest(transaction);
     }
 
     return true;
@@ -3289,6 +3297,19 @@ function getModifiedExpenseOriginalMessage(
         const oldBillable = TransactionUtils.getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
         originalMessage.billable = transactionChanges?.billable ? Localize.translateLocal('common.billable').toLowerCase() : Localize.translateLocal('common.nonBillable').toLowerCase();
+    }
+
+    if ('customUnitRateID' in transactionChanges) {
+        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
+        originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
+
+        const modifiedData = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
+
+        // For the originalMessage, we should use the non-negative amount, similar to what TransactionUtils.getAmount does for oldAmount
+        originalMessage.amount = Math.abs(modifiedData.modifiedAmount);
+        originalMessage.currency = modifiedData.modifiedCurrency;
+        originalMessage.merchant = modifiedData.modifiedMerchant;
     }
 
     return originalMessage;
