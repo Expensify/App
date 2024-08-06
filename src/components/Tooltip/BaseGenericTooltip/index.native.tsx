@@ -3,7 +3,6 @@ import React, {useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
-import {FullWindowOverlay} from 'react-native-screens';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
