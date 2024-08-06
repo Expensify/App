@@ -12,6 +12,7 @@ import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/act
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -127,7 +128,7 @@ function NetSuiteImportCustomFieldEdit({
                     submitButtonText={translate('common.save')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
-                    isSubmitDisabled={!!config?.pendingFields?.[importCustomField]}
+                    isSubmitDisabled={!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -141,7 +142,7 @@ function NetSuiteImportCustomFieldEdit({
                     />
                 </FormProvider>
             ),
-        [config?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
+        [config?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate, valueIndex],
     );
 
     const renderSelection = useMemo(
