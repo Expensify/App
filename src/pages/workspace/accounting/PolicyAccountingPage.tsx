@@ -57,6 +57,7 @@ import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {
+    getImportCustomFieldsSettings,
     shouldHideCustomFormIDOptions,
     shouldHideExportForeignCurrencyAmount,
     shouldHideExportJournalsTo,
@@ -178,6 +179,8 @@ function accountingIntegrationData(
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
                     CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
                     ...(canUseTaxNetSuite(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary?.country) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX] : []),
+                    ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, netsuiteConfig),
+                    ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, netsuiteConfig),
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [

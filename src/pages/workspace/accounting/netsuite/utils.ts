@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
@@ -67,6 +68,11 @@ function shouldHideExportForeignCurrencyAmount(config?: NetSuiteConnectionConfig
     );
 }
 
+function getImportCustomFieldsSettings(importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, config?: NetSuiteConnectionConfig) {
+    const data = config?.syncOptions?.[importField] ?? [];
+    return data.map((_, index) => `${importField}_${index}`);
+}
+
 export {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
@@ -82,4 +88,5 @@ export {
     shouldHideProvincialTaxPostingAccountSelect,
     shouldHideTaxPostingAccountSelect,
     shouldHideExportForeignCurrencyAmount,
+    getImportCustomFieldsSettings,
 };
