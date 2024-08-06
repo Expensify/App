@@ -1,11 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Parser from '@libs/Parser';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type FormHelpMessageProps = {
@@ -23,11 +25,29 @@ type FormHelpMessageProps = {
 
     /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
+
+    /** Whether should render error text as HTML or as Text */
+    shouldParseText?: boolean;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true}: FormHelpMessageProps) {
+function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldParseText = false}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const processedText = useMemo(() => {
+        if (typeof message !== 'string' || !shouldParseText) {
+            return '';
+        }
+
+        const replacedText = Parser.replace(message, {shouldEscapeText: false});
+
+        if (isError) {
+            return `<alert-text>${replacedText}</alert-text>`;
+        }
+
+        return `<muted-text-label>${replacedText}</muted-text-label>`;
+    }, [isError, message, shouldParseText]);
+
     if (isEmpty(message) && isEmpty(children)) {
         return null;
     }
@@ -41,7 +61,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ?? <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>}
+                {children ?? shouldParseText ? <RenderHTML html={processedText} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>}
             </View>
         </View>
     );
