@@ -243,6 +243,9 @@ type MenuItemBaseProps = {
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
+    /** Should we remove the background color of the menu item */
+    shouldRemoveBackground?: boolean;
+
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
 
@@ -384,6 +387,7 @@ function MenuItem(
         shouldRenderAsHTML = false,
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
+        shouldRemoveBackground = false,
         shouldUseDefaultCursorWhenDisabled = false,
         shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
@@ -547,11 +551,12 @@ function MenuItem(
                                         containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
-                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                        !shouldRemoveBackground &&
+                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         !focused && (isHovered || pressed) && hoverAndPressStyle,
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
