@@ -72,7 +72,6 @@ beforeAll(() =>
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
-const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
 beforeEach(() => {
@@ -92,7 +91,6 @@ function ReportActionsListWrapper() {
                         parentReportActionForTransactionThread={undefined}
                         sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                         report={LHNTestUtilsModule.getFakeReport()}
-                        route={mockRoute}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
                         onContentSizeChange={() => {}}
