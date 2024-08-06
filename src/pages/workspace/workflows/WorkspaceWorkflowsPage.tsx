@@ -63,8 +63,13 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const approvalWorkflows = useMemo(
-        () => convertPolicyEmployeesToApprovalWorkflows({employees: policy?.employeeList ?? {}, defaultApprover: policyApproverEmail ?? '', personalDetails: personalDetails ?? {}}),
-        [personalDetails, policy?.employeeList, policyApproverEmail],
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
     const displayNameForAuthorizedPayer = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
@@ -159,9 +164,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 },
                 subMenuItems: canUseAdvancedApproval ? (
                     <>
-                        {approvalWorkflows.map((w) => (
+                        {approvalWorkflows.map((workflow, index) => (
                             <ApprovalWorkflowSection
-                                approvalWorkflow={w}
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`workflow-${index}`}
+                                approvalWorkflow={workflow}
                                 policyId={policy?.id}
                             />
                         ))}
@@ -188,7 +195,8 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                         brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
-                isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
+                isActive:
+                    ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
                 onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
