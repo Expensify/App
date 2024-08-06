@@ -3,7 +3,6 @@ import React, {useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
-import {FullWindowOverlay} from 'react-native-screens';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -104,27 +103,25 @@ function BaseGenericTooltip({
     return (
         <Portal>
             {shouldUseOverlay && <TransparentOverlay onPress={onPressOverlay} />}
-            <FullWindowOverlay>
-                <Animated.View
-                    ref={rootWrapper}
-                    style={[rootWrapperStyle, animationStyle]}
-                    onLayout={(e) => {
-                        const {height} = e.nativeEvent.layout;
-                        if (height === wrapperMeasuredHeight) {
-                            return;
-                        }
-                        setWrapperMeasuredHeight(height);
-                        e.target.measure((x, y, width) => {
-                            setContentMeasuredWidth(width);
-                        });
-                    }}
-                >
-                    {content}
-                    <View style={pointerWrapperStyle}>
-                        <View style={pointerStyle} />
-                    </View>
-                </Animated.View>
-            </FullWindowOverlay>
+            <Animated.View
+                ref={rootWrapper}
+                style={[rootWrapperStyle, animationStyle]}
+                onLayout={(e) => {
+                    const {height} = e.nativeEvent.layout;
+                    if (height === wrapperMeasuredHeight) {
+                        return;
+                    }
+                    setWrapperMeasuredHeight(height);
+                    e.target.measure((x, y, width) => {
+                        setContentMeasuredWidth(width);
+                    });
+                }}
+            >
+                {content}
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>
         </Portal>
     );
 }

@@ -46,7 +46,7 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}:
                     onLayout: (e: LayoutChangeEvent) => {
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
-                        // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish beforem measuring content.
+                        // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
                         setTimeout(() => {
                             target?.measure((fx, fy, width, height, px, py) => {
                                 updateTargetBounds({
