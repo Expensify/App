@@ -62,7 +62,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     );
 
     const [sections, headerMessage] = useMemo(() => {
-        const validFieldOptions = fieldOptions?.filter((option) => !!option).sort((a, b) => localeCompare(a, b));
+        const validFieldOptions = fieldOptions?.filter((option) => !!option).sort(localeCompare);
 
         const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions(
             [],
