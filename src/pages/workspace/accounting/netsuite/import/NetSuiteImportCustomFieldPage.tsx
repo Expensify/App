@@ -123,10 +123,12 @@ function NetSuiteImportCustomFieldPage({
         >
             {data.length === 0 ? listEmptyComponent : listHeaderComponent}
             {data.map((record, index) => (
-                <OfflineWithFeedback pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}>
+                <OfflineWithFeedback
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${record.internalID}-${index}`}
+                    pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
+                >
                     <MenuItemWithTopDescription
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${record.internalID}-${index}`}
                         description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                         shouldShowRightIcon
                         title={'listName' in record ? record.listName : record.segmentName}
