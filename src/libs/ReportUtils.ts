@@ -739,7 +739,7 @@ function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound =
         return noPolicyFound;
     }
 
-    if ((!allPolicies || Object.keys(allPolicies).length === 0) && !report?.policyName) {
+    if (!allPolicies && !report?.policyName) {
         return unavailableTranslation;
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
