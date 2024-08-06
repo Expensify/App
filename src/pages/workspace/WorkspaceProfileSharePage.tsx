@@ -86,7 +86,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                         if (!adminRoom?.reportID) {
                                             return;
                                         }
-                                        Navigation.dismissModal(adminRoom.reportID);
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID));
                                     }}
                                 >
                                     {CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
