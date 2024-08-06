@@ -1477,8 +1477,8 @@ export default {
         welcome: 'Welcome!',
         explanationModal: {
             title: 'Welcome to Expensify',
-            description: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
-            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
+            description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
+            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > <strong>Go to Expensify Classic.</strong>',
         },
         welcomeVideo: {
             title: 'Welcome to Expensify',
