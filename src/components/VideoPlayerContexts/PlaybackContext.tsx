@@ -1,11 +1,10 @@
-import type {AVPlaybackStatusToSet} from 'expo-av';
+import type {AVPlaybackStatusToSet, AVPlaybackStatus} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
-
 const Context = React.createContext<PlaybackContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
@@ -16,6 +15,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
     const videoResumeTryNumberRef = useRef<number>(0);
+    const playVideoPromiseRef = useRef<Promise<AVPlaybackStatus>>();
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
@@ -31,7 +31,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 newStatus.positionMillis = 0;
             }
-            currentVideoPlayerRef.current?.setStatusAsync(newStatus);
+            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus);
         });
     }, [currentVideoPlayerRef]);
 
@@ -73,13 +73,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
-        videoResumeTryNumberRef.current = 0;
-        stopVideo();
-        setCurrentlyPlayingURL(null);
-        setSharedElement(null);
-        setOriginalParent(null);
-        currentVideoPlayerRef.current = null;
-        unloadVideo();
+        (playVideoPromiseRef.current ?? Promise.resolve()).then(() => {
+            videoResumeTryNumberRef.current = 0;
+            stopVideo();
+            setCurrentlyPlayingURL(null);
+            setSharedElement(null);
+            setOriginalParent(null);
+            currentVideoPlayerRef.current = null;
+            unloadVideo();
+        });
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
