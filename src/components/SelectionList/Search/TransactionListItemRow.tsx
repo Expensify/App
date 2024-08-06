@@ -77,6 +77,9 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
+    const isViewAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.VIEW;
+    const canModifyReceipt = isViewAction && transactionItem.canDelete;
+
     return (
         <View
             style={[
@@ -92,7 +95,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={Expensicons.ReceiptPlus}
+                fallbackIcon={canModifyReceipt ? Expensicons.ReceiptPlus : Expensicons.ReceiptSlash}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}

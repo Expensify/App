@@ -39,6 +39,9 @@ type NavigationRootProps = {
 
     /** Fired when react-navigation is ready */
     onReady: () => void;
+
+    /** Flag to indicate if the require 2FA modal should be shown to the user */
+    shouldShowRequire2FAModal: boolean;
 };
 
 /**
@@ -73,7 +76,7 @@ function parseAndLogRoute(state: NavigationState) {
     }
 }
 
-function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
+function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, shouldShowRequire2FAModal}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
@@ -94,7 +97,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
-        if (!hasCompletedGuidedSetupFlow && authenticated) {
+        if (!hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
             const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
             return adaptedState;
         }
