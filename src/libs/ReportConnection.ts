@@ -43,8 +43,5 @@ function getAllReports() {
 function getAllReportsNameMap() {
     return reportIDToNameMap;
 }
-// function getAllReportsLength() {
-//     return allReports ? Object.keys(allReports).length : 0;
-// }
 
 export {getAllReports, getAllReportsNameMap};
