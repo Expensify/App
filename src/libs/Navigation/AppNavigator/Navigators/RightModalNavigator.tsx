@@ -70,7 +70,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}
                         component={ModalStackNavigators.SettingsModalStackNavigator}
-                        options={{title: 'Settings'}}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
@@ -91,7 +90,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                         component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
-                        options={{title: 'Settings'}}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
