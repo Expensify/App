@@ -74,7 +74,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksPreferredExporterConfigurationPage.displayName}
             sections={[{data}]}

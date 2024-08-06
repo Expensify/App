@@ -19,12 +19,13 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const isSwitchOn = !!(qboConfig?.syncLocations && qboConfig.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const {syncLocations, reimbursableExpensesExportDestination, nonReimbursableExpensesExportDestination, pendingFields} = qboConfig ?? {};
+    const isSwitchOn = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const canImportLocation =
-        qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
-        qboConfig?.nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
+        reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
+        nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
     const shouldBeDisabled = !canImportLocation && !isSwitchOn;
-    const isReportFieldsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+    const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
         <ConnectionLayout
@@ -60,7 +61,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 }
                 errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
-                pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
+                pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], pendingFields)}
             />
             {shouldBeDisabled && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>

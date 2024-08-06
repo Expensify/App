@@ -39,13 +39,13 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             description: translate('workspace.accounting.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
             title: exportConfiguration?.exporter ?? policyOwner,
-            subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.qbo.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
             title: exportDate ? translate(`workspace.qbo.exportDate.values.${exportDate}.label`) : undefined,
-            subscribedSettings: [CONST.XERO_CONFIG.EXPORT_DATE],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),

@@ -17,7 +17,8 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const isJournalExportEntity = qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const {syncTax, reimbursableExpensesExportDestination, pendingFields} = qboConfig ?? {};
+    const isJournalExportEntity = reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     return (
         <ConnectionLayout
             displayName={QuickbooksTaxesPage.displayName}
@@ -32,13 +33,13 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.accounting.taxes')}
-                isActive={!!qboConfig?.syncTax}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, !qboConfig?.syncTax)}
-                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_TAX], qboConfig?.pendingFields)}
+                isActive={!!syncTax}
+                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, !syncTax)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_TAX], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
             />
-            {!qboConfig?.syncTax && isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
+            {!syncTax && isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
         </ConnectionLayout>
     );
 }
