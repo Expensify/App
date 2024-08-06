@@ -1,5 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 
+/**
+ * Converts onyx data into string representation
+ *
+ * @param data - data to be converted into string
+ * @returns converted data
+ */
 function onyxDataToString(data: OnyxEntry<unknown>) {
     if (data === undefined) {
         return 'undefined';
@@ -15,6 +21,14 @@ type OnyxDataType = 'number' | 'bigint' | 'object' | 'string' | 'boolean' | 'sym
 
 type OnyxData<T extends OnyxDataType> = (T extends 'number' ? number : T extends 'object' ? Record<string, unknown> : T extends 'string' ? string : boolean) | null;
 
+/**
+ * Converted strings into the expected onyx data type
+ *
+ * @param data - string representation of the data is going to be converted
+ * @param type - expected type
+ * @returns conversion result of data into the expected type
+ * @throws {SyntaxError} if type is object but the provided string does not represent an object
+ */
 function stringToOnyxData<T extends OnyxDataType = 'string'>(data: string, type?: T): OnyxData<T> {
     let onyxData;
 
@@ -44,6 +58,13 @@ function stringToOnyxData<T extends OnyxDataType = 'string'>(data: string, type?
     return onyxData as OnyxData<T>;
 }
 
+/**
+ * Compares string representation of onyx data with the original data, using type conversion
+ *
+ * @param text - string representation
+ * @param data - original data
+ * @returns whether or not the string representation is equal to the original data
+ */
 function compareStringWithOnyxData(text: string, data: OnyxEntry<unknown>) {
     if (data === undefined) {
         return text === 'undefined';
@@ -56,10 +77,22 @@ function compareStringWithOnyxData(text: string, data: OnyxEntry<unknown>) {
     return text === String(data);
 }
 
+/**
+ * Determines the number of lines needed to display the data
+ *
+ * @param data - string representation
+ * @returns number of lines needed to display the data
+ */
 function getNumberOfLinesFromString(data: string) {
     return data.split('\n').length || 1;
 }
 
+/**
+ * Converts every value from an onyx data object into it's string representation, to be used as draft data
+ *
+ * @param data - onyx data object
+ * @returns converted data object
+ */
 function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
     return Object.fromEntries(Object.entries(data ?? {}).map(([key, value]) => [key, onyxDataToString(value)]));
 }
