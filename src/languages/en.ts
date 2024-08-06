@@ -8,6 +8,7 @@ import type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
+    ApproverInMultipleWorkflowsParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1291,6 +1292,8 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApproverInMultipleWorkflowsParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong> in a separate workflow. If you change this approval relationship, all other workflows will be updated.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
@@ -1301,6 +1304,7 @@ export default {
         title: 'Confirm',
         header: 'Add more approvers and confirm.',
         addApproverRow: 'Additional approver',
+        submitButton: 'Add workflow',
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',

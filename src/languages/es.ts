@@ -6,6 +6,7 @@ import type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
+    ApproverInMultipleWorkflowsParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1300,6 +1301,8 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApproverInMultipleWorkflowsParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -1310,6 +1313,7 @@ export default {
         title: 'Añadir flujo de aprobación',
         header: 'Agrega más aprobadores y confirma.',
         addApproverRow: 'Añadir aprobador',
+        submitButton: 'Añadir flujo de trabajo',
     },
     workflowsEditApprovalsPage: {
         title: 'Edicion flujo de aprobación',
