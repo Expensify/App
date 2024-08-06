@@ -142,6 +142,18 @@ function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacc
     );
 }
 
+function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIntacctMappingType) {
+    if (mappings?.departments === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+    }
+    if (mappings?.classes === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+    }
+    if (mappings?.locations === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+    }
+}
+
 function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -223,8 +235,8 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${dimensionName}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                            errorFields: {[`dimension_${dimensionName}`]: null},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
                         },
                     },
                 },
@@ -243,8 +255,10 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${dimensionName}`]: null},
-                            errorFields: {[`dimension_${dimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
+                            errorFields: {
+                                [`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
@@ -263,8 +277,8 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${dimensionName}`]: null},
-                            errorFields: {[`dimension_${dimensionName}`]: null},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
+                            errorFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
                         },
                     },
                 },
@@ -769,4 +783,5 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
+    changeMappingsValueFromDefaultToTag,
 };

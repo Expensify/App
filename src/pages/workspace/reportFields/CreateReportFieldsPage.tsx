@@ -93,6 +93,8 @@ function CreateReportFieldsPage({
         ReportField.setInitialCreateReportFieldsForm();
     }, []);
 
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -119,6 +121,7 @@ function CreateReportFieldsPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
+                    disablePressOnEnter={!!modal?.isVisible}
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
