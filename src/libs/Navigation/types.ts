@@ -665,6 +665,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.INVOICES_TRANSFER_BALANCE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };
@@ -1136,9 +1139,6 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.INVOICES_TRANSFER_BALANCE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TRAVEL]: {
