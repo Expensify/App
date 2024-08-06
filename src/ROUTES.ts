@@ -54,9 +54,10 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
 
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
-
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
+    SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
+    SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',

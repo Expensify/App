@@ -92,7 +92,7 @@ function SearchFiltersCategoryPage() {
         updateCategory({
             category: newCategories.sort((a, b) => localeCompare(a, b)),
         });
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [newCategories, updateCategory]);
 
     const updateNewCategories = useCallback(
@@ -121,6 +121,7 @@ function SearchFiltersCategoryPage() {
         ),
         [translate, handleConfirmSelection],
     );
+
     return (
         <ScreenWrapper
             testID={SearchFiltersCategoryPage.displayName}

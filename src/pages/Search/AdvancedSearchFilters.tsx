@@ -125,12 +125,23 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
                 shouldHide: Object.keys(cardList).length === 0,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, translate),
+                description: 'common.from' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, translate),
+                description: 'common.to' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+            },
         ],
         [searchAdvancedFilters, translate, cardList],
     );
 
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
+        console.log({searchAdvancedFilters, query});
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({

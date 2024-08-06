@@ -41,6 +41,8 @@ const SCREENS = {
         ADVANCED_FILTERS_REPORT_ID_RHP: 'Search_Advanced_Filters_ReportID_RHP',
         ADVANCED_FILTERS_CATEGORY_RHP: 'Search_Advanced_Filters_Category_RHP',
         ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
+        ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
+        ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },

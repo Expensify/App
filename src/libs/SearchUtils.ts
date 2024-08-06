@@ -413,7 +413,6 @@ function sanitizeString(str: string) {
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    // TODO add handling of multiple values picked
     const filtersString = Object.entries(filterValues)
         .map(([filterKey, filterValue]) => {
             if (filterKey === INPUT_IDS.TYPE && filterValue) {
@@ -447,6 +446,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             if (filterKey === INPUT_IDS.CARD_ID && Array.isArray(filterValue) && filterValue.length > 0) {
                 const cardIDs = filterValues[filterKey] ?? [];
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${cardIDs.join(',')}`;
+            }
+
+            if (filterKey === INPUT_IDS.FROM && Array.isArray(filterValue) && filterValue.length > 0) {
+                const accountIDs = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:${accountIDs.join(',')}`;
             }
 
             return undefined;
