@@ -47,6 +47,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
 
+    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
 
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
@@ -54,6 +56,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
 
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
+    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
