@@ -9,7 +9,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 function QuickbooksCustomersPage({policy}: WithPolicyProps) {
@@ -47,12 +47,12 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                         interactive={false}
                         title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
                         description={translate('workspace.common.displayedAs')}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
                     />
                 }
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
-                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
+                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
             />
         </ConnectionLayout>
     );

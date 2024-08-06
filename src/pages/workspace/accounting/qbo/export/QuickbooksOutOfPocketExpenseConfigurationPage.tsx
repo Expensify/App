@@ -63,13 +63,13 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
-            title: reimbursableExpensesAccount?.name,
+            title: reimbursableExpensesAccount?.name !== '' ? reimbursableExpensesAccount?.name : translate('workspace.qbo.notConfigured'),
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
-            errorText: errorFields?.exportAccount ? translate('common.genericErrorMessage') : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
     ];
+
     return (
         <ConnectionLayout
             displayName={QuickbooksOutOfPocketExpenseConfigurationPage.displayName}
@@ -89,7 +89,6 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                         description={section.description}
                         onPress={section.onPress}
                         shouldShowRightIcon
-                        errorText={section.errorText}
                         brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         hintText={section.hintText}
                     />

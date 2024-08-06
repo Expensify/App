@@ -11,7 +11,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
@@ -59,7 +59,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                     )
                 }
                 errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
-                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
+                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
                 pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
             />
             {shouldBeDisabled && (

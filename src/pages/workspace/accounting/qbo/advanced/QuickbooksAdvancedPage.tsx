@@ -14,7 +14,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -81,7 +81,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, {
                     enabled: !autoSync?.enabled,
                 }),
-            subscribedSettings: CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
+            subscribedSettings: CONST.QUICKBOOKS_CONFIG.ENABLED,
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
@@ -139,7 +139,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         onToggle={item.onToggle}
                         pendingAction={settingsPendingAction([item.subscribedSettings], qboConfig?.pendingFields)}
                         errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, item.subscribedSettings)}
-                        onCloseError={() => Policy.clearQBOErrorField(policyID, item.subscribedSettings)}
+                        onCloseError={() => clearQBOErrorField(policyID, item.subscribedSettings)}
                     />
                     {item.footerContent}
                 </>

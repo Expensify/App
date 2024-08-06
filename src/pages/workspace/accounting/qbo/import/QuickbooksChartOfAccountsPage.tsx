@@ -10,7 +10,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
@@ -56,7 +56,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 }
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES], qboConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}
-                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}
+                onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}
             />
         </ConnectionLayout>
     );
