@@ -9,6 +9,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import localeCompare from '@libs/LocaleCompare';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +62,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     );
 
     const [sections, headerMessage] = useMemo(() => {
-        const validFieldOptions = fieldOptions?.filter((option) => !!option);
+        const validFieldOptions = fieldOptions?.filter((option) => !!option).sort((a, b) => localeCompare(a, b));
 
         const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions(
             [],
