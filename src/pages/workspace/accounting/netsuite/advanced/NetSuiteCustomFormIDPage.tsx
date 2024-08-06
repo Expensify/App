@@ -89,7 +89,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback
                         pendingAction={config?.pendingFields?.[customFormIDKey]}
                         errors={ErrorUtils.getLatestErrorField(config, customFormIDKey)}
-                        errorRowStyles={[styles.pv3]}
+                        errorRowStyles={[styles.ph5, styles.pv3]}
                         onClose={() => Policy.clearNetSuiteErrorField(policyID, customFormIDKey)}
                     >
                         <InputWrapper

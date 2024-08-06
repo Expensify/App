@@ -99,7 +99,7 @@ function NetSuiteImportCustomFieldView({
             {customField && (
                 <OfflineWithFeedback
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, `${importCustomField}_${valueIndex}`)}
-                    errorRowStyles={[styles.ph5]}
+                    errorRowStyles={[styles.ph5, styles.pv3]}
                     pendingAction={settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
                     onClose={() => {
                         Policy.clearNetSuiteErrorField(policyID, `${importCustomField}_${valueIndex}`);

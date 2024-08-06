@@ -69,6 +69,7 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
             shouldBeBlocked={config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT}
             pendingAction={config?.pendingFields?.exportReportsTo}
             errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO)}
         />
     );

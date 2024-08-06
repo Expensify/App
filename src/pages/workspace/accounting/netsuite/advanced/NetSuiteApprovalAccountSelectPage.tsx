@@ -85,6 +85,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={config?.pendingFields?.approvalAccount}
             errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT)}
         />
     );

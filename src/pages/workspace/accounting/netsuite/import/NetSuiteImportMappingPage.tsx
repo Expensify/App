@@ -110,7 +110,7 @@ function NetSuiteImportMappingPage({
             listFooterContent={listFooterContent}
             pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
-            errorRowStyles={[styles.ph5]}
+            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
         />
     );
