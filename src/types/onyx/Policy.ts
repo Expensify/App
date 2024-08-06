@@ -1292,6 +1292,15 @@ type PolicyReportField = {
     defaultExternalID?: string | null;
 };
 
+/** Policy invoicing details */
+type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Stripe Connect company name */
+    companyName?: string;
+
+    /** Stripe Connect company website */
+    companyWebsite?: string;
+}>;
+
 /** Names of policy features */
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
@@ -1446,6 +1455,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
          * @deprecated - use tax.trackingEnabled instead
          */
         isTaxTrackingEnabled?: boolean;
+
+        /** Policy invoicing details */
+        invoice?: PolicyInvoicingDetails;
 
         /** Tax data */
         tax?: {
