@@ -279,8 +279,7 @@ function MoneyRequestPreviewContent({
 
     const navigateToReviewFields = () => {
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
-        const allTransactionIDsDuplicates = [reviewingTransactionID, ...duplicates].filter((id) => id !== transaction?.transactionID);
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates: allTransactionIDsDuplicates, transactionID: transaction?.transactionID ?? ''});
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? ''});
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
         } else if ('category' in comparisonResult.change) {
