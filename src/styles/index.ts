@@ -5110,19 +5110,16 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateScrollView: {
-            marginTop: 12,
-            minHeight: 400,
             height: '100%',
             flex: 1,
         },
 
-        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+        emptyStateForeground: {
+            margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '100%',
-            padding: isSmallScreenWidth ? 32 : 0,
-            width: '100%',
-        }),
+            flex: 1,
+        },
 
         emptyStateContent: {
             backgroundColor: theme.cardBG,
