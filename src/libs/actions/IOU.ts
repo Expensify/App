@@ -35,7 +35,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,7 +62,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
@@ -278,17 +276,6 @@ Onyx.connect({
     },
 });
 
-let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocale = value;
-    },
-});
-
 let primaryPolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -479,10 +466,10 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
 }
 
-/** Update transaction distance rate */
-function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string) {
+/** Set the distance rate of a new  transaction */
+function setMoneyRequestDistanceRate(transactionID: string, rateID: string, policyID: string, isDraft: boolean) {
     Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
@@ -2487,32 +2474,6 @@ function calculateDiffAmount(
     return 0;
 }
 
-function calculateAmountForUpdatedWaypoint(
-    transaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
-    transactionChanges: TransactionChanges,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
-) {
-    let updatedAmount: number = CONST.IOU.DEFAULT_AMOUNT;
-    let updatedMerchant = Localize.translateLocal('iou.fieldPending');
-    if (!isEmptyObject(transactionChanges?.routes?.route0?.geometry)) {
-        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-        const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
-        const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-        const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-            ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-            : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
-        const {unit, rate} = mileageRate;
-        const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
-        updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
-        updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
-            toLocaleDigit(preferredLocale, digit),
-        );
-    }
-    return {amount: updatedAmount, modifiedAmount: updatedAmount, modifiedMerchant: updatedMerchant};
-}
-
 /**
  * @param transactionID
  * @param transactionThreadReportID
@@ -2570,10 +2531,11 @@ function getUpdateMoneyRequestParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy, iouReport),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2875,10 +2837,11 @@ function getUpdateTrackExpenseParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy, transactionThread),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(transactionThread)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -3200,6 +3163,31 @@ function updateMoneyRequestDescription(
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
+}
+
+/** Updates the distance rate of an expense */
+function updateMoneyRequestDistanceRate(
+    transactionID: string,
+    transactionThreadReportID: string,
+    rateID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    const transactionChanges: TransactionChanges = {
+        customUnitRateID: rateID,
+    };
+    const allReports = ReportConnection.getAllReports();
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+
+    let data: UpdateMoneyRequestData;
+    if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    }
+    const {params, onyxData} = data;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, params, onyxData);
 }
 
 /** Edits an existing distance expense */
@@ -7858,6 +7846,7 @@ export {
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
@@ -7876,13 +7865,13 @@ export {
     trackExpense,
     unapproveExpenseReport,
     unholdRequest,
-    updateDistanceRequestRate,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
     updateMoneyRequestDate,
     updateMoneyRequestDescription,
     updateMoneyRequestDistance,
+    updateMoneyRequestDistanceRate,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
