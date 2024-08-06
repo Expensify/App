@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,6 +64,7 @@ function WorkspaceReportFieldsPage({
     const {environmentURL} = useEnvironment();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {isSmallScreenWidth} = useWindowDimensions();
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
             return {};
