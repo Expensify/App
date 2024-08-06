@@ -393,11 +393,6 @@ describe('OptionsListUtils', () => {
         isPolicyExpenseChatEnabled: false,
     };
 
-    jest.mock('@src/libs/actions/Timing', () => ({
-        start: jest.fn(),
-        end: jest.fn(),
-    }));
-
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
