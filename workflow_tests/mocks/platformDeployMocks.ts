@@ -96,6 +96,7 @@ const PLATFORM_DEPLOY__DESKTOP__UPLOAD_WORKFLOW__STEP_MOCK = createMockStep('Upl
 const PLATFORM_DEPLOY__DESKTOP__UPLOAD_GH_RELEASE__STEP_MOCK = createMockStep('Upload desktop build to GitHub Release', 'Uploading desktop build to GitHub Release', 'DESKTOP', null, [
     'GITHUB_TOKEN',
 ]);
+const PLATFORM_DEPLOY__DESKTOP__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive desktop sourcemaps', 'Archiving desktop sourcemaps', 'DESKTOP', ['name', 'path']);
 const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
     PLATFORM_DEPLOY__DESKTOP__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__SETUP_NODE__STEP_MOCK,
@@ -103,6 +104,7 @@ const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
     PLATFORM_DEPLOY__DESKTOP__BUILD__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__UPLOAD_WORKFLOW__STEP_MOCK,
     PLATFORM_DEPLOY__DESKTOP__UPLOAD_GH_RELEASE__STEP_MOCK,
+    PLATFORM_DEPLOY__DESKTOP__ARCHIVE_SOURCEMAPS__STEP_MOCK,
 ];
 
 // ios
@@ -185,6 +187,7 @@ const PLATFORM_DEPLOY__WEB__VERIFY_STAGING_DEPLOY = createMockStep('Verify stagi
 const PLATFORM_DEPLOY__WEB__VERIFY_PROD_DEPLOY = createMockStep('Verify production deploy', 'Verifying production deploy', 'WEB');
 const PLATFORM_DEPLOY__WEB__UPlOAD_TO_GH_ARTIFACTS__STEP_MOCK = createMockStep('Upload web build to GitHub artifacts', 'Uploading web build to GitHub artifacts', 'WEB');
 const PLATFORM_DEPLOY__WEB__UPLOAD_TO_GH_RELEASE__STEP_MOCK = createMockStep('Upload web build to GitHub Release', 'Uploading web build to GitHub Release', 'WEB', null, ['GITHUB_TOKEN']);
+const PLATFORM_DEPLOY__WEB__ARCHIVE_SOURCEMAPS__STEP_MOCK = createMockStep('Archive web sourcemaps', 'Archiving web sourcemaps', 'WEB', ['name', 'path']);
 const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__SETUP_NODE__STEP_MOCK,
@@ -193,6 +196,7 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__BUILD__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__DEPLOY_S3__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__ARCHIVE_SOURCEMAPS__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__PURGE_CLOUDFLARE_CACHE__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__VERIFY_STAGING_DEPLOY,
     PLATFORM_DEPLOY__WEB__VERIFY_PROD_DEPLOY,

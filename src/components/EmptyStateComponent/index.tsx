@@ -85,6 +85,7 @@ function EmptyStateComponent({
                     shouldAnimate={false}
                 />
             </View>
+
             <View style={[styles.emptyStateForeground, emptyStateForegroundStyles]}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
