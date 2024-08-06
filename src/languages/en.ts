@@ -717,6 +717,13 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
         transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
+        companyInfo: 'Company info',
+        companyInfoDescription: 'We need a few more details before you can send your first invoice.',
+        yourCompanyName: 'Your company name',
+        yourCompanyWebsite: 'Your company website',
+        yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
+        invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
+        publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
@@ -3545,7 +3552,7 @@ export default {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
         pleaseEnterRoomName: 'Please enter a room name.',
         pleaseSelectWorkspace: 'Please select a workspace.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` renamed this room from ${oldName} to ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room from ${oldName} to ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -3640,6 +3647,7 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            currency: 'Currency',
         },
     },
     genericErrorPage: {
