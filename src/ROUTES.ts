@@ -33,8 +33,6 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    ALL_SETTINGS: 'all-settings',
-
     SEARCH_CENTRAL_PANE: {
         route: 'search',
         getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
@@ -47,6 +45,17 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
 
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
+
+    SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
+
+    SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
+
+    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
+
+    SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
+    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
+
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,
@@ -56,6 +65,8 @@ const ROUTES = {
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TRACK_EXPENSE: 'track-expense',
+    SUBMIT_EXPENSE: 'submit-expense',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
@@ -355,8 +366,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, participantsAutoAssigned?: boolean) =>
+            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID',
@@ -623,7 +634,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/approver` as const,
+        getRoute: (policyID: string, approverIndex?: number) =>
+            `settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',

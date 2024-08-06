@@ -25,33 +25,33 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {hasSynchronizationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
-    areXeroSettingsInErrorFields,
+    areSettingsInErrorFields,
     findCurrentXeroOrganization,
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
-    xeroSettingsPendingAction,
+    settingsPendingAction,
 } from '@libs/PolicyUtils';
-import type {XeroSettings} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -73,12 +73,14 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
-    subscribedImportSettings?: XeroSettings;
+    subscribedImportSettings?: string[];
     onExportPagePress: () => void;
-    subscribedExportSettings?: XeroSettings;
+    subscribedExportSettings?: string[];
     onAdvancedPagePress: () => void;
-    subscribedAdvancedSettings?: XeroSettings;
+    subscribedAdvancedSettings?: string[];
     onCardReconciliationPagePress: () => void;
+    pendingFields?: PendingFields<string>;
+    errorFields?: ErrorFields;
 };
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -134,6 +136,8 @@ function accountingIntegrationData(
                     CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
                     CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
                 ],
+                pendingFields: policy?.connections?.xero?.config?.pendingFields,
+                errorFields: policy?.connections?.xero?.config?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
@@ -163,9 +167,35 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS,
+                    ...Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS),
+                    CONST.SAGE_INTACCT_CONFIG.TAX,
+                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
+                ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.EXPORTER,
+                    CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    policy?.connections?.intacct?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+                        : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED,
+                    CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES,
+                    CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
+                    CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                ],
+                pendingFields: policy?.connections?.intacct?.config?.pendingFields,
+                errorFields: policy?.connections?.intacct?.config?.errorFields,
             };
         default:
             return undefined;
@@ -178,7 +208,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseSageIntacctIntegration} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -193,12 +222,15 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration));
-
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const policyID = policy?.id ?? '-1';
-    const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
+    // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
+    const successfulDate = getIntegrationLastSuccessfulDate(
+        connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
+        connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
+    );
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -214,7 +246,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
+                onSelected: () => Modal.close(() => setIsDisconnectModalOpen(true)),
             },
         ],
         [translate, policyID, isOffline, connectedIntegration],
@@ -247,8 +279,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                     },
-                    pendingAction: xeroSettingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
-                    brickRoadIndicator: areXeroSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
+                    pendingAction: settingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
+                    brickRoadIndicator: areSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                         : undefined,
                 };
@@ -276,7 +308,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     : {
                           description: translate('workspace.intacct.entity'),
                           iconRight: Expensicons.ArrowRight,
-                          title: getCurrentSageIntacctEntityName(policy),
+                          title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: true,
@@ -315,6 +347,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
+        const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
@@ -354,7 +387,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
+            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions
                 ? []
                 : [
                       {
@@ -364,10 +397,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
-                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedImportSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
                       },
                       {
                           icon: Expensicons.Send,
@@ -376,10 +409,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
-                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedExportSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
                       },
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -397,10 +430,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onAdvancedPagePress,
-                          brickRoadIndicator: areXeroSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.errorFields)
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                          pendingAction: xeroSettingsPendingAction(integrationData?.subscribedAdvancedSettings, policy?.connections?.xero?.config?.pendingFields),
+                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
                       },
                   ]),
         ];

@@ -186,6 +186,12 @@ type ConnectionLastSync = {
 
     /** Where did the connection's last sync job come from */
     source: JobSourceValues;
+
+    /**
+     * Sometimes we'll have a connection that is not connected, but the connection object is still present, so we can
+     * show an error message
+     */
+    isConnected?: boolean;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -1580,6 +1586,9 @@ export type {
     NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
+    NetSuiteVendor,
+    InvoiceItem,
+    NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
@@ -1591,4 +1600,5 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
+    ACHAccount,
 };
