@@ -39,6 +39,7 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -61,13 +62,13 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
-                        label={translate('personalInfoStep.last4SSN')}
-                        aria-label={translate('personalInfoStep.last4SSN')}
+                        label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
+                        aria-label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        maxLength={shouldAskForFullSSN ? 9 : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>
