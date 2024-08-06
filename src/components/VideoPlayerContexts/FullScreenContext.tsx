@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
-import type {ResponsiveLayoutResult} from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {FullScreenContext} from './types';
