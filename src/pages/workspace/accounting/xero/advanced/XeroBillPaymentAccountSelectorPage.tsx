@@ -42,9 +42,15 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
 
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                reimbursementAccountID: value,
-            });
+            Connections.updatePolicyXeroConnectionConfig(
+                policyID,
+                CONST.POLICY.CONNECTIONS.NAME.XERO,
+                CONST.XERO_CONFIG.SYNC,
+                {
+                    reimbursementAccountID: value,
+                },
+                {reimbursementAccountID},
+            );
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
         [policyID],

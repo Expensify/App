@@ -59,9 +59,15 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 wrapperStyle={styles.mv3}
                 isActive={!!autoSync?.enabled}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
-                        enabled: !autoSync?.enabled,
-                    })
+                    Connections.updatePolicyXeroConnectionConfig(
+                        policyID,
+                        CONST.POLICY.CONNECTIONS.NAME.XERO,
+                        CONST.XERO_CONFIG.AUTO_SYNC,
+                        {
+                            enabled: !autoSync?.enabled,
+                        },
+                        {enabled: autoSync?.enabled},
+                    )
                 }
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLED)}
@@ -76,9 +82,15 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 wrapperStyle={styles.mv3}
                 isActive={!!sync?.syncReimbursedReports}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                        syncReimbursedReports: !sync?.syncReimbursedReports,
-                    })
+                    Connections.updatePolicyXeroConnectionConfig(
+                        policyID,
+                        CONST.POLICY.CONNECTIONS.NAME.XERO,
+                        CONST.XERO_CONFIG.SYNC,
+                        {
+                            syncReimbursedReports: !sync?.syncReimbursedReports,
+                        },
+                        {syncReimbursedReports: sync?.syncReimbursedReports},
+                    )
                 }
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS], pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}

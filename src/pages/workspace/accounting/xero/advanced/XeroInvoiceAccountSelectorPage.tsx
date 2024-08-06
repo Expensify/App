@@ -42,9 +42,15 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                invoiceCollectionsAccountID: value,
-            });
+            Connections.updatePolicyXeroConnectionConfig(
+                policyID,
+                CONST.POLICY.CONNECTIONS.NAME.XERO,
+                CONST.XERO_CONFIG.SYNC,
+                {
+                    invoiceCollectionsAccountID: value,
+                },
+                {invoiceCollectionsAccountID},
+            );
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
         [policyID],
