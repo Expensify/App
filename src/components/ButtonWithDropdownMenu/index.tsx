@@ -1,3 +1,4 @@
+import type {MutableRefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -8,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -47,6 +49,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -148,18 +151,18 @@ function ButtonWithDropdownMenu<IValueType>({
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={dropdownAnchor}
+                    anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        onSelected:
-                            item.onSelected ??
-                            (() => {
-                                onOptionSelected?.(item);
-                                setSelectedItemIndex(index);
-                            }),
+                        onSelected: item.onSelected
+                            ? () => Modal.close(() => item.onSelected?.())
+                            : () => {
+                                  onOptionSelected?.(item);
+                                  setSelectedItemIndex(index);
+                              },
                     }))}
                 />
             )}

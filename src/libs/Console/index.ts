@@ -53,7 +53,7 @@ function logMessage(args: unknown[]) {
             return String(arg);
         })
         .join(' ');
-    const newLog = {time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message};
+    const newLog = {time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message, extraData: ''};
     addLog(newLog);
 }
 
@@ -105,15 +105,15 @@ function createLog(text: string) {
 
         if (result !== undefined) {
             return [
-                {time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`},
-                {time, level: CONST.DEBUG_CONSOLE.LEVELS.RESULT, message: String(result)},
+                {time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`, extraData: ''},
+                {time, level: CONST.DEBUG_CONSOLE.LEVELS.RESULT, message: String(result), extraData: ''},
             ];
         }
-        return [{time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`}];
+        return [{time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`, extraData: ''}];
     } catch (error) {
         return [
-            {time, level: CONST.DEBUG_CONSOLE.LEVELS.ERROR, message: `> ${text}`},
-            {time, level: CONST.DEBUG_CONSOLE.LEVELS.ERROR, message: `Error: ${(error as Error).message}`},
+            {time, level: CONST.DEBUG_CONSOLE.LEVELS.ERROR, message: `> ${text}`, extraData: ''},
+            {time, level: CONST.DEBUG_CONSOLE.LEVELS.ERROR, message: `Error: ${(error as Error).message}`, extraData: ''},
         ];
     }
 }

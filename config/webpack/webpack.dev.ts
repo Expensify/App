@@ -53,6 +53,10 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                         cert: path.join(__dirname, 'certificate.pem'),
                     },
                 },
+                headers: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Document-Policy': 'js-profiling',
+                },
             },
             plugins: [
                 new DefinePlugin({
