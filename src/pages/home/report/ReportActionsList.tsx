@@ -1,5 +1,5 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -42,9 +42,6 @@ type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => voi
 type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
-
-    /** The current route of report screen */
-    route: RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>;
 
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -145,7 +142,6 @@ const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
     report,
-    route,
     transactionThreadReport,
     reportActions = [],
     parentReportAction,
@@ -175,6 +171,7 @@ function ReportActionsList({
 
     const {isOffline} = useNetwork();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);

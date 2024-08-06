@@ -1,5 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
@@ -21,7 +22,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
-import type {AuthScreensParamList} from '@navigation/types';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
@@ -49,9 +49,6 @@ type ReportActionsViewOnyxProps = {
 type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
-
-    /** The current route of report screen */
-    route: RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>;
 
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
@@ -88,7 +85,6 @@ const SPACER = 16;
 let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
-    route,
     report,
     transactionThreadReport,
     session,
@@ -105,6 +101,7 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
+    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
@@ -495,7 +492,6 @@ function ReportActionsView({
         <>
             <ReportActionsList
                 report={report}
-                route={route}
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
@@ -531,11 +527,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
-
-    if (oldProps.route !== newProps.route) {
-        return false;
-    }
-
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }

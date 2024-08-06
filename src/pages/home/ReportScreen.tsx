@@ -1,6 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import type {RouteProp} from '@react-navigation/native';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -33,7 +32,6 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -41,6 +39,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {AuthScreensParamList} from '@navigation/types';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -96,8 +95,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID ?? '0'];
 }
 
-function ReportScreen({currentReportID = '', navigation}: ReportScreenProps) {
-    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
@@ -784,7 +782,6 @@ function ReportScreen({currentReportID = '', navigation}: ReportScreenProps) {
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
-                                        route={route}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
