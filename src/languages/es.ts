@@ -3507,7 +3507,7 @@ export default {
                 description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración Expensify + Sage Intacct. Obtén información financiera en profundidad y en tiempo real con dimensiones definidas por el usuario, así como codificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
                 onlyAvailableOnPlan: 'Nuestra integración Sage Intacct sólo está disponible en el plan Control, a partir de ',
             },
-            [CONST.POLICY.INTERNAL.NAME.APPROVALS]: {
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
                 description: `Si quieres añadir más niveles de aprobación, o simplemente asegurarte de que los gastos más importantes reciben otro vistazo, no hay problema. Las aprobaciones avanzadas ayudan a realizar las comprobaciones adecuadas a cada nivel para mantener los gastos de tu equipo bajo control.`,
                 onlyAvailableOnPlan: 'Las aprobaciones avanzadas sólo están disponibles en el plan Control, con precios desde ',
