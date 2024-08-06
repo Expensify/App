@@ -23,7 +23,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
             {
                 data: Object.values(listValues ?? {})
                     .filter((listValue, index) => !disabledOptions[index])
-                    .sort((a, b) => localeCompare(a, b))
+                    .sort(localeCompare)
                     .map((listValue) => ({
                         keyForList: listValue,
                         value: listValue,
