@@ -63,6 +63,9 @@ type FeatureTrainingModalProps = {
     /** A callback to call when user confirms the tutorial */
     onConfirm?: () => void;
 
+    /** A callback to call when modal closes */
+    onClose?: () => void;
+
     /** Text to show on secondary button */
     helpText?: string;
 
@@ -80,6 +83,7 @@ function FeatureTrainingModal({
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
+    onClose = () => {},
     helpText = '',
     onHelp = () => {},
 }: FeatureTrainingModalProps) {
@@ -166,7 +170,8 @@ function FeatureTrainingModal({
         }
         setIsModalVisible(false);
         Navigation.goBack();
-    }, [willShowAgain]);
+        onClose?.();
+    }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
         closeModal();

@@ -82,6 +82,7 @@ import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
+import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
 import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
@@ -178,6 +179,7 @@ import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
+import UserCheck from '@assets/images/user-check.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
@@ -349,6 +351,7 @@ export {
     Upload,
     UploadAlt,
     User,
+    UserCheck,
     Users,
     VolumeHigh,
     VolumeLow,
@@ -380,4 +383,5 @@ export {
     QBOCircle,
     Filters,
     CalendarSolid,
+    Filter,
 };
