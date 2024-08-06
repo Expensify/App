@@ -87,11 +87,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
-        if (!currentReportID || !prevCurrentReportID) {
+        if (!currentReportID || !prevCurrentReportID || currentReportID === '-1' || prevCurrentReportID === '-1') {
             return;
         }
         resetVideoPlayerData();
-    }, [currentReportID, resetVideoPlayerData]);
+    }, [currentReportID, prevCurrentReportID, resetVideoPlayerData]);
 
     const contextValue = useMemo(
         () => ({
