@@ -5800,12 +5800,12 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
         const participantAccountIDs = Object.keys(report?.participants ?? {});
 
         // Skip if it's not a 1:1 chat
-        if (!shouldIncludeGroupChats && !isOneOnOneChat(report)) {
+        if (!shouldIncludeGroupChats && !isOneOnOneChat(report) && !isSystemChat(report)) {
             return false;
         }
 
         // If we are looking for a group chat, then skip non-group chat report
-        if (shouldIncludeGroupChats && !isGroupChat(report)) {
+        if (shouldIncludeGroupChats && !isGroupChat(report) && !isSystemChat(report)) {
             return false;
         }
 

@@ -3346,6 +3346,7 @@ function completeOnboarding(
                     },
                     isOptimisticReport: true,
                     managerID: currentUserAccountID,
+                    permissions: targetChatReport?.permissions,
                 },
             },
             {
