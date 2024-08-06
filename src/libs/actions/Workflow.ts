@@ -217,8 +217,21 @@ function setApprovalWorkflow(approvalWorkflow: ApprovalWorkflow) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
+function clearApprovalWorkflowApprovers() {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
+}
+
 function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
 }
 
-export {createApprovalWorkflow, updateApprovalWorkflow, removeApprovalWorkflow, setApprovalWorkflowMembers, setApprovalWorkflowApprover, setApprovalWorkflow, clearApprovalWorkflow};
+export {
+    createApprovalWorkflow,
+    updateApprovalWorkflow,
+    removeApprovalWorkflow,
+    setApprovalWorkflowMembers,
+    setApprovalWorkflowApprover,
+    setApprovalWorkflow,
+    clearApprovalWorkflowApprovers,
+    clearApprovalWorkflow,
+};

@@ -7,6 +7,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
 import Section from './Section';
@@ -56,6 +57,9 @@ type FeatureListProps = {
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
 
+    /** The error message to display for the CTA button */
+    ctaErrorMessage?: string;
+
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
 };
@@ -65,10 +69,11 @@ function FeatureList({
     subtitle = '',
     ctaText = '',
     ctaAccessibilityLabel = '',
-    onCtaPress,
+    onCtaPress = () => {},
     secondaryButtonText = '',
     secondaryButtonAccessibilityLabel = '',
-    onSecondaryButtonPress,
+    onSecondaryButtonPress = () => {},
+    ctaErrorMessage,
     menuItems,
     illustration,
     illustrationStyle,
@@ -107,6 +112,7 @@ function FeatureList({
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
                                 containerStyle={[styles.m0, styles.wAuto]}
+                                numberOfLinesTitle={0}
                             />
                         </View>
                     ))}
@@ -118,6 +124,12 @@ function FeatureList({
                         accessibilityLabel={secondaryButtonAccessibilityLabel}
                         style={[styles.w100, styles.mb3]}
                         large
+                    />
+                )}
+                {ctaErrorMessage && (
+                    <DotIndicatorMessage
+                        messages={{error: ctaErrorMessage}}
+                        type="error"
                     />
                 )}
                 <Button
