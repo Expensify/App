@@ -71,9 +71,6 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** There an error when loading newer report actions */
     hasLoadingNewerReportActionsError?: boolean;
 
-    /** Whether the report is ready for comment linking */
-    isReadyForCommentLinking?: boolean;
-
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -96,7 +93,6 @@ function ReportActionsView({
     hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
-    isReadyForCommentLinking = false,
     transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -522,9 +518,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
 
-    if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
-        return false;
-    }
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }

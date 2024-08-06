@@ -402,11 +402,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        (isLinkingToMessage && !isLinkedMessagePageReady) ||
-        (!isLinkingToMessage && !isInitialPageReady) ||
-        isLoadingReportOnyx ||
-        !isCurrentReportLoadedFromOnyx ||
-        isLoading;
+        (isLinkingToMessage && !isLinkedMessagePageReady) || (!isLinkingToMessage && !isInitialPageReady) || isLoadingReportOnyx || !isCurrentReportLoadedFromOnyx || isLoading;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
@@ -787,7 +783,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         hasLoadingNewerReportActionsError={reportMetadata?.hasLoadingNewerReportActionsError}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
                                         hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
-                                        isReadyForCommentLinking={!shouldShowSkeleton}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
                                 )}
