@@ -1138,6 +1138,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.INVOICES_TRANSFER_BALANCE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };

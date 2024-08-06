@@ -475,6 +475,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
                         },
+                        [SCREENS.WORKSPACE.INVOICES_TRANSFER_BALANCE]: {
+                            path: ROUTES.WORKSPACE_INVOICES_TRANSFER_BALANCE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },

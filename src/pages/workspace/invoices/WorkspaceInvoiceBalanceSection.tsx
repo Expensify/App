@@ -5,7 +5,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type WorkspaceInvoiceBalanceSectionProps = {
     /** The policy ID currently being configured */
@@ -26,11 +28,11 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             childrenStyles={styles.pt5}
             subtitleMuted
             menuItems={
-                policy?.invoice?.bankAccount
+                !policy?.invoice?.bankAccount
                     ? [
                           {
                               title: translate('common.transferBalance'),
-                              onPress: () => console.debug('Transfer balance'),
+                              onPress: () => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_TRANSFER_BALANCE.getRoute(policyID)),
                               icon: Expensicons.Transfer,
                               shouldShowRightIcon: true,
                               iconRight: Expensicons.ArrowRight,
