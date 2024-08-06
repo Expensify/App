@@ -152,7 +152,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areInvoicesEnabled ?? false,
             pendingAction: policy?.pendingFields?.areInvoicesEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyInvoices(policy?.id ?? '-1', isEnabled);
+                Policy.enablePolicyInvoicing(policy?.id ?? '-1', isEnabled);
             },
         },
     ];

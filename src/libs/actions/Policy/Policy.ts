@@ -14,7 +14,7 @@ import type {
     DeleteWorkspaceParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
-    EnablePolicyInvoicesParams,
+    EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
@@ -2943,7 +2943,7 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
     API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
 }
 
-function enablePolicyInvoices(policyID: string, enabled: boolean) {
+function enablePolicyInvoicing(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2982,9 +2982,9 @@ function enablePolicyInvoices(policyID: string, enabled: boolean) {
         ],
     };
 
-    const parameters: EnablePolicyInvoicesParams = {policyID, enabled};
+    const parameters: EnablePolicyInvoicingParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICING, parameters, onyxData);
 
     // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
     // if (enabled && getIsNarrowLayout()) {
@@ -3277,7 +3277,7 @@ export {
     enablePolicyTaxes,
     enablePolicyWorkflows,
     enableDistanceRequestTax,
-    enablePolicyInvoices,
+    enablePolicyInvoicing,
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,
     openPolicyInitialPage,
