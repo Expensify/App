@@ -8,6 +8,7 @@ import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INAC
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type FocusTrapProps from './FocusTrapProps';
 
 function FocusTrapForScreen({children}: FocusTrapProps) {
@@ -23,6 +24,10 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
 
         // in top tabs only focus trap for currently shown tab should be active
         if (TOP_TAB_SCREENS.find((screen) => screen === route.name)) {
+            return isFocused;
+        }
+
+        if (route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
             return isFocused;
         }
 
