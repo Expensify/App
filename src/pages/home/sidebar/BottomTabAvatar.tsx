@@ -43,7 +43,6 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
 
         if (route.name === SCREENS.WORKSPACE.INITIAL) {
             Navigation.dismissModal();
-            Navigation.goBack(ROUTES.SETTINGS);
             return;
         }
 
