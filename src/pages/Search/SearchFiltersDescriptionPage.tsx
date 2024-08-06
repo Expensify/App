@@ -36,6 +36,7 @@ function SearchFiltersDescriptionPage() {
             testID={SearchFiltersDescriptionPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton
@@ -51,7 +52,7 @@ function SearchFiltersDescriptionPage() {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View style={styles.mb4}>
+                    <View style={styles.mb5}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.DESCRIPTION}

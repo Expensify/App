@@ -2890,6 +2890,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     const parameters: InviteToRoomParams = {
         reportID,
         inviteeEmails,
+        accountIDList: newAccountIDs.join(),
     };
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
