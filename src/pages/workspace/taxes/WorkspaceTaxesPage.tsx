@@ -138,7 +138,9 @@ function WorkspaceTaxesPage({
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const taxesToSelect = taxesList.filter(
+            (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
         setSelectedTaxesIDs((prev) => {
             if (prev.length === taxesToSelect.length) {
                 return [];
