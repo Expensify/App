@@ -17,7 +17,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormValue, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -39,10 +39,6 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
             return '';
     }
 }
-
-function isEmptyValue(value: FormValue) {
-    return value === undefined || value === '';
-};
 
 type FormProviderOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
@@ -253,7 +249,7 @@ function FormProvider(
             } else if (inputProps.shouldUseDefaultValue && inputProps.defaultValue !== undefined && inputValues[inputID] === undefined) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = inputProps.defaultValue;
-            } else if (isEmptyValue(inputValues[inputID])) {
+            } else if (inputValues[inputID] === undefined) {
                 // We want to initialize the input value if it's undefined
                 inputValues[inputID] = inputProps.defaultValue ?? getInitialValueByType(inputProps.valueType);
             }
