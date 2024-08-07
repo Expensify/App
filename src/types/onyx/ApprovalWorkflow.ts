@@ -92,7 +92,7 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     approvers: Array<Approver | undefined>;
 
     /**
-     * What is the current flow of the workflow, used to navigate between different screens
+     * The current state of the workflow, used to navigate between different screens
      */
     flow: 'create' | 'edit';
 
