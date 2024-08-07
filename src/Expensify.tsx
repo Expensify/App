@@ -41,7 +41,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
-import type {ScreenShareRequest, Session} from './types/onyx';
+import type {ScreenShareRequest} from './types/onyx';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
