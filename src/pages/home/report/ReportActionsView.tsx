@@ -456,6 +456,7 @@ function ReportActionsView({
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
         Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD);
         Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD_GO_BACK);
+        Timing.end(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
     }, [hasCachedActionOnFirstRender]);
 
     // Check if the first report action in the list is the one we're currently linked to
