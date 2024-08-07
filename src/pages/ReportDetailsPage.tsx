@@ -145,6 +145,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
         const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return [];
+        }
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
