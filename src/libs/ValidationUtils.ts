@@ -1,5 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {Str, Url} from 'expensify-common';
+import {PUBLIC_DOMAINS, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -41,9 +41,7 @@ function isValidAddress(value: FormValue): boolean {
         return false;
     }
 
-    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
-
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(emojisRegex)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
 
@@ -244,6 +242,11 @@ function isValidWebsite(url: string): boolean {
     return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
+/** Checks if the domain is public */
+function isPublicDomain(domain: string): boolean {
+    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase());
+}
+
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
     const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
     const errors: Record<string, boolean> = {};
@@ -333,12 +336,11 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  * Checks that the provided name doesn't contain any emojis
  */
 function isValidCompanyName(name: string) {
-    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
-    return !name.match(emojisRegex);
+    return !name.match(CONST.REGEX.EMOJIS);
 }
 
 function isValidReportName(name: string) {
-    return name.trim().length <= CONST.REPORT_NAME_LIMIT;
+    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
 }
 
 /**
@@ -537,4 +539,5 @@ export {
     isExistingTaxName,
     isValidSubscriptionSize,
     isExistingTaxCode,
+    isPublicDomain,
 };

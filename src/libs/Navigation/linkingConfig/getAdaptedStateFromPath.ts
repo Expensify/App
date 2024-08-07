@@ -21,7 +21,12 @@ import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForSta
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
 
-const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS, SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE] satisfies Screen[];
+const RHP_SCREENS_OPENED_FROM_LHN = [
+    SCREENS.SETTINGS.SHARE_CODE,
+    SCREENS.SETTINGS.PROFILE.STATUS,
+    SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE,
+    SCREENS.MONEY_REQUEST.CREATE,
+] satisfies Screen[];
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 

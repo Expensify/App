@@ -32,6 +32,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -540,7 +541,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         if (isExpenseReport && shouldShowHoldAction) {
-            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: moneyRequestAction}));
+            result.push(
+                PromotedActions.hold({
+                    isTextHold: canHoldUnholdReportAction.canHoldRequest,
+                    reportAction: moneyRequestAction,
+                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
+                }),
+            );
         }
 
         if (report) {
@@ -550,7 +557,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
+    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -606,7 +613,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
-                    title={reportName}
+                    title={StringUtils.lineBreaksToSpaces(reportName)}
                     titleStyle={styles.newKansasLarge}
                     titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
@@ -673,8 +680,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         setIsDeleteModalVisible(false);
 
         if (caseID === CASES.DEFAULT) {
-            Task.deleteTask(report);
-            navigateBackToAfterDelete.current = undefined;
+            navigateBackToAfterDelete.current = Task.deleteTask(report);
             return;
         }
 
@@ -777,6 +783,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onModalHide={() => {
                         // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
                         if (!isTransactionDeleted.current) {
+                            if (caseID === CASES.DEFAULT) {
+                                if (navigateBackToAfterDelete.current) {
+                                    Navigation.goBack(navigateBackToAfterDelete.current);
+                                } else {
+                                    Navigation.dismissModal();
+                                }
+                            }
                             return;
                         }
 

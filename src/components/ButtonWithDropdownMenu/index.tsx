@@ -1,3 +1,4 @@
+import type {MutableRefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -8,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -31,6 +33,8 @@ function ButtonWithDropdownMenu<IValueType>({
     onPress,
     options,
     onOptionSelected,
+    onOptionsMenuShow,
+    onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
 }: ButtonWithDropdownMenuProps<IValueType>) {
@@ -41,20 +45,21 @@ function ButtonWithDropdownMenu<IValueType>({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const caretButton = useRef<View | null>(null);
+    const dropdownAnchor = useRef<View | null>(null);
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
 
     useEffect(() => {
-        if (!caretButton.current) {
+        if (!dropdownAnchor.current) {
             return;
         }
         if (!isMenuVisible) {
             return;
         }
-        if ('measureInWindow' in caretButton.current) {
-            caretButton.current.measureInWindow((x, y, w, h) => {
+        if ('measureInWindow' in dropdownAnchor.current) {
+            dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
                     horizontal: x + w,
                     vertical:
@@ -73,11 +78,14 @@ function ButtonWithDropdownMenu<IValueType>({
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={(ref) => {
-                            caretButton.current = ref;
+                            if (isSplitButton) {
+                                return;
+                            }
+                            dropdownAnchor.current = ref;
                         }}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled || !!selectedItem.disabled}
+                        isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
@@ -92,7 +100,7 @@ function ButtonWithDropdownMenu<IValueType>({
 
                     {isSplitButton && (
                         <Button
-                            ref={caretButton}
+                            ref={dropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
                             style={[styles.pl0]}
@@ -136,21 +144,25 @@ function ButtonWithDropdownMenu<IValueType>({
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
-                    onClose={() => setIsMenuVisible(false)}
+                    onClose={() => {
+                        setIsMenuVisible(false);
+                        onOptionsMenuHide?.();
+                    }}
+                    onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={caretButton}
+                    anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        onSelected:
-                            item.onSelected ??
-                            (() => {
-                                onOptionSelected?.(item);
-                                setSelectedItemIndex(index);
-                            }),
+                        onSelected: item.onSelected
+                            ? () => Modal.close(() => item.onSelected?.())
+                            : () => {
+                                  onOptionSelected?.(item);
+                                  setSelectedItemIndex(index);
+                              },
                     }))}
                 />
             )}

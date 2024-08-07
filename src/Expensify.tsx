@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, NativeModules} from 'react-native';
+import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -13,6 +13,7 @@ import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAu
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
+import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -30,6 +31,7 @@ import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
 import Performance from './libs/Performance';
+import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
@@ -169,6 +171,11 @@ function Expensify({
         return unsubscribeNetInfo;
     }, []);
 
+    // Log the platform and config to debug .env issues
+    useEffect(() => {
+        Log.info('App launched', false, {Platform, CONFIG});
+    }, []);
+
     useEffect(() => {
         setTimeout(() => {
             BootSplash.getVisibilityStatus().then((status) => {
@@ -232,6 +239,13 @@ function Expensify({
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+        setCrashlyticsUserId(session?.accountID ?? -1);
+    }, [isAuthenticated, session?.accountID]);
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -286,6 +300,7 @@ function Expensify({
                         authenticated={isAuthenticated}
                         lastVisitedPath={lastVisitedPath as Route}
                         initialUrl={initialUrl}
+                        shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
