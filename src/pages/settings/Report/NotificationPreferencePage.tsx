@@ -21,7 +21,11 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenPr
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || -1}`);
-    const shouldDisableNotificationPreferences = ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const shouldDisableNotificationPreferences =
+        ReportUtils.isArchivedRoom(report, reportNameValuePairs) ||
+        ReportUtils.isSelfDM(report) ||
+        (!isMoneyRequestReport && report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({
@@ -47,7 +51,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                     onSelectRow={(option) =>
                         report && ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
                     }
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>
