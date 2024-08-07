@@ -1898,12 +1898,14 @@ const workSpaceIconsCache = new Map<string, Icon>();
 function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
     const iconFromCache = workSpaceIconsCache.get(workspaceName);
-    if (iconFromCache) {
+    const avatarURL = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL;
+
+    const isSameAvatarURL = iconFromCache?.source === avatarURL;
+    const isDefaultWorkspaceAvatar = !avatarURL && typeof iconFromCache?.source !== 'string';
+    if (iconFromCache && (isSameAvatarURL || isDefaultWorkspaceAvatar)) {
         return iconFromCache;
     }
-    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
-        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
-        : getDefaultWorkspaceAvatar(workspaceName);
+    const policyExpenseChatAvatarSource = avatarURL ?? getDefaultWorkspaceAvatar(workspaceName);
 
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
