@@ -7477,6 +7477,10 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number):
     return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
 }
 
+/**
+ * Returns the email of the account to forward the report to depending on the approver's approval limit.
+ * Used for advanced approval mode only.
+ */
 function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
     if (!PolicyUtils.isControlOnAdvancedApprovalMode(policy)) {
         return '';
