@@ -83,10 +83,10 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 onToggle={() => {
                     if (importMapping) {
                         setImportMapping(false);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
+                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.NONE, config?.mappings?.[mappingName]);
                     } else {
                         setImportMapping(true);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG, config?.mappings?.[mappingName]);
                     }
                 }}
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
