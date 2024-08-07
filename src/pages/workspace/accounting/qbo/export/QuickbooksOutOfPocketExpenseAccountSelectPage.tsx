@@ -116,7 +116,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                     sections={data.length ? [{data}] : []}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportAccount}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     listEmptyContent={listEmptyContent}
                 />

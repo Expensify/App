@@ -105,7 +105,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => setTypeSelected(value)}
                 sections={[{data}]}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={typeSelected}
                 shouldUpdateFocusedIndex
             />
