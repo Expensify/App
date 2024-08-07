@@ -121,7 +121,8 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
-    if (!sortedApprovalWorkflows[0].isDefault) {
+    const firstWorkflow = sortedApprovalWorkflows.at(0);
+    if (firstWorkflow && !firstWorkflow.isDefault) {
         sortedApprovalWorkflows.unshift({
             members: [],
             approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
