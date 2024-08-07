@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
+import useSplashScreen from '@hooks/useSplashScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 
 function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieView>) {
     const appState = useAppState();
+    const {isSplashHidden} = useSplashScreen();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
 
@@ -27,14 +29,15 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
-    // If the image fails to load or app is in background state, we'll just render an empty view
-    // using the fallback in case of a Lottie error or appState.isBackground to prevent
-    // memory leak, see issue: https://github.com/Expensify/App/issues/36645
-    if (isError || appState.isBackground) {
+    // If the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
+    // we'll just render an empty view as the fallback to prevent
+    // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
+    // 2. heavy rendering, see issue: https://github.com/Expensify/App/issues/34696
+    if (isError || appState.isBackground || !animationFile || !isSplashHidden) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 
-    return animationFile ? (
+    return (
         <LottieView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
@@ -44,7 +47,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}
         />
-    ) : null;
+    );
 }
 
 Lottie.displayName = 'Lottie';
