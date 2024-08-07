@@ -47,6 +47,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
 
+    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
 
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
@@ -54,6 +56,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
 
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
+    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
@@ -362,6 +365,11 @@ const ROUTES = {
         route: 'create/:iouType/from/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType as string}/from/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_COMPANY_INFO: {
+        route: 'create/:iouType/company-info/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType as string}/company-info/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
