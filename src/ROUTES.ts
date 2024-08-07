@@ -624,7 +624,7 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'settings/workspaces/:policyID/workflows/approvals/new',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/new` as const, backTo),
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/new` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'settings/workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
