@@ -187,7 +187,7 @@ type SwitchToCurrentReportProps = {
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
-const isAndroidNative = getPlatform() === CONST.PLATFORM.IOS;
+const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
