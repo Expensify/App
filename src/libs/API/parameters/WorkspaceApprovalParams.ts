@@ -4,7 +4,6 @@ type CreateWorkspaceApprovalParams = {
     /**
      * Stringified JSON object with type of following structure:
      * Array<{
-     *  role: string;
      *  email: string;
      *  forwardsTo?: string;
      *  submitsTo?: string;
