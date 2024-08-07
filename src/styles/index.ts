@@ -5110,6 +5110,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateScrollView: {
+            marginTop: 12,
             minHeight: 400,
             height: '100%',
             flex: 1,
@@ -5149,6 +5150,13 @@ const styles = (theme: ThemeColors) =>
         emptyStateFolderIconSize: {
             width: 184,
             height: 112,
+        },
+
+        workflowApprovalVerticalLine: {
+            height: 16,
+            width: 1,
+            marginLeft: 19,
+            backgroundColor: theme.border,
         },
     } satisfies Styles);
 
