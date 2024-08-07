@@ -274,7 +274,7 @@ function WorkspaceReportFieldsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
