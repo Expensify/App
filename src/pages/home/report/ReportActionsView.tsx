@@ -454,6 +454,7 @@ function ReportActionsView({
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD);
         Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD_GO_BACK);
     }, [hasCachedActionOnFirstRender]);
 
