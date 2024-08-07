@@ -132,7 +132,6 @@ const buildEmojisTrie = (locale: Locale) => {
     emojiTrie[localeToUse] = createTrie(localeToUse);
 };
 
-console.log('IN EMOJIE TREE END: ', Timing);
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
