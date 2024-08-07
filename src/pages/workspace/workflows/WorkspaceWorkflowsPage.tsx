@@ -95,18 +95,19 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         }, [fetchData]),
     );
 
+    // User should be allowed to add new Approval Workflow only if he has upgrade to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
         if (!PolicyUtils.isControlPolicy(policy)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
             );
-        } else {
-            Workflow.setApprovalWorkflow({
-                ...EMPTY_APPROVAL_WORKFLOW,
-                availableMembers: approvalWorkflows.at(0)?.members ?? [],
-            });
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
+            return;
         }
+        Workflow.setApprovalWorkflow({
+            ...EMPTY_APPROVAL_WORKFLOW,
+            availableMembers: approvalWorkflows.at(0)?.members ?? [],
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [approvalWorkflows, policy, route.params.policyID]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
