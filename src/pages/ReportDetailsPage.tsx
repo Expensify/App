@@ -680,8 +680,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         setIsDeleteModalVisible(false);
 
         if (caseID === CASES.DEFAULT) {
-            Task.deleteTask(report);
-            navigateBackToAfterDelete.current = undefined;
+            navigateBackToAfterDelete.current = Task.deleteTask(report);
             return;
         }
 
@@ -784,6 +783,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onModalHide={() => {
                         // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
                         if (!isTransactionDeleted.current) {
+                            if (caseID === CASES.DEFAULT) {
+                                if (navigateBackToAfterDelete.current) {
+                                    Navigation.goBack(navigateBackToAfterDelete.current);
+                                } else {
+                                    Navigation.dismissModal();
+                                }
+                            }
                             return;
                         }
 
