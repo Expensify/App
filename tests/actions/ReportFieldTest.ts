@@ -17,10 +17,11 @@ import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type PolicyReportFieldWithOfflineFeedback = Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>;
+type PolicyReportFieldWithoutOfflineFeedback = Record<string, PolicyReportField>;
+
 OnyxUpdateManager();
 describe('actions/ReportField', () => {
-    type PolicyReportFieldWithOfflineFeedback = Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>;
-
     function connectToFetchPolicy(policyID: string): Promise<OnyxEntry<PolicyType>> {
         return new Promise((resolve) => {
             const connectionID = Onyx.connect({
@@ -440,12 +441,11 @@ describe('actions/ReportField', () => {
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
                     disabledOptions: [false, true, true],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -492,12 +492,11 @@ describe('actions/ReportField', () => {
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
                     disabledOptions: [false, true, true],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -509,7 +508,7 @@ describe('actions/ReportField', () => {
             policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
             // Check if the policy errors was set
@@ -550,12 +549,11 @@ describe('actions/ReportField', () => {
 
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
                     disabledOptions: [...reportField.disabledOptions, false],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             });
 
@@ -602,12 +600,11 @@ describe('actions/ReportField', () => {
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
                     disabledOptions: [...reportField.disabledOptions, false],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             });
 
@@ -619,7 +616,7 @@ describe('actions/ReportField', () => {
             policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
         });
@@ -658,13 +655,12 @@ describe('actions/ReportField', () => {
             let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
             // Check if the values were removed from the report field
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: '',
                     values: ['Value 1'],
                     disabledOptions: [false],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -715,7 +711,6 @@ describe('actions/ReportField', () => {
                     defaultValue: '',
                     values: ['Value 1'],
                     disabledOptions: [false],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -727,7 +722,7 @@ describe('actions/ReportField', () => {
             policy = await connectToFetchPolicy(policyID);
 
             // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: reportField,
             });
             // Check if the policy errors was set

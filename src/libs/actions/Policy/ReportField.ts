@@ -397,19 +397,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: {pendingAction: null},
+                        [fieldKey]: updatedReportField,
                     },
                     errorFields: null,
                 },
@@ -421,7 +409,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {...reportField, pendingAction: null},
+                        [fieldKey]: reportField,
                     },
                     errorFields: {
                         [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
@@ -430,6 +418,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
             },
         ],
     };
+
     const parameters: EnableWorkspaceReportFieldListValueParams = {
         policyID,
         reportFields: JSON.stringify([updatedReportField]),
@@ -457,22 +446,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {
-                            ...updatedReportField,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [reportFieldKey]: {pendingAction: null},
+                        [reportFieldKey]: updatedReportField,
                     },
                     errorFields: null,
                 },
@@ -484,7 +458,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {...reportField, pendingAction: null},
+                        [reportFieldKey]: reportField,
                     },
                     errorFields: {
                         [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
@@ -531,22 +505,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {
-                            ...updatedReportField,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [reportFieldKey]: {pendingAction: null},
+                        [reportFieldKey]: updatedReportField,
                     },
                     errorFields: null,
                 },
@@ -558,7 +517,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {...reportField, pendingAction: null},
+                        [reportFieldKey]: reportField,
                     },
                     errorFields: {
                         [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
