@@ -4713,6 +4713,11 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeNormal,
         },
 
+        walletIllustration: {
+            width: 262,
+            height: 152,
+        },
+
         walletCardLimit: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -4745,13 +4750,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textLight,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
-        },
-
-        walletBalance: {
-            lineHeight: undefined,
-            fontSize: 45,
-            paddingTop: 0,
-            paddingBottom: 0,
         },
 
         walletRedDotSectionTitle: {

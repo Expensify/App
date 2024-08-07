@@ -49,7 +49,6 @@ import * as LoginUtils from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
-import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
@@ -1724,9 +1723,6 @@ function getUserToInviteOption({
  * Check whether report has violations
  */
 function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
-    if (!Permissions.canUseViolations(betas)) {
-        return false;
-    }
     const {parentReportID, parentReportActionID} = report ?? {};
     const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
     if (!canGetParentReport) {

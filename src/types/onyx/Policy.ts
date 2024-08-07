@@ -1294,6 +1294,12 @@ type PolicyReportField = {
 
 /** Policy invoicing details */
 type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Stripe Connect company name */
+    companyName?: string;
+
+    /** Stripe Connect company website */
+    companyWebsite?: string;
+
     /** Back account */
     bankAccount?: {
         /** Account balance */
