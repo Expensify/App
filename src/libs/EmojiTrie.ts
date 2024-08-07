@@ -14,7 +14,7 @@ type EmojiMetaData = {
     name?: string;
 };
 
-Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
+Timing?.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;
 
@@ -133,7 +133,7 @@ const buildEmojisTrie = (locale: Locale) => {
     emojiTrie[localeToUse] = createTrie(localeToUse);
 };
 
-Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
+Timing?.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
 export {buildEmojisTrie};
