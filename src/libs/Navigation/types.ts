@@ -1102,6 +1102,7 @@ type TravelNavigatorParamList = {
 type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: string;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
