@@ -534,7 +534,6 @@ function ReportActionItemMessageEdit(
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                         isGroupPolicyReport={false}
                         value={draft}
-                        setValue={setDraft}
                         selection={selection}
                         setSelection={setSelection}
                     />

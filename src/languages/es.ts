@@ -711,6 +711,13 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
+        companyInfo: 'Información de la empresa',
+        companyInfoDescription: 'Necesitamos algunos detalles más antes de que pueda enviar su primera factura.',
+        yourCompanyName: 'Nombre de su empresa',
+        yourCompanyWebsite: 'Sitio web de su empresa',
+        yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
+        invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
+        publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
@@ -1184,6 +1191,7 @@ export default {
         },
     },
     walletPage: {
+        balance: 'Saldo',
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -1202,11 +1210,12 @@ export default {
         secureAccessToYourMoney: 'Acceso seguro a tu dinero',
         receiveMoney: 'Recibe dinero en tu moneda local',
         expensifyWallet: 'Billetera Expensify',
-        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
-        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify',
+        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
+        walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
         bankAccounts: 'Cuentas bancarias',
-        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccountToSendAndReceive: 'Agregar una cuenta bancaria te permite recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
@@ -3689,6 +3698,7 @@ export default {
                 after: (date?: string) => `Después de ${date ?? ''}`,
             },
             status: 'Estado',
+            currency: 'Divisa',
         },
     },
     genericErrorPage: {

@@ -126,6 +126,7 @@ function SearchFiltersCategoryPage() {
             testID={SearchFiltersCategoryPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton
@@ -134,7 +135,7 @@ function SearchFiltersCategoryPage() {
                         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                     }}
                 />
-                <View style={[styles.flex1]}>
+                <View style={[styles.flex1, styles.pb5]}>
                     <SelectionList
                         sections={sections}
                         textInputValue={searchTerm}

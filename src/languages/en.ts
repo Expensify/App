@@ -716,6 +716,13 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
         transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
+        companyInfo: 'Company info',
+        companyInfoDescription: 'We need a few more details before you can send your first invoice.',
+        yourCompanyName: 'Your company name',
+        yourCompanyWebsite: 'Your company website',
+        yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
+        invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
+        publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
@@ -1175,6 +1182,7 @@ export default {
         },
     },
     walletPage: {
+        balance: 'Balance',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -1193,11 +1201,12 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends',
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
+        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
-        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
@@ -3635,6 +3644,7 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            currency: 'Currency',
         },
     },
     genericErrorPage: {
