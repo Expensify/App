@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +29,7 @@ import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
-type WorkspaceExpensifyCardListPageProps = {route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route']};
+type WorkspaceExpensifyCardListPageProps = {route: StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route']};
 
 // TODO: remove this const altogether and take the card data from component prop when Onyx data is available
 const mockedCards: OnyxEntry<WorkspaceCardsList> = {
