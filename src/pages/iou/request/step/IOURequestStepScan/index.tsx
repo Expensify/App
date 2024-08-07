@@ -13,6 +13,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -78,6 +79,7 @@ function IOURequestStepScan({
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
@@ -431,7 +433,13 @@ function IOURequestStepScan({
                 return;
             }
 
+            // With the image size > 24MB, we use manipulateAsync to resize the image.
+            // It takes a long time so we should display a loading indicator while the resize image progresses.
+            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsLoadingReceipt(true);
+            }
             FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+                setIsLoadingReceipt(false);
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(file as Blob);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -541,6 +549,7 @@ function IOURequestStepScan({
 
     const mobileCameraView = () => (
         <>
+            {isLoadingReceipt && <FullScreenLoadingIndicator />}
             <View style={[styles.cameraView]}>
                 {PDFThumbnailView}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
@@ -641,6 +650,7 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
+            {isLoadingReceipt && <FullScreenLoadingIndicator />}
             {PDFThumbnailView}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
