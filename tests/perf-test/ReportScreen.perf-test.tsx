@@ -105,7 +105,6 @@ jest.mock('@src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
     canUseDefaultRooms: jest.fn(() => true),
 }));
-jest.mock('@src/hooks/usePermissions.ts');
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),

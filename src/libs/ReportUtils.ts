@@ -1910,7 +1910,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
  */
-function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDetails> {
+function getPersonalDetailsForAccountID(accountID: number, personalDetailsData?: Partial<PersonalDetailsList>): Partial<PersonalDetails> {
     if (!accountID) {
         return {};
     }
@@ -1919,7 +1919,11 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
         isOptimisticPersonalDetail: true,
     };
 
-    return allPersonalDetails?.[accountID] ?? defaultDetails;
+    if (!personalDetailsData) {
+        return allPersonalDetails?.[accountID] ?? defaultDetails;
+    }
+
+    return personalDetailsData?.[accountID] ?? defaultDetails;
 }
 
 /**
@@ -1936,12 +1940,18 @@ const phoneNumberCache: Record<string, string> = {};
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+function getDisplayNameForParticipant(
+    accountID?: number,
+    shouldUseShortForm = false,
+    shouldFallbackToHidden = true,
+    shouldAddCurrentUserPostfix = false,
+    personalDetailsData?: Partial<PersonalDetailsList>,
+): string {
     if (!accountID) {
         return '';
     }
 
-    const personalDetails = getPersonalDetailsOrDefault(allPersonalDetails?.[accountID]);
+    const personalDetails = getPersonalDetailsOrDefault(personalDetailsData?.[accountID] ?? allPersonalDetails?.[accountID]);
     if (!personalDetails) {
         return '';
     }
@@ -3304,12 +3314,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
 
-        const modifiedData = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
+        const modifiedDistanceFields = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
 
         // For the originalMessage, we should use the non-negative amount, similar to what TransactionUtils.getAmount does for oldAmount
-        originalMessage.amount = Math.abs(modifiedData.modifiedAmount);
-        originalMessage.currency = modifiedData.modifiedCurrency;
-        originalMessage.merchant = modifiedData.modifiedMerchant;
+        originalMessage.amount = Math.abs(modifiedDistanceFields.modifiedAmount);
+        originalMessage.currency = modifiedDistanceFields.modifiedCurrency ?? CONST.CURRENCY.USD;
+        originalMessage.merchant = modifiedDistanceFields.modifiedMerchant;
     }
 
     return originalMessage;
@@ -3482,7 +3492,12 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
 /**
  * Get the title for a report.
  */
-function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, parentReportActionParam?: OnyxInputOrEntry<ReportAction>): string {
+function getReportName(
+    report: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
+    personalDetails?: Partial<PersonalDetailsList>,
+): string {
     let formattedName: string | undefined;
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
@@ -3566,7 +3581,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
     }
 
     if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
+        formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true, personalDetails);
     }
 
     if (isInvoiceRoom(report)) {
@@ -3586,7 +3601,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, pa
         }
     });
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
+    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
 }
 
 /**
@@ -6918,14 +6933,12 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
     let parentReportID = report.parentReportID;
     let parentReportActionID = report.parentReportActionID;
 
-    // Store the child of parent report
-    let currentReport = report;
-
     while (parentReportID) {
         const parentReport = getReportOrDraftReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
 
         if (
+            !parentReport ||
             !parentReportAction ||
             (ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isSentMoneyReportAction(parentReportAction)) ||
             ReportActionsUtils.isReportPreviewAction(parentReportAction)
@@ -6935,20 +6948,13 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
 
         const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
         allAncestors.push({
-            report: currentReport,
+            report: parentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
         });
 
-        if (!parentReport) {
-            break;
-        }
-
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
-        if (!isEmptyObject(parentReport)) {
-            currentReport = parentReport;
-        }
     }
 
     return allAncestors.reverse();
