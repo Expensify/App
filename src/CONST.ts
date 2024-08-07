@@ -1189,6 +1189,10 @@ const CONST = {
 
     YOUR_LOCATION_TEXT: 'Your Location',
 
+    GOOGLE_PLACES_API: {
+        FIELDS_MASK: 'id,name,addressComponents,adrFormatAddress,formattedAddress,location,plusCode,shortFormattedAddress,types,viewport',
+    },
+
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',

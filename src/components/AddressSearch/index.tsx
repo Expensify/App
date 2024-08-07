@@ -74,7 +74,6 @@ function AddressSearch(
             lat: 'addressLat',
             lng: 'addressLng',
         },
-        resultTypes = 'address',
         shouldSaveDraft = false,
         value,
         locationBias,
@@ -97,16 +96,16 @@ function AddressSearch(
     const containerRef = useRef<View>(null);
     const query = useMemo(
         () => ({
-            language: preferredLocale,
-            types: resultTypes,
-            components: isLimitedToUSA ? 'country:us' : undefined,
-            ...(locationBias && {locationbias: locationBias}),
+            languageCode: preferredLocale,
+            includedRegionCodes: isLimitedToUSA ? ['us'] : undefined,
+            ...(locationBias && {locationBias}),
+            fields: CONST.GOOGLE_PLACES_API.FIELDS_MASK,
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
+        [preferredLocale, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
-        const addressComponents = details?.address_components;
+        const addressComponents = details?.addressComponents;
         if (!addressComponents) {
             // When there are details, but no address_components, this indicates that some predefined options have been passed
             // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
@@ -114,9 +113,9 @@ function AddressSearch(
             if (details) {
                 onPress?.({
                     address: autocompleteData.description ?? '',
-                    lat: details.geometry.location.lat ?? 0,
-                    lng: details.geometry.location.lng ?? 0,
-                    name: details.name,
+                    lat: details.location?.latitude ?? details.geometry.location?.lat ?? 0,
+                    lng: details.location?.longitude ?? details.geometry.location?.lng ?? 0,
+                    name: autocompleteData?.structured_formatting?.main_text ?? details?.name ?? '',
                 });
             }
             return;
@@ -174,7 +173,7 @@ function AddressSearch(
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-            name: details.name ?? '',
+            name: autocompleteData?.structured_formatting?.main_text ?? details?.name ?? '',
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
             // Make sure country is updated first, since city and state will be reset if the country changes
@@ -187,9 +186,9 @@ function AddressSearch(
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
-            lat: details.geometry.location.lat ?? 0,
-            lng: details.geometry.location.lng ?? 0,
-            address: autocompleteData.description || details.formatted_address || '',
+            lat: details.location?.latitude ?? details.geometry.location?.lat ?? 0,
+            lng: details.location?.longitude ?? details.geometry.location?.lng ?? 0,
+            address: autocompleteData.description || details.formattedAddress || '',
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -211,9 +210,9 @@ function AddressSearch(
 
         // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
         // We are setting up a fallback to ensure "values.street" is populated with a relevant value
-        if (!values.street && details.adr_address) {
+        if (!values.street && details.adrFormatAddress) {
             const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
-            const adrAddress = details.adr_address.match(streetAddressRegex);
+            const adrAddress = details.adrFormatAddress.match(streetAddressRegex);
             const streetAddressFallback = adrAddress ? adrAddress?.[1] : null;
             if (streetAddressFallback) {
                 values.street = streetAddressFallback;
@@ -474,6 +473,7 @@ function AddressSearch(
                         }
                         placeholder=""
                         listViewDisplayed
+                        isNewPlacesAPI
                     >
                         <LocationErrorMessage
                             onClose={() => setLocationErrorCode(null)}
