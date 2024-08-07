@@ -231,7 +231,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
     updatedApprovers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
-    const approverForwardsTo = policy.employeeList[approver.email]?.submitsTo;
+    const approverForwardsTo = policy.employeeList[approver.email]?.forwardsTo;
     if (approverForwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
