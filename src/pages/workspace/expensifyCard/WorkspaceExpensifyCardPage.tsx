@@ -17,7 +17,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? -1;
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
     return (
         <AccessOrNotFoundWrapper
