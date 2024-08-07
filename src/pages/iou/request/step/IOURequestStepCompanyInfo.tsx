@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -36,7 +37,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const policy = usePolicy(IOU.getIOURequestPolicyID(transaction, report));
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`);
 
