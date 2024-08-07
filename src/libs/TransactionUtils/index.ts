@@ -758,7 +758,6 @@ function calculateAmountForUpdatedWaypointOrRate(
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
-            modifiedCurrency: Localize.translateLocal('iou.fieldPending'),
         };
     }
 
