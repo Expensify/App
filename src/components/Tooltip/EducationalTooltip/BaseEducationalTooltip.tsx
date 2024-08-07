@@ -27,9 +27,9 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}:
             return;
         }
 
-        const intervalID = setInterval(hideTooltipRef.current, 5000);
+        const timerID = setTimeout(hideTooltipRef.current, 5000);
         return () => {
-            clearInterval(intervalID);
+            clearTimeout(timerID);
         };
     }, [shouldAutoDismiss]);
 

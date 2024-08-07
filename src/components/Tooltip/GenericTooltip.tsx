@@ -34,8 +34,8 @@ function GenericTooltip({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     shouldForceAnimate = false,
-    shouldUseOverlay = false,
-    onPressOverlay = () => {},
+    shouldUseOverlay: shouldUseOverlayProp = false,
+    onPressOverlay: onPressOverlayProp = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -55,6 +55,9 @@ function GenericTooltip({
     // The width and height of the wrapper view
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
+
+    // Transparent overlay should disappear once user taps it
+    const [shouldUseOverlay, setShouldUseOverlay] = useState(shouldUseOverlayProp);
 
     // Whether the tooltip is first tooltip to activate the TooltipSense
     const isTooltipSenseInitiator = useRef(false);
@@ -140,6 +143,15 @@ function GenericTooltip({
 
         setIsVisible(false);
     }, []);
+
+    const onPressOverlay = useCallback(() => {
+        if (!shouldUseOverlay) {
+            return;
+        }
+        setShouldUseOverlay(false);
+        hideTooltip();
+        onPressOverlayProp();
+    }, [shouldUseOverlay, onPressOverlayProp]);
 
     useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
 
