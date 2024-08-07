@@ -161,6 +161,8 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
+
     const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -283,6 +285,8 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                 <LoginForm
                     ref={loginFormRef}
                     isVisible={shouldShowLoginForm}
+                    login={login}
+                    onLoginChanged={setLogin}
                     blurOnSubmit={account?.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
