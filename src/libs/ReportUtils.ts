@@ -2809,6 +2809,11 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return true;
     }
 
+    if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isCurrentUserSubmitter(moneyRequestReport.reportID)) {
+        const isForwarded = PolicyUtils.getSubmitToAccountID(policy, moneyRequestReport.ownerAccountID ?? 0) !== moneyRequestReport.managerID;
+        return !isForwarded;
+    }
+
     return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
 }
 
