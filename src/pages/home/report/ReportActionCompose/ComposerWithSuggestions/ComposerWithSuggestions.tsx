@@ -42,6 +42,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StatusBar from '@libs/StatusBar';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
@@ -186,6 +187,7 @@ type SwitchToCurrentReportProps = {
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -706,9 +708,26 @@ function ComposerWithSuggestions(
         onValueChange(value);
     }, [onValueChange, value]);
 
+    const getScrollValue = () => {
+        if (!textInputRef?.current || !isAndroidNative) {
+            return;
+        }
+        textInputRef?.current.measure((x, y, width, height, pageX, pageY) => {
+            textInputRef?.current?.measureInWindow((winX, winY) => {
+                const scrollValue = pageY - winY;
+
+                if (scrollValue - (StatusBar?.currentHeight ?? 0) <= 1) {
+                    mobileInputScrollPosition.current = 0;
+                }
+            });
+        });
+    };
+
     const onLayout = useCallback(
         (e: LayoutChangeEvent) => {
             const composerLayoutHeight = e.nativeEvent.layout.height;
+            getScrollValue(); // This is a workaround to fix suggestion box positioning on android devices, to be removed with react-native 0.75
+
             if (composerHeight === composerLayoutHeight) {
                 return;
             }
@@ -751,7 +770,7 @@ function ComposerWithSuggestions(
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,
-                    y,
+                    y: Number(y) + (StatusBar?.currentHeight ?? 0), // This is a workaround to fix suggestion box positioning on android devices, to be removed with react-native 0.75
                     width,
                     height,
                     scrollValue,
