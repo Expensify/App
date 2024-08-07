@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {READ_COMMANDS} from '@libs/API/types';
+import getFirebaseAttributes from '@libs/Firebase/utils';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -216,7 +217,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
     if (isInitialRender.current) {
-        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER, getFirebaseAttributes());
 
         const currentURL = getCurrentUrl();
         if (currentURL) {

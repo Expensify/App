@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
+import getFirebaseAttributes from '@libs/Firebase/utils';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -19,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Function called when a pinned chat is selected.
  */
 const startTimer = () => {
-    Timing.start(CONST.TIMING.SWITCH_REPORT);
+    Timing.start(CONST.TIMING.SWITCH_REPORT, getFirebaseAttributes());
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
@@ -31,7 +32,7 @@ function BaseSidebarScreen() {
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED, getFirebaseAttributes());
     }, []);
 
     useEffect(() => {

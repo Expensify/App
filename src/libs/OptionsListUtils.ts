@@ -42,6 +42,7 @@ import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as ErrorUtils from './ErrorUtils';
 import filterArrayByMatch from './filterArrayByMatch';
+import getFirebaseAttributes from './Firebase/utils';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -2151,7 +2152,7 @@ function getOptions(
  * Build the options for the Search view
  */
 function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
-    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS, getFirebaseAttributes());
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
         betas,

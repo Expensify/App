@@ -2,14 +2,12 @@
 import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {Log, StartTrace, StopTrace, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 
-const startTrace: StartTrace = (customEventName) => {
+const startTrace: StartTrace = (customEventName, attributes) => {
     const start = global.performance.now();
     if (Environment.isDevelopment()) {
         return;
@@ -20,15 +18,16 @@ const startTrace: StartTrace = (customEventName) => {
     }
 
     const session = SessionUtils.getSession();
-    const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength();
-    const reportsLength = ReportUtils.getAllReportsLength();
 
     perf()
         .startTrace(customEventName)
         .then((trace) => {
             trace.putAttribute('accountID', session?.accountID?.toString() ?? 'N/A');
-            trace.putAttribute('personalDetailsLength', personalDetailsLength.toString());
-            trace.putAttribute('reportsLength', reportsLength.toString());
+            if (attributes) {
+                Object.entries(attributes).forEach(([name, value]) => {
+                    trace.putAttribute(name, value);
+                });
+            }
             traceMap[customEventName] = {
                 trace,
                 start,
