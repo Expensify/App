@@ -96,7 +96,7 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(ROUTES.ONBOARDING_ROOT);
+                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
                     }, variables.explanationModalDelay),
             }),
     });
@@ -174,8 +174,10 @@ Onyx.connect({
         if (value === undefined) {
             return;
         }
-
         resolveOnboardingFlowStatus(value);
+        isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
+            resolveOnboardingFlowStatus = resolve;
+        });
     },
 });
 

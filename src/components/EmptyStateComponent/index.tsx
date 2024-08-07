@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
@@ -24,10 +23,10 @@ function EmptyStateComponent({
     subtitle,
     headerStyles,
     headerContentStyles,
-    emptyStateContentStyles,
+    emptyStateForegroundStyles,
+    minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
@@ -79,15 +78,16 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <ScrollView contentContainerStyle={styles.emptyStateScrollView}>
+        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}]}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}
                 />
             </View>
-            <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
-                <View style={[styles.emptyStateContent, emptyStateContentStyles]}>
+
+            <View style={[styles.emptyStateForeground, emptyStateForegroundStyles]}>
+                <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>

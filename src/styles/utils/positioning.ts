@@ -54,6 +54,9 @@ export default {
     r8: {
         right: 32,
     },
+    rn3: {
+        right: -12,
+    },
     b0: {
         bottom: 0,
     },

@@ -251,6 +251,7 @@ function ScreenWrapper(
                             testID={testID}
                         >
                             <View
+                                fsClass="fs-unmask"
                                 style={[styles.flex1, paddingStyle, style]}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...keyboardDissmissPanResponder.panHandlers}

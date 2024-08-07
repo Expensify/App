@@ -183,6 +183,12 @@ type ConnectionLastSync = {
 
     /** Where did the connection's last sync job come from */
     source: JobSourceValues;
+
+    /**
+     * Sometimes we'll have a connection that is not connected, but the connection object is still present, so we can
+     * show an error message
+     */
+    isConnected?: boolean;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -1286,6 +1292,15 @@ type PolicyReportField = {
     defaultExternalID?: string | null;
 };
 
+/** Policy invoicing details */
+type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Stripe Connect company name */
+    companyName?: string;
+
+    /** Stripe Connect company website */
+    companyWebsite?: string;
+}>;
+
 /** Names of policy features */
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
@@ -1441,6 +1456,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         isTaxTrackingEnabled?: boolean;
 
+        /** Policy invoicing details */
+        invoice?: PolicyInvoicingDetails;
+
         /** Tax data */
         tax?: {
             /** Whether or not the policy has tax tracking enabled */
@@ -1485,6 +1503,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
+
+        /** Whether the Invoices feature is enabled */
+        areInvoicesEnabled?: boolean;
 
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
@@ -1577,6 +1598,9 @@ export type {
     NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
+    NetSuiteVendor,
+    InvoiceItem,
+    NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
@@ -1588,4 +1612,5 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
+    ACHAccount,
 };

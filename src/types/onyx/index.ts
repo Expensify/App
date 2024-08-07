@@ -1,5 +1,6 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type ApprovalWorkflow from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -30,6 +31,7 @@ import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -214,4 +216,6 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
+    ApprovalWorkflow,
+    MobileSelectionMode,
 };

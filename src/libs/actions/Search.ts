@@ -1,14 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {SearchParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -50,26 +49,16 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
-}
-
-// TODO_SEARCH: use this function after backend changes.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function searchV2(queryString: SearchQueryString) {
-    const queryJSON = buildSearchQueryJSON(queryString);
-
-    if (!queryJSON) {
-        return;
-    }
-
+function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
-    // TODO_SEARCH: uncomment this line after backend changes
-    // @ts-expect-error waiting for backend changes
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery: JSON.stringify(queryJSON)}, {optimisticData, finallyData});
+    const queryWithOffset = {
+        ...queryJSON,
+        offset,
+    };
+    const jsonQuery = JSON.stringify(queryWithOffset);
+
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery, policyIDs}, {optimisticData, finallyData});
 }
 
 /**
@@ -106,11 +95,11 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-type Params = Record<string, string | string[]>;
+type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV(status: string, reportIDList: Array<string | undefined> | undefined, transactionIDList: string[], policyIDs: string[], onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
-        status,
+        query,
         reportIDList,
         transactionIDList,
         policyIDs,
@@ -129,10 +118,26 @@ function exportSearchItemsToCSV(status: string, reportIDList: Array<string | und
 }
 
 /**
- * Updates the form values for the advanced search form.
+ * Updates the form values for the advanced filters search form.
  */
-function updateAdvancedFilters(values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) {
+function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch, exportSearchItemsToCSV, updateAdvancedFilters};
+/**
+ * Clears all values for the advanced filters search form.
+ */
+function clearAdvancedFilters() {
+    Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
+}
+
+export {
+    search,
+    createTransactionThread,
+    deleteMoneyRequestOnSearch,
+    holdMoneyRequestOnSearch,
+    unholdMoneyRequestOnSearch,
+    exportSearchItemsToCSV,
+    updateAdvancedFilters,
+    clearAdvancedFilters,
+};
