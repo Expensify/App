@@ -135,7 +135,7 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = ReportUtils.isSystemChat(report);
-        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
+        const shouldOverrideHidden = hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -424,10 +424,7 @@ function getOptionData({
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-            const lastActionOriginalMessage = ReportActionsUtils.getOriginalMessage(lastAction);
-            result.alternateText = `${lastActorDisplayName} ${Localize.translate(preferredLocale, 'roomChangeLog.updateRoomDescription')} ${Parser.htmlToText(
-                lastActionOriginalMessage?.description ?? '',
-            )}`.trim();
+            result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -472,7 +469,6 @@ function getOptionData({
     result.participantsList = participantPersonalDetailList;
 
     result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy);
-    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {

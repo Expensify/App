@@ -159,8 +159,12 @@ const ONYXKEYS = {
 
     /** Whether the user has seen HybridApp explanation modal */
     NVP_SEEN_NEW_USER_MODAL: 'nvp_seen_new_user_modal',
+
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
+
+    /** Store the state of the private tax-exempt */
+    NVP_PRIVATE_TAX_EXEMPT: 'nvp_private_taxExempt',
 
     /** Store the stripe id status */
     NVP_PRIVATE_STRIPE_CUSTOMER_ID: 'nvp_private_stripeCustomerID',
@@ -385,7 +389,13 @@ const ONYXKEYS = {
     /** Stores the information about the state of issuing a new card */
     ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
 
+    /** Stores the information if mobile selection mode is active */
+    MOBILE_SELECTION_MODE: 'mobileSelectionMode',
+
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
+
+    /** Stores the information about currently edited advanced approval workflow */
+    APPROVAL_WORKFLOW: 'approvalWorkflow',
 
     /** Collection Keys */
     COLLECTION: {
@@ -526,6 +536,8 @@ const ONYXKEYS = {
         MONEY_REQUEST_DATE_FORM_DRAFT: 'moneyRequestCreatedFormDraft',
         MONEY_REQUEST_HOLD_FORM: 'moneyHoldReasonForm',
         MONEY_REQUEST_HOLD_FORM_DRAFT: 'moneyHoldReasonFormDraft',
+        MONEY_REQUEST_COMPANY_INFO_FORM: 'moneyRequestCompanyInfoForm',
+        MONEY_REQUEST_COMPANY_INFO_FORM_DRAFT: 'moneyRequestCompanyInfoFormDraft',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         NEW_CONTACT_METHOD_FORM_DRAFT: 'newContactMethodFormDraft',
         WAYPOINT_FORM: 'waypointForm',
@@ -602,6 +614,8 @@ const ONYXKEYS = {
         SAGE_INTACCT_DIMENSION_TYPE_FORM_DRAFT: 'sageIntacctDimensionTypeFormDraft',
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
         SEARCH_ADVANCED_FILTERS_FORM_DRAFT: 'searchAdvancedFiltersFormDraft',
+        TEXT_PICKER_MODAL_FORM: 'textPickerModalForm',
+        TEXT_PICKER_MODAL_FORM_DRAFT: 'textPickerModalFormDraft',
     },
 } as const;
 
@@ -637,6 +651,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: FormTypes.MoneyRequestAmountForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM]: FormTypes.MoneyRequestDateForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM]: FormTypes.MoneyRequestHoldReasonForm;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM]: FormTypes.MoneyRequestCompanyInfoForm;
     [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: FormTypes.NewContactMethodForm;
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
@@ -677,6 +692,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM]: FormTypes.NetSuiteCustomFormIDForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM]: FormTypes.SageIntacctDimensionForm;
     [ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM]: FormTypes.SearchAdvancedFiltersForm;
+    [ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM]: FormTypes.TextPickerModalForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -844,6 +860,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
+    [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
@@ -856,12 +873,14 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
+    [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflow;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

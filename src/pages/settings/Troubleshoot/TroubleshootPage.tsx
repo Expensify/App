@@ -20,9 +20,9 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +52,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const {isProduction} = useEnvironment();
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrationStyle = getLightbulbIllustrationStyle();
 
     const exportOnyxState = useCallback(() => {
@@ -69,7 +69,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-            icon: Expensicons.Gear,
+            icon: Expensicons.Bug,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
@@ -109,12 +109,12 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                         subtitle={translate('initialSettingsPage.troubleshoot.description')}

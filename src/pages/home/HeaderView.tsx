@@ -82,7 +82,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction, personalDetails);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
@@ -121,7 +121,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         }
         return (
             <>
-                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.fontWeightNormal]}> {translate('threads.in')} </Text>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting]}> {translate('threads.in')} </Text>
                 <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
             </>
         );
@@ -190,7 +190,10 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <View style={[styles.flex1, styles.flexColumn]}>
+                                    <View
+                                        fsClass="fs-unmask"
+                                        style={[styles.flex1, styles.flexColumn]}
+                                    >
                                         <CaretWrapper>
                                             <DisplayNames
                                                 fullTitle={title}
