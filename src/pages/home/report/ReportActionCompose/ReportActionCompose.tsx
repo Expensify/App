@@ -505,7 +505,12 @@ function ReportActionCompose({
                         {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
-                                onModalHide={focus}
+                                onModalHide={(isNavigating) => {
+                                    if (isNavigating) {
+                                        return;
+                                    }
+                                    focus();
+                                }}
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}

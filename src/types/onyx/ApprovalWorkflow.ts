@@ -22,12 +22,12 @@ type Approver = {
     /**
      * Display name of the current user from their personal details
      */
-    displayName?: string;
+    displayName: string;
 
     /**
      * Is this user used as an approver in more than one workflow (used to show a warning)
      */
-    isInMultipleWorkflows: boolean;
+    isInMultipleWorkflows?: boolean;
 
     /**
      * Is this approver in a circular reference (approver forwards to themselves, or a cycle of forwards)
@@ -48,14 +48,14 @@ type Member = {
     email: string;
 
     /**
+     * Display name of the current user from their personal details
+     */
+    displayName: string;
+
+    /**
      * Avatar URL of the current user from their personal details
      */
     avatar?: AvatarSource;
-
-    /**
-     * Display name of the current user from their personal details
-     */
-    displayName?: string;
 };
 
 /**
@@ -84,8 +84,15 @@ type ApprovalWorkflow = {
      */
     isBeingEdited: boolean;
 
-    /** Whether we are waiting for the API action to complete */
+    /**
+     * Whether we are waiting for the API action to complete
+     */
     isLoading?: boolean;
+
+    /**
+     * List of available members that can be selected in the workflow
+     */
+    availableMembers?: Member[];
 };
 
 export default ApprovalWorkflow;

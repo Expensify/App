@@ -4,7 +4,7 @@ description: Get started with Expensify by creating a workspace for your company
 ---
 <div id="new-expensify" markdown="1">
 
-To create an Expensify account for your company, follow the 6 steps below.
+To create an Expensify account for your company, follow the 6 steps below and enjoy a free 7-day trial, which won’t begin until workspace activity has begun.
 
 {% include info.html %}
 After you create your new company workspace, you can schedule a free private onboarding session with one of our Setup Specialists. After you complete the steps below, check your email and notifications in Expensify for your unique signup link.
@@ -12,7 +12,7 @@ After you create your new company workspace, you can schedule a free private onb
 
 # 1. Meet Concierge
 
-Concierge is your personal assistant that walks you through setting up your account and also provides:
+Concierge is your personal assistant who walks you through setting up your account and also provides:
 - Reminders to do things like submit your expenses
 - Alerts when more information is needed on an expense report
 - Updates on new and improved account features
@@ -22,7 +22,7 @@ You can get support any time by locating your chat with Concierge in your chat i
 # 2. Create a new workspace
 
 <ol type="a">
-   <li>Click your profile image or icon in the bottom left menu.</li>
+   <li>Click your profile photo or icon in the bottom left menu.</li>
    <li>Scroll down and click <b>Workspaces</b> in the left menu.</li>
    <li>Click <b>New workspace</b>.</li>
    <li>Click the Edit pencil icon next to your workspace image or icon and select <b>Upload Image</b> to choose an image from your saved files.</li>
@@ -30,7 +30,7 @@ You can get support any time by locating your chat with Concierge in your chat i
    <li>Click <b>Default Currency</b> to set the currency for all expenses submitted under the workspace. Expensify automatically converts all other currencies to your default currency.</li>
 </ol>
 
-![Click your profile image or icon]({{site.url}}/assets/images/ExpensifyHelp_R1_CreateWorkspace_1.png){:width="100%"}
+![Click your profile photo or icon]({{site.url}}/assets/images/ExpensifyHelp_R1_CreateWorkspace_1.png){:width="100%"}
 
 ![Click Workspaces in the left menu and New Worksapce]({{site.url}}/assets/images/ExpensifyHelp_R1_CreateWorkspace_2.png){:width="100%"}
 
@@ -60,7 +60,7 @@ You can also invite members on the workspace’s Profile page by clicking **Shar
 
 # 4. Set admins
 
-Admins are members of your workspace that have permissions to manage the workspace. The table below shows the difference between member and admin permissions:
+Admins are members of your workspace who have permission to manage the workspace. The table below shows the difference between member and admin permissions:
 
 | Employee                                  | Workspace Admin                            |
 | ----------------------------------------- | ------------------------------------------ |
@@ -112,5 +112,7 @@ To add more features,
    <li>Enable any desired feature.</li> 
    <li>Click the related menu item that appears in the left menu to update its settings.</li>
 </ol>
+
+Easily monitor when your Free Trial starts and how many days are left on your Subscription page. We’ll also notify you when your trial starts and ends, at which point you’ll add a billing card to continue using all your favorite features!
  
 </div>

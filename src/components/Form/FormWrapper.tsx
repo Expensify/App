@@ -63,7 +63,7 @@ function FormWrapper({
     shouldUseScrollView = true,
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
-    disablePressOnEnter = true,
+    disablePressOnEnter = false,
     isSubmitDisabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
