@@ -292,7 +292,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         canUseAdvancedApproval,
         approvalWorkflows,
         theme.success,
-        theme.danger,
         theme.spinner,
         createNewApprovalWorkflow,
         policyApproverName,
