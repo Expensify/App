@@ -2882,6 +2882,8 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
+function enablePolicyRules(policyID: string, enabled: boolean) {}
+
 function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
@@ -3250,6 +3252,7 @@ export {
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
+    enablePolicyRules,
 };
 
 export type {NewCustomUnit};

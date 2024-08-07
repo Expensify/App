@@ -5433,6 +5433,14 @@ const CONST = {
                 description: 'workspace.upgrade.taxCodes.description' as const,
                 icon: 'Coins',
             },
+            rules: {
+                id: 'rules' as const,
+                alias: 'rules',
+                name: 'Rules',
+                title: 'workspace.upgrade.rules.title' as const,
+                description: 'workspace.upgrade.rules.description' as const,
+                icon: 'Rules',
+            },
         };
     },
     REPORT_FIELD_TYPES: {

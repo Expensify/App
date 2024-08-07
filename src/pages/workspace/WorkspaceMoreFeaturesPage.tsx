@@ -114,16 +114,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 DistanceRate.enablePolicyDistanceRates(policy?.id ?? '-1', isEnabled);
             },
         },
-        {
-            icon: Illustrations.Workflows,
-            titleTranslationKey: 'workspace.moreFeatures.workflows.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
-            isActive: policy?.areWorkflowsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyWorkflows(policy?.id ?? '-1', isEnabled);
-            },
-        },
     ];
 
     // TODO remove this when feature will be fully done, and move spend item inside spendItems array
@@ -143,6 +133,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         });
     }
+
+    const manageItems: Item[] = [
+        {
+            icon: Illustrations.Workflows,
+            titleTranslationKey: 'workspace.moreFeatures.workflows.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
+            isActive: policy?.areWorkflowsEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
+            action: (isEnabled: boolean) => {
+                Policy.enablePolicyWorkflows(policy?.id ?? '-1', isEnabled);
+            },
+        },
+        {
+            icon: Illustrations.Rules,
+            titleTranslationKey: 'workspace.moreFeatures.rules.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.rules.subtitle',
+            isActive: policy?.areRulesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areRulesEnabled,
+            action: (isEnabled: boolean) => {
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                Policy.enablePolicyRules(policyID, isEnabled);
+            },
+        },
+    ];
 
     const organizeItems: Item[] = [
         {
@@ -192,7 +209,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (canUseReportFieldsFeature) {
+    if (!canUseReportFieldsFeature) {
         organizeItems.push({
             icon: Illustrations.Pencil,
             titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
@@ -246,6 +263,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
             items: spendItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
+            items: manageItems,
         },
         {
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',

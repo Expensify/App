@@ -2789,6 +2789,10 @@ export default {
                 title: 'Spend',
                 subtitle: 'Enable optional functionality that helps you scale your team.',
             },
+            manageSection: {
+                title: 'Manage',
+                subtitle: 'Add controls that help keep spend within budget.',
+            },
             organizeSection: {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
@@ -2847,6 +2851,10 @@ export default {
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
+            },
+            rules: {
+                title: 'Rules',
+                subtitle: 'Configure when receipts are required, flag high spend, and more.',
             },
         },
         reportFields: {
@@ -3477,6 +3485,11 @@ export default {
                 title: 'Tax codes',
                 description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
+            },
+            rules: {
+                title: 'Rules',
+                description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
+                onlyAvailableOnPlan: 'Rules are only available on the Control plan, starting at ',
             },
             pricing: {
                 amount: '$9 ',
