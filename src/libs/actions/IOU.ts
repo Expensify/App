@@ -892,14 +892,14 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-    optimisticData.push(...fieldViolationsOptimisticData);
-    failureData.push(...fieldViolationsFailureData);
-
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
+
+    const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+    optimisticData.push(...fieldViolationsOptimisticData);
+    failureData.push(...fieldViolationsFailureData);
 
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
@@ -1595,15 +1595,15 @@ function buildOnyxDataForTrackExpense(
         },
     );
 
+    // We don't need to compute violations unless we're on a paid policy
+    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
+        return [optimisticData, successData, failureData];
+    }
+
     if (iouReport) {
         const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
         optimisticData.push(...fieldViolationsOptimisticData);
         failureData.push(...fieldViolationsFailureData);
-    }
-
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
-        return [optimisticData, successData, failureData];
     }
 
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
