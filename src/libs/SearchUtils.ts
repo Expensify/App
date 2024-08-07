@@ -5,13 +5,13 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
-import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
@@ -314,8 +314,10 @@ function getSortedReportData(data: ReportListItemType[]) {
 }
 
 function getCurrentSearchParams() {
-    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
+    const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
+
+    return lastSearchRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
