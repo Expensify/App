@@ -82,9 +82,6 @@ type OptionRowLHNDataProps = {
     /** List of transaction violation */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
 
-    /** Whether the user can use violations */
-    canUseViolations: boolean | undefined;
-
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
 
