@@ -627,6 +627,16 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
+/** Clears the highlight of a linked report action */
+function removeHighlightOnCurrentUserAction(accountID?: number) {
+    const isFromCurrentUser = accountID === currentUserAccountID;
+    const currentReportActionID = Navigation.getTopmostReportActionId();
+    if (!isFromCurrentUser || !currentReportActionID) {
+        return;
+    }
+    Navigation.setParams({reportActionID: ''});
+}
+
 function updateGroupChatName(reportID: string, reportName: string) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4050,6 +4060,7 @@ export {
     updateReportName,
     deleteReportField,
     clearReportFieldKeyErrors,
+    removeHighlightOnCurrentUserAction,
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     updateRoomVisibility,
