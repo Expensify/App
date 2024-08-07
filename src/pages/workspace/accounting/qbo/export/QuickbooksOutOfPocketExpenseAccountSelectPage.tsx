@@ -81,11 +81,17 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== qboConfig?.reimbursableExpensesAccount?.id) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT,
+                    row.value,
+                    qboConfig?.reimbursableExpensesAccount,
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
-        [qboConfig?.reimbursableExpensesAccount?.id, policyID],
+        [qboConfig?.reimbursableExpensesAccount, policyID],
     );
 
     const listEmptyContent = useMemo(

@@ -73,6 +73,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
     connectionName: TConnectionName,
     settingName: TSettingName,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+    oldSettingValue?: Partial<Connections[TConnectionName]['config'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -100,7 +101,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue ?? null,
+                            [settingName]: oldSettingValue ?? null,
                             pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                         },
@@ -118,7 +119,6 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue ?? null,
                             pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, null),
                         },

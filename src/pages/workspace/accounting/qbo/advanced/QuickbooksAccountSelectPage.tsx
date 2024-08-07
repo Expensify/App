@@ -55,10 +55,10 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const saveSelection = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value, qboConfig?.reimbursementAccountID);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
         },
-        [policyID],
+        [policyID, qboConfig?.reimbursementAccountID],
     );
 
     const listEmptyContent = useMemo(

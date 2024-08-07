@@ -51,6 +51,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         CONST.POLICY.CONNECTIONS.NAME.QBO,
                         CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                         isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                        qboConfig?.syncLocations,
                     )
                 }
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}

@@ -56,7 +56,13 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!qboConfig?.enableNewCategories}
                 onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES, !qboConfig?.enableNewCategories)
+                    Connections.updatePolicyConnectionConfig(
+                        policyID,
+                        CONST.POLICY.CONNECTIONS.NAME.QBO,
+                        CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
+                        !qboConfig?.enableNewCategories,
+                        qboConfig?.enableNewCategories,
+                    )
                 }
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES], qboConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}

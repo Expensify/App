@@ -44,7 +44,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     const selectExportInvoice = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== qboConfig?.receivableAccount?.id) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT, row.value);
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT, row.value, qboConfig?.receivableAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
         },

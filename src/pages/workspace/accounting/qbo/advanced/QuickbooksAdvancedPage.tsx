@@ -77,9 +77,17 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: !!qboConfig?.autoSync?.enabled,
             onToggle: () =>
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, {
-                    enabled: !qboConfig?.autoSync?.enabled,
-                }),
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
+                    {
+                        enabled: !qboConfig?.autoSync?.enabled,
+                    },
+                    {
+                        enabled: qboConfig?.autoSync?.enabled,
+                    },
+                ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
         },
         {
@@ -87,7 +95,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: !!qboConfig?.syncPeople,
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE, !qboConfig?.syncPeople),
+            onToggle: () =>
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE, !qboConfig?.syncPeople, qboConfig?.syncPeople),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
         },
         {
@@ -95,7 +104,14 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: !!qboConfig?.autoCreateVendor,
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR, !qboConfig?.autoCreateVendor),
+            onToggle: () =>
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+                    !qboConfig?.autoCreateVendor,
+                    qboConfig?.autoCreateVendor,
+                ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
         },
         {
@@ -109,6 +125,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
                     CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
                     isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
+                    qboConfig?.collectionAccountID,
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
         },

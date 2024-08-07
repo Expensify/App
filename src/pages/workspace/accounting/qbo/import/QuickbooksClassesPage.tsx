@@ -44,6 +44,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                         CONST.POLICY.CONNECTIONS.NAME.QBO,
                         CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES,
                         isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                        qboConfig?.syncClasses,
                     )
                 }
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}

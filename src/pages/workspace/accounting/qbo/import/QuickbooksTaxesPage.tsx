@@ -36,7 +36,9 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.accounting.taxes')}
                 isActive={!!qboConfig?.syncTax}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, !qboConfig?.syncTax)}
+                onToggle={() =>
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, !qboConfig?.syncTax, qboConfig?.syncTax)
+                }
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_TAX], qboConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}

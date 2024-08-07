@@ -58,7 +58,13 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== qboConfig?.nonReimbursableExpensesAccount?.id) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT,
+                    row.value,
+                    qboConfig?.nonReimbursableExpensesAccount,
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
