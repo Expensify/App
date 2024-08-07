@@ -90,6 +90,7 @@ function accountingIntegrationData(
     integrationToDisconnect?: PolicyConnectionName,
     policy?: Policy,
 ): AccountingIntegration | undefined {
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
@@ -119,10 +120,10 @@ function accountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
-                    ...(policy?.connections?.quickbooksOnline?.config?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
+                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
                         ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
                         : []),
-                    ...(policy?.connections?.quickbooksOnline?.config?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL &&
+                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL &&
                     policy?.connections?.quickbooksOnline?.config?.autoCreateVendor
                         ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]
                         : []),
@@ -134,9 +135,7 @@ function accountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
                     CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
                     CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
-                    ...(policy?.connections?.quickbooksOnline?.config?.collectionAccountID
-                        ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]
-                        : []),
+                    ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
                 ],
                 pendingFields: policy?.connections?.quickbooksOnline?.config?.pendingFields,
                 errorFields: policy?.connections?.quickbooksOnline?.config?.errorFields,
