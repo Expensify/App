@@ -2031,7 +2031,10 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
 
     if (isMultipleParticipantReport) {
         return participantAccountIDs
-            .map((participantAccountID, index) => getDisplayNameForParticipant(participantAccountID, isMultipleParticipantReport) || LocalePhoneNumber.formatPhoneNumber(participants?.[index]?.login ?? ''))
+            .map(
+                (participantAccountID, index) =>
+                    getDisplayNameForParticipant(participantAccountID, isMultipleParticipantReport) || LocalePhoneNumber.formatPhoneNumber(participants?.[index]?.login ?? ''),
+            )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ');
