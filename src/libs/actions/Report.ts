@@ -436,6 +436,16 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
+/** Clears the highlight of a linked report action */
+function removeHighlightOnCurrentUserAction(accountID?: number) {
+    const isFromCurrentUser = accountID === currentUserAccountID;
+    const currentReportActionID = Navigation.getTopmostReportActionId();
+    if (!isFromCurrentUser || !currentReportActionID) {
+        return;
+    }
+    Navigation.setParams({reportActionID: ''});
+}
+
 /**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
@@ -605,6 +615,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         DateUtils.setTimezoneUpdated();
     }
 
+    removeHighlightOnCurrentUserAction(lastAction?.actorAccountID);
     API.write(commandName, parameters, {
         optimisticData,
         successData,
@@ -625,16 +636,6 @@ function addComment(reportID: string, text: string) {
 
 function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
-}
-
-/** Clears the highlight of a linked report action */
-function removeHighlightOnCurrentUserAction(accountID?: number) {
-    const isFromCurrentUser = accountID === currentUserAccountID;
-    const currentReportActionID = Navigation.getTopmostReportActionId();
-    if (!isFromCurrentUser || !currentReportActionID) {
-        return;
-    }
-    Navigation.setParams({reportActionID: ''});
 }
 
 function updateGroupChatName(reportID: string, reportName: string) {
