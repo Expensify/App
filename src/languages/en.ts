@@ -1182,6 +1182,7 @@ export default {
         },
     },
     walletPage: {
+        balance: 'Balance',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -1200,11 +1201,12 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends',
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
+        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
-        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
@@ -1512,7 +1514,7 @@ export default {
         welcome: 'Welcome!',
         explanationModal: {
             title: 'Welcome to Expensify',
-            description: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
+            description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
             secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
         },
         welcomeVideo: {
@@ -2787,6 +2789,10 @@ export default {
                 title: 'Spend',
                 subtitle: 'Enable optional functionality that helps you scale your team.',
             },
+            earnSection: {
+                title: 'Earn',
+                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+            },
             organizeSection: {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
@@ -2819,6 +2825,10 @@ export default {
             workflows: {
                 title: 'Workflows',
                 subtitle: 'Configure how spend is approved and paid.',
+            },
+            invoices: {
+                title: 'Invoices',
+                subtitle: 'Send and receive invoices.',
             },
             categories: {
                 title: 'Categories',
