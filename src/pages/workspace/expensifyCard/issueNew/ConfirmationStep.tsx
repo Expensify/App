@@ -46,7 +46,7 @@ function ConfirmationStep({policy}: ConfirmationStepProps) {
     const policyID = policy?.id ?? '-1';
 
     const submit = () => {
-        Card.issueExpensifyCard(policyID, 'USA', data);
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
         Navigation.goBack();
         Card.clearIssueNewCardFlow();
     };
