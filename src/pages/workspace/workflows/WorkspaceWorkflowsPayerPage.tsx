@@ -192,7 +192,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         showScrollIndicator
                     />
                 </ScreenWrapper>
