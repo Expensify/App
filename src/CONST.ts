@@ -1129,11 +1129,6 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-    // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-    // More info https://github.com/Expensify/App/issues/8007
-    EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
-
     VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
