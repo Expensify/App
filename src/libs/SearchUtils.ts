@@ -13,7 +13,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import navigationRef from './Navigation/navigationRef';
-import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -315,9 +315,19 @@ function getSortedReportData(data: ReportListItemType[]) {
 
 function getCurrentSearchParams() {
     const rootState = navigationRef.getRootState() as State<RootStackParamList>;
-    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
 
-    return lastSearchRoute?.params as AuthScreensParamList['Search_Central_Pane'];
+    const lastSearchCentralPaneRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
+    const lastSearchBottomTabRoute = rootState.routes[0].state?.routes.filter((route) => route.name === SCREENS.SEARCH.BOTTOM_TAB).at(-1);
+
+    if (lastSearchCentralPaneRoute) {
+        return lastSearchCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    }
+
+    if (lastSearchBottomTabRoute) {
+        const {policyID, ...rest} = lastSearchBottomTabRoute.params as BottomTabNavigatorParamList[typeof SCREENS.SEARCH.BOTTOM_TAB];
+        const params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE] = {policyIDs: policyID, ...rest};
+        return params;
+    }
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
