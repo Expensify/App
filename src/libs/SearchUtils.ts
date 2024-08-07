@@ -424,6 +424,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
             }
 
+            if (filterKey === INPUT_IDS.CURRENCY && Array.isArray(filterValue) && filterValue.length > 0) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${filterValue.join(',')}`;
+            }
             if (filterKey === INPUT_IDS.MERCHANT && filterValue) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}:${filterValue as string}`;
             }
@@ -436,9 +439,14 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${filterValue as string}`;
             }
 
-            if (filterKey === INPUT_IDS.CATEGORY && filterValues[filterKey]) {
+            if (filterKey === INPUT_IDS.CATEGORY && Array.isArray(filterValue) && filterValue.length > 0) {
                 const categories = filterValues[filterKey] ?? [];
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
+            }
+
+            if (filterKey === INPUT_IDS.CARD_ID && Array.isArray(filterValue) && filterValue.length > 0) {
+                const cardIDs = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${cardIDs.join(',')}`;
             }
 
             return undefined;
@@ -497,7 +505,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `,${filterName}:${queryFilter.value}`;
+            filterValueString += `,${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
         }

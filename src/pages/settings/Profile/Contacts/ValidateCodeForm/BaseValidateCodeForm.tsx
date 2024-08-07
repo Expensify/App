@@ -73,7 +73,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const isInitialCodeSent = useRef<boolean>(false);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -122,16 +121,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    // when user first time opens validate code form we need to trigger API to send a code.
-    // otherwise user will need to click on re-send code button
-    useEffect(() => {
-        if (isInitialCodeSent.current || hasMagicCodeBeenSent || (!hasMagicCodeBeenSent && loginData?.pendingFields?.validateCodeSent)) {
-            return;
-        }
-        isInitialCodeSent.current = true;
-        User.requestContactMethodValidateCode(contactMethod);
-    }, [contactMethod, hasMagicCodeBeenSent, loginData?.pendingFields?.validateCodeSent]);
-
     useEffect(() => {
         if (!hasMagicCodeBeenSent) {
             return;
@@ -145,7 +134,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(contactMethod);
         inputValidateCodeRef.current?.clear();
-        isInitialCodeSent.current = false;
     };
 
     /**
@@ -213,7 +201,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {hasMagicCodeBeenSent && !isInitialCodeSent.current && (
+                    {hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
