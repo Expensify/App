@@ -135,7 +135,6 @@ function ReportActionItemParentAction({
                                               // Pop the chat report screen before navigating to the linked report action.
                                               Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1', ancestor.reportAction.reportActionID));
                                           }
-                                          Timing.start(CONST.TIMING.SWITCH_REPORT);
                                       }
                                     : undefined
                             }
