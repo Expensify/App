@@ -80,7 +80,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             title="workspace.qbo.exportInvoices"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
             listEmptyContent={listEmptyContent}

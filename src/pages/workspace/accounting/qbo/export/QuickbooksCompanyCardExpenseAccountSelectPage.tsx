@@ -30,11 +30,10 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
     const policyID = policy?.id ?? '-1';
     const {creditCards, accountPayable, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {nonReimbursableExpensesAccount, nonReimbursableExpensesExportDestination, pendingFields} = qboConfig ?? {};
 
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
-        switch (nonReimbursableExpensesExportDestination) {
+        switch (qboConfig?.nonReimbursableExpensesExportDestination) {
             case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
                 accounts = creditCards ?? [];
                 break;
@@ -52,18 +51,18 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             value: card,
             text: card.name,
             keyForList: card.name,
-            isSelected: card.name === nonReimbursableExpensesAccount?.name,
+            isSelected: card.name === qboConfig?.nonReimbursableExpensesAccount?.name,
         }));
-    }, [nonReimbursableExpensesAccount, creditCards, bankAccounts, nonReimbursableExpensesExportDestination, accountPayable]);
+    }, [qboConfig?.nonReimbursableExpensesAccount, creditCards, bankAccounts, qboConfig?.nonReimbursableExpensesExportDestination, accountPayable]);
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
-            if (row.value.id !== nonReimbursableExpensesAccount?.id) {
+            if (row.value.id !== qboConfig?.nonReimbursableExpensesAccount?.id) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [nonReimbursableExpensesAccount, policyID],
+        [qboConfig?.nonReimbursableExpensesAccount, policyID],
     );
 
     const listEmptyContent = useMemo(
@@ -86,10 +85,10 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
-            headerTitleAlreadyTranslated={ConnectionUtils.getQBONonReimbursableExportAccountType(nonReimbursableExpensesExportDestination)}
+            headerTitleAlreadyTranslated={ConnectionUtils.getQBONonReimbursableExportAccountType(qboConfig?.nonReimbursableExpensesExportDestination)}
             headerContent={
-                nonReimbursableExpensesExportDestination ? (
-                    <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}AccountDescription`)}</Text>
+                qboConfig?.nonReimbursableExpensesExportDestination ? (
+                    <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}AccountDescription`)}</Text>
                 ) : null
             }
             sections={data.length ? [{data}] : []}
@@ -99,10 +98,10 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            onBackButtonPress={() => Navigation.goBack()}
-            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT] ?? [], pendingFields)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT], qboConfig?.pendingFields)}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
         />
     );

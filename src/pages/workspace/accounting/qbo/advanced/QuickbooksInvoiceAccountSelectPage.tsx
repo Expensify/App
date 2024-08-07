@@ -91,10 +91,10 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboInvoiceCollectionAccount"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
-            errorRowStyles={[styles.ph5, styles.mv2]}
+            errorRowStyles={[styles.ph5, styles.mv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
         />
     );

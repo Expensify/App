@@ -57,7 +57,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.qbo.exportDate.label"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT_DATE], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
         />
