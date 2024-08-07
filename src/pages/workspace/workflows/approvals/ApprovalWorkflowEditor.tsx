@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx} from '@src/types/onyx';
 
@@ -76,7 +77,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
                             shouldShowRightIcon
                             hintText={hintText}
                             shouldParseHintText
-                            brickRoadIndicator={errorText ? 'error' : undefined}
+                            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={errorText}
                             shouldParseErrorText
                         />

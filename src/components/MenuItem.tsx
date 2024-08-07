@@ -800,7 +800,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
                                                 style={[styles.menuItemError, errorTextStyle]}
-                                                shouldParseText={shouldParseErrorText}
+                                                shouldParseMessage={shouldParseErrorText}
                                             />
                                         )}
                                         {!!hintText && (
@@ -809,7 +809,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={false}
                                                 message={hintText}
                                                 style={styles.menuItemError}
-                                                shouldParseText={shouldParseHintText}
+                                                shouldParseMessage={shouldParseHintText}
                                             />
                                         )}
                                     </View>

@@ -1,6 +1,15 @@
 type CreateWorkspaceApprovalParams = {
     authToken: string;
     policyID: string;
+    /**
+     * Stringified JSON object with type of following structure:
+     * Array<{
+     *  role: string;
+     *  email: string;
+     *  forwardsTo?: string;
+     *  submitsTo?: string;
+     * }>
+     */
     employees: string;
 };
 

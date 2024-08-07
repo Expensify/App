@@ -156,7 +156,7 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     employeeList: PolicyEmployeeList;
 
     /**
-     * Should the workflow be removed from the employees
+     * Mode to use when converting the approval workflow
      */
     mode: 'create' | 'update' | 'remove';
 };

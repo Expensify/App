@@ -27,15 +27,15 @@ type FormHelpMessageProps = {
     shouldShowRedDotIndicator?: boolean;
 
     /** Whether should render error text as HTML or as Text */
-    shouldParseText?: boolean;
+    shouldParseMessage?: boolean;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldParseText = false}: FormHelpMessageProps) {
+function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldParseMessage = false}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const processedText = useMemo(() => {
-        if (typeof message !== 'string' || !shouldParseText) {
+        if (typeof message !== 'string' || !shouldParseMessage) {
             return '';
         }
 
@@ -46,7 +46,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
         }
 
         return `<muted-text-label>${replacedText}</muted-text-label>`;
-    }, [isError, message, shouldParseText]);
+    }, [isError, message, shouldParseMessage]);
 
     if (isEmpty(message) && isEmpty(children)) {
         return null;
@@ -61,7 +61,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ?? shouldParseText ? <RenderHTML html={processedText} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>}
+                {children ?? shouldParseMessage ? <RenderHTML html={processedText} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>}
             </View>
         </View>
     );

@@ -17,6 +17,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -40,7 +41,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         }
 
         Workflow.createApprovalWorkflow(route.params.policyID, {...approvalWorkflow, approvers: approvalWorkflow.approvers as Approver[]});
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     }, [approvalWorkflow, route.params.policyID]);
 
     return (

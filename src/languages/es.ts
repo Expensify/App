@@ -1321,7 +1321,7 @@ export default {
         monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCreateApprovalsPage: {
-        title: 'Añadir flujo de aprobación',
+        title: 'Confirmar',
         header: 'Agrega más aprobadores y confirma.',
         addApproverRow: 'Añadir aprobador',
         submitButton: 'Añadir flujo de trabajo',
