@@ -3314,12 +3314,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
 
-        const modifiedData = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
+        const modifiedDistanceFields = TransactionUtils.calculateAmountForUpdatedWaypointOrRate(oldTransaction, transactionChanges, policy, isFromExpenseReport);
 
         // For the originalMessage, we should use the non-negative amount, similar to what TransactionUtils.getAmount does for oldAmount
-        originalMessage.amount = Math.abs(modifiedData.modifiedAmount);
-        originalMessage.currency = modifiedData.modifiedCurrency;
-        originalMessage.merchant = modifiedData.modifiedMerchant;
+        originalMessage.amount = Math.abs(modifiedDistanceFields.modifiedAmount);
+        originalMessage.currency = modifiedDistanceFields.modifiedCurrency ?? CONST.CURRENCY.USD;
+        originalMessage.merchant = modifiedDistanceFields.modifiedMerchant;
     }
 
     return originalMessage;
@@ -6122,6 +6122,8 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     if (isInvoiceRoom(report)) {
+        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+        // if (PolicyUtils.canSendInvoiceFromWorkspace(policy?.id) && isPolicyAdmin(report?.policyID ?? '-1', allPolicies)) {
         if (isPolicyAdmin(report?.policyID ?? '-1', allPolicies)) {
             return [CONST.IOU.TYPE.INVOICE];
         }

@@ -374,7 +374,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         DEFAULT_ROOMS: 'defaultRooms',
-        VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
