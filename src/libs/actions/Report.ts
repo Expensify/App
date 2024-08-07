@@ -2676,7 +2676,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
-    return lastAccessedReportID ?? conciergeChatReportID
+    return lastAccessedReportID ?? conciergeChatReportID;
 }
 
 function joinRoom(report: OnyxEntry<Report>) {
