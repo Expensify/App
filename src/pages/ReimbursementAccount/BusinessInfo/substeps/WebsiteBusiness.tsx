@@ -39,7 +39,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const styles = useThemeStyles();
 
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
-    const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
+    const defaultCompanyWebsite = reimbursementAccount?.achData?.website || defaultWebsiteExample;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -58,10 +58,6 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
         onNext,
         shouldSaveDraft: isEditing,
     });
-
-    useEffect(() => {
-        BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
-    }, [defaultCompanyWebsite]);
 
     return (
         <FormProvider

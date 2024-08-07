@@ -98,7 +98,7 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
                         [INPUT_IDS.BUSINESS_INFO_STEP.STATE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.ZIP_CODE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE]: '',
-                        [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: getDefaultCompanyWebsite(session, user),
+                        [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: '',
