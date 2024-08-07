@@ -8,9 +8,14 @@ import Button from './Button';
 import SelectionList from './SelectionList';
 import SelectableListItem from './SelectionList/SelectableListItem';
 
+type SearchMultipleSelectionPickerItem = {
+    name: string;
+    value: string;
+};
+
 type SearchMultipleSelectionPickerProps = {
-    items: string[];
-    initiallySelectedItems: string[] | undefined;
+    items: SearchMultipleSelectionPickerItem[];
+    initiallySelectedItems: SearchMultipleSelectionPickerItem[] | undefined;
     pickerTitle?: string;
     onSaveSelection: (values: string[]) => void;
     shouldShowTextInput?: boolean;
@@ -20,24 +25,24 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const {translate} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedItems, setSelectedItems] = useState<string[]>(initiallySelectedItems ?? []);
+    const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
-            .filter((item) => item?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a, b))
-            .map((name) => ({
-                text: name,
-                keyForList: name,
-                isSelected: selectedItems?.includes(name) ?? false,
+            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .sort((a, b) => localeCompare(a.name, b.name))
+            .map((item) => ({
+                text: item.name,
+                keyForList: item.value,
+                isSelected: true,
             }));
         const remainingItemsSection = items
-            .filter((item) => selectedItems.includes(item) === false && item?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a, b))
-            .map((name) => ({
-                text: name,
-                keyForList: name,
-                isSelected: selectedItems?.includes(name) ?? false,
+            .filter((item) => selectedItems.some((selectedItem) => selectedItem.name === item.name) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .sort((a, b) => localeCompare(a.name, b.name))
+            .map((item) => ({
+                text: item.name,
+                keyForList: item.value,
+                isSelected: false,
             }));
         const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
         return {
@@ -59,24 +64,24 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
-    const handleConfirmSelection = useCallback(() => {
-        onSaveSelection(selectedItems);
-        Navigation.goBack();
-    }, [onSaveSelection, selectedItems]);
-
     const onSelectItem = useCallback(
         (item: Partial<OptionData>) => {
-            if (!item.text) {
+            if (!item.text || !item.keyForList) {
                 return;
             }
             if (item.isSelected) {
-                setSelectedItems(selectedItems?.filter((category) => category !== item.text));
+                setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.value !== item.keyForList));
             } else {
-                setSelectedItems([...(selectedItems ?? []), item.text]);
+                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.keyForList}]);
             }
         },
         [selectedItems],
     );
+
+    const handleConfirmSelection = useCallback(() => {
+        onSaveSelection(selectedItems.map((item) => item.value));
+        Navigation.goBack();
+    }, [onSaveSelection, selectedItems]);
 
     const footerContent = useMemo(
         () => (
@@ -111,3 +116,4 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 SearchMultipleSelectionPicker.displayName = 'SearchMultipleSelectionPicker';
 
 export default SearchMultipleSelectionPicker;
+export type {SearchMultipleSelectionPickerItem};

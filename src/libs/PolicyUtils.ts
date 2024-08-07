@@ -4,12 +4,11 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
-import type {PolicyTagList} from '@pages/workspace/tags/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTag, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -26,6 +25,7 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
+    TaxRates,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -289,22 +289,11 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
     );
 }
 
-function getTagsNamesFromTagsList(policyTagList: PolicyTagLists) {
-    const listOfObjectsHavingTagsObject: PolicyTagList[] = [...Object.values(policyTagList ?? {})];
-    const tagsObjectList: PolicyTags[] = [];
-    listOfObjectsHavingTagsObject.forEach((item) => {
-        if (!item) {
-            return;
-        }
-        tagsObjectList.push(item.tags);
-    });
-    const tagNamesTable: string[] = [];
-    tagsObjectList.forEach((tagsObject) => {
-        Object.values(tagsObject).forEach((tag) => {
-            tagNamesTable.push(tag.name);
-        });
-    });
-    return tagNamesTable;
+function getTagsNamesFromTagsList(policyTagLists: PolicyTagLists): string[] {
+    const tagsList: PolicyTag[] = Object.values(policyTagLists ?? {})
+        .map((policyTagList) => Object.values(policyTagList.tags))
+        .flat();
+    return tagsList.map((tag) => tag.name);
 }
 
 /**
@@ -430,13 +419,13 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
-function getAllTaxRates(): TaxRate[] {
-    const allTaxRates: TaxRate[] = [];
+function getAllTaxRates(): TaxRates {
+    let allTaxRates: TaxRates = {};
     Object.values(allPolicies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
         }
-        allTaxRates.push(...Object.values(policy?.taxRates?.taxes));
+        allTaxRates = {...allTaxRates, ...policy?.taxRates?.taxes};
     });
     return allTaxRates;
 }

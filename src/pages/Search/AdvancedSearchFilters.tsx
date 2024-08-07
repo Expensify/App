@@ -12,13 +12,14 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList} from '@src/types/onyx';
+import type {CardList, TaxRates} from '@src/types/onyx';
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
@@ -68,6 +69,11 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         : undefined;
 }
 
+function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: TaxRates) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE];
+    return filterValue ? filterValue.map((taxRateKey) => taxRates[taxRateKey].name).join(', ') : undefined;
+}
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -76,6 +82,7 @@ function AdvancedSearchFilters() {
 
     const [searchAdvancedFilters = {}] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const taxRates = getAllTaxRates();
 
     const advancedFilters = useMemo(
         () => [
@@ -126,7 +133,7 @@ function AdvancedSearchFilters() {
                 shouldHide: Object.keys(cardList).length === 0,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, translate),
+                title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
                 description: 'workspace.taxes.taxRate' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
             },
@@ -141,7 +148,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
             },
         ],
-        [searchAdvancedFilters, translate, cardList],
+        [searchAdvancedFilters, translate, cardList, taxRates],
     );
 
     const onFormSubmit = () => {

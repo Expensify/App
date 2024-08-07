@@ -5,6 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
+import type {SearchMultipleSelectionPickerItem} from '@components/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,21 +19,21 @@ function SearchFiltersTaxRatePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedTaxes = searchAdvancedFiltersForm?.taxRate;
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
     const allTaxRates = getAllTaxRates();
+    const selectedTaxesItems = searchAdvancedFiltersForm?.taxRate?.map((taxRate) => ({name: allTaxRates[taxRate].name, value: taxRate}));
+    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const singlePolicyTaxRates = policy?.taxRates?.taxes;
 
-    const taxNames = useMemo(() => {
-        let taxRates: string[] = [];
+    const taxItems = useMemo(() => {
+        let taxRates: SearchMultipleSelectionPickerItem[] = [];
         if (!singlePolicyTaxRates) {
-            taxRates = allTaxRates.map((taxRate) => taxRate.name);
+            taxRates = Object.entries(allTaxRates).map(([taxRateKey, taxRateInfo]) => ({name: taxRateInfo.name, value: taxRateKey}));
         } else {
-            taxRates = Object.values(singlePolicyTaxRates).map((taxRate) => taxRate.name);
+            taxRates = Object.entries(singlePolicyTaxRates).map(([taxRateKey, taxRateInfo]) => ({name: taxRateInfo.name, value: taxRateKey}));
         }
 
-        return [...new Set(taxRates)];
+        return taxRates;
     }, [allTaxRates, singlePolicyTaxRates]);
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
@@ -53,8 +54,8 @@ function SearchFiltersTaxRatePage() {
                 <View style={[styles.flex1]}>
                     <SearchMultipleSelectionPicker
                         pickerTitle={translate('workspace.taxes.taxRate')}
-                        items={taxNames}
-                        initiallySelectedItems={selectedTaxes}
+                        items={taxItems}
+                        initiallySelectedItems={selectedTaxesItems}
                         onSaveSelection={onSaveSelection}
                     />
                 </View>

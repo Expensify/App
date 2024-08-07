@@ -32,11 +32,17 @@ function SearchFiltersExpenseTypePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedExpenseTypes = searchAdvancedFiltersForm?.expenseType;
+    const selectedExpenseTypes = searchAdvancedFiltersForm?.expenseType?.map((expenseType) => {
+        const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+        return {name: expenseTypeName, value: expenseType};
+    });
     const allExpenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
-    const expenseTypesNames = useMemo(() => {
-        return allExpenseTypes.map((expenseType) => translate(getExpenseTypeTranslationKey(expenseType)));
+    const expenseTypesItems = useMemo(() => {
+        return allExpenseTypes.map((expenseType) => {
+            const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType));
+            return {name: expenseTypeName, value: expenseType};
+        });
     }, [allExpenseTypes, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
@@ -57,7 +63,7 @@ function SearchFiltersExpenseTypePage() {
                 <View style={[styles.flex1]}>
                     <SearchMultipleSelectionPicker
                         pickerTitle={translate('search.expenseTypes')}
-                        items={expenseTypesNames}
+                        items={expenseTypesItems}
                         initiallySelectedItems={selectedExpenseTypes}
                         onSaveSelection={onSaveSelection}
                         shouldShowTextInput={false}
