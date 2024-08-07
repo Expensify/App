@@ -151,7 +151,7 @@ function GenericTooltip({
         setShouldUseOverlay(false);
         hideTooltip();
         onPressOverlayProp();
-    }, [shouldUseOverlay, onPressOverlayProp]);
+    }, [shouldUseOverlay, onPressOverlayProp, hideTooltip]);
 
     useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
 
