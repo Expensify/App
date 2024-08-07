@@ -95,7 +95,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         }, [fetchData]),
     );
 
-    // User should be allowed to add new Approval Workflow only if he has upgrade to Control Plan, otherwise redirected to the Upgrade Page
+    // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
         if (!PolicyUtils.isControlPolicy(policy)) {
             Navigation.navigate(
