@@ -60,6 +60,20 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
+function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
+    const approvalChain = PolicyUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
+    if (approvalChain.length === 0) {
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    }
+
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+    if (!nextApproverEmail) {
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    }
+
+    return PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
+}
+
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  *
@@ -79,15 +93,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-    let nextApproverDisplayName = ReportUtils.getDisplayNameForParticipant(submitToAccountID);
-
-    const approvalChain = PolicyUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
-    if (approvalChain.length > 0) {
-        const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
-        if (nextApproverEmail) {
-            nextApproverDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
-        }
-    }
+    const nextApproverDisplayName = getNextApproverDisplayName(policy, ownerAccountID, submitToAccountID, report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
