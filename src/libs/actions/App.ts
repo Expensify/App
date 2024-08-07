@@ -495,8 +495,8 @@ function updateLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
-function updateLastScreen(screen: string | undefined) {
-    Onyx.merge(ONYXKEYS.LAST_SCREEN, screen);
+function updateLastScreen(screen: string) {
+    Onyx.set(ONYXKEYS.LAST_SCREEN, screen);
 }
 
 export {

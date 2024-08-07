@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +20,13 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+type BaseSidebarScreenOnyxProps = {
+    /** last visited screen */
+    lastScreen: OnyxEntry<string>;
+};
+
+type BaseSidebarScreenProps = BaseSidebarScreenOnyxProps;
+
 /**
  * Function called when a pinned chat is selected.
  */
@@ -27,12 +35,11 @@ const startTimer = () => {
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
-function BaseSidebarScreen() {
+function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
-    const [lastScreen] = useOnyx(ONYXKEYS.LAST_SCREEN);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -49,20 +56,22 @@ function BaseSidebarScreen() {
     }, [activeWorkspace, activeWorkspaceID]);
 
     useEffect(() => {
+        console.log('lastScreen', lastScreen, CONST.ADD_EXPENSES, lastScreen !== CONST.ADD_EXPENSES);
+
         if (lastScreen !== CONST.ADD_EXPENSES) {
             return;
         }
 
-        updateLastScreen(undefined);
-        interceptAnonymousUser(() =>
+        interceptAnonymousUser(() => {
+            updateLastScreen('');
             IOU.startMoneyRequest(
                 CONST.IOU.TYPE.SUBMIT,
                 // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                 // for all of the routes in the creation flow.
                 ReportUtils.generateReportID(),
-            ),
-        );
-    }, [lastScreen]);
+            );
+        });
+    }, []);
 
     return (
         <ScreenWrapper
@@ -92,4 +101,8 @@ function BaseSidebarScreen() {
 
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
-export default BaseSidebarScreen;
+export default withOnyx<BaseSidebarScreenProps, BaseSidebarScreenOnyxProps>({
+    lastScreen: {
+        key: ONYXKEYS.LAST_SCREEN,
+    },
+})(BaseSidebarScreen);
