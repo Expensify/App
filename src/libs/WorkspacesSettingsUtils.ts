@@ -4,12 +4,11 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import Permissions from './Permissions';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
@@ -48,12 +47,6 @@ Onyx.connect({
     },
 });
 
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
-
 let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -82,7 +75,6 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
         if (
-            Permissions.canUseViolations(allBetas) &&
             ReportUtils.shouldDisplayTransactionThreadViolations(
                 oneTransactionThreadReport,
                 allTransactionViolations,
