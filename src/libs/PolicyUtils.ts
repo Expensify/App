@@ -415,7 +415,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * Whether the tax rate can be deleted and disabled
  */
 function canEditTaxRate(policy: Policy, taxID: string): boolean {
-    return policy.taxRates?.defaultExternalID !== taxID;
+    return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
