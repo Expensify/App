@@ -42,10 +42,7 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
                     : []
             }
         >
-            <Balance
-                textStyles={styles.walletBalance}
-                balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0}
-            />
+            <Balance balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0} />
         </Section>
     );
 }
