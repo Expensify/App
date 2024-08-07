@@ -1,4 +1,5 @@
 import 'react-native-url-polyfill/auto';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 /**
@@ -71,10 +72,7 @@ function hasURL(text: string) {
 }
 
 function extractUrlDomain(url: string): string | undefined {
-    const DOMAIN_BASE_REGEX = '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)';
-
-    const match = String(url).match(DOMAIN_BASE_REGEX);
-
+    const match = String(url).match(CONST.REGEX.DOMAIN_BASE);
     return match?.[1];
 }
 
