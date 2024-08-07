@@ -438,9 +438,9 @@ describe('actions/ReportField', () => {
             ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesTpUpdate, false);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
+            const policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
-            // check if the new report field was added to the policy
+            // check if the new report field was added to the policy optimistically
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
@@ -448,71 +448,6 @@ describe('actions/ReportField', () => {
                     disabledOptions: [false, true, true],
                 },
             });
-
-            // Check for success data
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            policy = await connectToFetchPolicy(policyID);
-
-            // Check if the policy pending action was cleared
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
-        });
-
-        it('updates the enabled flag of a report field list value when api returns an error', async () => {
-            mockFetch.pause();
-
-            const policyID = Policy.generatePolicyID();
-            const reportFieldName = 'Test Field';
-            const valueIndexesToUpdate = [1];
-            const reportFieldID = generateFieldID(reportFieldName);
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const reportField: PolicyReportField = {
-                name: reportFieldName,
-                type: CONST.REPORT_FIELD_TYPES.LIST,
-                defaultValue: 'Value 2',
-                values: ['Value 1', 'Value 2', 'Value 3'],
-                disabledOptions: [false, false, true],
-                fieldID: reportFieldID,
-                orderWeight: 1,
-                deletable: false,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: CONST.REPORT_FIELD_TYPES.LIST,
-            };
-            const fakePolicy = createRandomPolicy(Number(policyID));
-
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
-            await waitForBatchedUpdates();
-
-            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesToUpdate, false);
-            await waitForBatchedUpdates();
-
-            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
-
-            // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
-                [reportFieldKey]: {
-                    ...reportField,
-                    defaultValue: '',
-                    disabledOptions: [false, true, true],
-                },
-            });
-
-            // Check for failure data
-            mockFetch.fail();
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            policy = await connectToFetchPolicy(policyID);
-
-            // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
-                [reportFieldKey]: reportField,
-            });
-            // Check if the policy errors was set
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 
@@ -547,77 +482,14 @@ describe('actions/ReportField', () => {
             ReportField.addReportFieldListValue(policyID, reportFieldID, newListValueName);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
-            // check if the new report field was added to the policy
+            const policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
+            // Check if the new report field was added to the policy optimistically
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
                     disabledOptions: [...reportField.disabledOptions, false],
                 },
-            });
-
-            // Check for success data
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            policy = await connectToFetchPolicy(policyID);
-
-            // Check if the policy pending action was cleared
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
-        });
-
-        it('adds a new value to a report field list when api returns an error', async () => {
-            mockFetch.pause();
-
-            const policyID = Policy.generatePolicyID();
-            const reportFieldName = 'Test Field';
-            const reportFieldID = generateFieldID(reportFieldName);
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const reportField: PolicyReportField = {
-                name: reportFieldName,
-                type: CONST.REPORT_FIELD_TYPES.LIST,
-                defaultValue: 'Value 2',
-                values: ['Value 1', 'Value 2', 'Value 3'],
-                disabledOptions: [false, false, true],
-                fieldID: reportFieldID,
-                orderWeight: 1,
-                deletable: false,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: CONST.REPORT_FIELD_TYPES.LIST,
-            };
-            const fakePolicy = createRandomPolicy(Number(policyID));
-            const newListValueName = 'Value 4';
-
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
-            await waitForBatchedUpdates();
-
-            ReportField.addReportFieldListValue(policyID, reportFieldID, newListValueName);
-            await waitForBatchedUpdates();
-
-            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
-
-            // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
-                [reportFieldKey]: {
-                    ...reportField,
-                    values: [...reportField.values, newListValueName],
-                    disabledOptions: [...reportField.disabledOptions, false],
-                },
-            });
-
-            // Check for failure data
-            mockFetch.fail();
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            policy = await connectToFetchPolicy(policyID);
-
-            // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
-                [reportFieldKey]: reportField,
             });
         });
     });
@@ -652,9 +524,9 @@ describe('actions/ReportField', () => {
             ReportField.removeReportFieldListValue(policyID, reportFieldID, [1, 2]);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
+            const policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
 
-            // Check if the values were removed from the report field
+            // Check if the values were removed from the report field optimistically
             expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
                 [reportFieldKey]: {
                     ...reportField,
@@ -663,70 +535,6 @@ describe('actions/ReportField', () => {
                     disabledOptions: [false],
                 },
             });
-
-            // Check for success data
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            policy = await connectToFetchPolicy(policyID);
-            // Check if the policy pending action was cleared
-            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
-        });
-
-        it('removes list values from a report field list when api returns an error', async () => {
-            mockFetch.pause();
-
-            const policyID = Policy.generatePolicyID();
-            const reportFieldName = 'Test Field';
-            const reportFieldID = generateFieldID(reportFieldName);
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            const reportField: PolicyReportField = {
-                name: reportFieldName,
-                type: CONST.REPORT_FIELD_TYPES.LIST,
-                defaultValue: 'Value 2',
-                values: ['Value 1', 'Value 2', 'Value 3'],
-                disabledOptions: [false, false, true],
-                fieldID: reportFieldID,
-                orderWeight: 1,
-                deletable: false,
-                keys: [],
-                externalIDs: [],
-                isTax: false,
-                value: CONST.REPORT_FIELD_TYPES.LIST,
-            };
-            const fakePolicy = createRandomPolicy(Number(policyID));
-
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
-            await waitForBatchedUpdates();
-
-            ReportField.removeReportFieldListValue(policyID, reportFieldID, [1, 2]);
-            await waitForBatchedUpdates();
-
-            let policy: OnyxEntry<PolicyType> = await connectToFetchPolicy(policyID);
-
-            // Check if the values were removed from the report field
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
-                [reportFieldKey]: {
-                    ...reportField,
-                    defaultValue: '',
-                    values: ['Value 1'],
-                    disabledOptions: [false],
-                },
-            });
-
-            // Check for failure data
-            mockFetch.fail();
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            policy = await connectToFetchPolicy(policyID);
-
-            // check if the updated report field was reset in the policy
-            expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithoutOfflineFeedback>({
-                [reportFieldKey]: reportField,
-            });
-            // Check if the policy errors was set
-            expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
         });
     });
 });
