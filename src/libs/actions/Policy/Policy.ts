@@ -40,6 +40,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
+import type SetPolicyRulesEnabledParams from '@libs/API/parameters/SetPolicyRulesEnabledParams';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -2882,7 +2883,63 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyRules(policyID: string, enabled: boolean) {}
+const DEFAULT_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+    maxExpenseAmountNoReceipt: 10000000000,
+    maxExpenseAmount: 10000000000,
+    maxExpenseAge: 10000000000,
+};
+
+function enablePolicyRules(policyID: string, enabled: boolean) {
+    const policy = getPolicy(policyID);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areRulesEnabled: enabled,
+                    ...(!enabled ? DEFAULT_MAX_EXPENSE_VALUES : {}),
+                    pendingFields: {
+                        areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areRulesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areRulesEnabled: !enabled,
+                    ...(!enabled
+                        ? {
+                              maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
+                              maxExpenseAmount: policy?.maxExpenseAmount,
+                              maxExpenseAge: policy?.maxExpenseAge,
+                          }
+                        : {}),
+                    pendingFields: {
+                        areRulesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
+}
 
 function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
     const policy = getPolicy(policyID);

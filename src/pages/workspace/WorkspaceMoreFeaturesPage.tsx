@@ -209,7 +209,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (!canUseReportFieldsFeature) {
+    if (canUseReportFieldsFeature) {
         organizeItems.push({
             icon: Illustrations.Pencil,
             titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
