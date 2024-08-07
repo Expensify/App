@@ -2623,6 +2623,10 @@ function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
     return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 }
 
+function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
+    return report?.isUnread === true && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2665,6 +2669,7 @@ export {
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
     shouldShowViolations,
+    shouldUseBoldText,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

@@ -121,8 +121,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         if (recentReports?.length > 0) {
             newSections.push({
                 data: recentReports.map((report) => {
-                    const isBold = report.isUnread && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
-                    return {...report, isBold};
+                    return {...report, isBold: OptionsListUtils.shouldUseBoldText(report)};
                 }),
                 shouldShow: true,
             });
