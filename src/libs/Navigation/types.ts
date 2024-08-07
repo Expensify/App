@@ -778,6 +778,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: {
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -891,6 +897,7 @@ type MoneyRequestNavigatorParamList = {
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+        action: IOUAction;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         backTo: Routes;
@@ -1120,6 +1127,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
+        approverIndex?: number;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
