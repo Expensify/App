@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -87,7 +88,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                     shouldValidateOnChange
                 >
                     <OfflineWithFeedback
-                        pendingAction={config?.pendingFields?.[customFormIDKey]}
+                        pendingAction={settingsPendingAction([customFormIDKey], config?.pendingFields)}
                         errors={ErrorUtils.getLatestErrorField(config, customFormIDKey)}
                         errorRowStyles={[styles.ph5, styles.pv3]}
                         onClose={() => Policy.clearNetSuiteErrorField(policyID, customFormIDKey)}

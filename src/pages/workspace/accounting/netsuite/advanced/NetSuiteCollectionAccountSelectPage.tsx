@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteCollectionAccountOptions} from '@libs/PolicyUtils';
+import {getNetSuiteCollectionAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -82,7 +82,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}
-            pendingAction={config?.pendingFields?.collectionAccount}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}

@@ -903,7 +903,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
         syncOptions: NetSuiteSyncOptions;
 
-        /** Whther to automatically create employees and vendors upon export in NetSuite if they don't exist */
+        /** Whether to automatically create employees and vendors upon export in NetSuite if they don't exist */
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
