@@ -63,6 +63,9 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
     const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
     if (approvalChain.length === 0) {
+        if (submitToAccountID === currentUserAccountID) {
+            return 'you';
+        }
         return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
 
