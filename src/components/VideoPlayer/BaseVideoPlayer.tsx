@@ -149,6 +149,9 @@ function BaseVideoPlayer({
             if (prevIsMuted.current && prevVolume.current === 0 && !status.isMuted) {
                 updateVolume(0.25);
             }
+            if (isFullScreenRef.current && prevVolume.current !== 0 && status.volume === 0 && !status.isMuted) {
+                currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
+            }
             prevIsMuted.current = status.isMuted;
             prevVolume.current = status.volume;
 
