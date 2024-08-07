@@ -49,8 +49,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            // TODO: change 1 to 0 - applied for testing purposes, as sometimes accountData lacks fundID
-            const bankAccountID = bankAccount.accountData?.fundID ?? 1;
+            const bankAccountID = bankAccount.accountData?.bankAccountID ?? 0;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
