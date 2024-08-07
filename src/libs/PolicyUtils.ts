@@ -895,7 +895,7 @@ function getWorkspaceAccountID(policyID: string) {
     if (!policy) {
         return '';
     }
-    return policy.workspaceAccountID ?? '';
+    return policy.workspaceAccountID ?? 0;
 }
 
 export {
