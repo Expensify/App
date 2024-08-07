@@ -8,7 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
@@ -76,7 +75,11 @@ function isSearchDataType(type: string): type is SearchDataTypes {
     return searchDataTypes.includes(type);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
+function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
+    if (!search) {
+        return undefined;
+    }
+
     if (!isSearchDataType(search.type)) {
         return undefined;
     }
@@ -318,8 +321,8 @@ function getCurrentSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-function isSearchResultsEmpty(searchResults: SearchResults) {
-    return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+function isSearchResultsEmpty<K extends keyof SearchTypeToItemMap>(data: SectionsType<K>) {
+    return data.length === 0;
 }
 
 function getQueryHashFromString(query: SearchQueryString): number {
