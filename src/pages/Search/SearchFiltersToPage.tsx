@@ -1,35 +1,42 @@
 import React from 'react';
 import {View} from 'react-native';
-// import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as SearchActions from '@userActions/Search';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SearchFiltersParticipantsSelector from './SearchAdvancedFiltersPage/SearchFiltersParticipantsSelector';
 
-// import ONYXKEYS from '@src/ONYXKEYS';
-
-function SearchFiltersStatusPage() {
+function SearchFiltersToPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersStatusPage.displayName}
+            testID={SearchFiltersToPage.displayName}
+            includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.to')} />
-                <View style={[styles.flex1]} />
-            </FullPageNotFoundView>
+            <HeaderWithBackButton title={translate('common.to')} />
+            <View style={[styles.flex1]}>
+                <SearchFiltersParticipantsSelector
+                    initialAccountIDs={searchAdvancedFiltersForm?.to ?? []}
+                    onFiltersUpdate={(selectedAccountIDs) => {
+                        SearchActions.updateAdvancedFilters({
+                            to: selectedAccountIDs,
+                        });
+                    }}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
 
-SearchFiltersStatusPage.displayName = 'SearchFiltersStatusPage';
+SearchFiltersToPage.displayName = 'SearchFiltersToPage';
 
-export default SearchFiltersStatusPage;
+export default SearchFiltersToPage;

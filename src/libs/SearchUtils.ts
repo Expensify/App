@@ -453,6 +453,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:${accountIDs.join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.TO && Array.isArray(filterValue) && filterValue.length > 0) {
+                const accountIDs = filterValues[filterKey] ?? [];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${accountIDs.join(',')}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)

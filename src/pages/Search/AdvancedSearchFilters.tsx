@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {AdvancedFiltersKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
@@ -12,13 +13,38 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList} from '@src/types/onyx';
+
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
+    return filterValue
+        ? Object.values(cards)
+              .filter((card) => filterValue.includes(card.cardID.toString()))
+              .map((card) => card.bank)
+              .join(', ')
+        : undefined;
+}
+
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList) {
+    const selectedPersonalDetails = accountIDs.map((id) => personalDetails[id]);
+
+    return selectedPersonalDetails
+        .map((personalDetail) => {
+            if (!personalDetail) {
+                return '';
+            }
+
+            return PersonalDetailsUtils.createDisplayName(personalDetail.login ?? '', personalDetail);
+        })
+        .join(', ');
+}
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
@@ -46,6 +72,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
         return filters[fieldName];
     }
+
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters[fieldName]) {
         const cards = filters[fieldName] ?? [];
         return cards.join(', ');
@@ -58,24 +85,15 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
 
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
-    return filterValue
-        ? Object.values(cards)
-              .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => card.bank)
-              .join(', ')
-        : undefined;
-}
-
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
 
-    const [searchAdvancedFilters = {}] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const personalDetails = usePersonalDetails();
 
     const advancedFilters = useMemo(
         () => [
@@ -126,22 +144,21 @@ function AdvancedSearchFilters() {
                 shouldHide: Object.keys(cardList).length === 0,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, translate),
+                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
                 description: 'common.from' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, translate),
+                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
                 description: 'common.to' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
             },
         ],
-        [searchAdvancedFilters, translate, cardList],
+        [searchAdvancedFilters, translate, cardList, personalDetails],
     );
 
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
-        console.log({searchAdvancedFilters, query});
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
