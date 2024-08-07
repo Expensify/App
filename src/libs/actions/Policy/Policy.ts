@@ -209,6 +209,14 @@ function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefine
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
 
+/** Check if the policy has invoicing company details */
+// eslint-disable-next-line react/no-unused-prop-types,@typescript-eslint/no-unused-vars
+function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
+    // TODO: uncomment when invoicing details inside a policy are supported.
+    // return !!policy.invoice.companyName && !!policy.invoice.companyWebsite;
+    return true;
+}
+
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
@@ -325,6 +333,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
         });
     });
 
+    const policy = getPolicy(policyID);
     // Restore the old report stateNum and statusNum
     const failureData: OnyxUpdate[] = [
         {
@@ -332,6 +341,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
                 errors: reimbursementAccount?.errors ?? null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                avatarURL: policy?.avatarURL,
             },
         },
     ];
@@ -488,7 +504,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approver: policy?.approver,
                 approvalMode: policy?.approvalMode,
                 pendingFields: {approvalMode: null},
-                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApprovalPage.genericErrorMessage')},
+                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
             },
         },
     ];
@@ -3233,6 +3249,7 @@ export {
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
+    hasInvoicingDetails,
 };
 
 export type {NewCustomUnit};
