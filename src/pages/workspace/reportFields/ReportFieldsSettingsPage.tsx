@@ -47,6 +47,7 @@ function ReportFieldsSettingsPage({
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
     const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
+    const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
 
     const deleteReportFieldAndHideModal = () => {
         ReportField.deleteReportFields(policyID, [reportFieldKey]);
@@ -95,6 +96,17 @@ function ReportFieldsSettingsPage({
                         description={translate('common.type')}
                         interactive={false}
                     />
+                    {isListFieldType && (
+                        <MenuItemWithTopDescription
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            description={translate('workspace.reportFields.listValues')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID, reportFieldID))}
+                            title={listValues.join(', ')}
+                            numberOfLinesTitle={5}
+                        />
+                    )}
                     {!isListFieldEmpty && (
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
@@ -104,15 +116,6 @@ function ReportFieldsSettingsPage({
                             shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
                             interactive={!isDateFieldType && !hasAccountingConnections}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
-                        />
-                    )}
-                    {isListFieldType && (
-                        <MenuItemWithTopDescription
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            description={translate('workspace.reportFields.listValues')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID, reportFieldID))}
                         />
                     )}
                     {!hasAccountingConnections && (
