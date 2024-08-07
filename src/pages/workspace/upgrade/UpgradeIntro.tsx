@@ -45,7 +45,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
                             src={iconSrc}
                             width={48}
                             height={48}
-                            iconAdditionalStyles={iconAdditionalStyles}
+                            additionalStyles={iconAdditionalStyles}
                         />
                     )}
                     <Badge
