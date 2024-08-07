@@ -112,7 +112,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                         sections={[{data}]}
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={paymentBankAccountID.toString()}
                     />
                 </ScrollView>

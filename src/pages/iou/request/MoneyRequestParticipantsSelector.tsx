@@ -250,6 +250,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
+                // TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
                 const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID)?.id;
                 newParticipants.push({
                     policyID,
@@ -423,7 +424,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             footerContent={footerContent}
             headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

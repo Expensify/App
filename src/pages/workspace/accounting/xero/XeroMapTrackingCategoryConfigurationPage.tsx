@@ -91,7 +91,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
         />
     );
 }

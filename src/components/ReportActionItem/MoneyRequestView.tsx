@@ -132,7 +132,7 @@ function MoneyRequestView({
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
+    const {canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
@@ -219,8 +219,8 @@ function MoneyRequestView({
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));
     const hasViolations = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
-        [canUseViolations, getViolationsForField],
+            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
+        [getViolationsForField],
     );
 
     let amountDescription = `${translate('iou.amount')}`;
@@ -385,8 +385,7 @@ function MoneyRequestView({
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-    const shouldShowAuditMessage =
-        !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage = !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {

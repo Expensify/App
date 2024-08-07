@@ -40,7 +40,6 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -153,12 +152,6 @@ type GPSPoint = {
     lat: number;
     long: number;
 };
-
-let betas: OnyxTypes.Beta[] = [];
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (betas = value ?? []),
-});
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
@@ -916,6 +909,8 @@ function buildOnyxDataForInvoice(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    companyName?: string,
+    companyWebsite?: string,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [
@@ -1192,6 +1187,49 @@ function buildOnyxDataForInvoice(
             },
         },
     ];
+
+    if (companyName && companyWebsite) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
+            value: {
+                invoice: {
+                    companyName,
+                    companyWebsite,
+                    pendingFields: {
+                        companyName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        companyWebsite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
+            value: {
+                invoice: {
+                    pendingFields: {
+                        companyName: null,
+                        companyWebsite: null,
+                    },
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
+            value: {
+                invoice: {
+                    companyName: undefined,
+                    companyWebsite: undefined,
+                    pendingFields: {
+                        companyName: null,
+                        companyWebsite: null,
+                    },
+                },
+            },
+        });
+    }
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
@@ -1659,13 +1697,11 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
-    if (Permissions.canUseViolations(betas)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
@@ -1722,13 +1758,11 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
-    if (Permissions.canUseViolations(betas)) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: transactionViolations ?? null,
+    });
 
     if (shouldDeleteTransactionThread) {
         failureData.push({
@@ -1790,6 +1824,8 @@ function getSendInvoiceInformation(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    companyName?: string,
+    companyWebsite?: string,
 ): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -1897,6 +1933,8 @@ function getSendInvoiceInformation(
         policy,
         policyTagList,
         policyCategories,
+        companyName,
+        companyWebsite,
     );
 
     return {
@@ -3626,9 +3664,11 @@ function sendInvoice(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    companyName?: string,
+    companyWebsite?: string,
 ) {
     const {senderWorkspaceID, receiver, invoiceRoom, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
-        getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
+        getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
 
     const parameters: SendInvoiceParams = {
         senderWorkspaceID,
@@ -3645,6 +3685,8 @@ function sendInvoice(
         reportPreviewReportActionID,
         transactionID,
         transactionThreadReportID,
+        companyName,
+        companyWebsite,
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
@@ -5529,13 +5571,11 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // added the operation to delete associated transaction violations
-    if (Permissions.canUseViolations(betas)) {
-        onyxUpdates.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
+    onyxUpdates.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
 
     // added the operation to delete transaction thread
     if (shouldDeleteTransactionThread) {
@@ -5642,13 +5682,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     ];
 
-    if (Permissions.canUseViolations(betas)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
@@ -5762,13 +5800,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     ];
 
-    if (Permissions.canUseViolations(betas)) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: transactionViolations ?? null,
+    });
 
     if (shouldDeleteTransactionThread) {
         failureData.push({
