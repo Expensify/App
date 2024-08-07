@@ -1,14 +1,15 @@
 import React, {memo, useEffect, useRef} from 'react';
+import {InteractionManager} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
-import type TooltipProps from '@components/Tooltip/types';
-import getBounds from './getBounds';
+import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import CONST from '@src/CONST';
 
 /**
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, ...props}: TooltipProps) {
+function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     useEffect(
@@ -24,15 +25,15 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
 
     // Automatically hide tooltip after 5 seconds
     useEffect(() => {
-        if (!hideTooltipRef.current) {
+        if (!hideTooltipRef.current || !shouldAutoDismiss) {
             return;
         }
 
-        const intervalID = setInterval(hideTooltipRef.current, 5000);
+        const timerID = setTimeout(hideTooltipRef.current, 5000);
         return () => {
-            clearInterval(intervalID);
+            clearTimeout(timerID);
         };
-    }, []);
+    }, [shouldAutoDismiss]);
 
     return (
         <GenericTooltip
@@ -45,8 +46,22 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {
                     onLayout: (e: LayoutChangeEvent) => {
-                        updateTargetBounds(getBounds(e));
-                        showTooltip();
+                        // e.target is specific to native, use e.nativeEvent.target on web instead
+                        const target = e.target || e.nativeEvent.target;
+                        // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
+                        setTimeout(() => {
+                            InteractionManager.runAfterInteractions(() => {
+                                target?.measure((fx, fy, width, height, px, py) => {
+                                    updateTargetBounds({
+                                        height,
+                                        width,
+                                        x: px,
+                                        y: py,
+                                    });
+                                    showTooltip();
+                                });
+                            });
+                        }, CONST.ANIMATED_TRANSITION);
                     },
                 });
             }}

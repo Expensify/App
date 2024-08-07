@@ -510,6 +510,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        tooltip: {
+            title: '¡Empecemos!',
+            subtitle: ' Presenta tu primer gasto',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',

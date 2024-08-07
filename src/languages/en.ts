@@ -519,6 +519,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
