@@ -74,19 +74,17 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
             >
                 {({hovered}) => (
                     <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
-                        <View style={[styles.flexRow, styles.gap2, titleViewStyles]}>
+                        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
                                 fill={theme.icon}
                             />
-                            <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textStrong]}
-                                >
-                                    {menuTitle}
-                                </Text>
-                            </View>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textStrong, styles.flexShrink1]}
+                            >
+                                {menuTitle}
+                            </Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}

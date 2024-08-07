@@ -86,7 +86,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             listItem={RadioListItem}
             headerContent={listHeaderComponent}
             onSelectRow={updateAccount}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboInvoiceCollectionAccount"

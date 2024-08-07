@@ -92,9 +92,10 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
+    shouldShowSorting: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -113,6 +114,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
                         return null;
                     }
 
+                    const isSortable = shouldShowSorting && isColumnSortable;
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
 
@@ -124,7 +126,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName, shouldShowYear)]}
-                            isSortable={isColumnSortable}
+                            isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />
                     );

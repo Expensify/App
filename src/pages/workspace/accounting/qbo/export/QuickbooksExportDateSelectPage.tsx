@@ -60,6 +60,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
             errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
+            shouldSingleExecuteRowSelect
         />
     );
 }

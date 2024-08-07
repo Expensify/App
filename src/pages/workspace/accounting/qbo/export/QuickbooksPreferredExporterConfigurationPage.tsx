@@ -82,6 +82,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
             headerContent={headerContent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
             onSelectRow={selectExporter}
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

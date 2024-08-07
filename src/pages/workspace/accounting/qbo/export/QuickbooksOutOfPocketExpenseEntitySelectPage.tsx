@@ -113,7 +113,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID))}
             onSelectRow={(selection: SelectorType) => selectExportEntity(selection as MenuItem)}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.exportAs"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

@@ -73,7 +73,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             sections={sections}
             listItem={RadioListItem}
             onSelectRow={selectVendor}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

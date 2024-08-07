@@ -94,7 +94,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             onSelectRow={selectExportAccount}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

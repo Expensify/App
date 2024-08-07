@@ -95,7 +95,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             sections={sections}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExportCompanyCard(selection as MenuItem)}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}

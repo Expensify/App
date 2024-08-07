@@ -85,7 +85,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             listItem={RadioListItem}
             headerContent={listHeaderComponent}
             onSelectRow={saveSelection}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboBillPaymentAccount"

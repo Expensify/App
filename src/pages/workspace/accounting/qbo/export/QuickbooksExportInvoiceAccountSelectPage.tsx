@@ -84,6 +84,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
             listEmptyContent={listEmptyContent}
+            shouldSingleExecuteRowSelect
         />
     );
 }

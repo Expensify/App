@@ -96,7 +96,7 @@ function XeroOrganizationConfigurationPage({
             errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
         />
     );
 }
