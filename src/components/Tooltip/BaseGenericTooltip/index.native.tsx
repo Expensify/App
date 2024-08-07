@@ -112,9 +112,12 @@ function BaseGenericTooltip({
                         return;
                     }
                     setWrapperMeasuredHeight(height);
-                    e.target.measure((x, y, width) => {
-                        setContentMeasuredWidth(width);
-                    });
+                    // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
+                    setTimeout(() => {
+                        e.target.measure((x, y, width) => {
+                            setContentMeasuredWidth(width);
+                        });
+                    }, 500);
                 }}
             >
                 {content}
