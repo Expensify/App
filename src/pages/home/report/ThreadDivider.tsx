@@ -48,7 +48,6 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
             ) : (
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Timing.start(CONST.TIMING.SWITCH_REPORT_THREAD_GO_BACK);
                         const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                         // Pop the thread report screen before navigating to the chat report.
                         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));

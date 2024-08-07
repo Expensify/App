@@ -972,7 +972,6 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
         SWITCH_REPORT_THREAD: 'switch_report_thread',
-        SWITCH_REPORT_THREAD_GO_BACK: 'switch_report_thread_go_back',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
