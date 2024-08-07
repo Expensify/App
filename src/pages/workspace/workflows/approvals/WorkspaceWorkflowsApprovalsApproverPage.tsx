@@ -395,7 +395,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyApprover}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         showScrollIndicator
                     />
                 </FullPageNotFoundView>
