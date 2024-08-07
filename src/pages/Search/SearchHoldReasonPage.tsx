@@ -11,6 +11,7 @@ import * as SearchActions from '@src/libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+import * as ErrorUtils from '@libs/ErrorUtils';
 
 type SearchHoldReasonPageRouteParams = {
     /** Link to previous page */
@@ -29,7 +30,14 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {backTo = ''} = route.params ?? {};
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
+
+    const areSelectedModifiedByOthers = SearchActions.areSelectedModifiedByOthers(selectedTransactionIDs);
+
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+        if (areSelectedModifiedByOthers) {
+            return;
+        }
+
         SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
         clearSelectedTransactions();
         Navigation.goBack();
@@ -41,6 +49,12 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');
+            }
+
+            if (areSelectedModifiedByOthers) {
+                const formErrors = {};
+                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
+                FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
             }
 
             return errors;
