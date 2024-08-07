@@ -32,7 +32,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -439,65 +439,6 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
 
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver ?? policy?.owner ?? '';
-}
-
-/**
- * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
- */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: number): number {
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
-    const defaultApprover = getDefaultApprover(policy);
-
-    // For policy using the optional or basic workflow, the manager is the policy default approver.
-    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover])[0];
-    }
-
-    const employee = policy?.employeeList?.[employeeLogin];
-    if (!employee) {
-        return -1;
-    }
-
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
-}
-
-function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
-    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
-    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
-}
-
-function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
-    if (!isControlOnAdvancedApprovalMode(policy)) {
-        return '';
-    }
-
-    const employee = policy?.employeeList?.[employeeEmail];
-    if (!employee) {
-        return '';
-    }
-
-    const positiveReportTotal = Math.abs(reportTotal);
-    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
-        return employee.overLimitForwardsTo;
-    }
-    return employee.forwardsTo ?? '';
-}
-
-function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
-    const approvalChain: string[] = [];
-
-    // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
-    if (!isControlOnAdvancedApprovalMode(policy)) {
-        return approvalChain;
-    }
-
-    let nextApproverEmail = getSubmitToEmail(policy, employeeAccountID);
-
-    while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
-        approvalChain.push(nextApproverEmail);
-        nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
-    }
-    return approvalChain;
 }
 
 /**
@@ -947,7 +888,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
-    getSubmitToAccountID,
     getTagList,
     getTagListName,
     getTagLists,
@@ -1014,7 +954,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
-    getApprovalChain,
+    getDefaultApprover,
+    getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,

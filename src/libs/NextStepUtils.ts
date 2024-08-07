@@ -61,7 +61,7 @@ function parseMessage(messages: Message[] | undefined) {
 }
 
 function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
-    const approvalChain = PolicyUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
+    const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
     if (approvalChain.length === 0) {
         return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
     }
@@ -91,7 +91,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
-    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
+    const submitToAccountID = ReportUtils.getSubmitToAccountID(policy, ownerAccountID);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
     const nextApproverDisplayName = getNextApproverDisplayName(policy, ownerAccountID, submitToAccountID, report);
 
