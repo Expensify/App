@@ -23,10 +23,10 @@ function OptionRowLHNData({
     policy,
     receiptTransactions,
     parentReportAction,
+    iouReportReportActions,
     transaction,
     lastReportActionTransaction,
     transactionViolations,
-    canUseViolations,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -35,7 +35,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
+    const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
     const shouldDisplayReportViolations = ReportUtils.isReportOwner(fullReport) && ReportUtils.hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
@@ -68,9 +68,9 @@ function OptionRowLHNData({
         preferredLocale,
         policy,
         parentReportAction,
+        iouReportReportActions,
         transaction,
         transactionViolations,
-        canUseViolations,
         receiptTransactions,
         shouldDisplayReportViolations,
     ]);

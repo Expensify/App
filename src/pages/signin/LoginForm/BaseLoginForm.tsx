@@ -32,9 +32,10 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
-import type {Account, Credentials} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
@@ -46,20 +47,16 @@ type BaseLoginFormOnyxProps = {
 
     /** Message to display when user successfully closed their account */
     closeAccount: OnyxEntry<CloseAccountForm>;
-
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
 };
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
 
-function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-    const [formError, setFormError] = useState<string | undefined>();
+    const [formError, setFormError] = useState<TranslationPaths | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
@@ -73,7 +70,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         (value: string) => {
             const loginTrim = value.trim();
             if (!loginTrim) {
-                setFormError(translate('common.pleaseEnterEmailOrPhoneNumber'));
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
                 return false;
             }
 
@@ -82,9 +79,9 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
                 if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                    setFormError(translate('common.error.phoneNumber'));
+                    setFormError('common.error.phoneNumber');
                 } else {
-                    setFormError(translate('loginForm.error.invalidFormatEmailLogin'));
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
                 }
                 return false;
             }
@@ -92,7 +89,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             setFormError(undefined);
             return true;
         },
-        [setFormError, translate],
+        [setFormError],
     );
 
     /**
@@ -100,7 +97,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
      */
     const onTextInput = useCallback(
         (text: string) => {
-            setLogin(text);
+            onLoginChanged(text);
             if (firstBlurred.current) {
                 validate(text);
             }
@@ -114,7 +111,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 CloseAccount.setDefaultData();
             }
         },
-        [account, closeAccount, input, setLogin, validate],
+        [account, closeAccount, input, onLoginChanged, validate],
     );
 
     function getSignInWithStyles() {
@@ -268,7 +265,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formError}
+                    errorText={formError ? translate(formError) : undefined}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
@@ -337,7 +334,6 @@ BaseLoginForm.displayName = 'BaseLoginForm';
 export default withToggleVisibilityView(
     withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
         account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     })(forwardRef(BaseLoginForm)),
 );

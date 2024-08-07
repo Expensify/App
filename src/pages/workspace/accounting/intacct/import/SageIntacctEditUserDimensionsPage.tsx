@@ -17,6 +17,7 @@ import {clearSageIntacctErrorField, editSageIntacctUserDimensions, removeSageInt
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -85,9 +86,10 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                 shouldValidateOnChange
             >
                 <OfflineWithFeedback
-                    pendingAction={config?.pendingFields?.[`dimension_${editedUserDimensionName}`]}
-                    errors={config?.errorFields?.[`dimension_${editedUserDimensionName}`]}
-                    onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
+                    pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
+                    errorRowStyles={[styles.pb3]}
+                    onClose={() => clearSageIntacctErrorField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper
