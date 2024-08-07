@@ -117,6 +117,10 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return -1;
         }
 
+        if (b.isDefault) {
+            return 1;
+        }
+
         return (a.approvers[0]?.displayName ?? '-1').localeCompare(b.approvers[0]?.displayName ?? '-1');
     });
 

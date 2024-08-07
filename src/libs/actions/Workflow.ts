@@ -245,7 +245,7 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
         return;
     }
 
-    const updatedApprovers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
+    const updatedApprovers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((newApprover) => (newApprover ? {...newApprover, isInMultipleWorkflows: false} : undefined));
     updatedApprovers[approverIndex] = undefined;
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(updatedApprovers, (approver) => !approver)});
 }

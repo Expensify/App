@@ -41,15 +41,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
                 />
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
-                    const previousApprover = approvalWorkflow.approvers[approverIndex - 1];
-                    const showHintText = approver?.isInMultipleWorkflows && !!previousApprover;
-                    const hintText = showHintText
-                        ? translate('workflowsPage.approverInMultipleWorkflows', {
-                              name1: approver?.displayName,
-                              name2: previousApprover.displayName,
-                          })
-                        : undefined;
-
+                    const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
                     const showErrorText = approver?.isCircularReference && !!previousApprover;
                     const errorText = showErrorText
                         ? translate('workflowsPage.approverCircularReference', {
@@ -57,6 +49,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
                               name2: previousApprover.displayName,
                           })
                         : undefined;
+
+                    const showHintText = approver?.isInMultipleWorkflows && !!previousApprover;
+                    const hintText =
+                        !showErrorText && showHintText
+                            ? translate('workflowsPage.approverInMultipleWorkflows', {
+                                  name1: approver?.displayName,
+                                  name2: previousApprover.displayName,
+                              })
+                            : undefined;
 
                     return (
                         <MenuItemWithTopDescription
