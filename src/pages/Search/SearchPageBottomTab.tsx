@@ -93,8 +93,8 @@ function SearchPageBottomTab() {
                 {shouldUseNarrowLayout && queryJSON && (
                     <Search
                         queryJSON={queryJSON}
-                        policyIDs={policyIDs}
                         isCustomQuery={isCustomQuery}
+                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>
