@@ -31,6 +31,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const isSubmitDisabled = approvalWorkflow?.approvers.length === 0 || approvalWorkflow?.members.length === 0 || approvalWorkflow?.approvers.some((approver) => !approver);
 
     const createApprovalWorkflow = useCallback(() => {
         if (!approvalWorkflow) {
@@ -76,7 +77,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         large
                         text={translate('workflowsCreateApprovalsPage.submitButton')}
                         isLoading={approvalWorkflow?.isLoading}
-                        isDisabled={approvalWorkflow?.approvers.length === 0 || approvalWorkflow?.approvers.some((approver) => !approver)}
+                        isDisabled={isSubmitDisabled}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

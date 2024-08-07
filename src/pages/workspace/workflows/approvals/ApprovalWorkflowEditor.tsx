@@ -23,6 +23,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
+    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ');
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -30,10 +31,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
                 <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
 
                 <MenuItemWithTopDescription
-                    title={approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ')}
+                    title={members}
                     titleStyle={styles.textNormalThemeText}
                     description={translate('workflowsExpensesFromPage.title')}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                    descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)))}
                     shouldShowRightIcon
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
@@ -41,8 +42,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const previousApprover = approvalWorkflow.approvers[approverIndex - 1];
-                    const nextApprover = approvalWorkflow.approvers[approverIndex + 1];
-                    const showHintText = approver?.isInMultipleWorkflows && !nextApprover?.isInMultipleWorkflows && !!previousApprover;
+                    const showHintText = approver?.isInMultipleWorkflows && !!previousApprover;
                     const hintText = showHintText
                         ? translate('workflowsPage.approverInMultipleWorkflows', {
                               name1: approver?.displayName,

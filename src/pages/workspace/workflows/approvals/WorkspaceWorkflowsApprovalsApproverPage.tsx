@@ -158,8 +158,6 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                     email: selectedApproverEmail,
                     avatar,
                     displayName,
-                    isInMultipleWorkflows: false,
-                    isCircularReference: false,
                 },
                 approverIndex,
                 route.params.policyID,

@@ -234,7 +234,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
         const additionalApprovers = getApprovalWorkflowApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
-        updatedApprovers.splice(approverIndex, updatedApprovers.length, ...additionalApprovers);
+        updatedApprovers.splice(approverIndex, updatedApprovers.length, ...additionalApprovers.map((newApprover) => ({...newApprover, isInMultipleWorkflows: true})));
     }
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: updatedApprovers});
