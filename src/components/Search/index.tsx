@@ -11,6 +11,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -176,6 +177,16 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+
+    const isSearchResultsEmpty = !searchResults || SearchUtils.isSearchResultsEmpty(searchResults);
+    const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
+
+    useEffect(() => {
+        if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
+            return;
+        }
+        turnOffMobileSelectionMode();
+    }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
         if (SearchUtils.isTransactionListItemType(item)) {
@@ -344,7 +355,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 ListItem={ListItem}
                 onSelectRow={openReport}
                 getItemHeight={getItemHeightMemoized}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
                 containerStyle={[styles.pv0]}

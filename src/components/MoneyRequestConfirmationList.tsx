@@ -899,7 +899,7 @@ function MoneyRequestConfirmationList({
                 sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={navigateToReportOrUserDetail}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
                 footerContent={footerContent}
