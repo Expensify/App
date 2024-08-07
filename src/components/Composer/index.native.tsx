@@ -1,8 +1,9 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {TextInput} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -21,6 +22,7 @@ function Composer(
     {
         shouldClear = false,
         onClear = () => {},
+        onPasteFile = () => {},
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -64,6 +66,20 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const pasteFile = useCallback(
+        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
+            const clipboardContent = e.nativeEvent.items[0];
+            if (clipboardContent.type === 'text/plain') {
+                return;
+            }
+            const fileURI = clipboardContent.data;
+            const fileName = fileURI.split('/').pop();
+            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
+            onPasteFile(file);
+        },
+        [onPasteFile],
+    );
+
     useEffect(() => {
         if (!shouldClear) {
             return;
@@ -92,6 +108,7 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onPaste={pasteFile}
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
