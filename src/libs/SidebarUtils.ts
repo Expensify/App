@@ -283,7 +283,7 @@ function getOptionData({
         hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
-        isArchivedRoom: false,
+        private_isArchived: undefined,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
@@ -306,8 +306,7 @@ function getOptionData({
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
-    result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
+    result.private_isArchived = report.private_isArchived;
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -395,8 +394,8 @@ function getOptionData({
 
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
