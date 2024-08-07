@@ -395,7 +395,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
-        // TODO: remove after this beta feature is released
         if (!canUseWorkspaceFeeds) {
             configurationOptions.splice(2, 1);
         }
