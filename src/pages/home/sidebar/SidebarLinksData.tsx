@@ -40,12 +40,13 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
     const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();
 
     useEffect(() => {
-        if (!activeWorkspaceID || !policyMemberAccountIDs) {
+        if (!activeWorkspaceID) {
             return;
         }
 
         Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs);
-    }, [activeWorkspaceID, policyMemberAccountIDs]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [activeWorkspaceID]);
 
     const isLoading = isLoadingApp;
     const currentReportIDRef = useRef(currentReportID);
