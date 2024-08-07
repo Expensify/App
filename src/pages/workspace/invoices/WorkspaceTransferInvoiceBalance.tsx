@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Balance from '@components/Balance';
@@ -20,6 +20,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -54,6 +55,10 @@ function WorkspaceTransferInvoiceBalance({
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = ErrorUtils.getLatestErrorMessage(invoiceBalanceTransfer);
+
+    useEffect(() => {
+        PaymentMethods.resetInvoiceTransferData();
+    }, []);
 
     return (
         <AccessOrNotFoundWrapper
@@ -124,7 +129,7 @@ function WorkspaceTransferInvoiceBalance({
                             amount: isTransferable ? CurrencyUtils.convertToDisplayString(transferAmount) : '',
                         })}
                         isLoading={invoiceBalanceTransfer?.loading}
-                        onSubmit={() => selectedAccount && console.debug('Transfer', selectedAccount)}
+                        onSubmit={() => selectedAccount.methodID && PaymentMethods.transferInvoiceBalance(policyID, selectedAccount.methodID)}
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}

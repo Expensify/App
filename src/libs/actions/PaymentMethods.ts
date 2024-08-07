@@ -10,12 +10,14 @@ import type {
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
     PaymentCardParams,
+    TransferInvoiceBalanceParams,
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -531,6 +533,75 @@ function setPaymentCardForm(values: AccountData) {
     });
 }
 
+/**
+ * Transfers invoice balance to a bank account
+ */
+function transferInvoiceBalance(policyID: string, bankAccountID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.INVOICE_BALANCE_TRANSFER,
+            value: {
+                loading: true,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.INVOICE_BALANCE_TRANSFER,
+            value: {
+                loading: false,
+                success: true,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.INVOICE_BALANCE_TRANSFER,
+            value: {
+                loading: false,
+                success: false,
+            },
+        },
+    ];
+
+    const parameters: TransferInvoiceBalanceParams = {
+        policyID,
+        bankAccountID,
+        authToken,
+    };
+
+    console.debug('Transfering invoice balance to bank account', parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+
+    API.write(WRITE_COMMANDS.TRANSFER_POLICY_ACCOUNT_BALANCE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ * Resets the invoice balance transfer data
+ */
+function resetInvoiceTransferData() {
+    Onyx.merge(ONYXKEYS.INVOICE_BALANCE_TRANSFER, {
+        loading: false,
+        success: false,
+    });
+}
+
 export {
     deletePaymentCard,
     addPaymentCard,
@@ -555,4 +626,6 @@ export {
     clearWalletTermsError,
     setPaymentCardForm,
     verifySetupIntent,
+    transferInvoiceBalance,
+    resetInvoiceTransferData,
 };
