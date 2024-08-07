@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertApprovalWorkflowToPolicyEmployees, getApprovalWorkflowApprovers} from '@libs/WorkflowUtils';
+import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
@@ -231,10 +231,15 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
     updatedApprovers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
-    if (policy.employeeList[approver.email]?.forwardsTo) {
+    const approverForwardsTo = policy.employeeList[approver.email]?.submitsTo;
+    if (approverForwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-        const additionalApprovers = getApprovalWorkflowApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
-        updatedApprovers.splice(approverIndex, updatedApprovers.length, ...additionalApprovers.map((newApprover) => ({...newApprover, isInMultipleWorkflows: true})));
+        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
+            ...additionalApprover,
+            isInMultipleWorkflows: true,
+            isCircularReference: !!currentApprovalWorkflow?.approvers.some((existingApprover) => existingApprover?.email === additionalApprover.email),
+        }));
+        updatedApprovers.splice(approverIndex, updatedApprovers.length, ...additionalApprovers);
     }
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: updatedApprovers});

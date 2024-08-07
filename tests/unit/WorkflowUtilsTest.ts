@@ -56,11 +56,11 @@ describe('WorkflowUtils', () => {
         }
     });
 
-    describe('getApprovalWorkflowApprovers', () => {
+    describe('calculateApprovers', () => {
         it('Should return no approvers for empty employees object', () => {
             const employees: PolicyEmployeeList = {};
             const firstEmail = '1@example.com';
-            const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
+            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([]);
         });
@@ -77,7 +77,7 @@ describe('WorkflowUtils', () => {
                 },
             };
             const firstEmail = '1@example.com';
-            const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
+            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1)]);
         });
@@ -94,7 +94,7 @@ describe('WorkflowUtils', () => {
                 },
             };
             const firstEmail = '1@example.com';
-            const approvers = WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByEmail});
+            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1)]);
         });
@@ -123,18 +123,18 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '2@example.com'}),
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4),
             ]);
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4),
             ]);
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([
+            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4),
             ]);
@@ -164,7 +164,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '2@example.com'}),
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
@@ -172,7 +172,7 @@ describe('WorkflowUtils', () => {
                 buildApprover(5, {forwardsTo: '1@example.com'}),
                 buildApprover(1, {forwardsTo: '2@example.com', isCircularReference: true}),
             ]);
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4, {forwardsTo: '5@example.com'}),
@@ -190,7 +190,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(WorkflowUtils.getApprovalWorkflowApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '1@example.com'}),
                 buildApprover(1, {forwardsTo: '1@example.com', isCircularReference: true}),
             ]);

@@ -192,4 +192,4 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
     return updatedEmployeeList;
 }
 
-export {calculateApprovers as getApprovalWorkflowApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, EMPTY_APPROVAL_WORKFLOW};
+export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, EMPTY_APPROVAL_WORKFLOW};

@@ -31,7 +31,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const isSubmitDisabled = approvalWorkflow?.approvers.length === 0 || approvalWorkflow?.members.length === 0 || approvalWorkflow?.approvers.some((approver) => !approver);
+    const isSubmitDisabled =
+        approvalWorkflow?.approvers.length === 0 || approvalWorkflow?.members.length === 0 || approvalWorkflow?.approvers.some((approver) => !approver || approver.isCircularReference);
 
     const createApprovalWorkflow = useCallback(() => {
         if (!approvalWorkflow) {
