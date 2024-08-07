@@ -5320,6 +5320,22 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
         },
+        SYNTAX_FILTER_VALUE_TO_KEY_MAPPING: {
+            date: 'DATE',
+            amount: 'AMOUNT',
+            expenseType: 'EXPENSE_TYPE',
+            currency: 'CURRENCY',
+            merchant: 'MERCHANT',
+            description: 'DESCRIPTION',
+            from: 'FROM',
+            to: 'TO',
+            category: 'CATEGORY',
+            tag: 'TAG',
+            taxRate: 'TAX_RATE',
+            cardID: 'CARD_ID',
+            reportID: 'REPORT_ID',
+            keyword: 'KEYWORD',
+        },
     },
 
     REFERRER: {

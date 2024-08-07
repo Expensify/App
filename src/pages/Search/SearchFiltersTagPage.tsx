@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
@@ -57,22 +56,20 @@ function SearchFiltersTagPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.tag')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('common.tag')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1]}>
+                <SearchMultipleSelectionPicker
+                    pickerTitle={translate('common.tag')}
+                    items={tagItems}
+                    initiallySelectedItems={selectedTagsItems}
+                    onSaveSelection={onSaveSelection}
                 />
-                <View style={[styles.flex1]}>
-                    <SearchMultipleSelectionPicker
-                        pickerTitle={translate('common.tag')}
-                        items={tagItems}
-                        initiallySelectedItems={selectedTagsItems}
-                        onSaveSelection={onSaveSelection}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }

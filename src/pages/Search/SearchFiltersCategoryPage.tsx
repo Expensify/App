@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
@@ -51,22 +50,20 @@ function SearchFiltersCategoryPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.category')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('common.category')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1, styles.pb5]}>
+                <SearchMultipleSelectionPicker
+                    pickerTitle={translate('common.category')}
+                    items={categoryItems}
+                    initiallySelectedItems={selectedCategories}
+                    onSaveSelection={onSaveSelection}
                 />
-                <View style={[styles.flex1, styles.pb5]}>
-                    <SearchMultipleSelectionPicker
-                        pickerTitle={translate('common.category')}
-                        items={categoryItems}
-                        initiallySelectedItems={selectedCategories}
-                        onSaveSelection={onSaveSelection}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }

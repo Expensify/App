@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -46,27 +45,25 @@ function SearchFiltersTypePage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.type')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+            <HeaderWithBackButton
+                title={translate('common.type')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1]}>
+                <SelectionList
+                    sections={[{data: filterTypeItems}]}
+                    onSelectRow={(item) => {
+                        updateType({
+                            type: item.value,
+                        });
                     }}
+                    initiallyFocusedOptionKey={activeItem}
+                    shouldStopPropagation
+                    ListItem={RadioListItem}
                 />
-                <View style={[styles.flex1]}>
-                    <SelectionList
-                        sections={[{data: filterTypeItems}]}
-                        onSelectRow={(item) => {
-                            updateType({
-                                type: item.value,
-                            });
-                        }}
-                        initiallyFocusedOptionKey={activeItem}
-                        shouldStopPropagation
-                        ListItem={RadioListItem}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }

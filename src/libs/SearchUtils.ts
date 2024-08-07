@@ -413,7 +413,6 @@ function sanitizeString(str: string) {
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    // TODO add handling of multiple values picked
     const filtersString = Object.entries(filterValues)
         .map(([filterKey, filterValue]) => {
             if (filterKey === INPUT_IDS.TYPE && filterValue) {
@@ -427,41 +426,23 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             if (filterKey === INPUT_IDS.CURRENCY && Array.isArray(filterValue) && filterValue.length > 0) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${filterValue.join(',')}`;
             }
-            if (filterKey === INPUT_IDS.MERCHANT && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}:${filterValue as string}`;
+            if ((filterKey === INPUT_IDS.MERCHANT || filterKey === INPUT_IDS.DESCRIPTION || filterKey === INPUT_IDS.REPORT_ID) && filterValue) {
+                const keyInCorrectForm = CONST.SEARCH.SYNTAX_FILTER_VALUE_TO_KEY_MAPPING[filterKey];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
             }
 
-            if (filterKey === INPUT_IDS.DESCRIPTION && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION}:${filterValue as string}`;
-            }
-
-            if (filterKey === INPUT_IDS.REPORT_ID && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${filterValue as string}`;
-            }
-
-            if (filterKey === INPUT_IDS.CATEGORY && Array.isArray(filterValue) && filterValue.length > 0) {
-                const categories = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY}:${categories.map(sanitizeString).join(',')}`;
-            }
-
-            if (filterKey === INPUT_IDS.CARD_ID && Array.isArray(filterValue) && filterValue.length > 0) {
-                const cardIDs = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${cardIDs.join(',')}`;
-            }
-
-            if (filterKey === INPUT_IDS.TAX_RATE && filterValues[filterKey]) {
-                const taxRates = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE}:${taxRates.map(sanitizeString).join(',')}`;
-            }
-
-            if (filterKey === INPUT_IDS.EXPENSE_TYPE && filterValues[filterKey]) {
-                const expenseTypes = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE}:${expenseTypes.map(sanitizeString).join(',')}`;
-            }
-
-            if (filterKey === INPUT_IDS.TAG && filterValues[filterKey]) {
-                const tags = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG}:${tags.map(sanitizeString).join(',')}`;
+            if (
+                (filterKey === INPUT_IDS.CATEGORY ||
+                    filterKey === INPUT_IDS.CARD_ID ||
+                    filterKey === INPUT_IDS.TAX_RATE ||
+                    filterKey === INPUT_IDS.EXPENSE_TYPE ||
+                    filterKey === INPUT_IDS.TAG) &&
+                Array.isArray(filterValue) &&
+                filterValue.length > 0
+            ) {
+                const arrayFilterValues = filterValues[filterKey] ?? [];
+                const keyInCorrectForm = CONST.SEARCH.SYNTAX_FILTER_VALUE_TO_KEY_MAPPING[filterKey];
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${arrayFilterValues.map(sanitizeString).join(',')}`;
             }
 
             return undefined;

@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
@@ -53,23 +52,21 @@ function SearchFiltersExpenseTypePage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('search.expenseTypes')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('search.expenseTypes')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1]}>
+                <SearchMultipleSelectionPicker
+                    pickerTitle={translate('search.expenseTypes')}
+                    items={expenseTypesItems}
+                    initiallySelectedItems={selectedExpenseTypes}
+                    onSaveSelection={onSaveSelection}
+                    shouldShowTextInput={false}
                 />
-                <View style={[styles.flex1]}>
-                    <SearchMultipleSelectionPicker
-                        pickerTitle={translate('search.expenseTypes')}
-                        items={expenseTypesItems}
-                        initiallySelectedItems={selectedExpenseTypes}
-                        onSaveSelection={onSaveSelection}
-                        shouldShowTextInput={false}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }

@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
@@ -44,22 +43,20 @@ function SearchFiltersTaxRatePage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('workspace.taxes.taxRate')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('workspace.taxes.taxRate')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1]}>
+                <SearchMultipleSelectionPicker
+                    pickerTitle={translate('workspace.taxes.taxRate')}
+                    items={taxItems}
+                    initiallySelectedItems={selectedTaxesItems}
+                    onSaveSelection={onSaveSelection}
                 />
-                <View style={[styles.flex1]}>
-                    <SearchMultipleSelectionPicker
-                        pickerTitle={translate('workspace.taxes.taxRate')}
-                        items={taxItems}
-                        initiallySelectedItems={selectedTaxesItems}
-                        onSaveSelection={onSaveSelection}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }

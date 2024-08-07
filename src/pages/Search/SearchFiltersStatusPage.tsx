@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -64,27 +63,25 @@ function SearchFiltersStatusPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('search.filters.status')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+            <HeaderWithBackButton
+                title={translate('search.filters.status')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1]}>
+                <SelectionList
+                    sections={[{data: filterStatusItems}]}
+                    onSelectRow={(item) => {
+                        updateStatus({
+                            status: item.value,
+                        });
                     }}
+                    initiallyFocusedOptionKey={activeItem}
+                    shouldStopPropagation
+                    ListItem={RadioListItem}
                 />
-                <View style={[styles.flex1]}>
-                    <SelectionList
-                        sections={[{data: filterStatusItems}]}
-                        onSelectRow={(item) => {
-                            updateStatus({
-                                status: item.value,
-                            });
-                        }}
-                        initiallyFocusedOptionKey={activeItem}
-                        shouldStopPropagation
-                        ListItem={RadioListItem}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }

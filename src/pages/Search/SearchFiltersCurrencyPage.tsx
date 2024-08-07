@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/SearchMultipleSelectionPicker';
@@ -49,22 +48,20 @@ function SearchFiltersCurrencyPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('search.filters.currency')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('search.filters.currency')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1, styles.pb5]}>
+                <SearchMultipleSelectionPicker
+                    pickerTitle={translate('search.filters.currency')}
+                    items={currencyItems}
+                    initiallySelectedItems={selectedCurrenciesItems}
+                    onSaveSelection={handleOnSubmit}
                 />
-                <View style={[styles.flex1, styles.pb5]}>
-                    <SearchMultipleSelectionPicker
-                        pickerTitle={translate('search.filters.currency')}
-                        items={currencyItems}
-                        initiallySelectedItems={selectedCurrenciesItems}
-                        onSaveSelection={handleOnSubmit}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }
