@@ -86,7 +86,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const handleOuterClick = useCallback(() => {
         Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
-    }, [selectedPurpose, translate]);
+    }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
