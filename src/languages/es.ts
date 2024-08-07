@@ -1526,7 +1526,7 @@ export default {
         welcome: '¡Bienvenido!',
         explanationModal: {
             title: 'Bienvenido a Expensify',
-            description: 'Recibir pagos es tan fácil como mandar un mensaje',
+            description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
             secondaryDescription: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.',
         },
         welcomeVideo: {
