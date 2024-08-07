@@ -24,13 +24,13 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {syncLocations, syncTax, reimbursableExpensesAccount, reimbursableExpensesExportDestination, errorFields, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isLocationEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = !!syncTax;
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const isLocationEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isTaxesEnabled = !!qboConfig?.syncTax;
     const [exportHintText, accountDescription] = useMemo(() => {
         let hintText: string | undefined;
         let description: string | undefined;
-        switch (reimbursableExpensesExportDestination) {
+        switch (qboConfig?.reimbursableExpensesExportDestination) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportCheckDescription');
                 description = translate('workspace.qbo.bankAccount');
@@ -48,18 +48,18 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
         }
 
         return [hintText, description];
-    }, [translate, reimbursableExpensesExportDestination, isLocationEnabled, isTaxesEnabled]);
+    }, [translate, qboConfig?.reimbursableExpensesExportDestination, isLocationEnabled, isTaxesEnabled]);
 
     const sections: QBOSectionType[] = [
         {
-            title: reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined,
+            title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
             hintText: exportHintText,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
-            title: reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            title: qboConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
@@ -79,14 +79,18 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
-            {sections.map((section) => (
-                <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}>
+            {sections.map((section, index) => (
+                <OfflineWithFeedback
+                    pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
                         onPress={section.onPress}
                         shouldShowRightIcon
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         hintText={section.hintText}
                     />
                 </OfflineWithFeedback>
