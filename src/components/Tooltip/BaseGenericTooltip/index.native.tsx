@@ -1,6 +1,6 @@
 import {Portal} from '@gorhom/portal';
 import React, {useMemo, useRef, useState} from 'react';
-import {Animated, View} from 'react-native';
+import {Animated, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
@@ -115,10 +115,12 @@ function BaseGenericTooltip({
                     // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
                     const target = e.target;
                     setTimeout(() => {
-                        target.measure((x, y, width) => {
-                            setContentMeasuredWidth(width);
+                        InteractionManager.runAfterInteractions(() => {
+                            target.measure((x, y, width) => {
+                                setContentMeasuredWidth(width);
+                            });
                         });
-                    }, 500);
+                    }, CONST.ANIMATED_TRANSITION);
                 }}
             >
                 {content}

@@ -1,7 +1,8 @@
 import React, {memo, useEffect, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import {InteractionManager, type LayoutChangeEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import CONST from '@src/CONST';
 
 /**
  * A component used to wrap an element intended for displaying a tooltip.
@@ -48,16 +49,18 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}:
                         const target = e.target || e.nativeEvent.target;
                         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
                         setTimeout(() => {
-                            target?.measure((fx, fy, width, height, px, py) => {
-                                updateTargetBounds({
-                                    height,
-                                    width,
-                                    x: px,
-                                    y: py,
+                            InteractionManager.runAfterInteractions(() => {
+                                target?.measure((fx, fy, width, height, px, py) => {
+                                    updateTargetBounds({
+                                        height,
+                                        width,
+                                        x: px,
+                                        y: py,
+                                    });
+                                    showTooltip();
                                 });
-                                showTooltip();
                             });
-                        }, 500);
+                        }, CONST.ANIMATED_TRANSITION);
                     },
                 });
             }}
