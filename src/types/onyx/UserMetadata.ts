@@ -19,7 +19,7 @@ type UserMetadata = {
     environment?: string;
 
     /** Information if user dismissed the try new dot popup before. Can be "empty", true or false */
-    tryNewDotDismissed?: string | boolean;
+    tryNewDotDismissed?: 'empty' | boolean;
 };
 
 export default UserMetadata;
