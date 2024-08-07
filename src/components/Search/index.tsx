@@ -188,6 +188,46 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
+    if (shouldShowLoadingState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <SearchRowSkeleton shouldAnimate />
+            </>
+        );
+    }
+
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (searchResults === undefined || type === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
+    const ListItem = SearchUtils.getListItem(type);
+    const data = SearchUtils.getSections(searchResults.data, searchResults.search, type);
+    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
+
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+
+    if (shouldShowEmptyState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <EmptySearchView />
+            </>
+        );
+    }
+
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
         if (SearchUtils.isTransactionListItemType(item)) {
             if (!item.keyForList) {
@@ -215,34 +255,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         });
     };
 
-    if (shouldShowLoadingState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <SearchRowSkeleton shouldAnimate />
-            </>
-        );
-    }
-
-    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
-
-    if (shouldShowEmptyState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <EmptySearchView />
-            </>
-        );
-    }
-
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
         let reportID = SearchUtils.isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
 
@@ -265,19 +277,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
-
-    const type = SearchUtils.getSearchType(searchResults?.search);
-
-    if (type === undefined) {
-        Log.alert('[Search] Undefined search type');
-        return null;
-    }
-
-    const ListItem = SearchUtils.getListItem(type);
-
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
-    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
-    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;

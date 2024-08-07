@@ -519,6 +519,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -732,6 +736,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,

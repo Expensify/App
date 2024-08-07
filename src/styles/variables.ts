@@ -246,6 +246,9 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    composerTooltipShiftHorizontal: 10,
+    composerTooltipShiftVertical: -10,
+
     h20: 20,
     h28: 28,
     h36: 36,
