@@ -1,6 +1,6 @@
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import getTopmostFullScreenRoute from '@libs/Navigation/getTopmostFullScreenRoute';
+import getTopmostWorkspaceRoute from '@libs/Navigation/getTopmostWorkspaceRoute';
 import type {Metainfo} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import shallowCompare from '@libs/ObjectUtils';
@@ -63,19 +63,22 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
     // This one is heuristic and may need to be improved if we will be able to navigate from modal screen with full screen in background to another modal screen with full screen in background.
     // For now this simple check is enough.
     if (metainfo.isWorkspaceNavigatorMandatory) {
-        const stateTopmostFullScreen = getTopmostFullScreenRoute(state);
-        const templateStateTopmostFullScreen = getTopmostFullScreenRoute(templateState);
-        const fullScreenDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR).at(-1) as NavigationPartialRoute;
+        const stateTopmostWorkspaceRoute = getTopmostWorkspaceRoute(state);
+        const templateStateTopmostWorkspaceRoute = getTopmostWorkspaceRoute(templateState);
+        const workspaceNavDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR).at(-1) as NavigationPartialRoute;
 
         if (
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (!stateTopmostFullScreen && templateStateTopmostFullScreen) ||
-            (stateTopmostFullScreen &&
-                templateStateTopmostFullScreen &&
-                (stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name ||
-                    !shallowCompare(stateTopmostFullScreen.params as Record<string, unknown> | undefined, templateStateTopmostFullScreen.params as Record<string, unknown> | undefined)))
+            (!stateTopmostWorkspaceRoute && templateStateTopmostWorkspaceRoute) ||
+            (stateTopmostWorkspaceRoute &&
+                templateStateTopmostWorkspaceRoute &&
+                (stateTopmostWorkspaceRoute.name !== templateStateTopmostWorkspaceRoute.name ||
+                    !shallowCompare(
+                        stateTopmostWorkspaceRoute.params as Record<string, unknown> | undefined,
+                        templateStateTopmostWorkspaceRoute.params as Record<string, unknown> | undefined,
+                    )))
         ) {
-            diff[NAVIGATORS.WORKSPACE_NAVIGATOR] = fullScreenDiff;
+            diff[NAVIGATORS.WORKSPACE_NAVIGATOR] = workspaceNavDiff;
         }
     }
 
