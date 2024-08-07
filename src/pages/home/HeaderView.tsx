@@ -60,9 +60,21 @@ type HeaderViewProps = HeaderViewOnyxProps & {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    shouldShowSkeleton?: boolean;
 };
 
-function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, reportID, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
+function HeaderView({
+    report,
+    personalDetails,
+    parentReport,
+    parentReportAction,
+    policy,
+    reportID,
+    onNavigationMenuButtonClicked,
+    shouldUseNarrowLayout = false,
+    shouldShowSkeleton = false,
+}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -134,7 +146,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
-    const isLoading = !report.reportID || !title;
+    const isLoading = !report.reportID || !title || shouldShowSkeleton;
 
     return (
         <View
