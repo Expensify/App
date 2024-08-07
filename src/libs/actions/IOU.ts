@@ -35,7 +35,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,7 +62,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
@@ -278,17 +276,6 @@ Onyx.connect({
     },
 });
 
-let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocale = value;
-    },
-});
-
 /**
  * Get the report or draft report given a reportID
  */
@@ -473,10 +460,10 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
 }
 
-/** Update transaction distance rate */
-function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string) {
+/** Set the distance rate of a new  transaction */
+function setMoneyRequestDistanceRate(transactionID: string, rateID: string, policyID: string, isDraft: boolean) {
     Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
@@ -712,6 +699,10 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
+                // in the correct unit stored under the transaction customUnit once the request is created.
+                // The route is also not saved in the backend, so we can't rely on it.
+                routes: null,
             },
         },
 
@@ -1461,6 +1452,7 @@ function buildOnyxDataForTrackExpense(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                routes: null,
             },
         },
     );
@@ -2476,32 +2468,6 @@ function calculateDiffAmount(
     return 0;
 }
 
-function calculateAmountForUpdatedWaypoint(
-    transaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
-    transactionChanges: TransactionChanges,
-    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
-) {
-    let updatedAmount: number = CONST.IOU.DEFAULT_AMOUNT;
-    let updatedMerchant = Localize.translateLocal('iou.fieldPending');
-    if (!isEmptyObject(transactionChanges?.routes?.route0?.geometry)) {
-        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-        const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
-        const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-        const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-            ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-            : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
-        const {unit, rate} = mileageRate;
-        const distance = TransactionUtils.getDistance(transaction);
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
-        updatedAmount = ReportUtils.isExpenseReport(iouReport) ? -amount : amount;
-        updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
-            toLocaleDigit(preferredLocale, digit),
-        );
-    }
-    return {amount: updatedAmount, modifiedAmount: updatedAmount, modifiedMerchant: updatedMerchant};
-}
-
 /**
  * @param transactionID
  * @param transactionThreadReportID
@@ -2559,10 +2525,11 @@ function getUpdateMoneyRequestParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy, iouReport),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2755,6 +2722,7 @@ function getUpdateMoneyRequestParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -2863,10 +2831,11 @@ function getUpdateTrackExpenseParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy, transactionThread),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(transactionThread)),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2966,6 +2935,7 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -3187,6 +3157,31 @@ function updateMoneyRequestDescription(
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
+}
+
+/** Updates the distance rate of an expense */
+function updateMoneyRequestDistanceRate(
+    transactionID: string,
+    transactionThreadReportID: string,
+    rateID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    const transactionChanges: TransactionChanges = {
+        customUnitRateID: rateID,
+    };
+    const allReports = ReportConnection.getAllReports();
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+
+    let data: UpdateMoneyRequestData;
+    if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    }
+    const {params, onyxData} = data;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, params, onyxData);
 }
 
 /** Edits an existing distance expense */
@@ -6242,6 +6237,7 @@ function getReportFromHoldRequestsOnyxData(
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport.reportID);
     const firstHoldTransaction = holdTransactions[0];
+    const newParentReportActionID = rand64();
 
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
         chatReport.reportID,
@@ -6250,8 +6246,16 @@ function getReportFromHoldRequestsOnyxData(
         (firstHoldTransaction?.amount ?? 0) * -1,
         getCurrency(firstHoldTransaction),
         false,
+        newParentReportActionID,
     );
-    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', firstHoldTransaction, optimisticExpenseReport.reportID);
+    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(
+        chatReport,
+        optimisticExpenseReport,
+        '',
+        firstHoldTransaction,
+        optimisticExpenseReport.reportID,
+        newParentReportActionID,
+    );
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
@@ -6628,9 +6632,8 @@ function canApproveIOU(
         return false;
     }
 
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+    if (isOnSubmitAndClosePolicy) {
         return false;
     }
 
@@ -6750,7 +6753,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`,
         value: {
-            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, full ? expenseReport?.reportID ?? '-1' : '-1'),
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport?.reportID ?? '-1'),
         },
     };
 
@@ -6854,6 +6857,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        v2: PolicyUtils.isControlOnAdvancedApprovalMode(PolicyUtils.getPolicy(expenseReport?.policyID)),
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
@@ -7201,7 +7205,6 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport(chatReport);
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
@@ -7224,7 +7227,15 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
 
 function detachReceipt(transactionID: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
+    const newTransaction = transaction
+        ? {
+              ...transaction,
+              filename: '',
+              receipt: {
+                  source: '',
+              },
+          }
+        : null;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -7811,6 +7822,7 @@ export {
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
@@ -7829,13 +7841,13 @@ export {
     trackExpense,
     unapproveExpenseReport,
     unholdRequest,
-    updateDistanceRequestRate,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
     updateMoneyRequestDate,
     updateMoneyRequestDescription,
     updateMoneyRequestDistance,
+    updateMoneyRequestDistanceRate,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,

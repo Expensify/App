@@ -22,8 +22,8 @@ import type {ActionableItem} from '@components/ReportActionItem/ActionableItemBu
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
+import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
-import RenameAction from '@components/ReportActionItem/RenameAction';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
@@ -637,6 +637,8 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(report.reportID)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(report.reportID)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -645,15 +647,23 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            const message = ReportActionsUtils.getUpdateRoomDescriptionMessage(action);
-            children = <ReportActionItemBasicMessage message={message} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
+        } else if (
+            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
+        ) {
+            children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (ReportActionsUtils.isRenamedAction(action)) {
+            const initialMessage = ReportActionsUtils.getOriginalMessage(action);
+            const message = translate('newRoomPage.renamedRoomAction', {
+                oldName: initialMessage?.oldName ?? '',
+                newName: initialMessage?.newName ?? '',
+            });
+            children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -834,9 +844,6 @@ function ReportActionItem({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             />
         );
-    }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-        return <RenameAction action={action} />;
     }
     if (ReportActionsUtils.isChronosOOOListAction(action)) {
         return (

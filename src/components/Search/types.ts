@@ -28,9 +28,10 @@ type SearchStatus = ValueOf<typeof CONST.SEARCH.STATUS>;
 
 type SearchContext = {
     currentSearchHash: number;
-    selectedTransactionIDs: string[];
+    selectedTransactions: SelectedTransactions;
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions) => void;
+    clearSelectedTransactions: (hash?: number) => void;
 };
 
 type ASTNode = {
@@ -47,7 +48,7 @@ type QueryFilter = {
 type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS;
 
 type QueryFilters = {
-    [K in AdvancedFiltersKeys]?: QueryFilter | QueryFilter[];
+    [K in AdvancedFiltersKeys]?: QueryFilter[];
 };
 
 type SearchQueryString = string;
