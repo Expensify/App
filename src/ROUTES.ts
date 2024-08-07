@@ -47,6 +47,8 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
 
+    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
+
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
 
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
@@ -54,6 +56,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
 
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
+    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
@@ -363,10 +366,15 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType as string}/from/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_COMPANY_INFO: {
+        route: 'create/:iouType/company-info/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType as string}/company-info/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, participantsAutoAssigned?: boolean) =>
+            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID',
@@ -633,7 +641,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/approver` as const,
+        getRoute: (policyID: string, approverIndex?: number) =>
+            `settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',

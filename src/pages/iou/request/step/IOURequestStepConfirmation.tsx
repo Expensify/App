@@ -70,7 +70,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action},
+        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
     },
     transaction,
 }: IOURequestStepConfirmationProps) {
@@ -201,13 +201,13 @@ function IOURequestStepConfirmation({
         }
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
-        if (!transaction?.participantsAutoAssigned) {
+        if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [transaction, iouType, requestType, transactionID, reportID, action]);
+    }, [transaction, iouType, requestType, transactionID, reportID, action, participantsAutoAssignedFromRoute]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -275,10 +275,6 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
-            const receiptObjWithFilename = receiptObj && {...receiptObj};
-            if (receiptObjWithFilename && !receiptObjWithFilename?.name) {
-                receiptObjWithFilename.name = transaction.filename;
-            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -289,7 +285,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                receiptObjWithFilename,
+                receiptObj,
                 transaction.category,
                 transaction.tag,
                 transactionTaxCode,
@@ -316,7 +312,7 @@ function IOURequestStepConfirmation({
             }
             IOU.createDistanceRequest(
                 report,
-                selectedParticipants[0],
+                selectedParticipants,
                 trimmedComment,
                 transaction.created,
                 transaction.category,
@@ -332,9 +328,13 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 customUnitRateID,
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                transaction.splitShares,
+                iouType,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );
 
     const createTransaction = useCallback(
@@ -358,8 +358,12 @@ function IOURequestStepConfirmation({
             }
 
             formHasBeenSubmitted.current = true;
-
             playSound(SOUNDS.DONE);
+
+            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+                createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
+                return;
+            }
 
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
@@ -499,11 +503,6 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
-                return;
-            }
-
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
@@ -632,7 +631,7 @@ function IOURequestStepConfirmation({
                         shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
-                        shouldPlaySound={!gpsRequired}
+                        shouldPlaySound={false}
                     />
                 </View>
             )}
