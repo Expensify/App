@@ -28,6 +28,7 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             childrenStyles={styles.pt5}
             subtitleMuted
             menuItems={
+                // TODO: This is a temporary solution to show the Transfer Balance button
                 !policy?.invoice?.bankAccount
                     ? [
                           {

@@ -20,7 +20,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -43,10 +42,12 @@ function WorkspaceTransferInvoiceBalance({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
+    const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const selectedAccount: PaymentMethod | null =
-        PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).find(
-            (paymentMethod) => paymentMethod.methodID === policy?.invoice?.bankAccount?.transferBankAccountID,
-        ) ?? null;
+        paymentMethods.find((paymentMethod) => paymentMethod.methodID === policy?.invoice?.bankAccount?.transferBankAccountID) ??
+        paymentMethods.find((paymentMethod) => paymentMethod.isDefault) ??
+        paymentMethods[0] ??
+        null;
     const balance = policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0;
     const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(balance, CONST.WALLET.TRANSFER_METHOD_TYPE.ACH);
     const transferAmount = balance - calculatedFee;
@@ -58,6 +59,7 @@ function WorkspaceTransferInvoiceBalance({
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
+            shouldBeBlocked={!selectedAccount}
             // TODO: uncomment when CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED is supported
             // featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
@@ -98,17 +100,19 @@ function WorkspaceTransferInvoiceBalance({
                         />
                     </View>
                     <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
-                    <MenuItem
-                        title={selectedAccount?.title}
-                        description={selectedAccount?.description}
-                        shouldShowRightIcon
-                        iconStyles={selectedAccount?.iconStyles}
-                        iconWidth={selectedAccount?.iconSize}
-                        iconHeight={selectedAccount?.iconSize}
-                        icon={selectedAccount?.icon}
-                        displayInDefaultIconColor
-                        interactive={false}
-                    />
+                    {!!selectedAccount && (
+                        <MenuItem
+                            title={selectedAccount?.title}
+                            description={selectedAccount?.description}
+                            shouldShowRightIcon={false}
+                            iconStyles={selectedAccount?.iconStyles}
+                            iconWidth={selectedAccount?.iconSize}
+                            iconHeight={selectedAccount?.iconSize}
+                            icon={selectedAccount?.icon}
+                            displayInDefaultIconColor
+                            interactive={false}
+                        />
+                    )}
                     <View style={styles.ph5}>
                         <Text style={[styles.mt5, styles.mb3, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.fee')}</Text>
                         <Text style={[styles.justifyContentStart]}>{CurrencyUtils.convertToDisplayString(calculatedFee)}</Text>
@@ -120,7 +124,7 @@ function WorkspaceTransferInvoiceBalance({
                             amount: isTransferable ? CurrencyUtils.convertToDisplayString(transferAmount) : '',
                         })}
                         isLoading={invoiceBalanceTransfer?.loading}
-                        onSubmit={() => selectedAccount && PaymentMethods.transferWalletBalance(selectedAccount)}
+                        onSubmit={() => selectedAccount && console.debug('Transfer', selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
