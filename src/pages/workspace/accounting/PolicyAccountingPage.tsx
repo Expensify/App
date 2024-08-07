@@ -395,7 +395,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
-        if (!canUseWorkspaceFeeds) {
+        if (!canUseWorkspaceFeeds || !policy?.areExpensifyCardsEnabled) {
             configurationOptions.splice(2, 1);
         }
 
