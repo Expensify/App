@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +30,7 @@ import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
-    route: RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+    route: RouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
     /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
