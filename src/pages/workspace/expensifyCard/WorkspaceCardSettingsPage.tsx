@@ -31,13 +31,13 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
+    const paymentBankAccountID = (cardSettings?.paymentBankAccountID as number) ?? 0;
     // const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? true;
     const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     // TODO: replace this line with the following line and uncomment the previous comment
     const isSettlementFrequencyBlocked = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     // const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    const bankAccountNumber = bankAccountList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
+    const bankAccountNumber = bankAccountList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
 
     return (
         <AccessOrNotFoundWrapper
