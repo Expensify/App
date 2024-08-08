@@ -100,6 +100,7 @@ key
   / "keyword" { return "keyword"; }
   / "sortBy" { return "sortBy"; }
   / "sortOrder" { return "sortOrder"; }
+  / "policyID" { return "policyID"; }
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
