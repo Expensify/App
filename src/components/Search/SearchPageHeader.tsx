@@ -31,7 +31,7 @@ import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SearchQueryJSON, SearchStatus} from './types';
+import type {ExpenseSearchStatus, SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
     subtitleStyles?: StyleProp<TextStyle>;
@@ -100,7 +100,7 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: TranslationPaths}} = {
+const headerContent: {[key in ExpenseSearchStatus]: {icon: IconAsset; titleTx: TranslationPaths}} = {
     all: {icon: Illustrations.MoneyReceipts, titleTx: 'common.expenses'},
     shared: {icon: Illustrations.SendMoney, titleTx: 'common.shared'},
     drafts: {icon: Illustrations.Pencil, titleTx: 'common.drafts'},

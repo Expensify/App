@@ -1,7 +1,7 @@
-import type {SearchStatus} from '@components/Search/types';
+import type {ExpenseSearchStatus} from '@components/Search/types';
 
 type ExportSearchItemsToCSVParams = {
-    query: SearchStatus;
+    query: ExpenseSearchStatus;
     reportIDList: string[];
     transactionIDList: string[];
     policyIDs: string[];

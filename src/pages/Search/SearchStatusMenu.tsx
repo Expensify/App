@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {ExpenseSearchStatus, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -24,7 +24,7 @@ type SearchStatusMenuProps = {
 
 type SearchStatusMenuItem = {
     title: string;
-    status: SearchStatus;
+    status: ExpenseSearchStatus;
     icon: IconAsset;
     route?: Route;
 };
@@ -39,25 +39,25 @@ function SearchStatusMenu({queryJSON, isCustomQuery}: SearchStatusMenuProps) {
     const statusMenuItems: SearchStatusMenuItem[] = [
         {
             title: translate('common.expenses'),
-            status: CONST.SEARCH.STATUS.ALL,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             icon: Expensicons.Receipt,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
         },
         {
             title: translate('common.shared'),
-            status: CONST.SEARCH.STATUS.SHARED,
+            status: CONST.SEARCH.STATUS.EXPENSE.SHARED,
             icon: Expensicons.Send,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
         },
         {
             title: translate('common.drafts'),
-            status: CONST.SEARCH.STATUS.DRAFTS,
+            status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
             icon: Expensicons.Pencil,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
         },
         {
             title: translate('common.finished'),
-            status: CONST.SEARCH.STATUS.FINISHED,
+            status: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
             icon: Expensicons.CheckCircle,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
         },

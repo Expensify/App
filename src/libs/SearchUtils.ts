@@ -97,6 +97,18 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 
 const currentYear = new Date().getFullYear();
 
+function getExpenseListItem(status) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+}
+
+function getExpenseSections(status) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections : getReportSections;
+}
+
+function getSortedExpenseData(status) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData : getSortedReportData;
+}
+
 function isReportListItemType(item: ListItem): item is ReportListItemType {
     return 'transactions' in item;
 }
