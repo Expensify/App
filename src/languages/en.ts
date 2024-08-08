@@ -3647,9 +3647,9 @@ export default {
                 subtitle: 'Try creating something using the green + button.',
             },
             emptyTripResults: {
-                title: 'Nothing to show',
-                subtitle: 'Try creating something using the green + button.',
-                buttonText: 'Book trip',
+                title: 'No trips to display',
+                subtitle: 'Get started by booking your first trip below.',
+                buttonText: 'Book a trip',
             },
         },
         groupedExpenses: 'grouped expenses',

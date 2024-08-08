@@ -8,12 +8,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import colors from '@styles/theme/colors';
 
 function getContent(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return {
                 headerMedia: Illustrations.EmptyStateTravel,
+                headerStyles: {backgroundColor: colors.blue600},
                 title: Localize.translateLocal('search.searchResults.emptyTripResults.title'),
                 subtitle: Localize.translateLocal('search.searchResults.emptyTripResults.subtitle'),
                 buttonText: Localize.translateLocal('search.searchResults.emptyTripResults.buttonText'),
@@ -26,6 +28,7 @@ function getContent(type: SearchDataTypes) {
         default:
             return {
                 headerMedia: Illustrations.EmptyState,
+                headerStyles: {backgroundColor: colors.yellow600},
                 title: Localize.translateLocal('search.searchResults.emptyResults.title'),
                 subtitle: Localize.translateLocal('search.searchResults.emptyResults.subtitle'),
                 buttonText: undefined,
@@ -34,16 +37,20 @@ function getContent(type: SearchDataTypes) {
     }
 }
 
-function EmptySearchView({type}) {
+type EmptySearchViewProps = {
+    type: SearchDataTypes;
+};
+
+function EmptySearchView({type}: EmptySearchViewProps) {
     const styles = useThemeStyles();
-    const content = getContent(type);
+    const content = getContent(type, styles);
 
     return (
         <EmptyStateComponent
             SkeletonComponent={SearchRowSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
             headerMedia={content.headerMedia}
-            headerStyles={styles.emptyFolderBG}
+            headerStyles={content.headerStyles}
             headerContentStyles={styles.emptyStateFolderIconSize}
             title={content.title}
             subtitle={content.subtitle}
