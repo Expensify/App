@@ -362,7 +362,7 @@ function ReportPreview({
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     return (
         <OfflineWithFeedback
