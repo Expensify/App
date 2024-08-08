@@ -14,12 +14,16 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
 
     // The payload is string encoded on Android
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload) as string;
+        try {
+            payload = JSON.parse(payload) as string;
+        } catch {
+            Log.info(`[PushNotification] is not able to parse payload. ${payload}`);
+        }
     }
 
     const data = payload as PushNotificationData;
 
-    if (!data.reportID) {
+    if (!data?.reportID) {
         Log.info('[PushNotification] Not a report action notification. Showing notification');
         return true;
     }
