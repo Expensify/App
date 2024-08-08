@@ -1897,7 +1897,7 @@ const workSpaceIconsCache = new Map<string, Icon>();
  */
 function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const iconFromCache = workSpaceIconsCache.get(workspaceName);
+    const iconFromCache = workSpaceIconsCache.get(report?.policyID ?? workspaceName);
     const avatarURL = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL;
 
     const isSameAvatarURL = iconFromCache?.source === avatarURL;
@@ -1913,7 +1913,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
         name: workspaceName,
         id: report?.policyID,
     };
-    workSpaceIconsCache.set(workspaceName, workspaceIcon);
+    workSpaceIconsCache.set(report?.policyID ?? workspaceName, workspaceIcon);
     return workspaceIcon;
 }
 
