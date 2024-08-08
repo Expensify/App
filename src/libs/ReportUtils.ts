@@ -2894,7 +2894,6 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
         return (
             !TransactionUtils.hasEReceipt(transaction) &&
-            !TransactionUtils.hasEReceipt(transaction) &&
             !isInvoiceReport(moneyRequestReport) &&
             !TransactionUtils.isReceiptBeingScanned(transaction) &&
             !TransactionUtils.isDistanceRequest(transaction) &&
