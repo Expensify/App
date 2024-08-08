@@ -130,8 +130,8 @@ function BaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
-    const prevIsMuted = useRef(false);
-    const prevVolume = useRef(0);
+    const prevIsMutedRef = useRef(false);
+    const prevVolumeRef = useRef(0);
 
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
@@ -146,14 +146,14 @@ function BaseVideoPlayer({
                 return;
             }
 
-            if (prevIsMuted.current && prevVolume.current === 0 && !status.isMuted) {
+            if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
                 updateVolume(0.25);
             }
-            if (isFullScreenRef.current && prevVolume.current !== 0 && status.volume === 0 && !status.isMuted) {
+            if (isFullScreenRef.current && prevVolumeRef.current !== 0 && status.volume === 0 && !status.isMuted) {
                 currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
             }
-            prevIsMuted.current = status.isMuted;
-            prevVolume.current = status.volume;
+            prevIsMutedRef.current = status.isMuted;
+            prevVolumeRef.current = status.volume;
 
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
