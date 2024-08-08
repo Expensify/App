@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type WorkspaceSettlementAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
@@ -39,8 +40,8 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
-    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
+    const paymentBankAccountID = (cardSettings?.paymentBankAccountID as number) ?? 0;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
 
     const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
@@ -97,7 +98,11 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     {isUsedContinuousReconciliation && (
                         <Text style={[styles.mh5, styles.mb6]}>
                             <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
-                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, reconciliationConnection))}>
+                            <TextLink
+                                onPress={() =>
+                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, reconciliationConnection as ConnectionName))
+                                }
+                            >
                                 {translate('workspace.expensifyCard.reconciliationAccount')}
                             </TextLink>{' '}
                             <Text>{`(${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}) `}</Text>
