@@ -527,6 +527,7 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
+
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }
