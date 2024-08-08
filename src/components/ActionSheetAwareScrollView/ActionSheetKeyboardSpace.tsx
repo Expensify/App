@@ -262,7 +262,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 }
 
                 console.log(128, popoverHeight - composerHeight);
-                return popoverHeight - composerHeight;
+                return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0);
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {
