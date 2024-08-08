@@ -9,7 +9,6 @@ import useSplashScreen from '@hooks/useSplashScreen';
 import BootSplash from '@libs/BootSplash';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SessionUtils from '@libs/SessionUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,7 +134,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
                 }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
             });
         }
-    }, [authenticated, exitTo, exitToParam, finishedTransition, isAccountLoading, sessionEmail, startedTransition]);
+    }, [authenticated, oldDotEmail, exitTo, exitToParam, finishedTransition, isAccountLoading, sessionEmail, startedTransition]);
 
     useEffect(() => {
         if (!finishedTransition || isSplashHidden) {

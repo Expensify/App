@@ -10,7 +10,6 @@ import useSplashScreen from '@hooks/useSplashScreen';
 import BootSplash from '@libs/BootSplash';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SessionUtils from '@libs/SessionUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
