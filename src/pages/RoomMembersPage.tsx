@@ -39,7 +39,6 @@ import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -56,7 +55,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.USER_SEARCH_PHRASE);
-    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
+    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
@@ -68,16 +67,16 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         setSearchValue(userSearchPhrase ?? '');
     }, [isFocusedScreen, setSearchValue, userSearchPhrase]);
 
-    useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
-
     useEffect(
         () => () => {
             UserSearchPhraseActions.clearUserSearchValue();
         },
         [],
     );
+
+    useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     /**
      * Get members for the current room
@@ -302,7 +301,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={(value) => {
-                                SearchInputManager.searchInput = value;
                                 setSearchValue(value);
                             }}
                             headerMessage={headerMessage}
