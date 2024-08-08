@@ -72,6 +72,14 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         onSubmit(reason.key, note.trim());
     };
 
+    const handleSetNote = (text: string) => {
+        setNote(text);
+
+        if (isNoteRequired && shouldShowReasonError) {
+            setShouldShowReasonError(false);
+        }
+    };
+
     return (
         <View style={[styles.flexGrow1, styles.justifyContentBetween]}>
             <View style={styles.mh5}>
@@ -91,7 +99,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                             label={translate('feedbackSurvey.additionalInfoInputLabel')}
                             accessibilityLabel={translate('feedbackSurvey.additionalInfoInputLabel')}
                             role={CONST.ROLE.PRESENTATION}
-                            onChangeText={setNote}
+                            onChangeText={handleSetNote}
                             value={note}
                         />
                     </>

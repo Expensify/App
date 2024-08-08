@@ -4,6 +4,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
+import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -57,21 +58,14 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const policyApproverEmail = policy?.approver;
-    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const canUseAdvancedApproval = Permissions.canUseWorkflowsAdvancedApproval(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
+    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
     const approvalWorkflows = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                personalDetails: personalDetails ?? {},
-                employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? '',
-            }),
+        () => convertPolicyEmployeesToApprovalWorkflows({employees: policy?.employeeList ?? {}, defaultApprover: policyApproverEmail ?? '', personalDetails: personalDetails ?? {}}),
         [personalDetails, policy?.employeeList, policyApproverEmail],
     );
-
     const displayNameForAuthorizedPayer = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
         [policy?.achAccount?.reimburser],
@@ -101,14 +95,20 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         }, [fetchData]),
     );
 
-    const createNewApprovalWorkflow = useCallback(() => {
+    // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
+    const addApprovalAction = useCallback(() => {
+        if (!PolicyUtils.isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
+            );
+            return;
+        }
         Workflow.setApprovalWorkflow({
             ...EMPTY_APPROVAL_WORKFLOW,
             availableMembers: approvalWorkflows.at(0)?.members ?? [],
         });
-
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [approvalWorkflows, route.params.policyID]);
+    }, [approvalWorkflows, policy, route.params.policyID]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
@@ -163,31 +163,36 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 onToggle: (isEnabled: boolean) => {
                     Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
-                subMenuItems: (
+                subMenuItems: canUseAdvancedApproval ? (
                     <>
-                        <MenuItemWithTopDescription
-                            title={policyApproverName ?? ''}
-                            titleStyle={styles.textNormalThemeText}
-                            descriptionTextStyle={styles.textLabelSupportingNormal}
-                            description={translate('workflowsPage.approver')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
-                            shouldShowRightIcon
-                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                            brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                        {canUseAdvancedApproval && (
-                            <MenuItem
-                                title={translate('workflowsPage.addApprovalButton')}
-                                titleStyle={styles.textStrong}
-                                icon={Expensicons.Plus}
-                                iconHeight={20}
-                                iconWidth={20}
-                                iconFill={theme.success}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                onPress={createNewApprovalWorkflow}
+                        {approvalWorkflows.map((w) => (
+                            <ApprovalWorkflowSection
+                                approvalWorkflow={w}
+                                policyId={policy?.id}
                             />
-                        )}
+                        ))}
+                        <MenuItem
+                            title={translate('workflowsPage.addApprovalButton')}
+                            titleStyle={styles.textStrong}
+                            icon={Expensicons.Plus}
+                            iconHeight={20}
+                            iconWidth={20}
+                            iconFill={theme.success}
+                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                            onPress={addApprovalAction}
+                        />
                     </>
+                ) : (
+                    <MenuItemWithTopDescription
+                        title={policyApproverName ?? ''}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        description={translate('workflowsPage.approver')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
                 ),
                 isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
@@ -282,10 +287,12 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         translate,
         preferredLocale,
         onPressAutoReportingFrequency,
-        policyApproverName,
         canUseAdvancedApproval,
-        theme,
-        createNewApprovalWorkflow,
+        approvalWorkflows,
+        theme.success,
+        theme.spinner,
+        addApprovalAction,
+        policyApproverName,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,

@@ -112,7 +112,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transac
             const selectedTag = selectedTags[i];
             const tags = policyTagList[policyTagKeys[i]].tags;
             const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
-            if (!isTagInPolicy) {
+            if (!isTagInPolicy && selectedTag) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
