@@ -88,6 +88,8 @@ function SuggestionMention(
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    const suggestionValuesRef = useRef(suggestionValues);
+    suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
@@ -344,15 +346,15 @@ function SuggestionMention(
     );
 
     const calculateMentionSuggestion = useCallback(
-        (selectionStart?: number, selectionEnd?: number) => {
+        (newValue: string, selectionStart?: number, selectionEnd?: number) => {
             if (selectionEnd !== selectionStart || !selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
-            const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
-            const leftString = value.substring(afterLastBreakLineIndex, selectionEnd);
+            const afterLastBreakLineIndex = newValue.lastIndexOf('\n', selectionEnd - 1) + 1;
+            const leftString = newValue.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
@@ -401,18 +403,24 @@ function SuggestionMention(
                 nextState.shouldShowSuggestionMenu = true;
             }
 
+            // Early return if there is no update
+            const currentState = suggestionValuesRef.current;
+            if (currentState.suggestedMentions.length === 0 && nextState.suggestedMentions?.length === 0) {
+                return;
+            }
+
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 ...nextState,
             }));
             setHighlightedMentionIndex(0);
         },
-        [isComposerFocused, value, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
+        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
     useEffect(() => {
-        calculateMentionSuggestion(selection.start, selection.end);
-    }, [selection, calculateMentionSuggestion]);
+        calculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection, calculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();
