@@ -69,7 +69,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     useEffect(
         () => () => {
-            UserSearchPhraseActions.clearUserSearchValue();
+            UserSearchPhraseActions.clearUserSearchPhrase();
         },
         [],
     );

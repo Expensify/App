@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function clearUserSearchPhrase() {
-    Onyx.set(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, '');
+    Onyx.merge(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, '');
 }
 
 /**
@@ -12,4 +12,4 @@ function updateUserSearchPhrase(value: string) {
     Onyx.merge(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, value);
 }
 
-export {clearUserSearchPhrase as clearUserSearchValue, updateUserSearchPhrase};
+export {clearUserSearchPhrase, updateUserSearchPhrase};
