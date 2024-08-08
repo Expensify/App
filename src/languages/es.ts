@@ -3700,6 +3700,11 @@ export default {
                 title: 'No hay nada que ver aquí',
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
+            emptyTripResults: {
+                title: 'Nothing to show',
+                subtitle: 'Try creating something using the green + button.',
+                buttonText: 'Book trip',
+            },
         },
         groupedExpenses: 'gastos agrupados',
         bulkActions: {

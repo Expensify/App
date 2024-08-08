@@ -3646,6 +3646,11 @@ export default {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyTripResults: {
+                title: 'Nothing to show',
+                subtitle: 'Try creating something using the green + button.',
+                buttonText: 'Book trip',
+            },
         },
         groupedExpenses: 'grouped expenses',
         bulkActions: {

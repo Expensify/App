@@ -223,7 +223,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
-                <EmptySearchView />
+                <EmptySearchView type={type} />
             </>
         );
     }
