@@ -1,7 +1,7 @@
-import type {FullScreenName} from '@libs/Navigation/types';
+import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const FULL_SCREEN_TO_RHP_MAPPING: Partial<Record<FullScreenName, string[]>> = {
+const WORKSPACE_SCREEN_TO_RHP_MAPPING: Partial<Record<WorkspaceScreenName, string[]>> = {
     [SCREENS.WORKSPACE.PROFILE]: [SCREENS.WORKSPACE.NAME, SCREENS.WORKSPACE.ADDRESS, SCREENS.WORKSPACE.CURRENCY, SCREENS.WORKSPACE.DESCRIPTION, SCREENS.WORKSPACE.SHARE],
     [SCREENS.WORKSPACE.REIMBURSE]: [SCREENS.WORKSPACE.RATE_AND_UNIT, SCREENS.WORKSPACE.RATE_AND_UNIT_RATE, SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT],
     [SCREENS.WORKSPACE.MEMBERS]: [
@@ -172,4 +172,4 @@ const FULL_SCREEN_TO_RHP_MAPPING: Partial<Record<FullScreenName, string[]>> = {
     ],
 };
 
-export default FULL_SCREEN_TO_RHP_MAPPING;
+export default WORKSPACE_SCREEN_TO_RHP_MAPPING;

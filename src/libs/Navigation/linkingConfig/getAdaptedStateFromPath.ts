@@ -4,7 +4,7 @@ import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import type {BottomTabName, CentralPaneName, NavigationPartialRoute, RootStackParamList, WorkspaceScreenName} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
@@ -16,10 +16,10 @@ import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config, {normalizedConfigs} from './config';
 import extractPolicyIDsFromState from './extractPolicyIDsFromState';
-import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
+import WORKSPACE_SCREEN_TO_RHP_MAPPING from './WORKSPACE_SCREEN_TO_RHP_MAPPING';
 
 const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.SHARE_CODE,
@@ -36,7 +36,7 @@ type Metainfo = {
     // If the screens in the bottom tab and central pane are not mandatory for this state, we want to have this information.
     // It will help us later with creating proper diff betwen current and desired state.
     isCentralPaneAndBottomTabMandatory: boolean;
-    isFullScreenNavigatorMandatory: boolean;
+    isWorkspaceNavigatorMandatory: boolean;
 };
 
 type GetAdaptedStateReturnType = {
@@ -75,12 +75,12 @@ function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, 
     };
 }
 
-function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
+function createWorkspaceNavigator(route?: NavigationPartialRoute<WorkspaceScreenName>): NavigationPartialRoute<typeof NAVIGATORS.WORKSPACE_NAVIGATOR> {
     const routes = [];
 
     const policyID = route?.params && 'policyID' in route.params ? route.params.policyID : undefined;
 
-    // Both routes in FullScreenNavigator should store a policyID in params, so here this param is also passed to the screen displayed in LHN in FullScreenNavigator
+    // Both routes in WorkspaceNavigator should store a policyID in params, so here this param is also passed to the screen displayed in LHN in WorkspaceNavigator
     routes.push({
         name: SCREENS.WORKSPACE.INITIAL,
         params: {
@@ -92,7 +92,7 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
         routes.push(route);
     }
     return {
-        name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
+        name: NAVIGATORS.WORKSPACE_NAVIGATOR,
         state: getRoutesWithIndex(routes),
     };
 }
@@ -105,8 +105,8 @@ function getParamsFromRoute(screenName: string): string[] {
     return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
 }
 
-// This function will return CentralPaneNavigator route or FullScreenNavigator route.
-function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
+// This function will return CentralPaneNavigator route or WorkspaceNavigator route.
+function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.WORKSPACE_NAVIGATOR> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
@@ -114,9 +114,9 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
             // eslint-disable-next-line @typescript-eslint/no-shadow
             const rhpNavigator = stateForBackTo.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
-            const centralPaneOrFullScreenNavigator = stateForBackTo.routes.find(
+            const centralPaneOrWorkspaceNavigator = stateForBackTo.routes.find(
                 // eslint-disable-next-line @typescript-eslint/no-shadow
-                (route) => isCentralPaneName(route.name) || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR,
+                (route) => isCentralPaneName(route.name) || route.name === NAVIGATORS.WORKSPACE_NAVIGATOR,
             );
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
@@ -129,8 +129,8 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
             }
 
             // If we know that backTo targets the root route (central pane or full screen) we want to use it.
-            if (centralPaneOrFullScreenNavigator && centralPaneOrFullScreenNavigator.state) {
-                return centralPaneOrFullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+            if (centralPaneOrWorkspaceNavigator && centralPaneOrWorkspaceNavigator.state) {
+                return centralPaneOrWorkspaceNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.WORKSPACE_NAVIGATOR>;
             }
         }
     }
@@ -144,12 +144,12 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
         }
     }
 
-    // Check for FullScreenNavigator
-    for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
+    // Check for WorkspaceNavigator
+    for (const [workspaceScreenName, RHPNames] of Object.entries(WORKSPACE_SCREEN_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            const paramsFromRoute = getParamsFromRoute(fullScreenName);
+            const paramsFromRoute = getParamsFromRoute(workspaceScreenName);
 
-            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: pick(route.params, paramsFromRoute)});
+            return createWorkspaceNavigator({name: workspaceScreenName as WorkspaceScreenName, params: pick(route.params, paramsFromRoute)});
         }
     }
 
@@ -165,13 +165,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const isNarrowLayout = getIsNarrowLayout();
     const metainfo = {
         isCentralPaneAndBottomTabMandatory: true,
-        isFullScreenNavigatorMandatory: true,
+        isWorkspaceNavigatorMandatory: true,
     };
 
     // We need to check what is defined to know what we need to add.
     const bottomTabNavigator = state.routes.find((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
     const centralPaneNavigator = state.routes.find((route) => isCentralPaneName(route.name));
-    const fullScreenNavigator = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+    const WorkspaceNavigator = state.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
     const rhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
@@ -195,17 +195,17 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
             if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
-                metainfo.isFullScreenNavigatorMandatory = false;
+                metainfo.isWorkspaceNavigatorMandatory = false;
                 // If matchingRootRoute is undefined and it's a narrow layout, don't add a report screen under the RHP.
                 matchingRootRoute = matchingRootRoute ?? (!isNarrowLayout ? {name: SCREENS.REPORT} : undefined);
             }
 
-            // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
+            // If the root route is type of WorkspaceNavigator, the default bottom tab will be added.
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: matchingRootRoute ? [matchingRootRoute] : []});
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
-            // When we open a screen in RHP from FullScreenNavigator, we need to add the appropriate screen in CentralPane.
-            // Then, when we close FullScreenNavigator, we will be redirected to the correct page in CentralPane.
-            if (matchingRootRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+            // When we open a screen in RHP from WorkspaceNavigator, we need to add the appropriate screen in CentralPane.
+            // Then, when we close WorkspaceNavigator, we will be redirected to the correct page in CentralPane.
+            if (matchingRootRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
                 routes.push({name: SCREENS.SETTINGS.WORKSPACES});
             }
 
@@ -226,9 +226,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default central pane on desktop layout
         // - found lhp / onboardingModalNavigator
 
-        // There is no screen in these navigators that would have mandatory central pane, bottom tab or fullscreen navigator.
+        // There is no screen in these navigators that would have mandatory central pane, bottom tab or workspace navigator.
         metainfo.isCentralPaneAndBottomTabMandatory = false;
-        metainfo.isFullScreenNavigatorMandatory = false;
+        metainfo.isWorkspaceNavigatorMandatory = false;
         const routes = [];
         routes.push(
             createBottomTabNavigator(
@@ -266,11 +266,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (fullScreenNavigator) {
+    if (WorkspaceNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
-        // - found fullscreen
+        // - found workspace navigator
 
         const routes = [];
         routes.push(
@@ -286,7 +286,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             name: SCREENS.SETTINGS.WORKSPACES,
         });
 
-        routes.push(fullScreenNavigator);
+        routes.push(WorkspaceNavigator);
 
         return {
             adaptedState: getRoutesWithIndex(routes),

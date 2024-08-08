@@ -53,11 +53,11 @@ import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
-import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
+import WorkspaceNavigator from './Navigators/WorkspaceNavigator';
 
 const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -432,9 +432,9 @@ function AuthScreens() {
                         listeners={modalScreenListenersWithCancelSearch}
                     />
                     <RootStack.Screen
-                        name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
+                        name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                         options={screenOptions.fullScreen}
-                        component={FullScreenNavigator}
+                        component={WorkspaceNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
