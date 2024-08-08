@@ -163,7 +163,7 @@ function buildOptimisticTransaction(
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
-        filename: receipt?.source ?? receipt?.name ?? filename,
+        filename: (receipt?.source ?? receipt?.name ?? filename).toString(),
         category,
         tag,
         taxCode,
