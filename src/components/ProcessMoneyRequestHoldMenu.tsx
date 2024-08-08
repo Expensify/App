@@ -10,6 +10,7 @@ import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import Text from './Text';
 import TextPill from './TextPill';
+import CONST from '@src/CONST';
 
 type ProcessMoneyRequestHoldMenuProps = {
     /** Whether the content is visible */
@@ -51,6 +52,8 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             disableAnimation={false}
             withoutOverlay={false}
             shouldCloseWhenBrowserNavigationChanged={false}
+            shouldEnableNewFocusManagement
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
         >
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
