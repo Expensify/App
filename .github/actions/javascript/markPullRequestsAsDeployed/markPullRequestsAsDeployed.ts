@@ -111,7 +111,7 @@ async function run() {
             });
 
             // Check for the CP Staging label on the issue to see if it was cherry-picked
-            const isCP = pr.labels.some(({name: labelName}) => labelName === 'CP Staging');
+            const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
 
             // Determine the deployer. For most PRs it will be whoever merged the PR.
             // For CPs it will be whoever created the tag for the PR (i.e: whoever triggered the CP)

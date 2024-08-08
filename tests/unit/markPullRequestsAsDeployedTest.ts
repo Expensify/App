@@ -3,6 +3,7 @@
 /**
  * @jest-environment node
  */
+import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
@@ -249,7 +250,7 @@ platform | result
                         merged_by: {
                             login: 'thor',
                         },
-                        labels: [{name: 'CP Staging'}],
+                        labels: [{name: CONST.LABELS.CP_STAGING}],
                     },
                 };
             }

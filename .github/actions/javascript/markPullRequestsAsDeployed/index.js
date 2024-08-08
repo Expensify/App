@@ -12761,7 +12761,7 @@ async function run() {
                 pull_number: prNumber,
             });
             // Check for the CP Staging label on the issue to see if it was cherry-picked
-            const isCP = pr.labels.some(({ name: labelName }) => labelName === 'CP Staging');
+            const isCP = pr.labels.some(({ name: labelName }) => labelName === CONST_1.default.LABELS.CP_STAGING);
             // Determine the deployer. For most PRs it will be whoever merged the PR.
             // For CPs it will be whoever created the tag for the PR (i.e: whoever triggered the CP)
             let deployer = pr.merged_by?.login;
@@ -12886,6 +12886,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
     ACTIONS: {
         CREATED: 'created',
