@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import type {ExpenseSearchStatus, SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -24,7 +24,7 @@ type SearchStatusMenuProps = {
 
 type SearchStatusMenuItem = {
     title: string;
-    status: ExpenseSearchStatus;
+    status: SearchStatus;
     icon: IconAsset;
     route?: Route;
 };

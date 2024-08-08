@@ -25,6 +25,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+type SearchStatus = ExpenseSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -55,7 +56,7 @@ type SearchQueryString = string;
 
 type SearchQueryAST = {
     type: string;
-    status: ExpenseSearchStatus;
+    status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     filters: ASTNode;
@@ -70,7 +71,7 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
-    ExpenseSearchStatus,
+    SearchStatus,
     SearchQueryAST,
     SearchQueryJSON,
     SearchQueryString,
