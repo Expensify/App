@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
@@ -22,7 +22,6 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
-import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,20 +40,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
-    const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
-    const [onboardingPurposeSelected, onboardingPurposeSelectedResult] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
-    useEffect(() => {
-        setSelectedPurpose(onboardingPurposeSelected ?? undefined);
-    }, [onboardingPurposeSelected]);
-
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-
     const paddingHorizontal = isMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
@@ -91,7 +83,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
-    if (isLoadingOnyxValue(onboardingPurposeSelectedResult, onboardingErrorMessageResult)) {
+    if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
     }
     return (
