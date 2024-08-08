@@ -31,7 +31,7 @@ type EmojiPickerButtonProps = {
 };
 
 function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shiftVertical = 0, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
-    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -43,12 +43,12 @@ function EmojiPickerButton({isDisabled = false, id = '', emojiPickerID = '', shi
             return;
         }
 
-        actionSheetContext.transitionActionSheetState({
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER_STANDALONE,
         });
 
         const onHide = () => {
-            actionSheetContext.transitionActionSheetState({
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER_STANDALONE,
             });
 
