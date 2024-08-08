@@ -39,7 +39,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
         bodyElement &&
         ReactDOM.createPortal(
             <>
-                <TransparentOverlay resetSuggestions={resetSuggestions} />
+                <TransparentOverlay onPress={resetSuggestions} />
                 <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>
             </>,
             bodyElement,
