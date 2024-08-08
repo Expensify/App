@@ -360,7 +360,7 @@ function IOURequestStepConfirmation({
             formHasBeenSubmitted.current = true;
             playSound(SOUNDS.DONE);
 
-            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+            if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 return;
             }
