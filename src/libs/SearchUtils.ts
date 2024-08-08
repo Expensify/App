@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {ASTNode, ExpenseSearchStatus, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -97,15 +97,15 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 
 const currentYear = new Date().getFullYear();
 
-function getExpenseListItem(status) {
+function getExpenseListItem(status: ExpenseSearchStatus) {
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
 }
 
-function getExpenseSections(status) {
+function getExpenseSections(status: ExpenseSearchStatus) {
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections : getReportSections;
 }
 
-function getSortedExpenseData(status) {
+function getSortedExpenseData(status: ExpenseSearchStatus) {
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData : getSortedReportData;
 }
 
@@ -256,6 +256,11 @@ const searchTypeToItemMap: SearchTypeToItemMap = {
         getSections: getReportSections,
         // sorting for ReportItems not yet implemented
         getSortedSections: getSortedReportData,
+    },
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: {
+        listItem: getExpenseListItem,
+        getSections: getExpenseSections,
+        getSortedSections: getSortedExpenseData,
     },
 };
 

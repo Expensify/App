@@ -5240,6 +5240,7 @@ const CONST = {
         DATA_TYPES: {
             TRANSACTION: 'transaction',
             REPORT: 'report',
+            EXPENSE: 'expense',
         },
         ACTION_TYPES: {
             VIEW: 'view',
