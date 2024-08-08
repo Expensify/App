@@ -82,7 +82,6 @@ jobs:
         id: cherryPick
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
-          git config user.name ${{ github.actor }}
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "HAS_CONFLICTS=false" >> "$GITHUB_OUTPUT"
@@ -93,7 +92,7 @@ jobs:
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
-          git config user.name OSBotify
+          git commit --amend -m "$(git log -1 --pretty=%B) (CP triggered by ${{ github.actor }})"
 
       - name: Push changes
         run: |
