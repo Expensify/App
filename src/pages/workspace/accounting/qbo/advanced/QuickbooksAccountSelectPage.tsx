@@ -92,7 +92,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                     ListItem={RadioListItem}
                     headerContent={listHeaderComponent}
                     onSelectRow={saveSelection}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     listEmptyContent={listEmptyContent}
                 />
