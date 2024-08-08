@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/reactCompiler.yml"
       - "src/**"
+      - "package.json"
 
 jobs:
   check:
