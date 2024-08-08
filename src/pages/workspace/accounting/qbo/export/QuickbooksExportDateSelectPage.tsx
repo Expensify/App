@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -32,14 +32,16 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
         isSelected: qboConfig?.exportDate === dateType,
     }));
 
+    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig]);
+
     const selectExportDate = useCallback(
         (row: CardListItem) => {
-            if (row.value !== qboConfig?.exportDate) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE, row.value, qboConfig?.exportDate);
+            if (row.value !== exportDate) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE, row.value, exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
         },
-        [policyID, qboConfig?.exportDate],
+        [policyID, exportDate],
     );
 
     return (
