@@ -29,7 +29,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
     // const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? true;

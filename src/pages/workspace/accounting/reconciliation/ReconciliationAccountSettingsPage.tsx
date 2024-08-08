@@ -28,7 +28,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID], [paymentBankAccountID, bankAccountList]);
