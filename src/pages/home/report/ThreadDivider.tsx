@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getFirebaseAttributes from '@libs/Firebase/utils';
+import getAttributes from '@libs/Firebase/utils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
@@ -49,7 +49,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
             ) : (
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Timing.start(CONST.TIMING.SWITCH_REPORT, getFirebaseAttributes());
+                        Timing.start(CONST.TIMING.SWITCH_REPORT, getAttributes());
                         const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                         // Pop the thread report screen before navigating to the chat report.
                         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));

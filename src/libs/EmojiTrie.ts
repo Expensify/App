@@ -13,6 +13,7 @@ type EmojiMetaData = {
     types?: string[];
     name?: string;
 };
+
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES] as const;

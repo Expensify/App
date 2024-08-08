@@ -11,7 +11,7 @@ import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppP
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
-import getFirebaseAttributes from '@libs/Firebase/utils';
+import getAttributes from '@libs/Firebase/utils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -265,7 +265,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         //
         // - Look through the local report actions and reports to find the most recently modified report action or report.
         // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, getFirebaseAttributes());
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, getAttributes());
         params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
@@ -294,7 +294,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
         //
         // - Look through the local report actions and reports to find the most recently modified report action or report.
         // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, getFirebaseAttributes());
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, getAttributes());
         params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 

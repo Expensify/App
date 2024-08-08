@@ -10,7 +10,7 @@ import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getFirebaseAttributes from '@libs/Firebase/utils';
+import getAttributes from '@libs/Firebase/utils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import SignInButton from '@pages/home/sidebar/SignInButton';
@@ -66,7 +66,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}
                             accessibilityLabel={translate('sidebarScreen.buttonFind')}
                             style={[styles.flexRow, styles.mr2, styles.touchableButtonImage]}
                             onPress={Session.checkIfActionIsAllowed(() => {
-                                Timing.start(CONST.TIMING.CHAT_FINDER_RENDER, getFirebaseAttributes());
+                                Timing.start(CONST.TIMING.CHAT_FINDER_RENDER, getAttributes());
                                 Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
                                 Navigation.navigate(ROUTES.CHAT_FINDER);
                             })}

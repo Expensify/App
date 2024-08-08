@@ -7453,7 +7453,7 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
 
 function getAllReportsLength() {
     const allReports = ReportConnection.getAllReports();
-    return allReports ? Object.keys(allReports).length : 0;
+    return Object.keys(allReports ?? {}).length;
 }
 
 export {

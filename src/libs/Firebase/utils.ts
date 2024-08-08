@@ -3,9 +3,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {FirebaseAttributes} from './types';
 
 /**
- * Getting attributes for firebase trace
+ * Gets attributes for firebase trace
  */
-function getFirebaseAttributes(): FirebaseAttributes {
+function getAttributes(): FirebaseAttributes {
     const reportsLength = ReportUtils.getAllReportsLength().toString();
     const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
 
@@ -15,4 +15,4 @@ function getFirebaseAttributes(): FirebaseAttributes {
     };
 }
 
-export default getFirebaseAttributes;
+export default getAttributes;
