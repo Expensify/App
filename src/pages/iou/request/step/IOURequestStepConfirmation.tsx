@@ -312,7 +312,7 @@ function IOURequestStepConfirmation({
             }
             IOU.createDistanceRequest(
                 report,
-                selectedParticipants[0],
+                selectedParticipants,
                 trimmedComment,
                 transaction.created,
                 transaction.category,
@@ -328,9 +328,13 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 customUnitRateID,
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                transaction.splitShares,
+                iouType,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );
 
     const createTransaction = useCallback(
@@ -354,8 +358,12 @@ function IOURequestStepConfirmation({
             }
 
             formHasBeenSubmitted.current = true;
-
             playSound(SOUNDS.DONE);
+
+            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+                createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
+                return;
+            }
 
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
@@ -492,11 +500,6 @@ function IOURequestStepConfirmation({
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
                 requestMoney(selectedParticipants, trimmedComment, receiptFile);
-                return;
-            }
-
-            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
 
