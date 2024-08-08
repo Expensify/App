@@ -5,12 +5,14 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,8 +43,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const {options, areOptionsInitialized} = useOptionsList();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const defaultOptions = useMemo(() => {
@@ -50,7 +53,31 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getFilteredOptions(options.reports, options.personalDetails, betas, '', selectedOptions);
+        return OptionsListUtils.getFilteredOptions(
+            options.reports,
+            options.personalDetails,
+            betas,
+            '',
+            selectedOptions,
+            CONST.EXPENSIFY_EMAILS,
+            true,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            false,
+            false,
+            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            undefined,
+            true,
+            false,
+            [],
+            undefined,
+        );
     }, [areOptionsInitialized, betas, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
@@ -108,6 +135,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs]);
 
+    useEffect(() => {
+        Report.searchInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
+
     const handleParticipantSelection = useCallback(
         (option: Option) => {
             const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
@@ -162,7 +193,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 setSearchTerm(value);
             }}
             onSelectRow={handleParticipantSelection}
-            // isLoadingNewOptions={!!isSearchingForReports} // Todo do we need this in here?
+            isLoadingNewOptions={!!isSearchingForReports}
         />
     );
 }
