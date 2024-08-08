@@ -5,11 +5,13 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -41,7 +43,7 @@ type SettlementButtonOnyxProps = {
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType?: PaymentMethodType) => void;
+    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -111,6 +113,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
 function SettlementButton({
@@ -146,11 +151,15 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID), [activePolicyID]);
 
     const session = useSession();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -207,20 +216,39 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            buttonOptions.push({
-                text: translate('iou.settlePersonal', {formattedAmount}),
-                icon: Expensicons.User,
-                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                backButtonText: translate('iou.individual'),
-                subMenuItems: [
-                    {
-                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Expensicons.Cash,
-                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
-                    },
-                ],
-            });
+            if (ReportUtils.isIndividualInvoiceRoom(chatReport)) {
+                buttonOptions.push({
+                    text: translate('iou.settlePersonal', {formattedAmount}),
+                    icon: Expensicons.User,
+                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    backButtonText: translate('iou.individual'),
+                    subMenuItems: [
+                        {
+                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                            icon: Expensicons.Cash,
+                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                        },
+                    ],
+                });
+            }
+
+            if (PolicyUtils.isPolicyAdmin(primaryPolicy) && PolicyUtils.isPaidGroupPolicy(primaryPolicy)) {
+                buttonOptions.push({
+                    text: translate('iou.settleBusiness', {formattedAmount}),
+                    icon: Expensicons.Building,
+                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    backButtonText: translate('iou.business'),
+                    subMenuItems: [
+                        {
+                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                            icon: Expensicons.Cash,
+                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                        },
+                    ],
+                });
+            }
         }
 
         if (shouldShowApproveButton) {
@@ -234,7 +262,7 @@ function SettlementButton({
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
+    }, [currency, formattedAmount, iouReport, chatReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
@@ -267,7 +295,7 @@ function SettlementButton({
 
     return (
         <KYCWall
-            onSuccessfulKYC={onPress}
+            onSuccessfulKYC={(paymentType) => onPress(paymentType)}
             enablePaymentsRoute={enablePaymentsRoute}
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
@@ -298,6 +326,7 @@ function SettlementButton({
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
                 />
             )}
         </KYCWall>
