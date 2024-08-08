@@ -160,6 +160,7 @@ import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
+import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -360,6 +361,7 @@ export {
     Workspace,
     XeroSquare,
     SageIntacctSquare as IntacctSquare,
+    AdvancedApprovalsSquare,
     Zoom,
     Twitter,
     Youtube,

@@ -430,7 +430,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             onListEmptyChange={onListEmptyChange}

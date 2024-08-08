@@ -308,8 +308,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
-    /** Whether to debounce `onRowSelect` */
-    shouldDebounceRowSelect?: boolean;
+    /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
+    shouldSingleExecuteRowSelect?: boolean;
 
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
