@@ -66,7 +66,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                 : []),
             {
                 translationKey: 'allSettingsScreen.domains',
-                icon: Expensicons.CardsAndDomains,
+                icon: Expensicons.Globe,
                 action: () => {
                     Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
