@@ -4,26 +4,26 @@ description: Examples of how Advanced Approval Workflows apply in real life
 ---
 Approval workflows can get complex. Let’s look at the lifecycle of an expense report from submission to final approval.
 
-## 1.Submission
+## 1. Submission
 The approval workflow for all reports starts as soon as the report is submitted. Reports can be submitted manually or set to [submit automatically](https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports) by Concierge. 
 
 If you change part of your workflow after a report has been submitted, the workflow for that report will not change unless it is retracted and resubmitted. 
 
-## 2.Category & tag approvers
+## 2. Category & tag approvers
 If you have [special approvers for categories or tags](https://help.expensify.com/articles/expensify-classic/reports/Assign-tag-and-category-approvers) that are added to a report, the report will go to these people for approval first. They will be notified about the report via email or an in-app notification.
 
-## 3.Approval mode
+## 3. Approval mode
 The report will now travel through the approval workflow for the workspace:
 - Submit & Close: If you use a [Submit & Close](https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow) workflow, the report will now close and notify the set person. 
 - Submit & Approve: If you use a [Submit & Approve](https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow) workflow, the report will now go to the set person for their approval. 
 - Advanced Approval: If you use an [Advanced Approval](https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow) workflow, the report will now go to the person in the submitter’s “Submits to” column of the Workspace Members table. Once that person approves the report, 
-    a. The report then goes to the person in the approver’s Approves To column.
-    b. If the approver has an [approval value limit](https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses) (i.e. they have approval restrictions based on the total amount of the report), the report will go to the set person.
-    c. The report continues through the approval workflow until it reaches someone who does not have anyone in their Approves To column. This person is the final approver.
+    - The report then goes to the person in the approver’s Approves To column.
+    - If the approver has an [approval value limit](https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses) (i.e. they have approval restrictions based on the total amount of the report), the report will go to the set person.
+    - The report continues through the approval workflow until it reaches someone who does not have anyone in their Approves To column. This person is the final approver.
 
 Once the report receives final approval, it may be exported to a [connected accounting software](https://help.expensify.com/expensify-classic/hubs/connections/) and/or reimbursed.
 
-## 4.Concierge approval 
+## 4. Concierge approval 
 If you’ve chosen to [require manual approval for expenses that exceed a set limit](https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses), any report that doesn’t contain a single expense over this amount will be approved by Concierge.
 
 ## Workflow examples

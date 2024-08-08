@@ -192,11 +192,13 @@ function isActionOfType<T extends ReportActionName[]>(
     const actionName = action?.actionName as T[number];
 
     // This is purely a performance optimization to limit the 'includes()' calls on Hermes
-    if (actionNames.length === 1) {
-        return actionNames[0] === actionName;
+    for (const i of actionNames) {
+        if (i === actionName) {
+            return true;
+        }
     }
 
-    return actionNames.includes(actionName);
+    return false;
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -393,14 +395,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
- * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
- * Separated it from getCombinedReportActions, so it can be reused
- */
-function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
-    return reportActions.filter((action) => !isSentMoneyReportAction(action));
-}
-
-/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -428,7 +422,7 @@ function getCombinedReportActions(
 
     if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
         filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-    } else {
+    } else if (transactionThreadCreatedAction) {
         filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     }
 
@@ -1176,7 +1170,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
-        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
@@ -1297,6 +1290,15 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
+    const html = getUpdateRoomDescriptionMessage(reportAction);
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -1310,7 +1312,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        const message = getUpdateRoomDescriptionMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -1605,7 +1607,6 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
-    getFilteredForOneTransactionView,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
@@ -1615,6 +1616,7 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
+    getUpdateRoomDescriptionFragment,
     getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,

@@ -31,6 +31,7 @@ import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -98,6 +99,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
+import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -216,4 +218,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflow,
+    MobileSelectionMode,
+    WorkspaceTooltip,
 };

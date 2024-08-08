@@ -85,7 +85,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
-    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
+    const hasAccountingConnection = !isEmptyObject(policy?.connections);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
@@ -142,6 +143,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         });
     }
+
+    const earnItems: Item[] = [
+        {
+            icon: Illustrations.InvoiceBlue,
+            titleTranslationKey: 'workspace.moreFeatures.invoices.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.invoices.subtitle',
+            isActive: policy?.areInvoicesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areInvoicesEnabled,
+            action: (isEnabled: boolean) => {
+                Policy.enablePolicyInvoicing(policy?.id ?? '-1', isEnabled);
+            },
+        },
+    ];
 
     const organizeItems: Item[] = [
         {
@@ -225,7 +239,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Accounting,
             titleTranslationKey: 'workspace.moreFeatures.connections.title',
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
-            isActive: !!policy?.areConnectionsEnabled,
+            isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
@@ -245,6 +259,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
             items: spendItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.earnSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.earnSection.subtitle',
+            items: earnItems,
         },
         {
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
