@@ -590,7 +590,7 @@ function IOURequestStepScan({
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
+                <AttachmentPicker acceptedFileTypes={['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message']}>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
