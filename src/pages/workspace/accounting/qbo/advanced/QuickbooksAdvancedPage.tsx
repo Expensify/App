@@ -43,7 +43,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID],
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID],
         },
         {
             title: selectedInvoiceCollectionAccountName,
