@@ -3,6 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import Button from './Button';
 import HoldMenuSectionList from './HoldMenuSectionList';
@@ -10,7 +11,6 @@ import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import Text from './Text';
 import TextPill from './TextPill';
-import CONST from '@src/CONST';
 
 type ProcessMoneyRequestHoldMenuProps = {
     /** Whether the content is visible */
