@@ -5241,6 +5241,7 @@ const CONST = {
             TRANSACTION: 'transaction',
             REPORT: 'report',
             EXPENSE: 'expense',
+            INVOICE: 'invoice',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5269,6 +5270,11 @@ const CONST = {
                 SHARED: 'shared',
                 DRAFTS: 'drafts',
                 FINISHED: 'finished',
+            },
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
             },
         },
         TYPE: {
