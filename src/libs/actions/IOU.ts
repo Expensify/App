@@ -897,10 +897,6 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
-    const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-    optimisticData.push(...fieldViolationsOptimisticData);
-    failureData.push(...fieldViolationsFailureData);
-
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
@@ -918,6 +914,13 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
+    }
+
+    // Show field violations only for control policies
+    if (PolicyUtils.isControlPolicy(policy)) {
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
     }
 
     return [optimisticData, successData, failureData];
@@ -1600,12 +1603,6 @@ function buildOnyxDataForTrackExpense(
         return [optimisticData, successData, failureData];
     }
 
-    if (iouReport) {
-        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-        optimisticData.push(...fieldViolationsOptimisticData);
-        failureData.push(...fieldViolationsFailureData);
-    }
-
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
@@ -1623,6 +1620,13 @@ function buildOnyxDataForTrackExpense(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
+    }
+
+    // Show field violations only for control policies
+    if (PolicyUtils.isControlPolicy(policy) && iouReport) {
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
     }
 
     return [optimisticData, successData, failureData];
