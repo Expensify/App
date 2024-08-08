@@ -24,13 +24,8 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
-<<<<<<< HEAD
         shouldClear = false,
         onClear = () => {},
-        onPasteFile = () => {},
-=======
-        onClear: onClearProp = () => {},
->>>>>>> aa1430f (Merge pull request #47110 from Expensify/Rory-RevertImagePasting)
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -73,28 +68,6 @@ function Composer(
         ref(textInput.current);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
-
-<<<<<<< HEAD
-    const pasteFile = useCallback(
-        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const clipboardContent = e.nativeEvent.items[0];
-            if (clipboardContent.type === 'text/plain') {
-                return;
-            }
-            const fileURI = clipboardContent.data;
-            const fileName = fileURI.split('/').pop();
-            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
-            onPasteFile(file);
-        },
-        [onPasteFile],
-=======
-    const onClear = useCallback(
-        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
-            onClearProp(nativeEvent.text);
-        },
-        [onClearProp],
->>>>>>> aa1430f (Merge pull request #47110 from Expensify/Rory-RevertImagePasting)
-    );
 
     useEffect(() => {
         if (!shouldClear) {
