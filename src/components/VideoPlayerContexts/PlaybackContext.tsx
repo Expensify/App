@@ -76,6 +76,8 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
+        // Play video is an async operation and if we call stop video before the promise is completed,
+        // it will throw a console error. So, we'll wait until the promise is resolved before stopping the video.
         (playVideoPromiseRef.current ?? Promise.resolve()).then(stopVideo).finally(() => {
             videoResumeTryNumberRef.current = 0;
             setCurrentlyPlayingURL(null);
@@ -87,6 +89,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
+        // currentReportID is initially empty/-1 and we don't want to reset the video player data when it was previously empty/-1
         if (!currentReportID || !prevCurrentReportID || currentReportID === '-1' || prevCurrentReportID === '-1') {
             return;
         }
