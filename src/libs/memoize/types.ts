@@ -3,7 +3,15 @@ import type {Cache} from './cache/types';
 import type {MemoizeStats} from './stats';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MemoizeFnPredicate = (...args: any[]) => any;
+type Callable = (...args: any[]) => any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Constructable = new (...args: any[]) => any;
+
+type IsomorphicFn = Callable | Constructable;
+
+type IsomorphicParameters<Fn extends IsomorphicFn> = Fn extends Callable ? Parameters<Fn> : Fn extends Constructable ? ConstructorParameters<Fn> : never;
+
+type IsomorphicReturnType<Fn extends IsomorphicFn> = Fn extends Callable ? ReturnType<Fn> : Fn extends Constructable ? Fn : never;
 
 type KeyComparator<Key> = (k1: Key, k2: Key) => boolean;
 
@@ -11,7 +19,7 @@ type InternalOptions = {
     cache: 'array';
 };
 
-type Options<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key> = {
+type Options<Fn extends IsomorphicFn, MaxArgs extends number, Key> = {
     maxSize: number;
     equality: 'deep' | 'shallow' | KeyComparator<Key>;
     monitor: boolean;
@@ -24,15 +32,15 @@ type Options<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key> = {
      * @param truncatedArgs - Tuple of arguments passed to the memoized function (truncated to `maxArgs`). Does not work with constructable (see description).
      * @returns - Key to use for caching
      */
-    transformKey?: (truncatedArgs: TakeFirst<Parameters<Fn>, MaxArgs>) => Key;
+    transformKey?: (truncatedArgs: TakeFirst<IsomorphicParameters<Fn>, MaxArgs>) => Key;
 } & InternalOptions;
 
-type ClientOptions<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key> = Partial<Omit<Options<Fn, MaxArgs, Key>, keyof InternalOptions>>;
+type ClientOptions<Fn extends IsomorphicFn, MaxArgs extends number, Key> = Partial<Omit<Options<Fn, MaxArgs, Key>, keyof InternalOptions>>;
 
 type Stats = Pick<MemoizeStats, 'startMonitoring' | 'stopMonitoring'>;
 
-type MemoizedFn<Fn extends MemoizeFnPredicate, Key> = Fn & {
-    cache: Cache<Key, ReturnType<Fn>>;
+type MemoizedFn<Fn extends IsomorphicFn, Key> = Fn & {
+    cache: Cache<Key, IsomorphicReturnType<Fn>>;
 } & Stats;
 
-export type {Options, ClientOptions, MemoizeFnPredicate, Stats, KeyComparator, MemoizedFn};
+export type {Options, ClientOptions, IsomorphicFn, IsomorphicParameters, IsomorphicReturnType, Stats, KeyComparator, MemoizedFn, Callable, Constructable};

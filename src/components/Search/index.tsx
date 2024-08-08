@@ -11,6 +11,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -177,6 +178,56 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
+    const isSearchResultsEmpty = !searchResults || SearchUtils.isSearchResultsEmpty(searchResults);
+    const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
+
+    useEffect(() => {
+        if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
+            return;
+        }
+        turnOffMobileSelectionMode();
+    }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
+
+    if (shouldShowLoadingState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <SearchRowSkeleton shouldAnimate />
+            </>
+        );
+    }
+
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (searchResults === undefined || type === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
+    const ListItem = SearchUtils.getListItem(type);
+    const data = SearchUtils.getSections(searchResults.data, searchResults.search, type);
+    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
+
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+
+    if (shouldShowEmptyState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <EmptySearchView />
+            </>
+        );
+    }
+
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
         if (SearchUtils.isTransactionListItemType(item)) {
             if (!item.keyForList) {
@@ -204,34 +255,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         });
     };
 
-    if (shouldShowLoadingState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <SearchRowSkeleton shouldAnimate />
-            </>
-        );
-    }
-
-    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
-
-    if (shouldShowEmptyState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <EmptySearchView />
-            </>
-        );
-    }
-
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
         let reportID = SearchUtils.isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
 
@@ -254,19 +277,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
-
-    const type = SearchUtils.getSearchType(searchResults?.search);
-
-    if (type === undefined) {
-        Log.alert('[Search] Undefined search type');
-        return null;
-    }
-
-    const ListItem = SearchUtils.getListItem(type);
-
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
-    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
-    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
@@ -344,7 +354,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 ListItem={ListItem}
                 onSelectRow={openReport}
                 getItemHeight={getItemHeightMemoized}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
                 containerStyle={[styles.pv0]}

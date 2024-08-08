@@ -365,7 +365,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         ListItem={TableListItem}
                         headerContent={headerContent}
                         onSelectRow={openMemberDetails}
-                        shouldDebounceRowSelect={!(isGroupChat && isCurrentUserAdmin)}
+                        shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
                         onCheckboxPress={(item) => toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator

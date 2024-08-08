@@ -415,7 +415,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * Whether the tax rate can be deleted and disabled
  */
 function canEditTaxRate(policy: Policy, taxID: string): boolean {
-    return policy.taxRates?.defaultExternalID !== taxID;
+    return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
@@ -498,9 +498,17 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Poli
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
+/** Whether the user can send invoice from the workspace */
+function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    const policy = getPolicy(policyID);
+    return policy?.areInvoicesEnabled ?? false;
+}
+
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
+    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+    // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
@@ -943,6 +951,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    canSendInvoiceFromWorkspace,
     canSendInvoice,
     hasDependentTags,
     getXeroTenants,

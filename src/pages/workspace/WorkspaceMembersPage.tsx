@@ -589,7 +589,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
                             onSelectRow={openMemberDetails}
-                            shouldDebounceRowSelect={!isPolicyAdmin}
+                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
