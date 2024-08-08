@@ -3,6 +3,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import SCREENS from '@src/SCREENS';
 
 function extractPolicyIDsFromState(state: InitialState) {
+    // @TODO Try extracting policyID from q param, if there are multiple then return undefined
     const focusedRoute = findFocusedRoute(state);
     if (focusedRoute && focusedRoute.name === SCREENS.SEARCH.CENTRAL_PANE && focusedRoute.params && 'policyIDs' in focusedRoute.params) {
         return focusedRoute.params.policyIDs as string;

@@ -112,6 +112,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    // @TODO: Obtain the policyID from queryJSON
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();

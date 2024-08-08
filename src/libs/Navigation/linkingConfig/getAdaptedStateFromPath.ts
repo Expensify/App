@@ -381,6 +381,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     }
 
     // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
+    // @TODO Modify this method to handle extracting ids from q param
     const policyIDs = extractPolicyIDsFromState(state);
 
     return getAdaptedState(state, policyID ?? policyIDs);

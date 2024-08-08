@@ -49,6 +49,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
     // Creating path with /w/ included if necessary.
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+    // @TODO Here check if policyID exists in q param instead of reading it from policyIDs, rename this variable
     const policyIDs = !!topmostCentralPaneRoute?.params && 'policyIDs' in topmostCentralPaneRoute.params ? (topmostCentralPaneRoute?.params?.policyIDs as string) : '';
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
@@ -117,6 +118,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
             // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
             if (targetName === SCREENS.SEARCH.CENTRAL_PANE && targetParams && policyID) {
+                // @TODO Here add the new policyID to the query
                 (targetParams as Record<string, string | undefined>).policyIDs = policyID;
             }
 

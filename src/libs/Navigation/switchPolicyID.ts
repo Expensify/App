@@ -19,7 +19,7 @@ type ActionPayloadParams = {
     path?: string;
 };
 
-type CentralPaneRouteParams = Record<string, string> & {policyID?: string; policyIDs?: string; reportID?: string};
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; q?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
     return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
@@ -108,9 +108,9 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
-
         if (isOpeningSearchFromBottomTab) {
             if (policyID) {
+                // @TODO: Here update the q param
                 params.policyIDs = policyID;
             } else {
                 delete params.policyIDs;
