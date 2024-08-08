@@ -95,7 +95,7 @@ key
   / "category" { return "category"; }
   / "tag" { return "tag"; }
   / "taxRate" { return "taxRate"; }
-  / "card" { return "card"; }
+  / "cardID" { return "cardID"; }
   / "reportID" { return "reportID"; }
   / "keyword" { return "keyword"; }
   / "sortBy" { return "sortBy"; }
