@@ -277,9 +277,17 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
         return;
     }
 
-    const updatedApprovers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((newApprover) => (newApprover ? {...newApprover, isInMultipleWorkflows: false} : undefined));
-    updatedApprovers[approverIndex] = undefined;
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(updatedApprovers, (approver) => !approver), errors: null});
+    // Update the approver at the specified index and reset hints
+    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
+        if (!existingApprover) {
+            return;
+        }
+
+        return {...existingApprover, isInMultipleWorkflows: false};
+    });
+    approvers[approverIndex] = undefined;
+
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(approvers, (approver) => !approver), errors: null});
 }
 
 function clearApprovalWorkflowApprovers() {
