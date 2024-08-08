@@ -267,7 +267,9 @@ function PopoverMenu({
                             success={item.success}
                             containerStyle={item.containerStyle}
                             shouldRenderTooltip={item.shouldRenderTooltip}
-                            shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
+                            tooltipAnchorAlignment={item.tooltipAnchorAlignment}
+                            tooltipShiftHorizontal={item.tooltipShiftHorizontal}
+                            tooltipShiftVertical={item.tooltipShiftVertical}
                             tooltipWrapperStyle={item.tooltipWrapperStyle}
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}

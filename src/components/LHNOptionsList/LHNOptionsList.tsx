@@ -114,9 +114,19 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item: reportID}: RenderItemProps): ReactElement => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID ?? '-1'}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
             const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? '-1'];
+
+            let invoiceReceiverPolicyID = '-1';
+            if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
+                invoiceReceiverPolicyID = itemFullReport.invoiceReceiver.policyID;
+            }
+            if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
+                invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
+            }
+            const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
             const iouReportIDOfLastAction = OptionsListUtils.getIOUReportIDOfLastAction(itemFullReport);
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
@@ -146,6 +156,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     parentReportAction={itemParentReportAction}
                     iouReportReportActions={itemIouReportReportActions}
                     policy={itemPolicy}
+                    invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
                     lastReportActionTransaction={lastReportActionTransaction}

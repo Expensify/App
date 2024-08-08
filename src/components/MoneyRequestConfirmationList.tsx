@@ -265,12 +265,10 @@ function MoneyRequestConfirmationList({
 
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
+    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
-        : CurrencyUtils.convertToDisplayString(
-              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0) : iouAmount,
-              isDistanceRequest ? currency : iouCurrencyCode,
-          );
+        : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
     const previousTransactionCurrency = usePrevious(transaction?.currency);
@@ -340,9 +338,15 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+        const amount = distanceRequestAmount;
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
-    }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
+
+        // If it's a split request among individuals, set the split shares
+        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? -1);
+        if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
+            IOU.setSplitShares(transaction, amount, currency, participantAccountIDs);
+        }
+    }, [shouldCalculateDistanceAmount, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
@@ -801,6 +805,7 @@ function MoneyRequestConfirmationList({
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 enterKeyEventListenerPriority={1}
+                useKeyboardShortcuts
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -811,6 +816,7 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
+                useKeyboardShortcuts
             />
         );
 
@@ -899,13 +905,14 @@ function MoneyRequestConfirmationList({
                 sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={navigateToReportOrUserDetail}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
+                disableKeyboardShortcuts
             />
         </MouseProvider>
     );
