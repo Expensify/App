@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -58,6 +59,7 @@ function DebugReportPage({
                                         // eslint-disable-next-line rulesdir/prefer-actions-set-data
                                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                                     }}
+                                    validate={DebugUtils.validateReportDraftProperty}
                                 />
                             )}
                         </TopTab.Screen>

@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isValid from 'date-fns/isValid';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
+import { TranslationPaths } from '@src/languages/types';
 
 type DebugReportActionCreatePageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
@@ -77,25 +78,11 @@ function DebugReportActionCreatePage({
                                 value={draftReportAction}
                                 onChangeText={(updatedJSON) => {
                                     try {
-                                        const parsedReportAction = JSON.parse(updatedJSON.replaceAll('\n', '')) as ReportAction;
-                                        if (!parsedReportAction.reportID) {
-                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'reportID'}));
-                                        }
-                                        if (!parsedReportAction.reportActionID) {
-                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'reportActionID'}));
-                                        }
-                                        if (!parsedReportAction.created) {
-                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'created'}));
-                                        }
-                                        if (!isValid(new Date(parsedReportAction.created))) {
-                                            throw SyntaxError(translate('debug.invalidProperty', {propertyName: 'created', expectedType: CONST.DATE.FNS_DATE_TIME_FORMAT_STRING}));
-                                        }
-                                        if (!parsedReportAction.actionName) {
-                                            throw SyntaxError(translate('debug.missingProperty', {propertyName: 'actionName'}));
-                                        }
+                                        DebugUtils.validateReportActionJSON(updatedJSON);
                                         setError('');
                                     } catch (e) {
-                                        setError((e as SyntaxError).message);
+                                        const {cause, message} = e as SyntaxError;
+                                        setError(cause ? translate(message as TranslationPaths, cause as never) : message);
                                     } finally {
                                         setDraftReportAction(updatedJSON);
                                     }

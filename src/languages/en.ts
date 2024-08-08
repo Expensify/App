@@ -4809,6 +4809,7 @@ export default {
         preview: 'Preview:',
         missingProperty: ({propertyName}) => `Missing ${propertyName}`,
         invalidProperty: ({propertyName, expectedType}) => `Invalid property: ${propertyName} - Expected: ${expectedType}`,
+        invalidValue: ({expectedValues}) => `Invalid value - Expected: ${expectedValues}`,
         createReportAction: 'Create Report Action',
         reportAction: 'Report Action',
         report: 'Report',

@@ -1,4 +1,3 @@
-import isValid from 'date-fns/isValid';
 import React, {useState} from 'react';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
@@ -8,15 +7,16 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 type DebugDetailsProps = {
     data: Record<string, unknown>;
     onSave: (data: Record<string, unknown>) => void;
     onDelete: () => void;
+    validate: (key: never, value: string) => void;
 };
 
-function DebugDetails({data, onSave, onDelete}: DebugDetailsProps) {
+function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draftData, setDraftData] = useState<Record<string, string>>(DebugUtils.onyxDataToDraftData(data));
@@ -38,13 +38,11 @@ function DebugDetails({data, onSave, onDelete}: DebugDetailsProps) {
                     value={value}
                     onChangeText={(updatedValue) => {
                         try {
-                            if (isValid(new Date(data[key] as string)) && !isValid(new Date(updatedValue))) {
-                                throw SyntaxError(translate('debug.invalidProperty', {propertyName: key, expectedType: CONST.DATE.FNS_DATE_TIME_FORMAT_STRING}));
-                            }
-                            DebugUtils.stringToOnyxData(updatedValue, typeof data[key]);
+                            validate(key as never, updatedValue);
                             setErrors((currentErrors) => ({...currentErrors, [key]: ''}));
                         } catch (e) {
-                            setErrors((currentErrors) => ({...currentErrors, [key]: (e as SyntaxError).message}));
+                            const {cause, message} = e as SyntaxError;
+                            setErrors((currentErrors) => ({...currentErrors, [key]: cause ? translate(message as TranslationPaths, cause as never) : message}));
                         } finally {
                             setDraftData((currentDraftData) => ({...currentDraftData, [key]: updatedValue}));
                         }
