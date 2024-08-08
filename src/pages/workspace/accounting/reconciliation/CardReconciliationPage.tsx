@@ -29,7 +29,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policy?.id}`);
     const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policy?.id}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.id}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? -1;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';

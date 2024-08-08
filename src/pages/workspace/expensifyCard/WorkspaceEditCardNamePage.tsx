@@ -20,19 +20,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-// TODO: remove when Onyx data is available
-const mockedCard = {
-    accountID: 885646,
-    availableSpend: 1000,
-    nameValuePairs: {
-        cardTitle: 'Test 1',
-        isVirtual: true,
-        limit: 2000,
-        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-    },
-    lastFourPAN: '1234',
-};
-
 type WorkspaceEditCardNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
 
 function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
@@ -42,8 +29,9 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const card = cardsList?.[cardID] ?? mockedCard;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const card = cardsList?.[cardID];
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {

@@ -25,7 +25,8 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
 
     // TODO: change true for false after API is ready - true is for testing purposes
     const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? true;
@@ -54,7 +55,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        Card.updateSettlementFrequency(policyID, value);
+        Card.updateSettlementFrequency(policy?.workspaceAccountID ?? -1, value);
     };
 
     return (

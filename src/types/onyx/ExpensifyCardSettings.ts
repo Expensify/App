@@ -9,7 +9,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     remainingLimit: number;
 
     /** The total amount of cash back earned thus far */
-    cashBack: number;
+    earnedCashback: number;
 
     /** The date of the last settlement */
     monthlySettlementDate: Date;

@@ -463,7 +463,7 @@ const ONYXKEYS = {
          * Stores the card list for a given fundID and feed in the format: card_<fundID>_<bankName>
          * So for example: card_12345_Expensify Card
          */
-        WORKSPACE_CARDS_LIST: 'card_',
+        WORKSPACE_CARDS_LIST: 'cards_',
 
         /** Stores which connection is set up to use Continuous Reconciliation */
         SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION: 'sharedNVP_expensifyCard_continuousReconciliationConnection_',

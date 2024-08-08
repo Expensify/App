@@ -25,7 +25,8 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const {translate} = useLocalize();
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID], [paymentBankAccountID, bankAccountList]);

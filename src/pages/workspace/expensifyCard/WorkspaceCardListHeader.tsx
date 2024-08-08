@@ -1,29 +1,29 @@
+import {useRoute} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
-
-// TODO: remove when Onyx data is available
-const mockedSettings = {
-    currentBalance: 5000,
-    remainingLimit: 3000,
-    cashBack: 2000,
-};
 
 function WorkspaceCardListHeader() {
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
 
+    const policyID = route.params.policyID;
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
-    // TODO: uncomment the code line below to use cardSettings data from Onyx when it's supported
-    // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
-    const cardSettings = mockedSettings;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
 
     return (
         <View style={styles.appBG}>
@@ -31,16 +31,16 @@ function WorkspaceCardListHeader() {
                 <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE]}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
                     />
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT]}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                     />
                 </View>
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK]}
+                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
                 />
             </View>
 
