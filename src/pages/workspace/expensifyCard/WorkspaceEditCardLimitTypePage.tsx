@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,6 +14,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,11 +25,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const mockedCard = {
     accountID: 885646,
     availableSpend: 1000,
+    totalSpend: -1000,
+    unapprovedSpend: -1900,
     nameValuePairs: {
         cardTitle: 'Test 1',
         isVirtual: true,
         limit: 2000,
-        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
     },
     lastFourPAN: '1234',
 };
@@ -40,28 +44,46 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const card = cardsList?.[cardID] ?? mockedCard;
+    const card = cards?.[cardID] ?? mockedCard;
     const areApprovalsConfigured = !isEmptyObject(policy?.approver) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
     const initialLimitType = card.nameValuePairs?.limitType ?? defaultLimitType;
     const promptTranslationKey =
         initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY
-            ? 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning'
-            : 'workspace.expensifyCard.changeCardSmartLimitTypeWarning';
+            ? 'workspace.expensifyCard.changeCardSmartLimitTypeWarning'
+            : 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+
+    const fetchCardLimitTypeData = useCallback(() => {
+        Policy.openPolicyEditCardLimitTypePage(policyID, Number(cardID));
+    }, [policyID, cardID]);
+
+    useFocusEffect(fetchCardLimitTypeData);
 
     const updateCardLimitType = () => {
         // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407833
     };
 
     const submit = () => {
-        // TODO: update the condition of showing confirm warning when requirements are known
-        const shouldShowConfirmModal = true;
+        let shouldShowConfirmModal = false;
+        if (card.unapprovedSpend !== undefined && card.nameValuePairs?.limit) {
+            // Spends are coming as negative numbers from the backend and we need to make it positive for the correct expression.
+            const unapprovedSpend = Math.abs(card.unapprovedSpend);
+            const isUnapprovedSpendOverLimit = unapprovedSpend >= card.nameValuePairs.limit;
+            if (
+                (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) ||
+                (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART && typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY) ||
+                (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED && typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)
+            ) {
+                if (isUnapprovedSpendOverLimit) {
+                    shouldShowConfirmModal = true;
+                }
+            }
+        }
 
         if (shouldShowConfirmModal) {
             setIsConfirmModalVisible(true);
@@ -72,8 +94,14 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const data = useMemo(() => {
         const options = [];
-        // TODO: update the condition of showing the fixed option when requirements are known
-        const shouldShowFixedOption = true;
+        let shouldShowFixedOption = true;
+
+        if (card.totalSpend && card.nameValuePairs?.limit) {
+            const totalSpend = Math.abs(card.totalSpend);
+            if ((initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) && totalSpend >= card.nameValuePairs?.limit) {
+                shouldShowFixedOption = false;
+            }
+        }
 
         if (areApprovalsConfigured) {
             options.push({
@@ -112,7 +140,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
                 testID={WorkspaceEditCardLimitTypePage.displayName}
