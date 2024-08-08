@@ -32,8 +32,8 @@ let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: (value?: OnboardingData) => void;
-let isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
+let resolveOnboardingFlowStatus: () => void;
+let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
@@ -209,7 +209,7 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
+    isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
     isLoadingReportData = true;
