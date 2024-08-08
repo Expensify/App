@@ -46,7 +46,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card?.availableSpend);
-    const formattedLimit = CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.limit);
+    const formattedLimit = CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 

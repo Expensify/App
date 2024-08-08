@@ -54,13 +54,13 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const updateCardLimit = (newLimit: string) => {
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimit(policy?.workspaceAccountID ?? -1, Number(cardID), Number(newLimit) * 100, card?.nameValuePairs?.limit);
+        Card.updateExpensifyCardLimit(policy?.workspaceAccountID ?? -1, Number(cardID), Number(newLimit) * 100, card?.nameValuePairs?.unapprovedExpenseLimit);
 
         Navigation.goBack();
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
-        const currentLimit = card?.nameValuePairs?.limit ?? 0;
+        const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
         const currentSpend = currentLimit - (card?.availableSpend ?? 0);
         const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
         const newAvailableSpend = newLimit - currentSpend;
@@ -117,7 +117,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                         <>
                             <InputWrapper
                                 InputComponent={AmountForm}
-                                defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card?.nameValuePairs?.limit, CONST.CURRENCY.USD, false)}
+                                defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD, false)}
                                 isCurrencyPressable={false}
                                 inputID={INPUT_IDS.LIMIT}
                                 ref={inputCallbackRef}
