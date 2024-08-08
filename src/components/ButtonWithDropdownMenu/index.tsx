@@ -5,10 +5,12 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import mergeRefs from '@libs/mergeRefs';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -37,6 +39,7 @@ function ButtonWithDropdownMenu<IValueType>({
     onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
+    useKeyboardShortcuts = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -46,6 +49,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
+    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
@@ -70,6 +74,19 @@ function ButtonWithDropdownMenu<IValueType>({
             });
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        (e) => {
+            onPress(e, selectedItem.value);
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: false,
+            isActive: useKeyboardShortcuts,
+        },
+    );
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -77,12 +94,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
-                        ref={(ref) => {
-                            if (isSplitButton) {
-                                return;
-                            }
-                            dropdownAnchor.current = ref;
-                        }}
+                        ref={dropdownButtonRef}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
                         isDisabled={isDisabled || !!selectedItem?.disabled}

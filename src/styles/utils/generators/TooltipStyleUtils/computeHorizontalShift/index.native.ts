@@ -1,4 +1,4 @@
-import type ComputeHorizontalShift from './types';
+import type {ComputeHorizontalShift} from './types';
 
 const computeHorizontalShift: ComputeHorizontalShift = () => 0;
 

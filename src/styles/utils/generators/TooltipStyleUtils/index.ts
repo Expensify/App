@@ -44,6 +44,7 @@ type TooltipParams = {
     shouldForceRenderingBelow?: boolean;
     wrapperStyle: StyleProp<ViewStyle>;
     anchorAlignment?: TooltipAnchorAlignment;
+    shouldAddHorizontalPadding?: boolean;
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
@@ -86,6 +87,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         tooltipWrapperHeight,
         manualShiftHorizontal = 0,
         manualShiftVertical = 0,
+        shouldAddHorizontalPadding = true,
         shouldForceRenderingBelow = false,
         anchorAlignment = {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
@@ -95,11 +97,12 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
     }) => {
         const customWrapperStyle = StyleSheet.flatten(wrapperStyle);
         const tooltipVerticalPadding = spacing.pv1;
+        const tooltipHorizontalPadding = shouldAddHorizontalPadding ? spacing.ph2.paddingHorizontal * 2 : 0;
 
         // We calculate tooltip width based on the tooltip's content width
         // so the tooltip wrapper is just big enough to fit content and prevent white space.
         // NOTE: Add 1 to the tooltipWidth to prevent truncated text in Safari
-        const tooltipWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
+        const tooltipWidth = tooltipContentWidth && tooltipContentWidth + tooltipHorizontalPadding + 1;
         const tooltipHeight = tooltipWrapperHeight;
 
         const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;

@@ -535,6 +535,7 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
+                shouldAutoDismiss
             >
                 <View>
                     <Hoverable>
