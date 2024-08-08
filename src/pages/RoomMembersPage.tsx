@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -16,8 +16,10 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserSearchPhraseActions from '@libs/actions/UserSearchPhrase';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
@@ -53,7 +55,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.USER_SEARCH_PHRASE);
+    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
@@ -61,13 +64,17 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     const isFocusedScreen = useIsFocused();
 
+    // useEffect(() => {
+    //     setSearchValue(userSearchPhrase);
+    // }, [isFocusedScreen]);
+
     useEffect(() => {
-        setSearchValue(SearchInputManager.searchInput);
-    }, [isFocusedScreen]);
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     useEffect(
         () => () => {
-            SearchInputManager.searchInput = '';
+            UserSearchPhraseActions.clearUserSearchValue();
         },
         [],
     );
