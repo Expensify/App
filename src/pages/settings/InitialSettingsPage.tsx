@@ -194,7 +194,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
-                translationKey: 'allSettingsScreen.cardsAndDomains',
+                translationKey: 'allSettingsScreen.domains',
                 icon: Expensicons.CardsAndDomains,
                 action: () => {
                     Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
