@@ -261,7 +261,14 @@ platform | result
         });
         mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
             if (commit_sha === 'xyz') {
-                return {data: {message: 'Merge pull request #3 blahblahblah (cherry picked from commit dagdag) (CP triggered by freyja)', committer: {name: 'freyja'}}};
+                return {
+                    data: {
+                        message: `Merge pull request #3 blahblahblah
+(cherry picked from commit dagdag)
+(CP triggered by freyja)`,
+                        committer: {name: 'freyja'},
+                    },
+                };
             }
             return mockGetCommitDefaultImplementation({commit_sha});
         });
