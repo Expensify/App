@@ -279,6 +279,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedTagsArray.length}
             />
         );
     };
@@ -372,7 +373,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        shouldDebounceRowSelect={!canSelectMultiple}
+                        shouldSingleExecuteRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

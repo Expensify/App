@@ -124,7 +124,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  */
 function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentDetail: Partial<PersonalDetails> = personalDetails.find((detail) => Number(detail?.accountID) === Number(accountID)) ?? {};
+        const currentDetail: Partial<PersonalDetails> = allPersonalDetails?.[accountID] ?? {};
         if (currentDetail.login) {
             foundLogins.push(currentDetail.login);
         }
