@@ -46,6 +46,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     const initialURL = useContext(InitialURLContext);
     const exitToParam = useExitTo();
     const [exitTo, setExitTo] = useState<Route | HybridAppRoute | undefined>();
+    const [oldDotEmail, setOldDotEmail] = useState<string | undefined>();
 
     const [isAccountLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading ?? false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
@@ -59,12 +60,21 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
             return;
         }
 
+        NativeModules.HybridAppModule.getOldDotEmail().then((email: string | undefined) => {
+            const isLoggingInAsNewUser = email !== sessionEmail;
+            if (initialURL === 'home' && !isLoggingInAsNewUser ) {
+                BootSplash.hide();
+                return;
+            }
+            setOldDotEmail(email);
+        });
+
         maxTimeoutRef.current = setTimeout(() => {
             Log.info('[HybridApp] Forcing transition due to unknown problem', true);
             setStartedTransition(true);
             setExitTo(ROUTES.HOME);
         }, 3000);
-    }, []);
+    }, [initialURL, sessionEmail]);
     /**
      * This useEffect tracks changes of `nvp_tryNewDot` value.
      * We propagate it from OldDot to NewDot with native method due to limitations of old app.
@@ -124,8 +134,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
             return;
         }
 
-        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+        const isLoggingInAsNewUser = oldDotEmail !== sessionEmail;
 
         // We need to wait with navigating to exitTo until all login-related actions are complete.
         if (!authenticated || isLoggingInAsNewUser || isAccountLoading) {
@@ -151,7 +160,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
                 }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
             });
         }
-    }, [authenticated, exitTo, exitToParam, finishedTransition, initialURL, isAccountLoading, sessionEmail, startedTransition]);
+    }, [authenticated, oldDotEmail, exitTo, exitToParam, finishedTransition, isAccountLoading, sessionEmail, startedTransition]);
 
     useEffect(() => {
         if (!finishedTransition || isSplashHidden) {
