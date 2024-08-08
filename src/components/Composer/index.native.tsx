@@ -1,12 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-<<<<<<< HEAD
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
-=======
 import React, {useCallback, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData} from 'react-native';
->>>>>>> aa1430f (Merge pull request #47110 from Expensify/Rory-RevertImagePasting)
+import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
