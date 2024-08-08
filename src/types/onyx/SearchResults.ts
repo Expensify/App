@@ -182,7 +182,7 @@ type SearchTransaction = {
     /** The transaction description */
     comment?: {
         /** Content of the transaction description */
-        comment: string;
+        comment?: string;
     };
 
     /** The transaction category */
