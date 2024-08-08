@@ -109,7 +109,7 @@ function WorkspaceReportFieldsPage({
                         keyForList: String(reportField.fieldID),
                         orderWeight: reportField.orderWeight,
                         pendingAction: reportField.pendingAction,
-                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
+                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
                         isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         text: reportField.name,
                         rightElement: (
@@ -122,7 +122,7 @@ function WorkspaceReportFieldsPage({
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields, translate]);
+    }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
