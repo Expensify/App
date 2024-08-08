@@ -2,6 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -10,10 +11,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -22,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -33,6 +35,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {openPolicyTaxesPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
@@ -52,6 +55,7 @@ function WorkspaceTaxesPage({
     const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
@@ -59,6 +63,7 @@ function WorkspaceTaxesPage({
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -120,7 +125,7 @@ function WorkspaceTaxesPage({
 
     const toggleTax = (tax: ListItem) => {
         const key = tax.keyForList;
-        if (typeof key !== 'string') {
+        if (typeof key !== 'string' || key === defaultExternalID || key === foreignTaxDefault) {
             return;
         }
 
@@ -133,7 +138,9 @@ function WorkspaceTaxesPage({
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const taxesToSelect = taxesList.filter(
+            (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
         setSelectedTaxesIDs((prev) => {
             if (prev.length === taxesToSelect.length) {
                 return [];
@@ -143,7 +150,7 @@ function WorkspaceTaxesPage({
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
@@ -210,7 +217,8 @@ function WorkspaceTaxesPage({
         return options;
     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
-    const headerButtons = !selectedTaxesIDs.length ? (
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? selectionMode?.isEnabled : selectedTaxesIDs.length > 0;
+    const headerButtons = !shouldShowBulkActionsButton ? (
         <View style={[styles.w100, styles.flexRow, shouldUseNarrowLayout && styles.mb3]}>
             {!hasAccountingConnections && (
                 <Button
@@ -240,6 +248,7 @@ function WorkspaceTaxesPage({
             pressOnEnter
             isSplitButton={false}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            isDisabled={!selectedTaxesIDs.length}
         />
     );
 
@@ -262,6 +271,8 @@ function WorkspaceTaxesPage({
         </View>
     );
 
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -275,9 +286,17 @@ function WorkspaceTaxesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.Coins}
-                    title={translate('workspace.common.taxes')}
+                    icon={!selectionModeHeader ? Illustrations.Coins : undefined}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedTaxesIDs([]);
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
@@ -291,8 +310,10 @@ function WorkspaceTaxesPage({
                         color={theme.spinner}
                     />
                 )}
-                <SelectionList
-                    canSelectMultiple
+                <SelectionListWithModal
+                    canSelectMultiple={canSelectMultiple}
+                    turnOnSelectionModeOnLongPress
+                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     sections={[{data: taxesList, isDisabled: false}]}
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}

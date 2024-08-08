@@ -4,9 +4,14 @@ description: Connect your Expensify workspace with Sage Intacct
 order: 1
 ---
 # Overview
+
 Expensify’s seamless integration with Sage Intacct allows you to connect using either Role-based permissions or User-based permissions. 
 
 Once connected to Intacct you’re able to automate report exports, customize your coding preferences, and utilize Sage Intacct’s advanced features. When you’ve configured these settings in Expensify correctly, you can use the integration's settings to automate many tasks, streamlining your workflow for increased efficiency.
+
+{% include info.html %}
+The Sage Intacct integration is only available on the Control plan.
+{% include end-info.html %}
 
 # How to connect to Sage Intacct
 We support setting up Sage Intacct with both User-based permissions and Role-based permissions for Expense Reports and Vendor Bills.

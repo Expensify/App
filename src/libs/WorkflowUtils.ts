@@ -4,6 +4,14 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
+const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflow = {
+    members: [],
+    approvers: [],
+    isDefault: false,
+    isBeingEdited: false,
+    isLoading: false,
+};
+
 type GetApproversParams = {
     /**
      * List of employees in the policy
@@ -38,7 +46,7 @@ function getApprovalWorkflowApprovers({employees, firstEmail, personalDetailsByE
             email: nextEmail,
             forwardsTo: employees[nextEmail].forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
-            displayName: personalDetailsByEmail[nextEmail]?.displayName,
+            displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isInMultipleWorkflows: false,
             isCircularReference,
         });
@@ -170,4 +178,4 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
     return updatedEmployeeList;
 }
 
-export {getApprovalWorkflowApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees};
+export {getApprovalWorkflowApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, EMPTY_APPROVAL_WORKFLOW};

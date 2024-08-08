@@ -130,7 +130,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
-                            description={translate(`workspace.tags.tagName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditTag}
                             shouldShowRightIcon
                         />
