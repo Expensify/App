@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -308,7 +309,7 @@ function IOURequestStepDistance({
 
                 IOU.createDistanceRequest(
                     report,
-                    participants[0],
+                    participants,
                     '',
                     transaction?.created ?? '',
                     '',
@@ -320,6 +321,14 @@ function IOURequestStepDistance({
                     translate('iou.fieldPending'),
                     !!policy?.defaultBillable,
                     TransactionUtils.getValidWaypoints(waypoints, true),
+                    undefined,
+                    undefined,
+                    undefined,
+                    DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                    currentUserPersonalDetails.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    transaction?.splitShares,
+                    iouType,
                 );
                 return;
             }

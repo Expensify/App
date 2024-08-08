@@ -76,7 +76,11 @@ function isSearchDataType(type: string): type is SearchDataTypes {
     return searchDataTypes.includes(type);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
+function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
+    if (!search) {
+        return undefined;
+    }
+
     if (!isSearchDataType(search.type)) {
         return undefined;
     }
@@ -220,7 +224,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
-            } else {
+            } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
