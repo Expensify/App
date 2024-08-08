@@ -7,10 +7,13 @@ import type {TransactionMergeParams} from '@libs/API/parameters';
 import {isCorporateCard, isExpensifyCard} from '@libs/CardUtils';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
 import {getCleanedTagName, getCustomUnitRate} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
@@ -19,12 +22,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -162,8 +162,8 @@ function buildOptimisticTransaction(
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
-        filename,
+        receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
+        filename: (receipt?.source ?? receipt?.name ?? filename).toString(),
         category,
         tag,
         taxCode,
@@ -758,7 +758,6 @@ function calculateAmountForUpdatedWaypointOrRate(
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
-            modifiedCurrency: Localize.translateLocal('iou.fieldPending'),
         };
     }
 

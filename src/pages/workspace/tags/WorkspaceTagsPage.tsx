@@ -373,7 +373,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        shouldDebounceRowSelect={!canSelectMultiple}
+                        shouldSingleExecuteRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

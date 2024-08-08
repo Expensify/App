@@ -75,6 +75,12 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    HEIC_SIGNATURES: [
+        '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
+        '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
+        '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
+        '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
+    ],
     RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
@@ -368,7 +374,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         DEFAULT_ROOMS: 'defaultRooms',
-        VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
@@ -1123,6 +1128,11 @@ const CONST = {
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+
+    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+    // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+    // More info https://github.com/Expensify/App/issues/8007
+    EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
 
     VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
@@ -5398,6 +5408,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
+            },
+            approvals: {
+                id: 'approvals' as const,
+                alias: 'approvals' as const,
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
             },
             glCodes: {
                 id: 'glCodes' as const,
