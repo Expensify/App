@@ -591,7 +591,7 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            focus(false);
+            focus(true);
         }, true);
     }, [focus, isFocused]);
 
