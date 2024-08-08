@@ -1,20 +1,20 @@
-import type {NavigationState, PartialState, Route} from '@react-navigation/native';
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type { NavigationState, PartialState, Route } from '@react-navigation/native';
+import { findFocusedRoute, getStateFromPath } from '@react-navigation/native';
 import pick from 'lodash/pick';
-import type {TupleToUnion} from 'type-fest';
-import {isAnonymousUser} from '@libs/actions/Session';
+import type { TupleToUnion } from 'type-fest';
+import { isAnonymousUser } from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
-import {isCentralPaneName} from '@libs/NavigationUtils';
-import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import type { BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList } from '@libs/Navigation/types';
+import { isCentralPaneName } from '@libs/NavigationUtils';
+import { extractPolicyIDFromPath, getPathWithoutPolicyID } from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Screen} from '@src/SCREENS';
+import type { Screen } from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
-import config, {normalizedConfigs} from './config';
+import config, { normalizedConfigs } from './config';
 import extractPolicyIDsFromState from './extractPolicyIDsFromState';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
@@ -26,6 +26,9 @@ const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.PROFILE.STATUS,
     SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE,
     SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.SETTINGS.EXIT_SURVEY.REASON,
+    SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
+    SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
 ] satisfies Screen[];
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
@@ -47,12 +50,12 @@ type GetAdaptedStateReturnType = {
 type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) => GetAdaptedStateReturnType;
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
-const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
+const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({ routes, index: routes.length - 1 });
 
 const addPolicyIDToRoute = (route: NavigationPartialRoute, policyID?: string) => {
-    const routeWithPolicyID = {...route};
+    const routeWithPolicyID = { ...route };
     if (!routeWithPolicyID.params) {
-        routeWithPolicyID.params = {policyID};
+        routeWithPolicyID.params = { policyID };
         return routeWithPolicyID;
     }
 
@@ -60,7 +63,7 @@ const addPolicyIDToRoute = (route: NavigationPartialRoute, policyID?: string) =>
         return routeWithPolicyID;
     }
 
-    routeWithPolicyID.params = {...routeWithPolicyID.params, policyID};
+    routeWithPolicyID.params = { ...routeWithPolicyID.params, policyID };
 
     return routeWithPolicyID;
 };
@@ -140,7 +143,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
         if (RHPNames.includes(route.name)) {
             const paramsFromRoute = getParamsFromRoute(centralPaneName);
 
-            return {name: centralPaneName as CentralPaneName, params: pick(route.params, paramsFromRoute)};
+            return { name: centralPaneName as CentralPaneName, params: pick(route.params, paramsFromRoute) };
         }
     }
 
@@ -149,7 +152,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
         if (RHPNames.includes(route.name)) {
             const paramsFromRoute = getParamsFromRoute(fullScreenName);
 
-            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: pick(route.params, paramsFromRoute)});
+            return createFullScreenNavigator({ name: fullScreenName as FullScreenName, params: pick(route.params, paramsFromRoute) });
         }
     }
 
@@ -157,7 +160,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     // if the reportID is valid, we should navigate back to screen report in CPN
     const reportID = (route.params as Record<string, string | undefined>)?.reportID;
     if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
-        return {name: SCREENS.REPORT, params: {reportID}};
+        return { name: SCREENS.REPORT, params: { reportID } };
     }
 }
 
@@ -197,16 +200,16 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
                 metainfo.isFullScreenNavigatorMandatory = false;
                 // If matchingRootRoute is undefined and it's a narrow layout, don't add a report screen under the RHP.
-                matchingRootRoute = matchingRootRoute ?? (!isNarrowLayout ? {name: SCREENS.REPORT} : undefined);
+                matchingRootRoute = matchingRootRoute ?? (!isNarrowLayout ? { name: SCREENS.REPORT } : undefined);
             }
 
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: matchingRootRoute ? [matchingRootRoute] : []});
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState({ routes: matchingRootRoute ? [matchingRootRoute] : [] });
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             // When we open a screen in RHP from FullScreenNavigator, we need to add the appropriate screen in CentralPane.
             // Then, when we close FullScreenNavigator, we will be redirected to the correct page in CentralPane.
             if (matchingRootRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
-                routes.push({name: SCREENS.SETTINGS.WORKSPACES});
+                routes.push({ name: SCREENS.SETTINGS.WORKSPACES });
             }
 
             if (matchingRootRoute && (!isNarrowLayout || !isRHPScreenOpenedFromLHN)) {
@@ -319,7 +322,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             if (!isNarrowLayout) {
-                routes.push({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? '-1'}});
+                routes.push({ name: SCREENS.REPORT, params: { reportID: reportAttachments.params?.reportID ?? '-1' } });
             }
             routes.push(reportAttachments);
 
@@ -351,7 +354,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         } else {
             // If there is no matching central pane, we want to add the default one.
             metainfo.isCentralPaneAndBottomTabMandatory = false;
-            routes.push({name: SCREENS.REPORT});
+            routes.push({ name: SCREENS.REPORT });
         }
 
         return {
@@ -387,4 +390,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
 };
 
 export default getAdaptedStateFromPath;
-export type {Metainfo};
+export type { Metainfo };
