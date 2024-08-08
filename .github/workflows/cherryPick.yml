@@ -92,7 +92,7 @@ jobs:
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
-          git commit --amend -m "$(git log -1 --pretty=%B) (CP triggered by ${{ github.actor }})"
+          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})'
 
       - name: Push changes
         run: |
