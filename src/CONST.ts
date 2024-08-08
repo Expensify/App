@@ -2077,6 +2077,7 @@ const CONST = {
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
+            ARE_RULES_ENABLED: 'areRulesEnabled',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',

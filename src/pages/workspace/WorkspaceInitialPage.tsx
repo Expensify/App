@@ -63,7 +63,8 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.PROFILE
         | typeof SCREENS.WORKSPACE.MEMBERS
         | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
-        | typeof SCREENS.WORKSPACE.REPORT_FIELDS;
+        | typeof SCREENS.WORKSPACE.REPORT_FIELDS
+        | typeof SCREENS.WORKSPACE.RULES;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -302,6 +303,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.rules',
+            icon: Expensicons.Feed,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
+            // brickRoadIndicator should be set when API will be ready
+            brickRoadIndicator: undefined,
+            routeName: SCREENS.WORKSPACE.RULES,
         });
     }
 

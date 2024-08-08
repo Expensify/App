@@ -2081,6 +2081,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
             profile: 'Profile',
@@ -3521,6 +3522,16 @@ export default {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
+        },
+        rules: {
+            individualExpenseRules: {
+                title: 'Expenses',
+                subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for categories and tags.',
+            },
+            expenseReportRules: {
+                title: 'Expense reports',
+                subtitle: 'Automate expense report compliance, approvals, and payment.',
+            },
         },
     },
     getAssistancePage: {
