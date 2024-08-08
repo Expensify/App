@@ -34,7 +34,11 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
 
         screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
 
-        onTabFocusTrapContainerElementChanged?: (containerElement?: HTMLElement | null) => void;
+        /** Callback to register the focus trap container elements of the current active tab */
+        onActiveTabFocusTrapContainerElementChanged?: (containerElement: HTMLElement | null) => void;
+
+        /** Callback to register the focus trap container elements of the tab bar */
+        onTabBarFocusTrapContainerElementChanged?: (containerElement: HTMLElement | null) => void;
     };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -44,7 +48,17 @@ const TabFocusTrapContext = React.createContext<(tabName: string, containerEleme
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
-function OnyxTabNavigator({id, selectedTab, children, onTabFocusTrapContainerElementChanged, onTabSelected = () => {}, screenListeners, ...rest}: OnyxTabNavigatorProps) {
+function OnyxTabNavigator({
+    id,
+    selectedTab,
+    tabBar: TabBar,
+    children,
+    onTabBarFocusTrapContainerElementChanged,
+    onActiveTabFocusTrapContainerElementChanged,
+    onTabSelected = () => {},
+    screenListeners,
+    ...rest
+}: OnyxTabNavigatorProps) {
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
 
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
@@ -59,9 +73,22 @@ function OnyxTabNavigator({id, selectedTab, children, onTabFocusTrapContainerEle
         });
     }, []);
 
+    const TabBarWithFocusTrapInclusion = useCallback(
+        (props: TabSelectorProps) => {
+            return (
+                <TabBar
+                    onFocusTrapContainerElementChanged={onTabBarFocusTrapContainerElementChanged}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                />
+            );
+        },
+        [onTabBarFocusTrapContainerElementChanged, TabBar],
+    );
+
     useEffect(() => {
-        onTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
-    }, [selectedTab, focusTrapContainerElementMapping, onTabFocusTrapContainerElementChanged]);
+        onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
+    }, [selectedTab, focusTrapContainerElementMapping, onActiveTabFocusTrapContainerElementChanged]);
 
     return (
         <TabFocusTrapContext.Provider value={setTabFocusTrapContainerElement}>
@@ -72,6 +99,7 @@ function OnyxTabNavigator({id, selectedTab, children, onTabFocusTrapContainerEle
                 initialRouteName={selectedTab}
                 backBehavior="initialRoute"
                 keyboardDismissMode="none"
+                tabBar={TabBarWithFocusTrapInclusion}
                 screenListeners={{
                     state: (e) => {
                         const event = e as unknown as EventMapCore<NavigationState>['state'];

@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,21 +23,6 @@ function NewChatSelectorPage() {
     const containerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
-
-    const TabBarWithFocusTrapInclusion = useCallback(
-        (props: TabSelectorProps) => {
-            return (
-                <FocusTrapContainerElement
-                    onContainerElementChanged={setTabBarContainerElement}
-                    style={[styles.w100]}
-                >
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                    <TabSelector {...props} />
-                </FocusTrapContainerElement>
-            );
-        },
-        [styles],
-    );
 
     const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
         setActiveTabContainerElement(activeTabElement ?? null);
@@ -64,8 +48,9 @@ function NewChatSelectorPage() {
 
             <OnyxTabNavigator
                 id={CONST.TAB.NEW_CHAT_TAB_ID}
-                tabBar={TabBarWithFocusTrapInclusion}
-                onTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
+                tabBar={TabSelector}
+                onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
+                onActiveTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
             >
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
                     {() => (

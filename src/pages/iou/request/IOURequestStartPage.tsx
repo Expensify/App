@@ -7,7 +7,6 @@ import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerE
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -106,28 +105,9 @@ function IOURequestStartPage({
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
-    const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
-        setActiveTabContainerElement(activeTabElement ?? null);
-    }, []);
-
     const focusTrapContainerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
-
-    const TabSelectorWithFocusTrapInclusion = useCallback(
-        (props: TabSelectorProps) => {
-            return (
-                <FocusTrapContainerElement
-                    onContainerElementChanged={setTabBarContainerElement}
-                    style={[styles.w100]}
-                >
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                    <TabSelector {...props} />
-                </FocusTrapContainerElement>
-            );
-        },
-        [styles],
-    );
 
     if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
@@ -171,8 +151,9 @@ function IOURequestStartPage({
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}
-                                    tabBar={TabSelectorWithFocusTrapInclusion}
-                                    onTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
+                                    tabBar={TabSelector}
+                                    onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
+                                    onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 >
                                     <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                         {() => (

@@ -101,6 +101,7 @@ type ScreenWrapperProps = {
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 
+    /** Overrides the focus trap default settings */
     focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 };
 
