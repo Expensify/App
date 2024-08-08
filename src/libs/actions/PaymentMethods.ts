@@ -579,12 +579,6 @@ function transferInvoiceBalance(policyID: string, bankAccountID: number) {
         authToken,
     };
 
-    console.debug('Transfering invoice balance to bank account', parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
-
     API.write(WRITE_COMMANDS.TRANSFER_POLICY_ACCOUNT_BALANCE, parameters, {
         optimisticData,
         successData,
