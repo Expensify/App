@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
