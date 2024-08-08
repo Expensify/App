@@ -69,7 +69,7 @@ jobs:
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: 🚀 Edit the release to be no longer a prerelease to deploy production 🚀
-        run: gh release create ${{ env.PRODUCTION_VERSION }} --prerelease=false
+        run: gh release edit ${{ env.PRODUCTION_VERSION }} --prerelease=false --latest
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
