@@ -1140,8 +1140,16 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
-    const participantAccountIDs = Object.keys(report?.participants ?? {}).filter((accountID) => Number(accountID) !== currentUserAccountID);
-    return participantAccountIDs.length === 1 && Number(participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isThread(report);
+    if (!report?.participants || isThread(report)) {
+        return false;
+    }
+
+    const participantAccountIDs = new Set(Object.keys(report.participants));
+    if (participantAccountIDs.size !== 2) {
+        return false;
+    }
+
+    return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString());
 }
 
 function findSelfDMReportID(): string | undefined {
