@@ -134,7 +134,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         return options;
-    }, [translate, typeSelected, areApprovalsConfigured]);
+    }, [card.totalSpend, card.nameValuePairs?.limit, areApprovalsConfigured, translate, typeSelected, initialLimitType]);
 
     return (
         <AccessOrNotFoundWrapper
