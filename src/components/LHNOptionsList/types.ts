@@ -71,14 +71,16 @@ type OptionRowLHNDataProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 
-    /** Array of report actions of IOU report related to this report last action */
+    /**
+     * Array of report actions for the IOU report related to the last action of this report.
+     * If the last action is a report action preview, the last message of the report depends on
+     * the report actions of the IOU report linked to the report action preview.
+     * Changes in the IOU report report actions will affect the last message of this report.
+     */
     iouReportReportActions: OnyxEntry<ReportActions>;
 
     /** List of transaction violation */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-
-    /** Whether the user can use violations */
-    canUseViolations: boolean | undefined;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;

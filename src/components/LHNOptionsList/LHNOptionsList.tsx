@@ -12,7 +12,6 @@ import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -45,7 +44,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {canUseViolations} = usePermissions();
     const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
@@ -160,7 +158,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
-                    canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
                 />
             );
@@ -177,7 +174,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             shouldDisableFocusOptions,
             transactions,
             transactionViolations,
-            canUseViolations,
             onLayoutItem,
         ],
     );

@@ -24,11 +24,9 @@ import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListAc
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
-import RenameAction from '@components/ReportActionItem/RenameAction';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
-import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -154,6 +152,8 @@ type ReportActionItemProps = {
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
+    hideThreadReplies?: boolean;
+
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 } & ReportActionItemOnyxProps;
@@ -177,6 +177,7 @@ function ReportActionItem({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     linkedTransactionRouteError,
+    hideThreadReplies = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
@@ -648,9 +649,6 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            const message = ReportActionsUtils.getUpdateRoomDescriptionMessage(action);
-            children = <ReportActionItemBasicMessage message={message} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
@@ -661,6 +659,13 @@ function ReportActionItem({
             children = <IssueCardMessage action={action} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (ReportActionsUtils.isRenamedAction(action)) {
+            const initialMessage = ReportActionsUtils.getOriginalMessage(action);
+            const message = translate('newRoomPage.renamedRoomAction', {
+                oldName: initialMessage?.oldName ?? '',
+                newName: initialMessage?.newName ?? '',
+            });
+            children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -722,7 +727,7 @@ function ReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, report.reportID);
+        const shouldDisplayThreadReplies = !hideThreadReplies && ReportUtils.shouldDisplayThreadReplies(action, report.reportID);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -814,19 +819,6 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
-        if (ReportUtils.isTripRoom(report)) {
-            return (
-                <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <TripDetailsView
-                        tripRoomReportID={report.reportID}
-                        shouldShowHorizontalRule={false}
-                    />
-                </OfflineWithFeedback>
-            );
-        }
-    }
-
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
             ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
@@ -841,9 +833,6 @@ function ReportActionItem({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             />
         );
-    }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-        return <RenameAction action={action} />;
     }
     if (ReportActionsUtils.isChronosOOOListAction(action)) {
         return (
