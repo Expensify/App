@@ -558,7 +558,7 @@ function transferInvoiceBalance(policyID: string, bankAccountID: number) {
             key: ONYXKEYS.INVOICE_BALANCE_TRANSFER,
             value: {
                 loading: false,
-                success: true,
+                shouldShowSuccess: true,
             },
         },
     ];
@@ -568,7 +568,7 @@ function transferInvoiceBalance(policyID: string, bankAccountID: number) {
             key: ONYXKEYS.INVOICE_BALANCE_TRANSFER,
             value: {
                 loading: false,
-                success: false,
+                shouldShowSuccess: false,
             },
         },
     ];
@@ -596,10 +596,19 @@ function transferInvoiceBalance(policyID: string, bankAccountID: number) {
  * Resets the invoice balance transfer data
  */
 function resetInvoiceTransferData() {
-    Onyx.merge(ONYXKEYS.INVOICE_BALANCE_TRANSFER, {
+    Onyx.set(ONYXKEYS.INVOICE_BALANCE_TRANSFER, {
         loading: false,
-        success: false,
+        shouldShowSuccess: false,
+        errors: null,
     });
+}
+
+/**
+ * Dismisses the successful invoice transfer balance page
+ */
+function dismissSuccessfulInvoiceTransferBalancePage() {
+    Onyx.merge(ONYXKEYS.INVOICE_BALANCE_TRANSFER, {shouldShowSuccess: false});
+    Navigation.goBack();
 }
 
 export {
@@ -628,4 +637,5 @@ export {
     verifySetupIntent,
     transferInvoiceBalance,
     resetInvoiceTransferData,
+    dismissSuccessfulInvoiceTransferBalancePage,
 };

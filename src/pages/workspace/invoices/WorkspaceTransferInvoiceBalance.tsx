@@ -3,6 +3,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Balance from '@components/Balance';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -43,6 +44,28 @@ function WorkspaceTransferInvoiceBalance({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
+    useEffect(() => {
+        PaymentMethods.resetInvoiceTransferData();
+    }, []);
+
+    if (invoiceBalanceTransfer?.shouldShowSuccess && !invoiceBalanceTransfer?.loading) {
+        return (
+            <ScreenWrapper testID={WorkspaceTransferInvoiceBalance.displayName}>
+                <HeaderWithBackButton
+                    title={translate('common.transferBalance')}
+                    onBackButtonPress={PaymentMethods.dismissSuccessfulInvoiceTransferBalancePage}
+                />
+                <ConfirmationPage
+                    shouldShowButton
+                    heading={translate('transferAmountPage.transferSuccess')}
+                    description={translate('transferAmountPage.transferDetailBankAccount')}
+                    buttonText={translate('common.done')}
+                    onButtonPress={PaymentMethods.dismissSuccessfulInvoiceTransferBalancePage}
+                />
+            </ScreenWrapper>
+        );
+    }
+
     const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const selectedAccount: PaymentMethod | null =
         paymentMethods.find((paymentMethod) => paymentMethod.methodID === policy?.invoice?.bankAccount?.transferBankAccountID) ??
@@ -55,10 +78,6 @@ function WorkspaceTransferInvoiceBalance({
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = ErrorUtils.getLatestErrorMessage(invoiceBalanceTransfer);
-
-    useEffect(() => {
-        PaymentMethods.resetInvoiceTransferData();
-    }, []);
 
     return (
         <AccessOrNotFoundWrapper
@@ -78,7 +97,7 @@ function WorkspaceTransferInvoiceBalance({
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <Balance
                         textStyles={[styles.pv5, styles.alignSelfCenter, styles.transferBalanceBalance]}
-                        balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0}
+                        balance={balance}
                     />
                 </View>
                 <ScrollView
