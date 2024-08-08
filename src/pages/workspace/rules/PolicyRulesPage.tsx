@@ -11,6 +11,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 
 type PolicyRulesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
@@ -43,13 +44,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                         titleStyles={styles.accountSettingsSectionTitle}
                         subtitleMuted
                     />
-                    <Section
-                        isCentralPane
-                        title={translate('workspace.rules.expenseReportRules.title')}
-                        subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                        subtitleMuted
-                    />
+                    <ExpenseReportRulesSection policyID={policyID} />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
