@@ -83,6 +83,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.flow === 'create' && !route.params.backTo;
+    const defaultApprover = policy?.approver ?? policy?.owner;
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -106,8 +107,14 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                         return null;
                     }
 
+                    // Do not allow the same email to be added twice
                     const isEmailAlreadyInApprovers = approvalWorkflow?.approvers.some((approver, index) => approver?.email === email && index !== approverIndex);
                     if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
+                        return null;
+                    }
+
+                    // Do not allow the default approver to be added as the first approver
+                    if (!approvalWorkflow?.isDefault && approverIndex === 0 && defaultApprover === email) {
                         return null;
                     }
 
