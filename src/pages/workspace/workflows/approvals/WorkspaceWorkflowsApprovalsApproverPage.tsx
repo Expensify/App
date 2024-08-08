@@ -153,7 +153,17 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.approvers, approverIndex, debouncedSearchTerm, personalDetails, policy?.employeeList, selectedApproverEmail, translate]);
+    }, [
+        approvalWorkflow?.approvers,
+        approvalWorkflow?.isDefault,
+        approverIndex,
+        debouncedSearchTerm,
+        defaultApprover,
+        personalDetails,
+        policy?.employeeList,
+        selectedApproverEmail,
+        translate,
+    ]);
 
     const nextStep = useCallback(() => {
         if (selectedApproverEmail) {
