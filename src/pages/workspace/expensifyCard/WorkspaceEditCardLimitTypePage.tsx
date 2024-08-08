@@ -93,7 +93,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
     };
 
-    const data = useMemo(() => {
+    const data = () => {
         const options = [];
         let shouldShowFixedOption = true;
 
@@ -135,7 +135,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         return options;
-    }, [card.totalSpend, card.nameValuePairs?.limit, areApprovalsConfigured, translate, typeSelected, initialLimitType]);
+    };
 
     return (
         <AccessOrNotFoundWrapper
