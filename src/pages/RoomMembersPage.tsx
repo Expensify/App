@@ -19,7 +19,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserSearchPhraseActions from '@libs/actions/UserSearchPhrase';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
@@ -54,7 +54,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.USER_SEARCH_PHRASE);
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;

@@ -18,7 +18,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
-import * as UserSearchPhraseActions from '@libs/actions/UserSearchPhrase';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
@@ -53,7 +53,7 @@ function RoomInvitePage({
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.USER_SEARCH_PHRASE);
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
