@@ -3659,7 +3659,7 @@ export default {
             status: 'Status',
             currency: 'Currency',
         },
-        expenseTypes: 'Expense types',
+        expenseType: 'Expense type',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

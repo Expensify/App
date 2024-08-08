@@ -17,11 +17,11 @@ import ROUTES from '@src/ROUTES';
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (expenseType) {
-        case 'distance':
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
             return 'common.distance';
-        case 'card':
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return 'common.card';
-        case 'cash':
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
             return 'iou.cash';
     }
 }
@@ -44,26 +44,27 @@ function SearchFiltersExpenseTypePage() {
         });
     }, [allExpenseTypes, translate]);
 
-    const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
+    const updateExpenseTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
 
     return (
         <ScreenWrapper
             testID={SearchFiltersExpenseTypePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
-                title={translate('search.expenseTypes')}
+                title={translate('search.expenseType')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('search.expenseTypes')}
+                    pickerTitle={translate('search.expenseType')}
                     items={expenseTypesItems}
                     initiallySelectedItems={selectedExpenseTypes}
-                    onSaveSelection={onSaveSelection}
+                    onSaveSelection={updateExpenseTypeFilter}
                     shouldShowTextInput={false}
                 />
             </View>

@@ -3713,7 +3713,7 @@ export default {
             status: 'Estado',
             currency: 'Divisa',
         },
-        expenseTypes: 'Tipos de gastos',
+        expenseType: 'Tipo de gasto',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

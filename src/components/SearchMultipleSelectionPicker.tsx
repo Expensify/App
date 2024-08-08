@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import SelectionList from './SelectionList';
 import SelectableListItem from './SelectionList/SelectableListItem';
@@ -37,7 +38,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 isSelected: true,
             }));
         const remainingItemsSection = items
-            .filter((item) => selectedItems.some((selectedItem) => selectedItem.name === item.name) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((item) => ({
                 text: item.name,
@@ -80,7 +81,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const handleConfirmSelection = useCallback(() => {
         onSaveSelection(selectedItems.map((item) => item.value));
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [onSaveSelection, selectedItems]);
 
     const footerContent = useMemo(

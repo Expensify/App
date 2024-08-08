@@ -38,7 +38,6 @@ function SearchFiltersCurrencyPage() {
     }, [currencyList, selectedCurrenciesCodes]);
     const handleOnSubmit = (values: string[]) => {
         SearchActions.updateAdvancedFilters({currency: values});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
@@ -54,7 +53,7 @@ function SearchFiltersCurrencyPage() {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
             />
-            <View style={[styles.flex1, styles.pb5]}>
+            <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
                     pickerTitle={translate('search.filters.currency')}
                     items={currencyItems}

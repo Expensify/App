@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, TaxRates} from '@src/types/onyx';
+import type {CardList} from '@src/types/onyx';
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
@@ -69,9 +69,9 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         : undefined;
 }
 
-function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: TaxRates) {
+function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string>) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE];
-    return filterValue ? filterValue.map((taxRateKey) => taxRates[taxRateKey].name).join(', ') : undefined;
+    return filterValue ? filterValue.map((taxRateKey) => taxRates[taxRateKey]).join(', ') : undefined;
 }
 
 function AdvancedSearchFilters() {
@@ -139,7 +139,7 @@ function AdvancedSearchFilters() {
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, translate),
-                description: 'search.expenseTypes' as const,
+                description: 'search.expenseType' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
             },
             {

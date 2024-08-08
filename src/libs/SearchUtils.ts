@@ -6,7 +6,7 @@ import type {ListItem, ReportListItemType, TransactionListItemType} from '@compo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
@@ -17,6 +17,8 @@ import type {AuthScreensParamList, RootStackParamList, State} from './Navigation
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+
+type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -385,8 +387,8 @@ function normalizeQuery(query: string) {
  * returns Date filter query string part, which needs special logic
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const dateBefore = filterValues[INPUT_IDS.DATE_BEFORE];
-    const dateAfter = filterValues[INPUT_IDS.DATE_AFTER];
+    const dateBefore = filterValues[FILTER_KEYS.DATE_BEFORE];
+    const dateAfter = filterValues[FILTER_KEYS.DATE_AFTER];
 
     let dateFilter = '';
     if (dateBefore) {
@@ -415,34 +417,36 @@ function sanitizeString(str: string) {
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues)
         .map(([filterKey, filterValue]) => {
-            if (filterKey === INPUT_IDS.TYPE && filterValue) {
+            if (filterKey === FILTER_KEYS.TYPE && filterValue) {
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
             }
 
-            if (filterKey === INPUT_IDS.STATUS && filterValue) {
+            if (filterKey === FILTER_KEYS.STATUS && filterValue) {
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
             }
 
-            if (filterKey === INPUT_IDS.CURRENCY && Array.isArray(filterValue) && filterValue.length > 0) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${filterValue.join(',')}`;
-            }
-            if ((filterKey === INPUT_IDS.MERCHANT || filterKey === INPUT_IDS.DESCRIPTION || filterKey === INPUT_IDS.REPORT_ID) && filterValue) {
-                const keyInCorrectForm = CONST.SEARCH.SYNTAX_FILTER_VALUE_TO_KEY_MAPPING[filterKey];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
+            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
+                }
             }
 
             if (
-                (filterKey === INPUT_IDS.CATEGORY ||
-                    filterKey === INPUT_IDS.CARD_ID ||
-                    filterKey === INPUT_IDS.TAX_RATE ||
-                    filterKey === INPUT_IDS.EXPENSE_TYPE ||
-                    filterKey === INPUT_IDS.TAG) &&
+                (filterKey === FILTER_KEYS.CATEGORY ||
+                    filterKey === FILTER_KEYS.CARD_ID ||
+                    filterKey === FILTER_KEYS.TAX_RATE ||
+                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                    filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.CURRENCY) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
-                const arrayFilterValues = filterValues[filterKey] ?? [];
-                const keyInCorrectForm = CONST.SEARCH.SYNTAX_FILTER_VALUE_TO_KEY_MAPPING[filterKey];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${arrayFilterValues.map(sanitizeString).join(',')}`;
+                const filterValueArray = filterValues[filterKey] ?? [];
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(', ')}`;
+                }
             }
 
             return undefined;

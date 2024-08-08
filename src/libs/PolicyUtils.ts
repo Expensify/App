@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTag, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -289,11 +289,15 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
     );
 }
 
-function getTagsNamesFromTagsList(policyTagLists: PolicyTagLists): string[] {
-    const tagsList: PolicyTag[] = Object.values(policyTagLists ?? {})
-        .map((policyTagList) => Object.values(policyTagList.tags))
-        .flat();
-    return tagsList.map((tag) => tag.name);
+function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
+    const uniqueTagNames = new Set<string>();
+
+    for (const policyTagList of Object.values(policyTagLists ?? {})) {
+        for (const tag of Object.values(policyTagList.tags)) {
+            uniqueTagNames.add(tag.name);
+        }
+    }
+    return Array.from(uniqueTagNames);
 }
 
 /**
@@ -419,13 +423,15 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
-function getAllTaxRates(): TaxRates {
-    let allTaxRates: TaxRates = {};
+function getAllTaxRates(): Record<string, string> {
+    const allTaxRates: Record<string, string> = {};
     Object.values(allPolicies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
         }
-        allTaxRates = {...allTaxRates, ...policy?.taxRates?.taxes};
+        Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
+            allTaxRates[taxRateKey] = taxRate.name;
+        });
     });
     return allTaxRates;
 }
@@ -1014,7 +1020,7 @@ export {
     areSettingsInErrorFields,
     settingsPendingAction,
     getAllTaxRates,
-    getTagsNamesFromTagsList,
+    getTagNamesFromTagsLists,
 };
 
 export type {MemberEmailsToAccountIDs};
