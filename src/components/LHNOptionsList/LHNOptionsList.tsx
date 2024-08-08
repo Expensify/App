@@ -253,7 +253,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     ref={flashListRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
-                    CellRendererComponent={getPlatform() !== CONST.PLATFORM.WEB ? OptionRowRendererComponent : undefined}
+                    CellRendererComponent={OptionRowRendererComponent}
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
                     data={data}
                     testID="lhn-options-list"
