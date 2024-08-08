@@ -64,9 +64,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     const isFocusedScreen = useIsFocused();
 
-    // useEffect(() => {
-    //     setSearchValue(userSearchPhrase);
-    // }, [isFocusedScreen]);
+    useEffect(() => {
+        setSearchValue(userSearchPhrase ?? '');
+    }, [isFocusedScreen, setSearchValue, userSearchPhrase]);
 
     useEffect(() => {
         UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
