@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
