@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -151,33 +152,35 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     title={translate('workspace.card.issueNewCard.limitType')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
                 />
-                <SelectionList
-                    ListItem={RadioListItem}
-                    onSelectRow={({value}) => setTypeSelected(value)}
-                    sections={[{data}]}
-                    shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={typeSelected}
-                />
-                <ConfirmModal
-                    title={translate('workspace.expensifyCard.changeCardLimitType')}
-                    isVisible={isConfirmModalVisible}
-                    onConfirm={updateCardLimitType}
-                    onCancel={() => setIsConfirmModalVisible(false)}
-                    prompt={translate(promptTranslationKey, CurrencyUtils.convertToDisplayString(card.nameValuePairs?.limit, CONST.CURRENCY.USD))}
-                    confirmText={translate('workspace.expensifyCard.changeLimitType')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                    shouldEnableNewFocusManagement
-                />
-                <Button
-                    success
-                    large
-                    pressOnEnter
-                    text={translate('common.save')}
-                    onPress={submit}
-                    style={styles.m5}
-                />
+                <FullPageOfflineBlockingView>
+                    <SelectionList
+                        ListItem={RadioListItem}
+                        onSelectRow={({value}) => setTypeSelected(value)}
+                        sections={[{data}]}
+                        shouldUpdateFocusedIndex
+                        isAlternateTextMultilineSupported
+                        initiallyFocusedOptionKey={typeSelected}
+                    />
+                    <ConfirmModal
+                        title={translate('workspace.expensifyCard.changeCardLimitType')}
+                        isVisible={isConfirmModalVisible}
+                        onConfirm={updateCardLimitType}
+                        onCancel={() => setIsConfirmModalVisible(false)}
+                        prompt={translate(promptTranslationKey, CurrencyUtils.convertToDisplayString(card.nameValuePairs?.limit, CONST.CURRENCY.USD))}
+                        confirmText={translate('workspace.expensifyCard.changeLimitType')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                        shouldEnableNewFocusManagement
+                    />
+                    <Button
+                        success
+                        large
+                        pressOnEnter
+                        text={translate('common.save')}
+                        onPress={submit}
+                        style={styles.m5}
+                    />
+                </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
