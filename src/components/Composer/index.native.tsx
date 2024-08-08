@@ -1,9 +1,13 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
+<<<<<<< HEAD
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
+=======
+import React, {useCallback, useMemo, useRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData} from 'react-native';
+>>>>>>> aa1430f (Merge pull request #47110 from Expensify/Rory-RevertImagePasting)
 import {StyleSheet} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -20,9 +24,13 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
+<<<<<<< HEAD
         shouldClear = false,
         onClear = () => {},
         onPasteFile = () => {},
+=======
+        onClear: onClearProp = () => {},
+>>>>>>> aa1430f (Merge pull request #47110 from Expensify/Rory-RevertImagePasting)
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -66,6 +74,7 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+<<<<<<< HEAD
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items[0];
@@ -78,6 +87,13 @@ function Composer(
             onPasteFile(file);
         },
         [onPasteFile],
+=======
+    const onClear = useCallback(
+        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            onClearProp(nativeEvent.text);
+        },
+        [onClearProp],
+>>>>>>> aa1430f (Merge pull request #47110 from Expensify/Rory-RevertImagePasting)
     );
 
     useEffect(() => {
@@ -108,7 +124,6 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
-            onPaste={pasteFile}
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
