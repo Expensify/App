@@ -15,6 +15,7 @@ type PullRequest = {
     issue_number: number;
     title: string;
     merged_by: {login: string};
+    labels: Array<{name: string}>;
 };
 
 type PullRequestParams = {
@@ -52,6 +53,7 @@ const PRList: Record<number, PullRequest> = {
         merged_by: {
             login: 'odin',
         },
+        labels: [],
     },
     2: {
         issue_number: 2,
@@ -59,6 +61,7 @@ const PRList: Record<number, PullRequest> = {
         merged_by: {
             login: 'loki',
         },
+        labels: [],
     },
 };
 const version = '42.42.42-42';
@@ -246,6 +249,7 @@ platform | result
                         merged_by: {
                             login: 'thor',
                         },
+                        labels: [{name: 'CP Staging'}],
                     },
                 };
             }
@@ -256,7 +260,7 @@ platform | result
         });
         mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
             if (commit_sha === 'xyz') {
-                return {data: {message: 'Test PR 3 (cherry picked from commit dagdag)', committer: {name: 'freyja'}}};
+                return {data: {message: 'Merge pull request #3 blahblahblah (cherry picked from commit dagdag) (CP triggered by freyja)', committer: {name: 'freyja'}}};
             }
             return mockGetCommitDefaultImplementation({commit_sha});
         });
