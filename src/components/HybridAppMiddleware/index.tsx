@@ -61,7 +61,8 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
 
         NativeModules.HybridAppModule.getOldDotEmail().then((email: string | undefined) => {
             const isLoggingInAsNewUser = email !== sessionEmail;
-            if (initialURL === 'home' && !isLoggingInAsNewUser ) {
+            // In case NewDot gets opened from an error/offline just open the Home Screen
+            if (initialURL === ROUTES.HOME && !isLoggingInAsNewUser) {
                 BootSplash.hide();
                 return;
             }
