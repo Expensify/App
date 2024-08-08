@@ -5409,6 +5409,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
             },
+            approvals: {
+                id: 'approvals' as const,
+                alias: 'approvals' as const,
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
             glCodes: {
                 id: 'glCodes' as const,
                 alias: 'gl-codes',
