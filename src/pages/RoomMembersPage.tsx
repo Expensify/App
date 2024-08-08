@@ -33,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Session} from '@src/types/onyx';
+import type {PersonalDetails, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -170,20 +170,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
+        const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
 
         participants.forEach((accountID) => {
-            const details = personalDetails[accountID];
-            // When adding a new member to a room (whose personal detail does not exist in Onyx), an optimistic personal detail
-            // is created. However, when the real personal detail is returned from the backend, a duplicate member may appear
-            // briefly before the optimistic personal detail is deleted. To address this, we filter out the optimistically created
-            // member here.
-            const isDuplicateOptimisticDetail = details?.isOptimisticPersonalDetail && participants.some((accID) => accID !== accountID && details.login === personalDetails[accID]?.login);
-
-            if (!details || isDuplicateOptimisticDetail) {
-                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                return;
-            }
+            const details = personalDetails[accountID] as PersonalDetails;
 
             // If search value is provided, filter out members that don't match the search value
             if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {

@@ -64,15 +64,10 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
-        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
+        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
-            if (!details) {
-                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
-                return;
-            }
 
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isSelected = selectedMembers.includes(accountID);

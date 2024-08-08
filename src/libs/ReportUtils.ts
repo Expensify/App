@@ -68,6 +68,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -2031,6 +2032,37 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
     }
 
     return participantsEntries.map(([accountID]) => Number(accountID));
+}
+
+function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false): number[] {
+    const isReportGroupChat = isGroupChat(report);
+    const isReportIOU = isIOUReport(report);
+    const shouldExcludeHiddenParticipants = !isReportGroupChat && !isReportIOU;
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants);
+
+    return chatParticipants.filter((accountID) => {
+        const details = personalDetails?.[accountID];
+
+        if (!isRoomMembersList) {
+            if (!details) {
+                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
+                return false;
+            }
+        } else {
+            // When adding a new member to a room (whose personal detail does not exist in Onyx), an optimistic personal detail
+            // is created. However, when the real personal detail is returned from the backend, a duplicate member may appear
+            // briefly before the optimistic personal detail is deleted. To address this, we filter out the optimistically created
+            // member here.
+            const isDuplicateOptimisticDetail =
+                details?.isOptimisticPersonalDetail && chatParticipants.some((accID) => accID !== accountID && details.login === personalDetails?.[accID]?.login);
+
+            if (!details || isDuplicateOptimisticDetail) {
+                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
+                return false;
+            }
+        }
+        return true;
+    });
 }
 
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
@@ -7608,6 +7640,7 @@ export {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantsAccountIDsForDisplay,
+    getParticipantsList,
     getParticipants,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
