@@ -89,6 +89,15 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
+const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
+    CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+    CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+    CONST.VIOLATIONS.SMARTSCAN_FAILED,
+];
+
+const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+
 const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>) => {
     if (!parentReportAction) {
         return;
@@ -374,13 +383,7 @@ function MoneyRequestView({
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
-    const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
-        CONST.VIOLATIONS.RECEIPT_REQUIRED,
-        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
-        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
-        CONST.VIOLATIONS.SMARTSCAN_FAILED,
-    ];
-    const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -388,18 +391,16 @@ function MoneyRequestView({
         for (const violation of transactionViolations ?? []) {
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
-            if (!isReceiptFieldViolation && !isReceiptImageViolation) {
-                continue;
+            if (isReceiptFieldViolation || isReceiptImageViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+                allViolations.push(violationMessage);
+                if (isReceiptImageViolation) {
+                    imageViolations.push(violationMessage);
+                }
             }
-            const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
-            allViolations.push(violationMessage);
-            if (!isReceiptImageViolation) {
-                continue;
-            }
-            imageViolations.push(violationMessage);
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, receiptImageViolationNames, receiptFieldViolationNames, translate]);
+    }, [transactionViolations, translate]);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
