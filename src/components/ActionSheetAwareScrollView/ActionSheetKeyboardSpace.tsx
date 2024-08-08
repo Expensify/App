@@ -47,6 +47,7 @@ const useAnimatedKeyboard = () => {
             },
             onEnd: (e) => {
                 'worklet';
+
                 state.value = e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED;
                 height.value = e.height;
                 progress.value = e.progress;
@@ -152,7 +153,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
             }
 
             case States.MODAL_DELETED:
-            case States.EMOJI_PICKER_POPOVER_OPEN:
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
@@ -160,11 +160,26 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, SPRING_CONFIG);
                     }
 
-                    console.log(114, Math.max(previousElementOffset, 0), previousElementOffset);
+                    console.log(114, Math.max(previousElementOffset, 0));
                     return withSpring(Math.max(previousElementOffset, 0), SPRING_CONFIG);
                 }
 
                 console.log(115, 0);
+                return 0;
+            }
+            case States.ATTACHMENTS_POPOVER_OPEN:
+            case States.EMOJI_PICKER_POPOVER_OPEN: {
+                if (popoverHeight) {
+                    if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
+                        console.log(98, elementOffset < 0 ? 0 : elementOffset, elementOffset);
+                        return withSpring(elementOffset < 0 ? 0 : elementOffset, SPRING_CONFIG);
+                    }
+
+                    console.log(99, Math.max(previousElementOffset, 0), previousElementOffset, popoverHeight - composerHeight);
+                    return withSpring(popoverHeight - composerHeight, SPRING_CONFIG);
+                }
+
+                console.log(1100, 0);
                 return 0;
             }
 
