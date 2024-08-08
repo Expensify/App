@@ -17,6 +17,7 @@ import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedSt
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
+import {getCurrentSearchParams} from '@libs/SearchUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -75,6 +76,21 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         Navigation.navigate(route);
     }, [activeWorkspaceID, selectedTab]);
 
+    const navigateToSearch = useCallback(() => {
+        if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
+            return;
+        }
+        interceptAnonymousUser(() => {
+            const currentSearchParams = getCurrentSearchParams();
+            if (currentSearchParams) {
+                const {q, ...rest} = currentSearchParams;
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: q, ...rest}));
+                return;
+            }
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
+        });
+    }, [selectedTab]);
+
     return (
         <View style={styles.bottomTabBarContainer}>
             <Tooltip text={translate('common.inbox')}>
@@ -100,12 +116,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             </Tooltip>
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
-                            return;
-                        }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL})));
-                    }}
+                    onPress={navigateToSearch}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
                     wrapperStyle={styles.flex1}
