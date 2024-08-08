@@ -12774,7 +12774,10 @@ async function run() {
                     });
                     const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
                     if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
-                        deployer = commit.committer.name;
+                        const cpActor = commit.message.match(/.*\(CP triggered by (.*)\)/)?.at(1);
+                        if (cpActor) {
+                            deployer = cpActor;
+                        }
                         break;
                     }
                 }
