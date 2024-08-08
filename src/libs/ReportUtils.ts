@@ -1136,6 +1136,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
 }
 
+const CONCIERGE_ACCOUNT_ID_STRING = CONST.ACCOUNT_ID.CONCIERGE.toString();
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
@@ -1149,7 +1150,7 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
         return false;
     }
 
-    return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString());
+    return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING);
 }
 
 function findSelfDMReportID(): string | undefined {
