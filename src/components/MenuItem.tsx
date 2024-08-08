@@ -19,6 +19,7 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -299,11 +300,17 @@ type MenuItemBaseProps = {
     /** Whether to show the tooltip */
     shouldRenderTooltip?: boolean;
 
-    /** Whether to align the tooltip left */
-    shouldForceRenderingTooltipLeft?: boolean;
+    /** Anchor alignment of the tooltip */
+    tooltipAnchorAlignment?: TooltipAnchorAlignment;
 
     /** Additional styles for tooltip wrapper */
     tooltipWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Any additional amount to manually adjust the horizontal position of the tooltip */
+    tooltipShiftHorizontal?: number;
+
+    /** Any additional amount to manually adjust the vertical position of the tooltip */
+    tooltipShiftVertical?: number;
 
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
@@ -398,8 +405,10 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
-        shouldForceRenderingTooltipLeft = false,
+        tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
+        tooltipShiftHorizontal = 0,
+        tooltipShiftVertical = 0,
         renderTooltipContent,
     }: MenuItemProps,
     ref: PressableRef,
@@ -521,11 +530,12 @@ function MenuItem(
             )}
             <EducationalTooltip
                 shouldRender={shouldRenderTooltip}
-                shouldForceRenderingLeft={shouldForceRenderingTooltipLeft}
+                anchorAlignment={tooltipAnchorAlignment}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
-                shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}
-                shiftVertical={styles.popoverMenuItem.paddingVertical / 2}
+                shiftHorizontal={tooltipShiftHorizontal}
+                shiftVertical={tooltipShiftVertical}
+                shouldAutoDismiss
             >
                 <View>
                     <Hoverable>
