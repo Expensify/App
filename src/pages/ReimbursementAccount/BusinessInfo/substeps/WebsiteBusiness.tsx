@@ -38,8 +38,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const styles = useThemeStyles();
 
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const defaultCompanyWebsite = reimbursementAccount?.achData?.website || defaultWebsiteExample;
+    const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
