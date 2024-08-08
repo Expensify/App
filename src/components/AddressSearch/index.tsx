@@ -99,7 +99,6 @@ function AddressSearch(
             languageCode: preferredLocale,
             includedRegionCodes: isLimitedToUSA ? ['us'] : undefined,
             ...(locationBias && {locationBias}),
-            fields: CONST.GOOGLE_PLACES_API.FIELDS_MASK,
         }),
         [preferredLocale, isLimitedToUSA, locationBias],
     );
@@ -473,6 +472,7 @@ function AddressSearch(
                         }
                         placeholder=""
                         listViewDisplayed
+                        fields={CONST.GOOGLE_PLACES_API.FIELDS_MASK}
                         isNewPlacesAPI
                     >
                         <LocationErrorMessage
