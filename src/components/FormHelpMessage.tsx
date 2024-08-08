@@ -61,7 +61,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ?? shouldParseMessage ? <RenderHTML html={processedText} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>}
+                {children ?? (shouldParseMessage ? <RenderHTML html={processedText} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
             </View>
         </View>
     );
