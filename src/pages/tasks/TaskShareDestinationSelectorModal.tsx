@@ -138,7 +138,7 @@ function TaskShareDestinationSelectorModal() {
                         ListItem={UserListItem}
                         sections={areOptionsInitialized ? sections : []}
                         onSelectRow={selectReportHandler}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={options.header}
