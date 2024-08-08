@@ -536,6 +536,7 @@ function MenuItem(
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
+                                activeOpacity={0.8}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,
