@@ -48,7 +48,7 @@ const useIsFocused = () => {
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && shouldUseNarrowLayout);
 };
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
@@ -97,6 +97,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         pendingAction: policy.pendingAction,
         avatarURL: policy.avatarURL,
         name: policy.name,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
@@ -488,8 +489,13 @@ function FloatingActionButtonAndPopover(
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                                  shouldRenderTooltip: quickAction?.isFirstQuickAction,
-                                  shouldForceRenderingTooltipLeft: true,
+                                  shouldRenderTooltip: quickAction.isFirstQuickAction,
+                                  tooltipAnchorAlignment: {
+                                      vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                      horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                  },
+                                  tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
+                                  tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
                                   renderTooltipContent: renderQuickActionTooltip,
                                   tooltipWrapperStyle: styles.quickActionTooltipWrapper,
                               },

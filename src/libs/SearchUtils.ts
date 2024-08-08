@@ -76,7 +76,11 @@ function isSearchDataType(type: string): type is SearchDataTypes {
     return searchDataTypes.includes(type);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
+function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
+    if (!search) {
+        return undefined;
+    }
+
     if (!isSearchDataType(search.type)) {
         return undefined;
     }
@@ -220,7 +224,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
-            } else {
+            } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
@@ -424,6 +428,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
             }
 
+            if (filterKey === INPUT_IDS.CURRENCY && Array.isArray(filterValue) && filterValue.length > 0) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${filterValue.join(',')}`;
+            }
             if (filterKey === INPUT_IDS.MERCHANT && filterValue) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}:${filterValue as string}`;
             }
@@ -502,7 +509,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `,${filterName}:${queryFilter.value}`;
+            filterValueString += `,${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
         }

@@ -3879,6 +3879,12 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        reportActionComposeTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+            paddingVertical: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
         quickActionTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
         },
@@ -4713,6 +4719,11 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeNormal,
         },
 
+        walletIllustration: {
+            width: 262,
+            height: 152,
+        },
+
         walletCardLimit: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -4745,13 +4756,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textLight,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
-        },
-
-        walletBalance: {
-            lineHeight: undefined,
-            fontSize: 45,
-            paddingTop: 0,
-            paddingBottom: 0,
         },
 
         walletRedDotSectionTitle: {
@@ -5110,19 +5114,16 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateScrollView: {
-            marginTop: 12,
-            minHeight: 400,
             height: '100%',
             flex: 1,
         },
 
-        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+        emptyStateForeground: {
+            margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '100%',
-            padding: isSmallScreenWidth ? 32 : 0,
-            width: '100%',
-        }),
+            flex: 1,
+        },
 
         emptyStateContent: {
             backgroundColor: theme.cardBG,
