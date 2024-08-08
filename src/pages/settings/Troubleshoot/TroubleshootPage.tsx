@@ -8,11 +8,13 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import OnyxStateImport from '@components/OnyxStateImport';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -38,35 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
-// List of Onyx keys from the .txt file we want to keep for the local override
-const keysToInclude = [
-    ONYXKEYS.COLLECTION.REPORT,
-    ONYXKEYS.COLLECTION.REPORT_METADATA,
-    ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
-    ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
-    ONYXKEYS.COLLECTION.TRANSACTION,
-    ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    ONYXKEYS.COLLECTION.POLICY,
-    ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    ONYXKEYS.COLLECTION.POLICY_TAGS,
-    ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
-    ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-    ONYXKEYS.PERSONAL_DETAILS_LIST,
-    ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    ONYXKEYS.ACCOUNT,
-    ONYXKEYS.SESSION,
-    ONYXKEYS.WALLET_TRANSFER,
-    ONYXKEYS.LOGIN_LIST,
-    ONYXKEYS.USER,
-    ONYXKEYS.USER_WALLET,
-    ONYXKEYS.USER_METADATA,
-    ONYXKEYS.IS_LOADING_REPORT_DATA,
-    'nvp_',
-];
-
 type BaseMenuItem = {
     translationKey: TranslationPaths;
     icon: React.FC<SvgProps>;
@@ -90,6 +63,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrationStyle = getLightbulbIllustrationStyle();
+    const [isLoading, setIsLoading] = useState(false);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -149,6 +123,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
+            {isLoading && <FullScreenLoadingIndicator />}
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
@@ -174,57 +149,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                <AttachmentPicker>
-                                    {({openPicker}) => {
-                                        return (
-                                            <Button
-                                                text={translate('initialSettingsPage.troubleshoot.importOnyxState')}
-                                                onPress={() => {
-                                                    // TODO should directly use 'react-native-document-picker'
-                                                    openPicker({
-                                                        onPicked: (file) => {
-                                                            if (!file.uri) {
-                                                                return;
-                                                            }
-
-                                                            // 1. Read the file content
-                                                            RNFS.readFile(file.uri).then((fileContent) => {
-                                                                const importedState = JSON.parse(fileContent);
-                                                                // TODO: this needs to be exactly the same as we get from running the App.openApp command?
-                                                                const parsedState = Object.assign({}, importedState);
-
-                                                                // 2. Only keep the keys that we're interested in
-                                                                Object.keys(parsedState).forEach((key) => {
-                                                                    const shouldStay = keysToInclude.some((onyxKey) => key.startsWith(onyxKey));
-
-                                                                    if (shouldStay) {
-                                                                        return;
-                                                                    }
-
-                                                                    delete parsedState[key];
-                                                                });
-
-                                                                // App.openApp();
-
-                                                                // 3. Go offline
-                                                                Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true}).then(() => {
-                                                                    // Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
-
-                                                                    // 4. Apply the new state from the file
-                                                                    Onyx.multiSet(parsedState).then(() => {
-                                                                        console.log('Applied imported state.');
-                                                                        Navigation.navigate(ROUTES.HOME);
-                                                                    });
-                                                                    // });
-                                                                });
-                                                            });
-                                                        },
-                                                    });
-                                                }}
-                                            />
-                                        );
-                                    }}
-                                </AttachmentPicker>
+                                <OnyxStateImport setIsLoading={setIsLoading} />
                             </View>
                             <View>
                                 <ClientSideLoggingToolMenu />

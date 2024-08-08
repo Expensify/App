@@ -11,6 +11,9 @@ Onyx.connect({
     callback: (val) => (persistedRequests = val ?? []),
 });
 
+function isIterable(obj: any): boolean {
+    return obj != null && typeof obj[Symbol.iterator] === 'function';
+}
 /**
  * This promise is only used by tests. DO NOT USE THIS PROMISE IN THE APPLICATION CODE
  */
@@ -23,7 +26,13 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests, requestToPersist];
+    let requests: Request[] = [];
+    if (isIterable(persistedRequests)) {
+        requests = [...persistedRequests, requestToPersist];
+    } else {
+        requests = [requestToPersist];
+    }
+
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(() => {
         Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
