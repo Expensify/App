@@ -43,10 +43,6 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
 
-    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-
-    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
-
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
 
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',

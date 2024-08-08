@@ -5277,9 +5277,6 @@ const CONST = {
                 PAID: 'paid',
             },
         },
-        TYPE: {
-            EXPENSE: 'expense',
-        },
         TAB: {
             EXPENSE: {
                 ALL: 'type:expense status:all',

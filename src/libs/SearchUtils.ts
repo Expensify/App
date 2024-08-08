@@ -435,14 +435,6 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
     // TODO add handling of multiple values picked
     const filtersString = Object.entries(filterValues)
         .map(([filterKey, filterValue]) => {
-            if (filterKey === INPUT_IDS.TYPE && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
-            }
-
-            if (filterKey === INPUT_IDS.STATUS && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
-            }
-
             if (filterKey === INPUT_IDS.CURRENCY && Array.isArray(filterValue) && filterValue.length > 0) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}:${filterValue.join(',')}`;
             }
