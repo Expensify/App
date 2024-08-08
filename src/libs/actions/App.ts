@@ -350,6 +350,7 @@ function endSignOnTransition() {
  * @param [policyName] Optional, custom policy name we will use for created workspace
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
     const policyID = Policy.generatePolicyID();
