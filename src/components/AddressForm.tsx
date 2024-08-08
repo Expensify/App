@@ -126,7 +126,7 @@ function AddressForm({
                     }
                 }
             } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
-                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', undefined);
+                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 
             return errors;

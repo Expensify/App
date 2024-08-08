@@ -45,7 +45,7 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (arg: infer A) => string ? [A] : T extends (arg: infer A) => PluralFormPhase ? [A, number] : never[];
+type PhraseParameters<T> = T extends (arg?: infer A) => string ? [A?] : T extends (arg: infer A) => string ? [A] : T extends (arg: infer A) => PluralFormPhase ? [A, number] : never[];
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey];
 
 /**
