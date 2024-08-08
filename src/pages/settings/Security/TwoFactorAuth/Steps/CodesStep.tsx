@@ -1,3 +1,5 @@
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -17,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
-import type {BackToParams} from '@libs/Navigation/types';
+import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import type {BaseTwoFactorAuthFormOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
@@ -25,6 +27,8 @@ import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
@@ -35,6 +39,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
     const isUserValidated = user?.validated;
+    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -125,7 +130,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
                         </View>
                     </Section>
                 )}
-                {!isUserValidated && <ValidateAccountMessage />}
+                {!isUserValidated && <ValidateAccountMessage backTo={ROUTES.SETTINGS_2FA.getRoute(route?.params?.backTo)} />}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     {!!error && (
                         <FormHelpMessage

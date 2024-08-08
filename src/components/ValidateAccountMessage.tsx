@@ -1,10 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,8 +9,13 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
+import TextLink from './TextLink';
 
-function ValidateAccountMessage() {
+type ValidateAccountMessageProps = {backTo: string | undefined};
+function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -41,7 +42,7 @@ function ValidateAccountMessage() {
                     fontSize={variables.fontSizeLabel}
                     onPress={() => {
                         const login = loginList?.[loginNames?.[0]] ?? {};
-                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0]));
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0], backTo));
                     }}
                 >
                     {translate('bankAccount.validateAccountError.phrase4')}
