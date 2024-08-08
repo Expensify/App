@@ -239,6 +239,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
             return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
         default:
             return TransactionListItem;
@@ -251,6 +252,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
             return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
         default:
             return getTransactionsSections(data, metadata);
@@ -263,6 +265,7 @@ function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: Li
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
             return status === CONST.SEARCH.STATUS.EXPENSE.ALL
                 ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
                 : getSortedReportData(data as ReportListItemType[]);

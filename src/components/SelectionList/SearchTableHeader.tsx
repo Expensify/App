@@ -92,6 +92,7 @@ function getSearchColumns(type: SearchDataTypes): SearchColumnConfig[] {
         case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
             return expenseHeaders;
         default:
             return expenseHeaders;
