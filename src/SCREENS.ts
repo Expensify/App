@@ -194,6 +194,7 @@ const SCREENS = {
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
+        STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
