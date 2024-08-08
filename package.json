@@ -14,7 +14,7 @@
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --mode=developmentDebug --appId=com.expensify.chat.dev --active-arch-only",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --list-devices --mode=\"DebugDevelopment\" --scheme=\"New Expensify Dev\"",
-    "pod-install": "cd ios && bundle exec pod install",
+    "pod-install": "scripts/pod-install.sh",
     "ipad": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (12.9-inch) (6th generation)\\\" --mode=\\\"DebugDevelopment\\\" --scheme=\\\"New Expensify Dev\\\"\"",
     "ipad-sm": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (11-inch) (4th generation)\\\" --mode=\\\"DebugDevelopment\\\" --scheme=\\\"New Expensify Dev\\\"\"",
     "start": "npx react-native start",
